@@ -1,0 +1,100 @@
+services:
+  # ---------- 开发下载：只收经核实的通用开发依赖 ----------
+  - id: dev_js
+    group: 开发下载
+    title: JavaScript 生态（npm / Yarn / Node.js / Deno / Bun / JSR）
+    upstream: {dlc: [npmjs, nodejs, category-dev]}
+    rules:
+      - {suffix: npmjs.org, ev: claude-net, note: registry.npmjs.org；Claude Code 放行清单也列出，但它是通用依赖，不归 Claude}
+      - {suffix: npmjs.com, ev: dlc}
+      - {suffix: yarnpkg.com, ev: dlc}
+      - {suffix: nodejs.org, ev: dlc}
+      - {suffix: deno.land, ev: dlc}
+      - {suffix: jsr.io, ev: maintainer, note: 两个上游快照都未收录}
+      - {suffix: bun.sh, ev: maintainer, note: 两个上游快照都未收录}
+  - id: dev_python
+    group: 开发下载
+    title: Python 生态
+    upstream: {dlc: [python, anaconda]}
+    rules:
+      - {suffix: pypi.org, ev: dlc}
+      - {suffix: pythonhosted.org, ev: dlc, note: files.pythonhosted.org}
+      - {suffix: python.org, ev: dlc}
+      - {suffix: anaconda.org, ev: dlc}
+      - {suffix: anaconda.com, ev: dlc}
+  - id: dev_go
+    group: 开发下载
+    title: Go 生态
+    upstream: {dlc: [golang]}
+    rules:
+      - {domain: proxy.golang.org, ev: dlc}
+      - {domain: sum.golang.org, ev: dlc}
+      - {suffix: go.dev, ev: dlc}
+  - id: dev_rust
+    group: 开发下载
+    title: Rust 生态
+    upstream: {dlc: [rust]}
+    rules:
+      - {suffix: crates.io, ev: dlc}
+      - {suffix: rust-lang.org, ev: dlc}
+      - {suffix: rustup.rs, ev: dlc}
+  - id: dev_jvm
+    group: 开发下载
+    title: JVM 生态（Maven / Gradle）
+    upstream: {dlc: [category-dev], bm7: [Developer]}
+    rules:
+      - {suffix: maven.org, ev: bm7-snap}
+      - {domain: repo.maven.apache.org, ev: maintainer, note: 上游只在汇总列表 category-dev 里收了整个 apache.org}
+      - {suffix: gradle.org, ev: maintainer, note: 两个上游快照都未收录；services / plugins.gradle.org 为下载与插件门户}
+  - id: dev_other
+    group: 开发下载
+    title: 其他语言与容器镜像
+    upstream: {dlc: [ruby, category-dev, flutter, microsoft-dev, homebrew, docker, category-container, kubernetes, google]}
+    rules:
+      - {suffix: rubygems.org, ev: dlc}
+      - {suffix: packagist.org, ev: dlc}
+      - {suffix: cocoapods.org, ev: maintainer, note: 两个上游快照都未收录；cdn.cocoapods.org 为规格仓库 CDN}
+      - {suffix: pub.dev, ev: dlc}
+      - {suffix: nuget.org, ev: dlc}
+      - {suffix: brew.sh, ev: claude-net, note: formulae.brew.sh；Homebrew 通用依赖}
+      - {suffix: docker.io, ev: dlc}
+      - {suffix: docker.com, ev: dlc}
+      - {domain: production.cloudflare.docker.com, ev: dlc, note: Docker Hub 镜像层 CDN 专属主机}
+      - {suffix: quay.io, ev: dlc}
+      - {suffix: gcr.io, ev: dlc}
+      - {suffix: pkg.dev, ev: maintainer, note: Google Artifact Registry；上游只有 google-registry-tld 里的整个 .dev 顶级域，不作为证据}
+      - {suffix: k8s.io, ev: dlc, note: registry.k8s.io}
+
+  # ---------- 支付 ----------
+  - id: paypal
+    group: PayPal
+    title: PayPal
+    upstream: {dlc: [paypal]}
+    rules:
+      - {suffix: paypal.com, ev: dlc}
+      - {suffix: paypalobjects.com, ev: dlc}
+      - {suffix: paypal.me, ev: dlc}
+
+  # ---------- 系统联网检测：反映本地网络，固定直连（与节点健康检查、出口测试分开处理） ----------
+  - id: connectivity_check
+    group: DIRECT
+    title: 系统联网检测（Windows NCSI、Apple 强制门户、国内手机厂商）
+    upstream: {dlc: [connectivity-check]}
+    rules:
+      - {suffix: msftconnecttest.com, ev: dlc}
+      - {suffix: msftncsi.com, ev: dlc}
+      - {domain: captive.apple.com, ev: dlc}
+      - {domain: connectivitycheck.platform.hicloud.com, ev: dlc}
+      - {domain: connect.rom.miui.com, ev: dlc}
+      - {domain: wifi.vivo.com.cn, ev: dlc}
+    notes: >
+      Android 原生的 connectivitycheck.gstatic.com 归 Google（经代理才能判定“已联网”）；
+      节点健康检查由客户端自己经各节点发起，不走规则；主动查出口 IP 的网站不列入直连白名单。
+
+  # ---------- 厂商在国内有节点的大体积下载：直连（避免大流量走代理） ----------
+  - id: vendor_cn_cdn
+    group: 国内直连
+    title: 系统更新下载（国内有 CDN 节点）
+    rules:
+      - {suffix: windowsupdate.com, ev: maintainer, note: Windows 更新}
+      - {suffix: delivery.mp.microsoft.com, ev: maintainer, note: Windows / 商店分发，比 microsoft.com 更具体，先匹配}

@@ -1,0 +1,1332 @@
+# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
+# 统一源版本 2026.09.23-2；目标：mihomo v1.19.x（依据 v1.19.31 源码核对；empty-fallback 等字段在更早内核中会被忽略）
+# 产物类型：mihomo 内核直接运行（含端口、控制面、TUN 开关）
+# ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。
+
+mixed-port: 7890
+allow-lan: false
+bind-address: 127.0.0.1
+external-controller: 127.0.0.1:9090
+mode: rule
+log-level: warning
+ipv6: true
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: strict
+profile:
+  store-selected: true
+  store-fake-ip: true
+geodata-mode: false
+geo-auto-update: true
+geo-update-interval: 24
+geox-url:
+  geoip: https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat
+  geosite: https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat
+  mmdb: https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb
+  asn: https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb
+tun:
+  enable: false
+  stack: mixed
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack: ['any:53', 'tcp://any:53']
+  strict-route: true
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter: ['geosite:private', +.lan, +.local, +.localdomain, +.home.arpa, +.msftconnecttest.com, +.msftncsi.com, captive.apple.com, localhost.ptlogin2.qq.com, +.pool.ntp.org, time.apple.com, time.windows.com, +.cmpassport.com, +.jegotrip.com.cn, +.icitymobile.mobi, id6.me]
+  respect-rules: true
+  default-nameserver: [223.5.5.5, 119.29.29.29]
+  proxy-server-nameserver: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+  direct-nameserver: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+  nameserver: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query']
+  nameserver-policy:
+    geosite:cn,private: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  skip-domain: [+.push.apple.com, Mijia Cloud]
+
+proxy-providers:
+  订阅1:
+    type: http
+    url: https://REPLACE-ME.invalid/请替换为你的订阅链接
+    path: ./proxy_providers/sub1.yaml
+    interval: 86400
+    proxy: DIRECT
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      expected-status: '204'
+      interval: 600
+      timeout: 5000
+      lazy: true
+
+proxy-groups:
+  # 国外默认：独立选择组，成员为七个地区入口，首次默认日本；所选地区全组不可用时不自动跨国
+  - name: 国外默认
+    type: select
+    proxies: [日本, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区]
+  - name: OpenAI
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Claude
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Cursor
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # Google AI：原 Gemini 策略组改名
+  - name: Google AI
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # Copilot：GitHub Copilot 与 Microsoft Copilot 底层分别维护
+  - name: Copilot
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # 其他 AI：不含上面已独立的 AI；国内版 AI 归国内直连
+  - name: 其他 AI
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: YouTube
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Netflix
+    type: select
+    proxies: [Netflix·解锁入口, 国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Disney+
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # Max：服务已于 2025 年改回 HBO Max，组名沿用需求中的 Max
+  - name: Max
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Prime Video
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Hulu US
+    type: select
+    proxies: [美国, 国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 其他地区, DIRECT]
+  - name: Hulu Japan
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Abema
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: DMM
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # 日本影音：不含 Hulu Japan、Abema、DMM
+  - name: 日本影音
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Spotify
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: TikTok
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Twitch
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # Bilibili 港澳台：提供香港手动备选
+  - name: Bilibili 港澳台
+    type: select
+    proxies: [台湾, 香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区, DIRECT]
+  # Bahamut：其他地区可用性按内容实测，不预设香港等效台湾
+  - name: Bahamut
+    type: select
+    proxies: [台湾, 国外默认, 香港, 日本, 韩国, 新加坡, 美国, 其他地区, DIRECT]
+  # 其他流媒体：不含上面已独立的流媒体
+  - name: 其他流媒体
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Telegram
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: X
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Meta 社交
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: WhatsApp
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: LINE
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Discord
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Reddit
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: LinkedIn
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Apple
+    type: select
+    proxies: [DIRECT, 国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区]
+  # Apple Music/TV：可手动选择地区
+  - name: Apple Music/TV
+    type: select
+    proxies: [DIRECT, 国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区]
+  - name: Google
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: Microsoft
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  - name: GitHub
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # 开发下载：只收经核实的通用开发依赖；Cursor 专属下载归 Cursor，GitHub 专属流量归 GitHub
+  - name: 开发下载
+    type: select
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # 远程控制：目前唯一有官方依据的端点是 Cursor Grok Bot 托管计算机（*.cursorvm.com）；直连可用性未实测，所以默认不设 DIRECT
+  - name: 远程控制
+    type: select
+    proxies: [日本, 国外默认, 香港, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+  # PayPal：DIRECT 仅供明确手动选择；选普通地区入口会继承该入口当前模式，可能自动换节点
+  - name: PayPal
+    type: select
+    proxies: [PayPal·美国固定, 美国, 香港, 日本, 韩国, 台湾, 新加坡, 其他地区, DIRECT]
+  - name: 广告拦截
+    type: select
+    proxies: [REJECT, DIRECT]
+  - name: 国内直连
+    type: select
+    proxies: [DIRECT, 国外默认]
+  # PayPal·美国固定：尚未指定固定节点：在美国节点中手动选一个；被选节点删除后会回到本组第一个美国节点（见已知限制）
+  - name: PayPal·美国固定
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # Netflix·解锁入口：尚无解锁验证记录：暂按地区选择，默认国外默认；普通测速通过不代表解锁
+  - name: Netflix·解锁入口
+    type: select
+    proxies: [国外默认, 日本, 香港, 台湾, 新加坡, 美国, 韩国, 其他地区]
+  # 香港：地区入口：选择本地区的工作模式，不跨国
+  - name: 香港
+    type: select
+    proxies: [香港·手动优先, 香港·手动, 香港·自动, 香港·故障转移, 香港·负载均衡]
+  # 日本：地区入口：选择本地区的工作模式，不跨国
+  - name: 日本
+    type: select
+    proxies: [日本·手动优先, 日本·手动, 日本·自动, 日本·故障转移, 日本·负载均衡]
+  # 韩国：地区入口：选择本地区的工作模式，不跨国
+  - name: 韩国
+    type: select
+    proxies: [韩国·手动优先, 韩国·手动, 韩国·自动, 韩国·故障转移, 韩国·负载均衡]
+  # 台湾：地区入口：选择本地区的工作模式，不跨国
+  - name: 台湾
+    type: select
+    proxies: [台湾·手动优先, 台湾·手动, 台湾·自动, 台湾·故障转移, 台湾·负载均衡]
+  # 新加坡：地区入口：选择本地区的工作模式，不跨国
+  - name: 新加坡
+    type: select
+    proxies: [新加坡·手动优先, 新加坡·手动, 新加坡·自动, 新加坡·故障转移, 新加坡·负载均衡]
+  # 美国：地区入口：选择本地区的工作模式，不跨国
+  - name: 美国
+    type: select
+    proxies: [美国·手动优先, 美国·手动, 美国·自动, 美国·故障转移, 美国·负载均衡]
+  # 其他地区：纯手动；不提供跨国自动模式
+  - name: 其他地区
+    type: select
+    include-all-providers: true
+    exclude-filter: (?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)`(?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)`(?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)`(?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)`(?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)`(?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)`(?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 香港·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 香港·手动优先
+    type: fallback
+    proxies: [香港·手动, 香港·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 香港·手动：纯手动：在本地区节点中选择
+  - name: 香港·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 香港·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 香港·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 香港·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 香港·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 香港·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 香港·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+  # 日本·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 日本·手动优先
+    type: fallback
+    proxies: [日本·手动, 日本·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 日本·手动：纯手动：在本地区节点中选择
+  - name: 日本·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 日本·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 日本·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 日本·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 日本·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 日本·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 日本·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+  # 韩国·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 韩国·手动优先
+    type: fallback
+    proxies: [韩国·手动, 韩国·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 韩国·手动：纯手动：在本地区节点中选择
+  - name: 韩国·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 韩国·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 韩国·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 韩国·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 韩国·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 韩国·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 韩国·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+  # 台湾·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 台湾·手动优先
+    type: fallback
+    proxies: [台湾·手动, 台湾·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 台湾·手动：纯手动：在本地区节点中选择
+  - name: 台湾·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 台湾·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 台湾·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 台湾·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 台湾·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 台湾·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 台湾·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+  # 新加坡·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 新加坡·手动优先
+    type: fallback
+    proxies: [新加坡·手动, 新加坡·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 新加坡·手动：纯手动：在本地区节点中选择
+  - name: 新加坡·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 新加坡·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 新加坡·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 新加坡·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 新加坡·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 新加坡·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 新加坡·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+  # 美国·手动优先：手动优先·自动兜底：手选节点健康检查失败时用同地区自动测速，恢复后切回
+  - name: 美国·手动优先
+    type: fallback
+    proxies: [美国·手动, 美国·自动]
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 美国·手动：纯手动：在本地区节点中选择
+  - name: 美国·手动
+    type: select
+    include-all-providers: true
+    filter: (?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+  # 美国·自动：自动测速：同地区延迟最低（不代表带宽 / 解锁 / IP 信誉）
+  - name: 美国·自动
+    type: url-test
+    include-all-providers: true
+    filter: (?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    tolerance: 50
+    hidden: true
+  # 美国·故障转移：顺序故障转移：按订阅顺序取第一个可用节点
+  - name: 美国·故障转移
+    type: fallback
+    include-all-providers: true
+    filter: (?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    max-failed-times: 3
+    hidden: true
+  # 美国·负载均衡：负载均衡：同一目标尽量固定同一节点
+  - name: 美国·负载均衡
+    type: load-balance
+    include-all-providers: true
+    filter: (?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)
+    exclude-filter: (?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)
+    empty-fallback: REJECT
+    url: https://www.gstatic.com/generate_204
+    expected-status: '204'
+    interval: 300
+    timeout: 5000
+    lazy: true
+    strategy: consistent-hashing
+    hidden: true
+
+rules:
+  # ==== 2 局域网、内网与系统联网检测（固定直连） ====
+  # -- lan --
+  - DOMAIN-SUFFIX,lan,DIRECT
+  - DOMAIN-SUFFIX,local,DIRECT
+  - DOMAIN-SUFFIX,localdomain,DIRECT
+  - DOMAIN-SUFFIX,home.arpa,DIRECT
+  - DOMAIN-SUFFIX,localhost,DIRECT
+  - IP-CIDR,0.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,224.0.0.0/4,DIRECT,no-resolve
+  - IP-CIDR,255.255.255.255/32,DIRECT,no-resolve
+  - IP-CIDR6,::1/128,DIRECT,no-resolve
+  - IP-CIDR6,fc00::/7,DIRECT,no-resolve
+  - IP-CIDR6,fe80::/10,DIRECT,no-resolve
+  - IP-CIDR6,ff00::/8,DIRECT,no-resolve
+  # -- connectivity_check --
+  - DOMAIN-SUFFIX,msftconnecttest.com,DIRECT
+  - DOMAIN-SUFFIX,msftncsi.com,DIRECT
+  - DOMAIN,captive.apple.com,DIRECT
+  - DOMAIN,connectivitycheck.platform.hicloud.com,DIRECT
+  - DOMAIN,connect.rom.miui.com,DIRECT
+  - DOMAIN,wifi.vivo.com.cn,DIRECT
+  # ==== 3a 广告误杀例外：按没有广告规则时的业务目标放行 ====
+  - DOMAIN-SUFFIX,ct.sendgrid.net,国外默认
+  - DOMAIN-SUFFIX,app.link,国外默认
+  - DOMAIN,m.stripe.network,国外默认
+  - DOMAIN,m.stripe.com,国外默认
+  - DOMAIN,challenges.cloudflare.com,国外默认
+  - DOMAIN-SUFFIX,hcaptcha.com,国外默认
+  - DOMAIN,s.youtube.com,YouTube
+  - DOMAIN,copilot-telemetry.githubusercontent.com,Copilot
+  - DOMAIN-SUFFIX,collector.github.com,GitHub
+  # ==== 3b 自有广告 / 跟踪拦截 ====
+  - DOMAIN-SUFFIX,adservice.google.com,广告拦截
+  - DOMAIN-SUFFIX,googleadapis.l.google.com,广告拦截
+  - DOMAIN-SUFFIX,pagead.l.google.com,广告拦截
+  - DOMAIN-SUFFIX,partnerad.l.google.com,广告拦截
+  - DOMAIN-SUFFIX,mobileads.google.com,广告拦截
+  - DOMAIN-SUFFIX,mail-ads.google.com,广告拦截
+  - DOMAIN-SUFFIX,fcmatch.google.com,广告拦截
+  - DOMAIN-SUFFIX,marketingplatform.google.com,广告拦截
+  - DOMAIN-SUFFIX,ads.youtube.com,广告拦截
+  - DOMAIN-SUFFIX,advertising.apple.com,广告拦截
+  - DOMAIN-SUFFIX,api-adservices.apple.com,广告拦截
+  - DOMAIN-SUFFIX,iad.apple.com,广告拦截
+  - DOMAIN-SUFFIX,iadsdk.apple.com,广告拦截
+  - DOMAIN-SUFFIX,ad.games.dmm.com,广告拦截
+  - DOMAIN,adstudio-assets.scdn.co,广告拦截
+  - DOMAIN,an.facebook.com,广告拦截
+  - DOMAIN-SUFFIX,pixel.facebook.com,广告拦截
+  - DOMAIN-SUFFIX,analytics.facebook.com,广告拦截
+  - DOMAIN-SUFFIX,graph.instagram.com,广告拦截
+  - DOMAIN-SUFFIX,graph-fallback.instagram.com,广告拦截
+  - DOMAIN-SUFFIX,graph.whatsapp.com,广告拦截
+  - DOMAIN-SUFFIX,graph.whatsapp.net,广告拦截
+  - DOMAIN-SUFFIX,analytics-alv.google.com,广告拦截
+  - DOMAIN,analytics.google.com,广告拦截
+  - DOMAIN-SUFFIX,browser.events.data.msn.com,广告拦截
+  - DOMAIN,adeventtracker.spotify.com,广告拦截
+  - DOMAIN,bloodhound.spotify.com,广告拦截
+  - DOMAIN,copilot-telemetry-service.githubusercontent.com,广告拦截
+  - DOMAIN-SUFFIX,analytics.tiktok.com,广告拦截
+  - DOMAIN,bat.bing.com,广告拦截
+  - DOMAIN,px.ads.linkedin.com,广告拦截
+  # ==== 3c 广告集合（远程数据） ====
+  - GEOSITE,category-ads-all,广告拦截
+  # ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前，由生成器排序） ====
+  # -- openai --
+  - DOMAIN-SUFFIX,openai.com,OpenAI
+  - DOMAIN-SUFFIX,chatgpt.com,OpenAI
+  - DOMAIN-SUFFIX,oaistatic.com,OpenAI
+  - DOMAIN-SUFFIX,oaiusercontent.com,OpenAI
+  - DOMAIN-SUFFIX,oaistatsig.com,OpenAI
+  - DOMAIN,cdn.openaimerge.com,OpenAI
+  - DOMAIN-SUFFIX,chat.com,OpenAI
+  - DOMAIN-SUFFIX,sora.com,OpenAI
+  - DOMAIN-SUFFIX,chatgpt.livekit.cloud,OpenAI
+  # -- claude --
+  - DOMAIN-SUFFIX,anthropic.com,Claude
+  - DOMAIN-SUFFIX,claude.ai,Claude
+  - DOMAIN-SUFFIX,claude.com,Claude
+  - DOMAIN-SUFFIX,claudeusercontent.com,Claude
+  - DOMAIN-SUFFIX,claudemcpclient.com,Claude
+  - DOMAIN-SUFFIX,claudemcpcontent.com,Claude
+  - DOMAIN-SUFFIX,clau.de,Claude
+  # -- cursor --
+  - DOMAIN-SUFFIX,cursor.sh,Cursor
+  - DOMAIN-SUFFIX,cursor-cdn.com,Cursor
+  - DOMAIN-SUFFIX,cursorapi.com,Cursor
+  - DOMAIN-SUFFIX,cursor.com,Cursor
+  - DOMAIN,anysphere-binaries.s3.us-east-1.amazonaws.com,Cursor
+  # -- remote_control --
+  - DOMAIN-SUFFIX,cursorvm.com,远程控制
+  # -- google_ai --
+  - DOMAIN,gemini.google.com,Google AI
+  - DOMAIN-SUFFIX,gemini.google,Google AI
+  - DOMAIN-SUFFIX,gemini.gstatic.com,Google AI
+  - DOMAIN-SUFFIX,geller-pa.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,robinfrontend-pa.googleapis.com,Google AI
+  - DOMAIN,aistudio.google.com,Google AI
+  - DOMAIN-SUFFIX,ai.studio,Google AI
+  - DOMAIN-SUFFIX,generativeai.google,Google AI
+  - DOMAIN,alkalimakersuite-pa.clients6.google.com,Google AI
+  - DOMAIN,alkalicore-pa.clients6.google.com,Google AI
+  - DOMAIN,webchannel-alkalimakersuite-pa.clients6.google.com,Google AI
+  - DOMAIN,makersuite.google.com,Google AI
+  - DOMAIN,bard.google.com,Google AI
+  - DOMAIN-SUFFIX,ai.google.dev,Google AI
+  - DOMAIN,generativelanguage.googleapis.com,Google AI
+  - DOMAIN,cloudaicompanion.googleapis.com,Google AI
+  - DOMAIN,cloudcode-pa.googleapis.com,Google AI
+  - DOMAIN,daily-cloudcode-pa.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,aicode.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,aida.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,antigravity.google,Google AI
+  - DOMAIN,antigravity-pa.googleapis.com,Google AI
+  - DOMAIN,antigravity.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,antigravity-unleash.goog,Google AI
+  - DOMAIN,notebooklm.google.com,Google AI
+  - DOMAIN-SUFFIX,notebooklm.google,Google AI
+  - DOMAIN,notebooklm-pa.googleapis.com,Google AI
+  - DOMAIN,notebooklm.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,notebook.google,Google AI
+  - DOMAIN-SUFFIX,notebook.google.com,Google AI
+  - DOMAIN-SUFFIX,jules.google,Google AI
+  - DOMAIN-SUFFIX,jules.google.com,Google AI
+  - DOMAIN-SUFFIX,labs.google,Google AI
+  - DOMAIN-SUFFIX,labs.google.com,Google AI
+  - DOMAIN-SUFFIX,aisandbox-pa.googleapis.com,Google AI
+  - DOMAIN-SUFFIX,flow.google,Google AI
+  - DOMAIN-SUFFIX,flow.google.com,Google AI
+  - DOMAIN-SUFFIX,opal.google,Google AI
+  - DOMAIN-SUFFIX,opal.google.com,Google AI
+  - DOMAIN-SUFFIX,stitch.withgoogle.com,Google AI
+  - DOMAIN-SUFFIX,deepmind.com,Google AI
+  - DOMAIN-SUFFIX,deepmind.google,Google AI
+  # -- github_copilot --
+  - DOMAIN-SUFFIX,githubcopilot.com,Copilot
+  - DOMAIN,copilot-proxy.githubusercontent.com,Copilot
+  - DOMAIN,origin-tracker.githubusercontent.com,Copilot
+  - DOMAIN,copilot-telemetry.githubusercontent.com,Copilot
+  - DOMAIN,copilot-reports.github.com,Copilot
+  - DOMAIN,copilot-workspace.githubnext.com,Copilot
+  - DOMAIN,copilotprodattachments.blob.core.windows.net,Copilot
+  # -- microsoft_copilot --
+  - DOMAIN-SUFFIX,copilot.microsoft.com,Copilot
+  - DOMAIN-SUFFIX,copilot.cloud.microsoft,Copilot
+  - DOMAIN-SUFFIX,copilot.com,Copilot
+  - DOMAIN,sydney.bing.com,Copilot
+  # -- perplexity --
+  - DOMAIN-SUFFIX,perplexity.ai,其他 AI
+  - DOMAIN-SUFFIX,pplx.ai,其他 AI
+  - DOMAIN-SUFFIX,perplexity.com,其他 AI
+  - DOMAIN,ppl-ai-file-upload.s3.amazonaws.com,其他 AI
+  - DOMAIN,pplx-res.cloudinary.com,其他 AI
+  # -- poe --
+  - DOMAIN-SUFFIX,poe.com,其他 AI
+  - DOMAIN-SUFFIX,poecdn.net,其他 AI
+  # -- xai --
+  - DOMAIN-SUFFIX,x.ai,其他 AI
+  - DOMAIN-SUFFIX,grok.com,其他 AI
+  - DOMAIN-SUFFIX,grokipedia.com,其他 AI
+  # -- mistral --
+  - DOMAIN-SUFFIX,mistral.ai,其他 AI
+  # -- character_ai --
+  - DOMAIN-SUFFIX,character.ai,其他 AI
+  # -- midjourney --
+  - DOMAIN-SUFFIX,midjourney.com,其他 AI
+  # -- openrouter --
+  - DOMAIN-SUFFIX,openrouter.ai,其他 AI
+  # -- groq --
+  - DOMAIN-SUFFIX,groq.com,其他 AI
+  # -- huggingface --
+  - DOMAIN-SUFFIX,huggingface.co,其他 AI
+  - DOMAIN-SUFFIX,hf.co,其他 AI
+  - DOMAIN-SUFFIX,hf.space,其他 AI
+  # -- meta_ai --
+  - DOMAIN-SUFFIX,meta.ai,其他 AI
+  # -- elevenlabs --
+  - DOMAIN-SUFFIX,elevenlabs.io,其他 AI
+  - DOMAIN-SUFFIX,elevenlabs.com,其他 AI
+  # -- suno --
+  - DOMAIN-SUFFIX,suno.com,其他 AI
+  - DOMAIN-SUFFIX,suno.ai,其他 AI
+  # -- cn_ai --
+  - DOMAIN-SUFFIX,deepseek.com,国内直连
+  - DOMAIN-SUFFIX,doubao.com,国内直连
+  - DOMAIN,tongyi.aliyun.com,国内直连
+  - DOMAIN,qianwen.aliyun.com,国内直连
+  - DOMAIN,yuanbao.tencent.com,国内直连
+  - DOMAIN,yiyan.baidu.com,国内直连
+  - DOMAIN-SUFFIX,moonshot.cn,国内直连
+  - DOMAIN-SUFFIX,kimi.com,国内直连
+  - DOMAIN-SUFFIX,chatglm.cn,国内直连
+  - DOMAIN-SUFFIX,bigmodel.cn,国内直连
+  - DOMAIN-SUFFIX,zhipuai.cn,国内直连
+  # -- youtube --
+  - DOMAIN-SUFFIX,youtube.com,YouTube
+  - DOMAIN-SUFFIX,youtu.be,YouTube
+  - DOMAIN-SUFFIX,yt.be,YouTube
+  - DOMAIN-SUFFIX,ytimg.com,YouTube
+  - DOMAIN-SUFFIX,googlevideo.com,YouTube
+  - DOMAIN-SUFFIX,youtube-nocookie.com,YouTube
+  - DOMAIN-SUFFIX,youtubekids.com,YouTube
+  - DOMAIN,youtubei.googleapis.com,YouTube
+  - DOMAIN,youtube.googleapis.com,YouTube
+  - DOMAIN-SUFFIX,youtubeembeddedplayer.googleapis.com,YouTube
+  - DOMAIN,yt3.ggpht.com,YouTube
+  - DOMAIN,yt3.googleusercontent.com,YouTube
+  # -- netflix --
+  - DOMAIN-SUFFIX,netflix.com,Netflix
+  - DOMAIN-SUFFIX,netflix.net,Netflix
+  - DOMAIN-SUFFIX,nflxext.com,Netflix
+  - DOMAIN-SUFFIX,nflximg.com,Netflix
+  - DOMAIN-SUFFIX,nflximg.net,Netflix
+  - DOMAIN-SUFFIX,nflxso.net,Netflix
+  - DOMAIN-SUFFIX,nflxvideo.net,Netflix
+  - DOMAIN-SUFFIX,nflxsearch.net,Netflix
+  - DOMAIN-SUFFIX,fast.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest0.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest1.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest2.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest3.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest4.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest5.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest6.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest7.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest8.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest9.com,Netflix
+  - DOMAIN-SUFFIX,netflixdnstest10.com,Netflix
+  # -- disney_plus --
+  - DOMAIN-SUFFIX,disneyplus.com,Disney+
+  - DOMAIN-SUFFIX,disney-plus.net,Disney+
+  - DOMAIN-SUFFIX,dssott.com,Disney+
+  - DOMAIN-SUFFIX,disneystreaming.com,Disney+
+  - DOMAIN-SUFFIX,registerdisney.go.com,Disney+
+  # -- max --
+  - DOMAIN-SUFFIX,max.com,Max
+  - DOMAIN-SUFFIX,hbomax.com,Max
+  - DOMAIN-SUFFIX,hbomaxcdn.com,Max
+  - DOMAIN-SUFFIX,hbo.com,Max
+  - DOMAIN-SUFFIX,hbogo.com,Max
+  # -- prime_video --
+  - DOMAIN-SUFFIX,primevideo.com,Prime Video
+  - DOMAIN-SUFFIX,aiv-cdn.net,Prime Video
+  - DOMAIN-SUFFIX,aiv-delivery.net,Prime Video
+  - DOMAIN-SUFFIX,amazonvideo.com,Prime Video
+  - DOMAIN-SUFFIX,pv-cdn.net,Prime Video
+  - DOMAIN,atv-ps.amazon.com,Prime Video
+  - DOMAIN-SUFFIX,atv-ps-eu.amazon.com,Prime Video
+  - DOMAIN-SUFFIX,atv-ps-eu.amazon.co.uk,Prime Video
+  - DOMAIN-SUFFIX,atv-ps-fe.amazon.com,Prime Video
+  - DOMAIN-SUFFIX,atv-ps-fe.amazon.co.jp,Prime Video
+  - DOMAIN,msh.amazon.co.uk,Prime Video
+  - DOMAIN-SUFFIX,prod.service.minerva.devices.a2z.com,Prime Video
+  - DOMAIN,d1v5ir2lpwr8os.cloudfront.net,Prime Video
+  - DOMAIN,d22qjgkvxw22r6.cloudfront.net,Prime Video
+  - DOMAIN,d25xi40x97liuc.cloudfront.net,Prime Video
+  - DOMAIN,d27xxe7juh1us6.cloudfront.net,Prime Video
+  - DOMAIN,dmqdd6hw24ucf.cloudfront.net,Prime Video
+  - DOMAIN,avodmp4s3ww-a.akamaihd.net,Prime Video
+  # -- hulu_us --
+  - DOMAIN-SUFFIX,hulu.com,Hulu US
+  - DOMAIN-SUFFIX,hulustream.com,Hulu US
+  - DOMAIN-SUFFIX,huluim.com,Hulu US
+  - DOMAIN,hulu.playback.edge.bamgrid.com,Hulu US
+  # -- disney_plus --
+  - DOMAIN-SUFFIX,bamgrid.com,Disney+
+  # -- hulu_jp --
+  - DOMAIN-SUFFIX,hulu.jp,Hulu Japan
+  - DOMAIN-SUFFIX,happyon.jp,Hulu Japan
+  - DOMAIN-SUFFIX,hjholdings.jp,Hulu Japan
+  - DOMAIN-SUFFIX,prod.hjholdings.tv,Hulu Japan
+  - DOMAIN-SUFFIX,streaks.jp,Hulu Japan
+  # -- abema --
+  - DOMAIN-SUFFIX,abema.tv,Abema
+  - DOMAIN-SUFFIX,abema.io,Abema
+  - DOMAIN-SUFFIX,abema-tv.com,Abema
+  - DOMAIN-SUFFIX,hayabusa.io,Abema
+  - DOMAIN,abematv.akamaized.net,Abema
+  - DOMAIN,linear-abematv.akamaized.net,Abema
+  - DOMAIN,ds-linear-abematv.akamaized.net,Abema
+  - DOMAIN,vod-abematv.akamaized.net,Abema
+  - DOMAIN,ds-vod-abematv.akamaized.net,Abema
+  # -- dmm --
+  - DOMAIN-SUFFIX,dmm.com,DMM
+  - DOMAIN-SUFFIX,dmm.co.jp,DMM
+  - DOMAIN-SUFFIX,dmm-extension.com,DMM
+  - DOMAIN-SUFFIX,dmmapis.com,DMM
+  # -- niconico --
+  - DOMAIN-SUFFIX,nicovideo.jp,日本影音
+  - DOMAIN-SUFFIX,nimg.jp,日本影音
+  - DOMAIN-SUFFIX,dmc.nico,日本影音
+  - DOMAIN-SUFFIX,niconico.com,日本影音
+  - DOMAIN-SUFFIX,nicochannel.jp,日本影音
+  - DOMAIN-SUFFIX,nicoseiga.jp,日本影音
+  - DOMAIN-SUFFIX,nicomanga.jp,日本影音
+  - DOMAIN-SUFFIX,nicodic.jp,日本影音
+  - DOMAIN-SUFFIX,nico.ms,日本影音
+  - DOMAIN-SUFFIX,simg.jp,日本影音
+  # -- tver --
+  - DOMAIN-SUFFIX,tver.jp,日本影音
+  # -- unext --
+  - DOMAIN-SUFFIX,unext.jp,日本影音
+  - DOMAIN-SUFFIX,nxtv.jp,日本影音
+  # -- radiko --
+  - DOMAIN-SUFFIX,radiko.jp,日本影音
+  - DOMAIN-SUFFIX,radiko-cf.com,日本影音
+  - DOMAIN-SUFFIX,smartstream.ne.jp,日本影音
+  # -- telasa --
+  - DOMAIN-SUFFIX,telasa.jp,日本影音
+  # -- fod --
+  - DOMAIN-SUFFIX,fod.fujitv.co.jp,日本影音
+  # -- wowow --
+  - DOMAIN-SUFFIX,wowow.co.jp,日本影音
+  # -- lemino --
+  - DOMAIN-SUFFIX,lemino.docomo.ne.jp,日本影音
+  # -- spotify --
+  - DOMAIN-SUFFIX,spotify.com,Spotify
+  - DOMAIN-SUFFIX,scdn.co,Spotify
+  - DOMAIN-SUFFIX,spotifycdn.com,Spotify
+  - DOMAIN-SUFFIX,spotifycdn.net,Spotify
+  - DOMAIN-SUFFIX,pscdn.co,Spotify
+  - DOMAIN-SUFFIX,spoti.fi,Spotify
+  - DOMAIN,audio-ak-spotify-com.akamaized.net,Spotify
+  - DOMAIN,audio4-ak-spotify-com.akamaized.net,Spotify
+  - DOMAIN,heads-ak-spotify-com.akamaized.net,Spotify
+  - DOMAIN,heads4-ak-spotify-com.akamaized.net,Spotify
+  # -- tiktok --
+  - DOMAIN-SUFFIX,tiktok.com,TikTok
+  - DOMAIN-SUFFIX,tiktokv.com,TikTok
+  - DOMAIN-SUFFIX,tiktokv.us,TikTok
+  - DOMAIN-SUFFIX,tiktokv.eu,TikTok
+  - DOMAIN-SUFFIX,tiktokw.us,TikTok
+  - DOMAIN-SUFFIX,tiktokw.eu,TikTok
+  - DOMAIN-SUFFIX,tiktokd.net,TikTok
+  - DOMAIN-SUFFIX,tiktokd.org,TikTok
+  - DOMAIN-SUFFIX,tik-tokapi.com,TikTok
+  - DOMAIN-SUFFIX,tiktok-row.net,TikTok
+  - DOMAIN-SUFFIX,ttoverseaus.net,TikTok
+  - DOMAIN-SUFFIX,tiktokcdn.com,TikTok
+  - DOMAIN-SUFFIX,tiktokcdn-us.com,TikTok
+  - DOMAIN-SUFFIX,tiktokcdn-eu.com,TikTok
+  - DOMAIN-SUFFIX,tiktokeu-cdn.com,TikTok
+  - DOMAIN-SUFFIX,tiktokrow-cdn.com,TikTok
+  - DOMAIN-SUFFIX,ttcdn-us.com,TikTok
+  - DOMAIN-SUFFIX,ttlivecdn.com,TikTok
+  - DOMAIN,p16-tiktokcdn-com.akamaized.net,TikTok
+  - DOMAIN-SUFFIX,tiktok-minis.com,TikTok
+  - DOMAIN-SUFFIX,tiktokminis.us,TikTok
+  - DOMAIN-SUFFIX,tiktokglobalshopv.com,TikTok
+  - DOMAIN-SUFFIX,bytedapm.com,TikTok
+  - DOMAIN-SUFFIX,byteoversea.com,TikTok
+  - DOMAIN-SUFFIX,byteoversea.net,TikTok
+  - DOMAIN-SUFFIX,byteglb.com,TikTok
+  - DOMAIN-SUFFIX,ibytedtos.com,TikTok
+  - DOMAIN-SUFFIX,ibyteimg.com,TikTok
+  - DOMAIN-SUFFIX,ipstatp.com,TikTok
+  - DOMAIN-SUFFIX,sgpstatp.com,TikTok
+  - DOMAIN-SUFFIX,isnssdk.com,TikTok
+  - DOMAIN-SUFFIX,byteintlapi.com,TikTok
+  - DOMAIN-SUFFIX,bytegecko-i18n.com,TikTok
+  - DOMAIN-SUFFIX,ttwebview.com,TikTok
+  - DOMAIN,lf16-effectcdn.byteeffecttos-g.com,TikTok
+  - DOMAIN-SUFFIX,muscdn.com,TikTok
+  - DOMAIN-SUFFIX,musical.ly,TikTok
+  - DOMAIN-SUFFIX,ttwstatic.com,TikTok
+  # -- twitch --
+  - DOMAIN-SUFFIX,twitch.tv,Twitch
+  - DOMAIN-SUFFIX,ttvnw.net,Twitch
+  - DOMAIN-SUFFIX,jtvnw.net,Twitch
+  - DOMAIN-SUFFIX,twitchcdn.net,Twitch
+  - DOMAIN-SUFFIX,twitchsvc.net,Twitch
+  - DOMAIN-SUFFIX,ext-twitch.tv,Twitch
+  # -- bilibili_hmt --
+  - DOMAIN,api.bilibili.com,Bilibili 港澳台
+  - DOMAIN,app.bilibili.com,Bilibili 港澳台
+  - DOMAIN,bangumi.bilibili.com,Bilibili 港澳台
+  - DOMAIN,upos-hz-mirrorakam.akamaized.net,Bilibili 港澳台
+  # -- bilibili_cn --
+  - DOMAIN-SUFFIX,bilibili.com,国内直连
+  - DOMAIN-SUFFIX,bilivideo.com,国内直连
+  - DOMAIN-SUFFIX,bilivideo.cn,国内直连
+  - DOMAIN-SUFFIX,hdslb.com,国内直连
+  - DOMAIN-SUFFIX,biliapi.net,国内直连
+  - DOMAIN-SUFFIX,biliapi.com,国内直连
+  - DOMAIN-SUFFIX,b23.tv,国内直连
+  # -- bahamut --
+  - DOMAIN-SUFFIX,gamer.com.tw,Bahamut
+  - DOMAIN-SUFFIX,bahamut.com.tw,Bahamut
+  - DOMAIN,bahamut.akamaized.net,Bahamut
+  - DOMAIN,gamer-cds.cdn.hinet.net,Bahamut
+  - DOMAIN,gamer2-cds.cdn.hinet.net,Bahamut
+  # -- dazn --
+  - DOMAIN-SUFFIX,dazn.com,其他流媒体
+  - DOMAIN-SUFFIX,dazn-api.com,其他流媒体
+  - DOMAIN-SUFFIX,dazndn.com,其他流媒体
+  - DOMAIN-SUFFIX,daznfeeds.com,其他流媒体
+  - DOMAIN-SUFFIX,daznplayer.com,其他流媒体
+  - DOMAIN-SUFFIX,daznservices.com,其他流媒体
+  # -- vimeo --
+  - DOMAIN-SUFFIX,vimeo.com,其他流媒体
+  - DOMAIN-SUFFIX,vimeocdn.com,其他流媒体
+  # -- soundcloud --
+  - DOMAIN-SUFFIX,soundcloud.com,其他流媒体
+  - DOMAIN-SUFFIX,sndcdn.com,其他流媒体
+  # -- deezer --
+  - DOMAIN-SUFFIX,deezer.com,其他流媒体
+  - DOMAIN-SUFFIX,dzcdn.net,其他流媒体
+  # -- tidal --
+  - DOMAIN-SUFFIX,tidal.com,其他流媒体
+  # -- pandora --
+  - DOMAIN-SUFFIX,pandora.com,其他流媒体
+  - DOMAIN-SUFFIX,p-cdn.us,其他流媒体
+  # -- crunchyroll --
+  - DOMAIN-SUFFIX,crunchyroll.com,其他流媒体
+  # -- paramount --
+  - DOMAIN-SUFFIX,paramountplus.com,其他流媒体
+  # -- peacock --
+  - DOMAIN-SUFFIX,peacocktv.com,其他流媒体
+  # -- pluto --
+  - DOMAIN-SUFFIX,pluto.tv,其他流媒体
+  - DOMAIN-SUFFIX,plutotv.net,其他流媒体
+  # -- tubi --
+  - DOMAIN-SUFFIX,tubi.tv,其他流媒体
+  - DOMAIN-SUFFIX,tubitv.com,其他流媒体
+  - DOMAIN-SUFFIX,tubi.io,其他流媒体
+  - DOMAIN-SUFFIX,tubi.video,其他流媒体
+  # -- viu --
+  - DOMAIN-SUFFIX,viu.com,其他流媒体
+  - DOMAIN-SUFFIX,viu.tv,其他流媒体
+  - DOMAIN,api.viu.now.com,其他流媒体
+  - DOMAIN,dfp6rglgjqszk.cloudfront.net,其他流媒体
+  - DOMAIN,d1k2us671qcoau.cloudfront.net,其他流媒体
+  - DOMAIN,d2anahhhmp1ffz.cloudfront.net,其他流媒体
+  # -- mytvsuper --
+  - DOMAIN-SUFFIX,mytvsuper.com,其他流媒体
+  # -- kktv --
+  - DOMAIN-SUFFIX,kktv.me,其他流媒体
+  - DOMAIN-SUFFIX,kktv.com.tw,其他流媒体
+  - DOMAIN,theater-kktv.cdn.hinet.net,其他流媒体
+  # -- litv --
+  - DOMAIN-SUFFIX,litv.tv,其他流媒体
+  - DOMAIN-SUFFIX,ofiii.com,其他流媒体
+  - DOMAIN-SUFFIX,litvfreepc.akamaized.net,其他流媒体
+  - DOMAIN,ntdfreemobile-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdfreepc-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdfreetv-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdfreevcpc-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdofifreemobile-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdofifreepc-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdofifreetv-tgc.cdn.hinet.net,其他流媒体
+  - DOMAIN,ntdofifreevcpc-tgc.cdn.hinet.net,其他流媒体
+  # -- catchplay --
+  - DOMAIN-SUFFIX,catchplay.com,其他流媒体
+  - DOMAIN-SUFFIX,tra-ww000-cp.akamaized.net,其他流媒体
+  # -- iqiyi_intl --
+  - DOMAIN-SUFFIX,iq.com,其他流媒体
+  # -- wetv --
+  - DOMAIN-SUFFIX,wetv.vip,其他流媒体
+  # -- viki --
+  - DOMAIN-SUFFIX,viki.com,其他流媒体
+  # -- bstation --
+  - DOMAIN-SUFFIX,bilibili.tv,其他流媒体
+  - DOMAIN-SUFFIX,biliintl.com,其他流媒体
+  - DOMAIN-SUFFIX,bstarstatic.com,其他流媒体
+  # -- telegram --
+  - DOMAIN-SUFFIX,telegram.org,Telegram
+  - DOMAIN-SUFFIX,t.me,Telegram
+  - DOMAIN-SUFFIX,telegram.me,Telegram
+  - DOMAIN-SUFFIX,telesco.pe,Telegram
+  - DOMAIN-SUFFIX,telegra.ph,Telegram
+  - DOMAIN-SUFFIX,tdesktop.com,Telegram
+  - DOMAIN-SUFFIX,telegram-cdn.org,Telegram
+  - DOMAIN-SUFFIX,cdn-telegram.org,Telegram
+  - DOMAIN-SUFFIX,fragment.com,Telegram
+  # -- x --
+  - DOMAIN-SUFFIX,x.com,X
+  - DOMAIN-SUFFIX,twitter.com,X
+  - DOMAIN-SUFFIX,twimg.com,X
+  - DOMAIN-SUFFIX,t.co,X
+  - DOMAIN-SUFFIX,twttr.com,X
+  - DOMAIN-SUFFIX,tweetdeck.com,X
+  - DOMAIN-SUFFIX,pscp.tv,X
+  - DOMAIN-SUFFIX,periscope.tv,X
+  # -- meta_social --
+  - DOMAIN-SUFFIX,facebook.com,Meta 社交
+  - DOMAIN-SUFFIX,facebook.net,Meta 社交
+  - DOMAIN-SUFFIX,fb.com,Meta 社交
+  - DOMAIN-SUFFIX,fb.me,Meta 社交
+  - DOMAIN-SUFFIX,fbcdn.net,Meta 社交
+  - DOMAIN-SUFFIX,fbsbx.com,Meta 社交
+  - DOMAIN-SUFFIX,instagram.com,Meta 社交
+  - DOMAIN-SUFFIX,cdninstagram.com,Meta 社交
+  - DOMAIN-SUFFIX,ig.me,Meta 社交
+  - DOMAIN-SUFFIX,threads.net,Meta 社交
+  - DOMAIN-SUFFIX,threads.com,Meta 社交
+  - DOMAIN-SUFFIX,messenger.com,Meta 社交
+  - DOMAIN-SUFFIX,m.me,Meta 社交
+  - DOMAIN-SUFFIX,meta.com,Meta 社交
+  - DOMAIN-SUFFIX,oculus.com,Meta 社交
+  - DOMAIN-SUFFIX,oculuscdn.com,Meta 社交
+  # -- whatsapp --
+  - DOMAIN-SUFFIX,whatsapp.com,WhatsApp
+  - DOMAIN-SUFFIX,whatsapp.net,WhatsApp
+  - DOMAIN-SUFFIX,wa.me,WhatsApp
+  # -- line --
+  - DOMAIN-SUFFIX,line.me,LINE
+  - DOMAIN-SUFFIX,line-apps.com,LINE
+  - DOMAIN-SUFFIX,line-scdn.net,LINE
+  - DOMAIN-SUFFIX,line-cdn.net,LINE
+  - DOMAIN-SUFFIX,lin.ee,LINE
+  - DOMAIN-SUFFIX,linecorp.com,LINE
+  - DOMAIN,line.naver.jp,LINE
+  # -- discord --
+  - DOMAIN-SUFFIX,discord.com,Discord
+  - DOMAIN-SUFFIX,discord.gg,Discord
+  - DOMAIN-SUFFIX,discord.co,Discord
+  - DOMAIN-SUFFIX,discord.dev,Discord
+  - DOMAIN-SUFFIX,discord.media,Discord
+  - DOMAIN-SUFFIX,discordapp.com,Discord
+  - DOMAIN-SUFFIX,discordapp.net,Discord
+  - DOMAIN-SUFFIX,discordstatus.com,Discord
+  - DOMAIN-SUFFIX,dis.gd,Discord
+  # -- reddit --
+  - DOMAIN-SUFFIX,reddit.com,Reddit
+  - DOMAIN-SUFFIX,redd.it,Reddit
+  - DOMAIN-SUFFIX,redditmedia.com,Reddit
+  - DOMAIN-SUFFIX,redditstatic.com,Reddit
+  - DOMAIN-SUFFIX,redditmail.com,Reddit
+  # -- linkedin --
+  - DOMAIN-SUFFIX,linkedin.com,LinkedIn
+  - DOMAIN-SUFFIX,licdn.com,LinkedIn
+  - DOMAIN-SUFFIX,lnkd.in,LinkedIn
+  # -- dev_js --
+  - DOMAIN-SUFFIX,npmjs.org,开发下载
+  - DOMAIN-SUFFIX,npmjs.com,开发下载
+  - DOMAIN-SUFFIX,yarnpkg.com,开发下载
+  - DOMAIN-SUFFIX,nodejs.org,开发下载
+  - DOMAIN-SUFFIX,deno.land,开发下载
+  - DOMAIN-SUFFIX,jsr.io,开发下载
+  - DOMAIN-SUFFIX,bun.sh,开发下载
+  # -- dev_python --
+  - DOMAIN-SUFFIX,pypi.org,开发下载
+  - DOMAIN-SUFFIX,pythonhosted.org,开发下载
+  - DOMAIN-SUFFIX,python.org,开发下载
+  - DOMAIN-SUFFIX,anaconda.org,开发下载
+  - DOMAIN-SUFFIX,anaconda.com,开发下载
+  # -- dev_go --
+  - DOMAIN,proxy.golang.org,开发下载
+  - DOMAIN,sum.golang.org,开发下载
+  - DOMAIN-SUFFIX,go.dev,开发下载
+  # -- dev_rust --
+  - DOMAIN-SUFFIX,crates.io,开发下载
+  - DOMAIN-SUFFIX,rust-lang.org,开发下载
+  - DOMAIN-SUFFIX,rustup.rs,开发下载
+  # -- dev_jvm --
+  - DOMAIN-SUFFIX,maven.org,开发下载
+  - DOMAIN,repo.maven.apache.org,开发下载
+  - DOMAIN-SUFFIX,gradle.org,开发下载
+  # -- dev_other --
+  - DOMAIN-SUFFIX,rubygems.org,开发下载
+  - DOMAIN-SUFFIX,packagist.org,开发下载
+  - DOMAIN-SUFFIX,cocoapods.org,开发下载
+  - DOMAIN-SUFFIX,pub.dev,开发下载
+  - DOMAIN-SUFFIX,nuget.org,开发下载
+  - DOMAIN-SUFFIX,brew.sh,开发下载
+  - DOMAIN-SUFFIX,docker.io,开发下载
+  - DOMAIN-SUFFIX,docker.com,开发下载
+  - DOMAIN,production.cloudflare.docker.com,开发下载
+  - DOMAIN-SUFFIX,quay.io,开发下载
+  - DOMAIN-SUFFIX,gcr.io,开发下载
+  - DOMAIN-SUFFIX,pkg.dev,开发下载
+  - DOMAIN-SUFFIX,k8s.io,开发下载
+  # -- paypal --
+  - DOMAIN-SUFFIX,paypal.com,PayPal
+  - DOMAIN-SUFFIX,paypalobjects.com,PayPal
+  - DOMAIN-SUFFIX,paypal.me,PayPal
+  # -- vendor_cn_cdn --
+  - DOMAIN-SUFFIX,windowsupdate.com,国内直连
+  - DOMAIN-SUFFIX,delivery.mp.microsoft.com,国内直连
+  # -- apple_media --
+  - DOMAIN-SUFFIX,music.apple.com,Apple Music/TV
+  - DOMAIN-SUFFIX,tv.apple.com,Apple Music/TV
+  - DOMAIN,aod.itunes.apple.com,Apple Music/TV
+  - DOMAIN,aod-ssl.itunes.apple.com,Apple Music/TV
+  - DOMAIN,audio-ssl.itunes.apple.com,Apple Music/TV
+  - DOMAIN,hls.itunes.apple.com,Apple Music/TV
+  - DOMAIN,hls-svod.itunes.apple.com,Apple Music/TV
+  - DOMAIN,hls-amt.itunes.apple.com,Apple Music/TV
+  - DOMAIN,play-edge.itunes.apple.com,Apple Music/TV
+  - DOMAIN,np-edge.itunes.apple.com,Apple Music/TV
+  - DOMAIN,uts-api.itunes.apple.com,Apple Music/TV
+  # -- apple --
+  - DOMAIN-SUFFIX,apple.com,Apple
+  - DOMAIN-SUFFIX,apple.com.cn,Apple
+  - DOMAIN-SUFFIX,apple.co,Apple
+  - DOMAIN-SUFFIX,apple.news,Apple
+  - DOMAIN-SUFFIX,apple-cloudkit.com,Apple
+  - DOMAIN-SUFFIX,apple-dns.net,Apple
+  - DOMAIN-SUFFIX,apple-mapkit.com,Apple
+  - DOMAIN-SUFFIX,aaplimg.com,Apple
+  - DOMAIN-SUFFIX,cdn-apple.com,Apple
+  - DOMAIN-SUFFIX,icloud.com,Apple
+  - DOMAIN-SUFFIX,icloud.com.cn,Apple
+  - DOMAIN-SUFFIX,icloud-content.com,Apple
+  - DOMAIN-SUFFIX,me.com,Apple
+  - DOMAIN-SUFFIX,mzstatic.com,Apple
+  - DOMAIN-SUFFIX,itunes.com,Apple
+  - DOMAIN-SUFFIX,appstore.com,Apple
+  # -- google --
+  - DOMAIN-SUFFIX,google.com,Google
+  - DOMAIN-SUFFIX,googleapis.com,Google
+  - DOMAIN-SUFFIX,gstatic.com,Google
+  - DOMAIN-SUFFIX,googleusercontent.com,Google
+  - DOMAIN-SUFFIX,ggpht.com,Google
+  - DOMAIN-SUFFIX,gvt1.com,Google
+  - DOMAIN-SUFFIX,gvt2.com,Google
+  - DOMAIN-SUFFIX,googlesource.com,Google
+  - DOMAIN-SUFFIX,google.dev,Google
+  - DOMAIN-SUFFIX,withgoogle.com,Google
+  - DOMAIN-SUFFIX,goo.gl,Google
+  - DOMAIN-SUFFIX,g.co,Google
+  - DOMAIN-SUFFIX,android.com,Google
+  - DOMAIN-SUFFIX,chrome.com,Google
+  - DOMAIN-SUFFIX,chromium.org,Google
+  - DOMAIN-SUFFIX,gmail.com,Google
+  - DOMAIN-SUFFIX,googlemail.com,Google
+  - DOMAIN-SUFFIX,blogger.com,Google
+  - DOMAIN-SUFFIX,blogspot.com,Google
+  - DOMAIN-SUFFIX,recaptcha.net,Google
+  - DOMAIN-SUFFIX,google.com.hk,Google
+  - DOMAIN-SUFFIX,google.com.tw,Google
+  - DOMAIN-SUFFIX,google.co.jp,Google
+  - DOMAIN-SUFFIX,google.co.kr,Google
+  - DOMAIN-SUFFIX,google.com.sg,Google
+  - DOMAIN-SUFFIX,google.co.uk,Google
+  # -- microsoft --
+  - DOMAIN-SUFFIX,microsoft.com,Microsoft
+  - DOMAIN-SUFFIX,microsoftonline.com,Microsoft
+  - DOMAIN-SUFFIX,microsoftonline-p.com,Microsoft
+  - DOMAIN-SUFFIX,msauth.net,Microsoft
+  - DOMAIN-SUFFIX,msftauth.net,Microsoft
+  - DOMAIN-SUFFIX,live.com,Microsoft
+  - DOMAIN-SUFFIX,live.net,Microsoft
+  - DOMAIN-SUFFIX,msn.com,Microsoft
+  - DOMAIN-SUFFIX,bing.com,Microsoft
+  - DOMAIN-SUFFIX,bing.net,Microsoft
+  - DOMAIN-SUFFIX,office.com,Microsoft
+  - DOMAIN-SUFFIX,office.net,Microsoft
+  - DOMAIN-SUFFIX,office365.com,Microsoft
+  - DOMAIN-SUFFIX,microsoft365.com,Microsoft
+  - DOMAIN-SUFFIX,cloud.microsoft,Microsoft
+  - DOMAIN-SUFFIX,outlook.com,Microsoft
+  - DOMAIN-SUFFIX,onedrive.com,Microsoft
+  - DOMAIN-SUFFIX,1drv.com,Microsoft
+  - DOMAIN-SUFFIX,1drv.ms,Microsoft
+  - DOMAIN-SUFFIX,sharepoint.com,Microsoft
+  - DOMAIN-SUFFIX,skype.com,Microsoft
+  - DOMAIN-SUFFIX,xbox.com,Microsoft
+  - DOMAIN-SUFFIX,xboxlive.com,Microsoft
+  - DOMAIN-SUFFIX,azure.com,Microsoft
+  - DOMAIN-SUFFIX,windows.com,Microsoft
+  - DOMAIN-SUFFIX,visualstudio.com,Microsoft
+  - DOMAIN-SUFFIX,vsassets.io,Microsoft
+  - DOMAIN-SUFFIX,aka.ms,Microsoft
+  - DOMAIN-SUFFIX,gfx.ms,Microsoft
+  - DOMAIN-SUFFIX,sfx.ms,Microsoft
+  # -- github --
+  - DOMAIN-SUFFIX,github.com,GitHub
+  - DOMAIN-SUFFIX,githubusercontent.com,GitHub
+  - DOMAIN-SUFFIX,githubassets.com,GitHub
+  - DOMAIN-SUFFIX,githubapp.com,GitHub
+  - DOMAIN-SUFFIX,github.dev,GitHub
+  - DOMAIN-SUFFIX,github.blog,GitHub
+  - DOMAIN-SUFFIX,githubstatus.com,GitHub
+  - DOMAIN-SUFFIX,ghcr.io,GitHub
+  # -- amazon --
+  - DOMAIN-SUFFIX,amazon.com,国外默认
+  - DOMAIN-SUFFIX,amazon.co.jp,国外默认
+  - DOMAIN-SUFFIX,amazon.co.uk,国外默认
+  - DOMAIN-SUFFIX,media-amazon.com,国外默认
+  - DOMAIN-SUFFIX,ssl-images-amazon.com,国外默认
+  - DOMAIN-SUFFIX,images-amazon.com,国外默认
+  # ==== 6 国内外域名分类 ====
+  - GEOSITE,cn,国内直连
+  - GEOSITE,geolocation-!cn,国外默认
+  # ==== 7 服务专属 IP（不触发 DNS 解析） ====
+  # -- telegram --
+  - IP-CIDR,91.105.192.0/23,Telegram,no-resolve
+  - IP-CIDR,91.108.4.0/22,Telegram,no-resolve
+  - IP-CIDR,91.108.8.0/22,Telegram,no-resolve
+  - IP-CIDR,91.108.12.0/22,Telegram,no-resolve
+  - IP-CIDR,91.108.16.0/22,Telegram,no-resolve
+  - IP-CIDR,91.108.20.0/22,Telegram,no-resolve
+  - IP-CIDR,91.108.56.0/22,Telegram,no-resolve
+  - IP-CIDR,149.154.160.0/20,Telegram,no-resolve
+  - IP-CIDR,185.76.151.0/24,Telegram,no-resolve
+  - IP-CIDR6,2001:67c:4e8::/48,Telegram,no-resolve
+  - IP-CIDR6,2001:b28:f23c::/48,Telegram,no-resolve
+  - IP-CIDR6,2001:b28:f23d::/48,Telegram,no-resolve
+  - IP-CIDR6,2001:b28:f23f::/48,Telegram,no-resolve
+  - IP-CIDR6,2a0a:f280::/32,Telegram,no-resolve
+  # ==== 8 国内 IP 兜底 ====
+  - GEOIP,CN,国内直连
+  # ==== 9 其余目标 ====
+  - MATCH,国外默认

@@ -1,0 +1,72 @@
+# 证据登记：每条规则都引用这里的一个 id。
+# kind:
+#   official          官方文档，本次（checked 日期）实际查阅
+#   official-unfetched 官方来源，但本次环境无法重新抓取，内容来自维护者既有知识，需复核
+#   community         社区规则集中的条目。带 snapshot 的，表示已按固定提交逐条核对：
+#                     规则值必须出现在该服务 upstream 字段所列的上游列表里（同值，或被非汇总列表中的上级域名覆盖），
+#                     核对记录见 docs/evidence/upstream-snapshot.json，由 tools/check_upstream_evidence.py 生成，
+#                     tests/test_source.py 检查记录与统一源一致。
+#   maintainer        维护者知识，未找到官方清单或上游条目，需实测或复核
+# 注意：官方“网络放行清单”不等于产品归属表；清单中的第三方共享服务在 services/*.yaml 的 shared_excluded 里单独记录。
+# 上游规则集只是证据来源之一：不按出现次数投票，也不直接求并集；是否收录、归哪个组由本项目决定并写明理由。
+
+evidence:
+  openai-net:
+    kind: official
+    url: https://help.openai.com/en/articles/9247338-network-recommendations-for-chatgpt-errors-on-web-and-apps
+    checked: 2026-09-23
+    note: ChatGPT 网页与应用的放行清单（含 *.openai.com、*.chatgpt.com、*.oaistatic.com、*.oaiusercontent.com、*.oaistatsig.com 及若干第三方）
+  claude-net:
+    kind: official
+    url: https://code.claude.com/docs/en/network-config
+    checked: 2026-09-23
+    note: Claude Code 网络要求（api.anthropic.com、claude.ai、claude.com、platform.claude.com、*.claudeusercontent.com 等及第三方依赖）
+  cursor-net:
+    kind: official
+    url: https://cursor.com/docs/enterprise/network-configuration
+    checked: 2026-09-23
+    note: "*.cursor.sh、*.cursor-cdn.com、*.cursorapi.com、downloads.cursor.com、anysphere-binaries S3；*.cursorvm.com 与 *.*.cursorvm.com 为 Grok Bot 托管计算机所需"
+  gca-net:
+    kind: official
+    url: https://docs.cloud.google.com/gemini/docs/codeassist/set-up-gemini
+    checked: 2026-09-23
+    note: Gemini Code Assist 放行清单（cloudaicompanion.googleapis.com 主接口、cloudcode-pa.googleapis.com IDE 接口，其余为共享 Google 服务）；daily-cloudcode-pa.googleapis.com 不在清单内（同日复核）
+  ghcopilot-net:
+    kind: official
+    url: https://docs.github.com/en/copilot/reference/allowlist-reference
+    checked: 2026-09-23
+    note: GitHub Copilot 放行清单（*.githubcopilot.com、copilot-proxy / origin-tracker.githubusercontent.com、copilot-reports.github.com；遥测 copilot-telemetry.githubusercontent.com/telemetry 与 collector.github.com/* 也在清单内，同日复核）
+  gemini-api:
+    kind: official-unfetched
+    url: https://ai.google.dev/
+    note: Gemini API 端点 generativelanguage.googleapis.com、文档站 ai.google.dev
+  telegram-cidr:
+    kind: official-unfetched
+    url: https://core.telegram.org/resources/cidr.txt
+    note: Telegram 官方公布的 IP 段；本次环境抓取未获授权，按既有知识录入，发布前需对照官方文件复核
+  netflix-oc:
+    kind: official-unfetched
+    url: https://openconnect.netflix.com/
+    note: Netflix Open Connect；本版本未收录 Netflix IP 段（需按官方与实测核实后再加）
+  dlc:
+    kind: community
+    url: https://github.com/v2fly/domain-list-community
+    snapshot: c1c2cf0d252871e8739747714df06e8d2671f72f
+    snapshot_date: 2026-09-22
+    checked: 2026-09-23
+    note: domain-list-community 固定快照中、该服务 upstream.dlc 所列列表里的条目
+  bm7-snap:
+    kind: community
+    url: https://github.com/blackmatrix7/ios_rule_script
+    snapshot: 51d2e1dd8429a91be575157d6f8ed051c93559f8
+    snapshot_date: 2026-09-21
+    checked: 2026-09-23
+    note: blackmatrix7 规则集固定快照（rule/Clash/<列表名>/<列表名>.list）中、该服务 upstream.bm7 所列列表里的条目；用于 dlc 快照里没有的条目
+  bm7:
+    kind: community
+    url: https://github.com/blackmatrix7/ios_rule_script
+    checked: 2026-09-23
+    note: 仅用于 Loon / Quantumult X 的远程广告集合（AdvertisingLite，由客户端直接从上游更新，内容不固定）；本次抓取了文件头确认存在与规模
+  maintainer:
+    kind: maintainer
+    note: 维护者知识，未找到官方清单，两个上游快照的映射列表里也没有；需实测命中与功能后才能视为已验证

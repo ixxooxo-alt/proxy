@@ -1,0 +1,37 @@
+# 模拟用的远程数据样本：真实的 GeoSite / GeoIP / 广告集合内容未知，这里只放测试需要的少量条目。
+dns:
+  www.baidu.com: 110.242.68.66
+  unknown-cn.example: 1.2.4.8
+  unknown-foreign.example: 93.184.215.14
+  chat.qwen.ai: 47.246.1.1
+  u123.ct.sendgrid.net: 167.89.118.1
+  links.app.link: 18.155.1.1
+  notopenai.com: 104.18.1.1
+  openai.com.evil.example: 104.18.1.2
+  fakegoogle.com: 104.18.1.3
+  s3.us-east-1.amazonaws.com: 52.217.1.1
+  wikipedia.org: 208.80.154.224
+  foo.github.io: 185.199.108.153
+  gemini.google.com.evil.example: 104.18.1.4
+  example.cn: 1.2.4.9
+geoip:
+  cn: [1.2.4.0/24, 110.242.0.0/16, 223.5.5.0/24, 119.29.29.0/24, 36.110.0.0/16, '240e::/20']
+geosite:
+  cn: [cn, baidu.com, qq.com, bilibili.com]
+  geolocation-!cn: [wikipedia.org]
+  private: [lan, local]
+  category-ads-all: [doubleclick.net, googlesyndication.com, ct.sendgrid.net, s.youtube.com, tracker.twimg.com, adservice.google.com, app.link,
+                     iadsdk.apple.com, graph.instagram.com, copilot-telemetry.githubusercontent.com, collector.github.com]
+# Loon / Quantumult X 远程广告集合样本（与 category-ads-all 同一批主机）
+ad_list:
+  - [suffix, doubleclick.net]
+  - [suffix, googlesyndication.com]
+  - [suffix, ct.sendgrid.net]
+  - [domain, s.youtube.com]
+  - [domain, tracker.twimg.com]
+  - [domain, adservice.google.com]
+  - [suffix, app.link]
+  - [suffix, iadsdk.apple.com]
+  - [suffix, graph.instagram.com]
+  - [domain, copilot-telemetry.githubusercontent.com]
+  - [suffix, collector.github.com]

@@ -1,0 +1,9 @@
+运行时间（UTC）：2026-09-25 11:58:46
+mihomo 源码：v1.19.31（提交 ab405ba）
+sing-box 源码：v1.14.1（提交 1ac1a33）
+统一源摘要：da8f100af30cae5fdebdd7f38009727ecb18c66ae3ec100d530748439c7626f9
+命令：python3 tools/verify_with_upstream_source.py --mihomo-src /home/claude/vendor-src/mihomo --singbox-src /home/claude/vendor-src/sing-box
+
+检查了 3567 个字段 / 取值
+全部字段都能在上游源码的结构体标签中找到。
+退出码：0

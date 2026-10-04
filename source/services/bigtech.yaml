@@ -1,0 +1,144 @@
+# 大厂通用规则。更具体的产品（Google AI、YouTube、Copilot、Apple Music/TV、Prime Video…）
+# 由生成器按“更具体的规则先匹配”自动排在这些通用后缀之前，不靠手工调顺序。
+
+services:
+  - id: apple_media
+    group: Apple Music/TV
+    title: Apple Music、Apple TV
+    upstream: {dlc: [apple-music, apple-tvplus, itunes]}
+    rules:
+      - {suffix: music.apple.com, ev: dlc}
+      - {suffix: tv.apple.com, ev: dlc}
+      - {domain: aod.itunes.apple.com, ev: dlc, note: Apple Music 音频流}
+      - {domain: aod-ssl.itunes.apple.com, ev: dlc}
+      - {domain: audio-ssl.itunes.apple.com, ev: dlc}
+      - {domain: hls.itunes.apple.com, ev: dlc}
+      - {domain: hls-svod.itunes.apple.com, ev: dlc, note: Apple TV 视频流}
+      - {domain: hls-amt.itunes.apple.com, ev: dlc, note: Apple TV+ 视频流}
+      - {domain: play-edge.itunes.apple.com, ev: dlc}
+      - {domain: np-edge.itunes.apple.com, ev: dlc}
+      - {domain: uts-api.itunes.apple.com, ev: dlc}
+
+  - id: apple
+    group: Apple
+    title: Apple 通用（App Store、iCloud、系统服务）
+    upstream: {dlc: [apple, apple-dev, icloud, itunes], bm7: [Apple]}
+    rules:
+      - {suffix: apple.com, ev: dlc}
+      - {suffix: apple.com.cn, ev: dlc}
+      - {suffix: apple.co, ev: dlc}
+      - {suffix: apple.news, ev: dlc}
+      - {suffix: apple-cloudkit.com, ev: dlc}
+      - {suffix: apple-dns.net, ev: dlc}
+      - {suffix: apple-mapkit.com, ev: dlc}
+      - {suffix: aaplimg.com, ev: dlc}
+      - {suffix: cdn-apple.com, ev: dlc}
+      - {suffix: icloud.com, ev: dlc}
+      - {suffix: icloud.com.cn, ev: dlc}
+      - {suffix: icloud-content.com, ev: dlc}
+      - {suffix: me.com, ev: dlc}
+      - {suffix: mzstatic.com, ev: dlc}
+      - {suffix: itunes.com, ev: dlc}
+      - {suffix: appstore.com, ev: bm7-snap}
+
+  - id: google
+    group: Google
+    title: Google 通用（含共享登录、令牌、静态资源）
+    upstream: {dlc: [google, android, blogspot]}
+    rules:
+      - {suffix: google.com, ev: dlc}
+      - {suffix: googleapis.com, ev: dlc, nature: shared, note: 共享接口根域，只归 Google 通用，不归任何 AI}
+      - {suffix: gstatic.com, ev: dlc, nature: shared}
+      - {suffix: googleusercontent.com, ev: dlc, nature: shared}
+      - {suffix: ggpht.com, ev: maintainer, note: 上游把整个 ggpht.com 归 youtube；它也承载 Google Play、Blogger 等图片，本项目只把 yt3.ggpht.com 归 YouTube}
+      - {suffix: gvt1.com, ev: dlc}
+      - {suffix: gvt2.com, ev: dlc}
+      - {suffix: googlesource.com, ev: dlc}
+      - {suffix: google.dev, ev: dlc}
+      - {suffix: withgoogle.com, ev: dlc}
+      - {suffix: goo.gl, ev: dlc}
+      - {suffix: g.co, ev: dlc}
+      - {suffix: android.com, ev: dlc}
+      - {suffix: chrome.com, ev: dlc}
+      - {suffix: chromium.org, ev: dlc}
+      - {suffix: gmail.com, ev: dlc}
+      - {suffix: googlemail.com, ev: dlc}
+      - {suffix: blogger.com, ev: dlc}
+      - {suffix: blogspot.com, ev: dlc}
+      - {suffix: recaptcha.net, ev: maintainer, note: 上游 google 列表只收 recaptcha.net 与 www.recaptcha.net 两个精确主机；本项目按整个后缀归 Google}
+      - {suffix: google.com.hk, ev: dlc}
+      - {suffix: google.com.tw, ev: dlc}
+      - {suffix: google.co.jp, ev: dlc}
+      - {suffix: google.co.kr, ev: dlc}
+      - {suffix: google.com.sg, ev: dlc}
+      - {suffix: google.co.uk, ev: dlc}
+    shared_excluded:
+      - {host: "appspot.com / firebaseapp.com / web.app", ev: maintainer, why: Google 托管的第三方应用，共享云，不收}
+
+  - id: microsoft
+    group: Microsoft
+    title: Microsoft 通用（登录、Office、OneDrive、Bing）
+    upstream: {dlc: [microsoft, msn, bing, onedrive, xbox, azure, microsoft-dev]}
+    rules:
+      - {suffix: microsoft.com, ev: dlc}
+      - {suffix: microsoftonline.com, ev: dlc}
+      - {suffix: microsoftonline-p.com, ev: dlc}
+      - {suffix: msauth.net, ev: dlc}
+      - {suffix: msftauth.net, ev: dlc}
+      - {suffix: live.com, ev: dlc}
+      - {suffix: live.net, ev: dlc}
+      - {suffix: msn.com, ev: dlc}
+      - {suffix: bing.com, ev: dlc}
+      - {suffix: bing.net, ev: dlc}
+      - {suffix: office.com, ev: dlc}
+      - {suffix: office.net, ev: dlc}
+      - {suffix: office365.com, ev: dlc}
+      - {suffix: microsoft365.com, ev: dlc}
+      - {suffix: cloud.microsoft, ev: dlc, note: 微软新云服务根域（上游 microsoft 列表收录了品牌顶级域 .microsoft）}
+      - {suffix: outlook.com, ev: dlc}
+      - {suffix: onedrive.com, ev: dlc}
+      - {suffix: 1drv.com, ev: dlc}
+      - {suffix: 1drv.ms, ev: dlc}
+      - {suffix: sharepoint.com, ev: dlc, note: OneDrive 商业版等}
+      - {suffix: skype.com, ev: dlc}
+      - {suffix: xbox.com, ev: dlc}
+      - {suffix: xboxlive.com, ev: dlc}
+      - {suffix: azure.com, ev: dlc}
+      - {suffix: windows.com, ev: dlc}
+      - {suffix: visualstudio.com, ev: dlc}
+      - {suffix: vsassets.io, ev: dlc}
+      - {suffix: aka.ms, ev: dlc}
+      - {suffix: gfx.ms, ev: dlc}
+      - {suffix: sfx.ms, ev: dlc}
+    shared_excluded:
+      - {host: "windows.net（*.blob.core.windows.net 等）/ azurewebsites.net / azureedge.net", ev: maintainer, why: Azure 共享云，所有客户共用，不收}
+
+  - id: github
+    group: GitHub
+    title: GitHub
+    upstream: {dlc: [github]}
+    rules:
+      - {suffix: github.com, ev: dlc}
+      - {suffix: githubusercontent.com, ev: dlc, note: 含 raw / objects（Releases 下载）；Copilot 专属主机更具体，先匹配}
+      - {suffix: githubassets.com, ev: dlc}
+      - {suffix: githubapp.com, ev: dlc}
+      - {suffix: github.dev, ev: dlc}
+      - {suffix: github.blog, ev: dlc}
+      - {suffix: githubstatus.com, ev: dlc}
+      - {suffix: ghcr.io, ev: dlc, note: GitHub 容器仓库，属 GitHub 专属}
+    shared_excluded:
+      - {host: github.io, ev: maintainer, why: GitHub Pages 托管第三方站点，共享托管根域，不收（落入国外默认）}
+
+  - id: amazon
+    group: 国外默认
+    title: Amazon 通用（购物）——需求规定归国外默认
+    upstream: {dlc: [amazon]}
+    rules:
+      - {suffix: amazon.com, ev: dlc}
+      - {suffix: amazon.co.jp, ev: dlc}
+      - {suffix: amazon.co.uk, ev: dlc}
+      - {suffix: media-amazon.com, ev: dlc}
+      - {suffix: ssl-images-amazon.com, ev: dlc}
+      - {suffix: images-amazon.com, ev: dlc}
+    shared_excluded:
+      - {host: "amazonaws.com / cloudfront.net", ev: maintainer, why: AWS 共享云，不收}

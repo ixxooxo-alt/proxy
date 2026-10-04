@@ -1,0 +1,1912 @@
+{
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "https",
+        "tag": "dns-cn",
+        "server": "223.5.5.5"
+      },
+      {
+        "type": "https",
+        "tag": "dns-foreign",
+        "server": "1.1.1.1",
+        "detour": "国外默认"
+      },
+      {
+        "type": "fakeip",
+        "tag": "dns-fakeip",
+        "inet4_range": "198.18.0.0/15"
+      },
+      {
+        "type": "local",
+        "tag": "dns-local"
+      }
+    ],
+    "rules": [
+      {
+        "domain_suffix": [
+          "lan",
+          "local",
+          "localdomain",
+          "home.arpa",
+          "localhost"
+        ],
+        "server": "dns-local"
+      },
+      {
+        "domain_suffix": [
+          "msftconnecttest.com",
+          "msftncsi.com",
+          "pool.ntp.org",
+          "cmpassport.com",
+          "jegotrip.com.cn",
+          "icitymobile.mobi"
+        ],
+        "domain": [
+          "captive.apple.com",
+          "localhost.ptlogin2.qq.com",
+          "time.apple.com",
+          "time.windows.com",
+          "id6.me"
+        ],
+        "server": "dns-cn"
+      },
+      {
+        "rule_set": "geosite-cn",
+        "server": "dns-cn"
+      },
+      {
+        "query_type": [
+          "A",
+          "AAAA"
+        ],
+        "server": "dns-fakeip"
+      }
+    ],
+    "final": "dns-foreign",
+    "strategy": "ipv4_only"
+  },
+  "http_clients": [
+    {
+      "tag": "经代理下载",
+      "detour": "国外默认"
+    }
+  ],
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": [
+        "172.19.0.1/30",
+        "fdfe:dcba:9876::1/126"
+      ],
+      "auto_route": true,
+      "strict_route": true,
+      "stack": "mixed"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "国外默认",
+      "outbounds": [
+        "日本",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "OpenAI",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Claude",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Cursor",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Google AI",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Copilot",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "其他 AI",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "YouTube",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Netflix",
+      "outbounds": [
+        "Netflix·解锁入口",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "Netflix·解锁入口"
+    },
+    {
+      "type": "selector",
+      "tag": "Disney+",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Max",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Prime Video",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Hulu US",
+      "outbounds": [
+        "美国",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "美国"
+    },
+    {
+      "type": "selector",
+      "tag": "Hulu Japan",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Abema",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "DMM",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "日本影音",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "Spotify",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "TikTok",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Twitch",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Bilibili 港澳台",
+      "outbounds": [
+        "台湾",
+        "香港",
+        "国外默认",
+        "日本",
+        "韩国",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "台湾"
+    },
+    {
+      "type": "selector",
+      "tag": "Bahamut",
+      "outbounds": [
+        "台湾",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "台湾"
+    },
+    {
+      "type": "selector",
+      "tag": "其他流媒体",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Telegram",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "X",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Meta 社交",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "WhatsApp",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "LINE",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Discord",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Reddit",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "LinkedIn",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Apple",
+      "outbounds": [
+        "DIRECT",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区"
+      ],
+      "default": "DIRECT"
+    },
+    {
+      "type": "selector",
+      "tag": "Apple Music/TV",
+      "outbounds": [
+        "DIRECT",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区"
+      ],
+      "default": "DIRECT"
+    },
+    {
+      "type": "selector",
+      "tag": "Google",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "Microsoft",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "GitHub",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "开发下载",
+      "outbounds": [
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "远程控制",
+      "outbounds": [
+        "日本",
+        "国外默认",
+        "香港",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "日本"
+    },
+    {
+      "type": "selector",
+      "tag": "PayPal",
+      "outbounds": [
+        "PayPal·美国固定",
+        "美国",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "其他地区",
+        "DIRECT"
+      ],
+      "default": "PayPal·美国固定"
+    },
+    {
+      "type": "selector",
+      "tag": "国内直连",
+      "outbounds": [
+        "DIRECT",
+        "国外默认"
+      ],
+      "default": "DIRECT"
+    },
+    {
+      "type": "selector",
+      "tag": "PayPal·美国固定",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "Netflix·解锁入口",
+      "outbounds": [
+        "国外默认",
+        "日本",
+        "香港",
+        "台湾",
+        "新加坡",
+        "美国",
+        "韩国",
+        "其他地区"
+      ],
+      "default": "国外默认"
+    },
+    {
+      "type": "selector",
+      "tag": "香港",
+      "outbounds": [
+        "香港·自动",
+        "香港·手动"
+      ],
+      "default": "香港·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "日本",
+      "outbounds": [
+        "日本·自动",
+        "日本·手动"
+      ],
+      "default": "日本·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "韩国",
+      "outbounds": [
+        "韩国·自动",
+        "韩国·手动"
+      ],
+      "default": "韩国·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "台湾",
+      "outbounds": [
+        "台湾·自动",
+        "台湾·手动"
+      ],
+      "default": "台湾·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "新加坡",
+      "outbounds": [
+        "新加坡·自动",
+        "新加坡·手动"
+      ],
+      "default": "新加坡·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "美国",
+      "outbounds": [
+        "美国·自动",
+        "美国·手动"
+      ],
+      "default": "美国·自动"
+    },
+    {
+      "type": "selector",
+      "tag": "其他地区",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "香港·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "香港·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "日本·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "日本·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "韩国·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "韩国·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "台湾·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "台湾·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "新加坡·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "新加坡·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "美国·自动",
+      "outbounds": [
+        "无可用节点"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "300s",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "美国·手动",
+      "outbounds": [
+        "无可用节点"
+      ]
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "block",
+      "tag": "无可用节点"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "domain_suffix": [
+          "lan",
+          "local",
+          "localdomain",
+          "home.arpa",
+          "localhost"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "ip_cidr": [
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "127.0.0.0/8",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.168.0.0/16",
+          "224.0.0.0/4",
+          "255.255.255.255/32",
+          "::1/128",
+          "fc00::/7",
+          "fe80::/10",
+          "ff00::/8"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix": [
+          "msftconnecttest.com",
+          "msftncsi.com"
+        ],
+        "domain": [
+          "captive.apple.com",
+          "connectivitycheck.platform.hicloud.com",
+          "connect.rom.miui.com",
+          "wifi.vivo.com.cn"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix": [
+          "ct.sendgrid.net",
+          "app.link",
+          "hcaptcha.com"
+        ],
+        "domain": [
+          "m.stripe.network",
+          "m.stripe.com",
+          "challenges.cloudflare.com"
+        ],
+        "outbound": "国外默认"
+      },
+      {
+        "domain": [
+          "s.youtube.com"
+        ],
+        "outbound": "YouTube"
+      },
+      {
+        "domain": [
+          "copilot-telemetry.githubusercontent.com"
+        ],
+        "outbound": "Copilot"
+      },
+      {
+        "domain_suffix": [
+          "collector.github.com"
+        ],
+        "outbound": "GitHub"
+      },
+      {
+        "domain_suffix": [
+          "adservice.google.com",
+          "googleadapis.l.google.com",
+          "pagead.l.google.com",
+          "partnerad.l.google.com",
+          "mobileads.google.com",
+          "mail-ads.google.com",
+          "fcmatch.google.com",
+          "marketingplatform.google.com",
+          "ads.youtube.com",
+          "advertising.apple.com",
+          "api-adservices.apple.com",
+          "iad.apple.com",
+          "iadsdk.apple.com",
+          "ad.games.dmm.com",
+          "pixel.facebook.com",
+          "analytics.facebook.com",
+          "graph.instagram.com",
+          "graph-fallback.instagram.com",
+          "graph.whatsapp.com",
+          "graph.whatsapp.net",
+          "analytics-alv.google.com",
+          "browser.events.data.msn.com",
+          "analytics.tiktok.com"
+        ],
+        "domain": [
+          "adstudio-assets.scdn.co",
+          "an.facebook.com",
+          "analytics.google.com",
+          "adeventtracker.spotify.com",
+          "bloodhound.spotify.com",
+          "copilot-telemetry-service.githubusercontent.com",
+          "bat.bing.com",
+          "px.ads.linkedin.com"
+        ],
+        "action": "reject"
+      },
+      {
+        "rule_set": "geosite-category-ads-all",
+        "action": "reject"
+      },
+      {
+        "domain_suffix": [
+          "openai.com",
+          "chatgpt.com",
+          "oaistatic.com",
+          "oaiusercontent.com",
+          "oaistatsig.com",
+          "chat.com",
+          "sora.com",
+          "chatgpt.livekit.cloud"
+        ],
+        "domain": [
+          "cdn.openaimerge.com"
+        ],
+        "outbound": "OpenAI"
+      },
+      {
+        "domain_suffix": [
+          "anthropic.com",
+          "claude.ai",
+          "claude.com",
+          "claudeusercontent.com",
+          "claudemcpclient.com",
+          "claudemcpcontent.com",
+          "clau.de"
+        ],
+        "outbound": "Claude"
+      },
+      {
+        "domain_suffix": [
+          "cursor.sh",
+          "cursor-cdn.com",
+          "cursorapi.com",
+          "cursor.com"
+        ],
+        "domain": [
+          "anysphere-binaries.s3.us-east-1.amazonaws.com"
+        ],
+        "outbound": "Cursor"
+      },
+      {
+        "domain_suffix": [
+          "cursorvm.com"
+        ],
+        "outbound": "远程控制"
+      },
+      {
+        "domain": [
+          "gemini.google.com",
+          "aistudio.google.com",
+          "alkalimakersuite-pa.clients6.google.com",
+          "alkalicore-pa.clients6.google.com",
+          "webchannel-alkalimakersuite-pa.clients6.google.com",
+          "makersuite.google.com",
+          "bard.google.com",
+          "generativelanguage.googleapis.com",
+          "cloudaicompanion.googleapis.com",
+          "cloudcode-pa.googleapis.com",
+          "daily-cloudcode-pa.googleapis.com",
+          "antigravity-pa.googleapis.com",
+          "antigravity.googleapis.com",
+          "notebooklm.google.com",
+          "notebooklm-pa.googleapis.com",
+          "notebooklm.googleapis.com"
+        ],
+        "domain_suffix": [
+          "gemini.google",
+          "gemini.gstatic.com",
+          "geller-pa.googleapis.com",
+          "proactivebackend-pa.googleapis.com",
+          "robinfrontend-pa.googleapis.com",
+          "ai.studio",
+          "generativeai.google",
+          "ai.google.dev",
+          "aicode.googleapis.com",
+          "aida.googleapis.com",
+          "antigravity.google",
+          "antigravity-unleash.goog",
+          "notebooklm.google",
+          "notebook.google",
+          "notebook.google.com",
+          "jules.google",
+          "jules.google.com",
+          "labs.google",
+          "labs.google.com",
+          "aisandbox-pa.googleapis.com",
+          "flow.google",
+          "flow.google.com",
+          "opal.google",
+          "opal.google.com",
+          "stitch.withgoogle.com",
+          "deepmind.com",
+          "deepmind.google"
+        ],
+        "outbound": "Google AI"
+      },
+      {
+        "domain_suffix": [
+          "githubcopilot.com",
+          "copilot.microsoft.com",
+          "copilot.cloud.microsoft",
+          "copilot.com"
+        ],
+        "domain": [
+          "copilot-proxy.githubusercontent.com",
+          "origin-tracker.githubusercontent.com",
+          "copilot-telemetry.githubusercontent.com",
+          "copilot-reports.github.com",
+          "copilot-workspace.githubnext.com",
+          "copilotprodattachments.blob.core.windows.net",
+          "sydney.bing.com"
+        ],
+        "outbound": "Copilot"
+      },
+      {
+        "domain_suffix": [
+          "perplexity.ai",
+          "pplx.ai",
+          "perplexity.com",
+          "poe.com",
+          "poecdn.net",
+          "x.ai",
+          "grok.com",
+          "grokipedia.com",
+          "mistral.ai",
+          "character.ai",
+          "midjourney.com",
+          "openrouter.ai",
+          "groq.com",
+          "huggingface.co",
+          "hf.co",
+          "hf.space",
+          "meta.ai",
+          "elevenlabs.io",
+          "elevenlabs.com",
+          "suno.com",
+          "suno.ai"
+        ],
+        "domain": [
+          "ppl-ai-file-upload.s3.amazonaws.com",
+          "pplx-res.cloudinary.com"
+        ],
+        "outbound": "其他 AI"
+      },
+      {
+        "domain_suffix": [
+          "deepseek.com",
+          "doubao.com",
+          "moonshot.cn",
+          "kimi.com",
+          "chatglm.cn",
+          "bigmodel.cn",
+          "zhipuai.cn"
+        ],
+        "domain": [
+          "tongyi.aliyun.com",
+          "qianwen.aliyun.com",
+          "yuanbao.tencent.com",
+          "yiyan.baidu.com"
+        ],
+        "outbound": "国内直连"
+      },
+      {
+        "domain_suffix": [
+          "youtube.com",
+          "youtu.be",
+          "yt.be",
+          "ytimg.com",
+          "googlevideo.com",
+          "youtube-nocookie.com",
+          "youtubekids.com",
+          "youtubeembeddedplayer.googleapis.com"
+        ],
+        "domain": [
+          "youtubei.googleapis.com",
+          "youtube.googleapis.com",
+          "yt3.ggpht.com",
+          "yt3.googleusercontent.com"
+        ],
+        "outbound": "YouTube"
+      },
+      {
+        "domain_suffix": [
+          "netflix.com",
+          "netflix.net",
+          "nflxext.com",
+          "nflximg.com",
+          "nflximg.net",
+          "nflxso.net",
+          "nflxvideo.net",
+          "nflxsearch.net",
+          "fast.com",
+          "netflixdnstest0.com",
+          "netflixdnstest1.com",
+          "netflixdnstest2.com",
+          "netflixdnstest3.com",
+          "netflixdnstest4.com",
+          "netflixdnstest5.com",
+          "netflixdnstest6.com",
+          "netflixdnstest7.com",
+          "netflixdnstest8.com",
+          "netflixdnstest9.com",
+          "netflixdnstest10.com"
+        ],
+        "outbound": "Netflix"
+      },
+      {
+        "domain_suffix": [
+          "disneyplus.com",
+          "disney-plus.net",
+          "dssott.com",
+          "disneystreaming.com",
+          "registerdisney.go.com"
+        ],
+        "outbound": "Disney+"
+      },
+      {
+        "domain_suffix": [
+          "max.com",
+          "hbomax.com",
+          "hbomaxcdn.com",
+          "hbo.com",
+          "hbogo.com"
+        ],
+        "outbound": "Max"
+      },
+      {
+        "domain_suffix": [
+          "primevideo.com",
+          "aiv-cdn.net",
+          "aiv-delivery.net",
+          "amazonvideo.com",
+          "pv-cdn.net",
+          "atv-ps-eu.amazon.com",
+          "atv-ps-eu.amazon.co.uk",
+          "atv-ps-fe.amazon.com",
+          "atv-ps-fe.amazon.co.jp",
+          "prod.service.minerva.devices.a2z.com"
+        ],
+        "domain": [
+          "atv-ps.amazon.com",
+          "msh.amazon.co.uk",
+          "d1v5ir2lpwr8os.cloudfront.net",
+          "d22qjgkvxw22r6.cloudfront.net",
+          "d25xi40x97liuc.cloudfront.net",
+          "d27xxe7juh1us6.cloudfront.net",
+          "dmqdd6hw24ucf.cloudfront.net",
+          "avodmp4s3ww-a.akamaihd.net"
+        ],
+        "outbound": "Prime Video"
+      },
+      {
+        "domain_suffix": [
+          "hulu.com",
+          "hulustream.com",
+          "huluim.com"
+        ],
+        "domain": [
+          "hulu.playback.edge.bamgrid.com"
+        ],
+        "outbound": "Hulu US"
+      },
+      {
+        "domain_suffix": [
+          "bamgrid.com"
+        ],
+        "outbound": "Disney+"
+      },
+      {
+        "domain_suffix": [
+          "hulu.jp",
+          "happyon.jp",
+          "hjholdings.jp",
+          "prod.hjholdings.tv",
+          "streaks.jp"
+        ],
+        "outbound": "Hulu Japan"
+      },
+      {
+        "domain_suffix": [
+          "abema.tv",
+          "abema.io",
+          "abema-tv.com",
+          "hayabusa.io"
+        ],
+        "domain": [
+          "abematv.akamaized.net",
+          "linear-abematv.akamaized.net",
+          "ds-linear-abematv.akamaized.net",
+          "vod-abematv.akamaized.net",
+          "ds-vod-abematv.akamaized.net"
+        ],
+        "outbound": "Abema"
+      },
+      {
+        "domain_suffix": [
+          "dmm.com",
+          "dmm.co.jp",
+          "dmm-extension.com",
+          "dmmapis.com"
+        ],
+        "outbound": "DMM"
+      },
+      {
+        "domain_suffix": [
+          "nicovideo.jp",
+          "nimg.jp",
+          "dmc.nico",
+          "niconico.com",
+          "nicochannel.jp",
+          "nicoseiga.jp",
+          "nicomanga.jp",
+          "nicodic.jp",
+          "nico.ms",
+          "simg.jp",
+          "tver.jp",
+          "unext.jp",
+          "nxtv.jp",
+          "radiko.jp",
+          "radiko-cf.com",
+          "smartstream.ne.jp",
+          "telasa.jp",
+          "fod.fujitv.co.jp",
+          "wowow.co.jp",
+          "lemino.docomo.ne.jp"
+        ],
+        "outbound": "日本影音"
+      },
+      {
+        "domain_suffix": [
+          "spotify.com",
+          "scdn.co",
+          "spotifycdn.com",
+          "spotifycdn.net",
+          "pscdn.co",
+          "spoti.fi"
+        ],
+        "domain": [
+          "audio-ak-spotify-com.akamaized.net",
+          "audio4-ak-spotify-com.akamaized.net",
+          "heads-ak-spotify-com.akamaized.net",
+          "heads4-ak-spotify-com.akamaized.net"
+        ],
+        "outbound": "Spotify"
+      },
+      {
+        "domain_suffix": [
+          "tiktok.com",
+          "tiktokv.com",
+          "tiktokv.us",
+          "tiktokv.eu",
+          "tiktokw.us",
+          "tiktokw.eu",
+          "tiktokd.net",
+          "tiktokd.org",
+          "tik-tokapi.com",
+          "tiktok-row.net",
+          "ttoverseaus.net",
+          "tiktokcdn.com",
+          "tiktokcdn-us.com",
+          "tiktokcdn-eu.com",
+          "tiktokeu-cdn.com",
+          "tiktokrow-cdn.com",
+          "ttcdn-us.com",
+          "ttlivecdn.com",
+          "tiktok-minis.com",
+          "tiktokminis.us",
+          "tiktokglobalshopv.com",
+          "bytedapm.com",
+          "byteoversea.com",
+          "byteoversea.net",
+          "byteglb.com",
+          "ibytedtos.com",
+          "ibyteimg.com",
+          "ipstatp.com",
+          "sgpstatp.com",
+          "isnssdk.com",
+          "byteintlapi.com",
+          "bytegecko-i18n.com",
+          "ttwebview.com",
+          "muscdn.com",
+          "musical.ly",
+          "ttwstatic.com"
+        ],
+        "domain": [
+          "p16-tiktokcdn-com.akamaized.net",
+          "lf16-effectcdn.byteeffecttos-g.com"
+        ],
+        "outbound": "TikTok"
+      },
+      {
+        "domain_suffix": [
+          "twitch.tv",
+          "ttvnw.net",
+          "jtvnw.net",
+          "twitchcdn.net",
+          "twitchsvc.net",
+          "ext-twitch.tv"
+        ],
+        "outbound": "Twitch"
+      },
+      {
+        "domain": [
+          "api.bilibili.com",
+          "app.bilibili.com",
+          "bangumi.bilibili.com",
+          "upos-hz-mirrorakam.akamaized.net"
+        ],
+        "outbound": "Bilibili 港澳台"
+      },
+      {
+        "domain_suffix": [
+          "bilibili.com",
+          "bilivideo.com",
+          "bilivideo.cn",
+          "hdslb.com",
+          "biliapi.net",
+          "biliapi.com",
+          "b23.tv"
+        ],
+        "outbound": "国内直连"
+      },
+      {
+        "domain_suffix": [
+          "gamer.com.tw",
+          "bahamut.com.tw"
+        ],
+        "domain": [
+          "bahamut.akamaized.net",
+          "gamer-cds.cdn.hinet.net",
+          "gamer2-cds.cdn.hinet.net"
+        ],
+        "outbound": "Bahamut"
+      },
+      {
+        "domain_suffix": [
+          "dazn.com",
+          "dazn-api.com",
+          "dazndn.com",
+          "daznfeeds.com",
+          "daznplayer.com",
+          "daznservices.com",
+          "vimeo.com",
+          "vimeocdn.com",
+          "soundcloud.com",
+          "sndcdn.com",
+          "deezer.com",
+          "dzcdn.net",
+          "tidal.com",
+          "pandora.com",
+          "p-cdn.us",
+          "crunchyroll.com",
+          "paramountplus.com",
+          "peacocktv.com",
+          "pluto.tv",
+          "plutotv.net",
+          "tubi.tv",
+          "tubitv.com",
+          "tubi.io",
+          "tubi.video",
+          "viu.com",
+          "viu.tv",
+          "mytvsuper.com",
+          "kktv.me",
+          "kktv.com.tw",
+          "litv.tv",
+          "ofiii.com",
+          "litvfreepc.akamaized.net",
+          "catchplay.com",
+          "tra-ww000-cp.akamaized.net",
+          "iq.com",
+          "wetv.vip",
+          "viki.com",
+          "bilibili.tv",
+          "biliintl.com",
+          "bstarstatic.com"
+        ],
+        "domain": [
+          "api.viu.now.com",
+          "dfp6rglgjqszk.cloudfront.net",
+          "d1k2us671qcoau.cloudfront.net",
+          "d2anahhhmp1ffz.cloudfront.net",
+          "theater-kktv.cdn.hinet.net",
+          "ntdfreemobile-tgc.cdn.hinet.net",
+          "ntdfreepc-tgc.cdn.hinet.net",
+          "ntdfreetv-tgc.cdn.hinet.net",
+          "ntdfreevcpc-tgc.cdn.hinet.net",
+          "ntdofifreemobile-tgc.cdn.hinet.net",
+          "ntdofifreepc-tgc.cdn.hinet.net",
+          "ntdofifreetv-tgc.cdn.hinet.net",
+          "ntdofifreevcpc-tgc.cdn.hinet.net"
+        ],
+        "outbound": "其他流媒体"
+      },
+      {
+        "domain_suffix": [
+          "telegram.org",
+          "t.me",
+          "telegram.me",
+          "telesco.pe",
+          "telegra.ph",
+          "tdesktop.com",
+          "telegram-cdn.org",
+          "cdn-telegram.org",
+          "fragment.com"
+        ],
+        "outbound": "Telegram"
+      },
+      {
+        "domain_suffix": [
+          "x.com",
+          "twitter.com",
+          "twimg.com",
+          "t.co",
+          "twttr.com",
+          "tweetdeck.com",
+          "pscp.tv",
+          "periscope.tv"
+        ],
+        "outbound": "X"
+      },
+      {
+        "domain_suffix": [
+          "facebook.com",
+          "facebook.net",
+          "fb.com",
+          "fb.me",
+          "fbcdn.net",
+          "fbsbx.com",
+          "instagram.com",
+          "cdninstagram.com",
+          "ig.me",
+          "threads.net",
+          "threads.com",
+          "messenger.com",
+          "m.me",
+          "meta.com",
+          "oculus.com",
+          "oculuscdn.com"
+        ],
+        "outbound": "Meta 社交"
+      },
+      {
+        "domain_suffix": [
+          "whatsapp.com",
+          "whatsapp.net",
+          "wa.me"
+        ],
+        "outbound": "WhatsApp"
+      },
+      {
+        "domain_suffix": [
+          "line.me",
+          "line-apps.com",
+          "line-scdn.net",
+          "line-cdn.net",
+          "lin.ee",
+          "linecorp.com"
+        ],
+        "domain": [
+          "line.naver.jp"
+        ],
+        "outbound": "LINE"
+      },
+      {
+        "domain_suffix": [
+          "discord.com",
+          "discord.gg",
+          "discord.co",
+          "discord.dev",
+          "discord.media",
+          "discordapp.com",
+          "discordapp.net",
+          "discordstatus.com",
+          "dis.gd"
+        ],
+        "outbound": "Discord"
+      },
+      {
+        "domain_suffix": [
+          "reddit.com",
+          "redd.it",
+          "redditmedia.com",
+          "redditstatic.com",
+          "redditmail.com"
+        ],
+        "outbound": "Reddit"
+      },
+      {
+        "domain_suffix": [
+          "linkedin.com",
+          "licdn.com",
+          "lnkd.in"
+        ],
+        "outbound": "LinkedIn"
+      },
+      {
+        "domain_suffix": [
+          "npmjs.org",
+          "npmjs.com",
+          "yarnpkg.com",
+          "nodejs.org",
+          "deno.land",
+          "jsr.io",
+          "bun.sh",
+          "pypi.org",
+          "pythonhosted.org",
+          "python.org",
+          "anaconda.org",
+          "anaconda.com",
+          "go.dev",
+          "crates.io",
+          "rust-lang.org",
+          "rustup.rs",
+          "maven.org",
+          "gradle.org",
+          "rubygems.org",
+          "packagist.org",
+          "cocoapods.org",
+          "pub.dev",
+          "nuget.org",
+          "brew.sh",
+          "docker.io",
+          "docker.com",
+          "quay.io",
+          "gcr.io",
+          "pkg.dev",
+          "k8s.io"
+        ],
+        "domain": [
+          "proxy.golang.org",
+          "sum.golang.org",
+          "repo.maven.apache.org",
+          "production.cloudflare.docker.com"
+        ],
+        "outbound": "开发下载"
+      },
+      {
+        "domain_suffix": [
+          "paypal.com",
+          "paypalobjects.com",
+          "paypal.me"
+        ],
+        "outbound": "PayPal"
+      },
+      {
+        "domain_suffix": [
+          "windowsupdate.com",
+          "delivery.mp.microsoft.com"
+        ],
+        "outbound": "国内直连"
+      },
+      {
+        "domain_suffix": [
+          "music.apple.com",
+          "tv.apple.com"
+        ],
+        "domain": [
+          "aod.itunes.apple.com",
+          "aod-ssl.itunes.apple.com",
+          "audio-ssl.itunes.apple.com",
+          "hls.itunes.apple.com",
+          "hls-svod.itunes.apple.com",
+          "hls-amt.itunes.apple.com",
+          "play-edge.itunes.apple.com",
+          "np-edge.itunes.apple.com",
+          "uts-api.itunes.apple.com"
+        ],
+        "outbound": "Apple Music/TV"
+      },
+      {
+        "domain_suffix": [
+          "apple.com",
+          "apple.com.cn",
+          "apple.co",
+          "apple.news",
+          "apple-cloudkit.com",
+          "apple-dns.net",
+          "apple-mapkit.com",
+          "aaplimg.com",
+          "cdn-apple.com",
+          "icloud.com",
+          "icloud.com.cn",
+          "icloud-content.com",
+          "me.com",
+          "mzstatic.com",
+          "itunes.com",
+          "appstore.com"
+        ],
+        "outbound": "Apple"
+      },
+      {
+        "domain_suffix": [
+          "google.com",
+          "googleapis.com",
+          "gstatic.com",
+          "googleusercontent.com",
+          "ggpht.com",
+          "gvt1.com",
+          "gvt2.com",
+          "googlesource.com",
+          "google.dev",
+          "withgoogle.com",
+          "goo.gl",
+          "g.co",
+          "android.com",
+          "chrome.com",
+          "chromium.org",
+          "gmail.com",
+          "googlemail.com",
+          "blogger.com",
+          "blogspot.com",
+          "recaptcha.net",
+          "google.com.hk",
+          "google.com.tw",
+          "google.co.jp",
+          "google.co.kr",
+          "google.com.sg",
+          "google.co.uk"
+        ],
+        "outbound": "Google"
+      },
+      {
+        "domain_suffix": [
+          "microsoft.com",
+          "microsoftonline.com",
+          "microsoftonline-p.com",
+          "msauth.net",
+          "msftauth.net",
+          "live.com",
+          "live.net",
+          "msn.com",
+          "bing.com",
+          "bing.net",
+          "office.com",
+          "office.net",
+          "office365.com",
+          "microsoft365.com",
+          "cloud.microsoft",
+          "outlook.com",
+          "onedrive.com",
+          "1drv.com",
+          "1drv.ms",
+          "sharepoint.com",
+          "skype.com",
+          "xbox.com",
+          "xboxlive.com",
+          "azure.com",
+          "windows.com",
+          "visualstudio.com",
+          "vsassets.io",
+          "aka.ms",
+          "gfx.ms",
+          "sfx.ms"
+        ],
+        "outbound": "Microsoft"
+      },
+      {
+        "domain_suffix": [
+          "github.com",
+          "githubusercontent.com",
+          "githubassets.com",
+          "githubapp.com",
+          "github.dev",
+          "github.blog",
+          "githubstatus.com",
+          "ghcr.io"
+        ],
+        "outbound": "GitHub"
+      },
+      {
+        "domain_suffix": [
+          "amazon.com",
+          "amazon.co.jp",
+          "amazon.co.uk",
+          "media-amazon.com",
+          "ssl-images-amazon.com",
+          "images-amazon.com"
+        ],
+        "outbound": "国外默认"
+      },
+      {
+        "rule_set": "geosite-cn",
+        "outbound": "国内直连"
+      },
+      {
+        "rule_set": "geosite-geolocation-!cn",
+        "outbound": "国外默认"
+      },
+      {
+        "ip_cidr": [
+          "91.105.192.0/23",
+          "91.108.4.0/22",
+          "91.108.8.0/22",
+          "91.108.12.0/22",
+          "91.108.16.0/22",
+          "91.108.20.0/22",
+          "91.108.56.0/22",
+          "149.154.160.0/20",
+          "185.76.151.0/24",
+          "2001:67c:4e8::/48",
+          "2001:b28:f23c::/48",
+          "2001:b28:f23d::/48",
+          "2001:b28:f23f::/48",
+          "2a0a:f280::/32"
+        ],
+        "outbound": "Telegram"
+      },
+      {
+        "action": "resolve",
+        "server": "dns-foreign"
+      },
+      {
+        "rule_set": "geoip-cn",
+        "outbound": "国内直连"
+      }
+    ],
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": "geosite-category-ads-all",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+        "update_interval": "1d"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-cn",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+        "update_interval": "1d"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-geolocation-!cn",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+        "update_interval": "1d"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-cn",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+        "update_interval": "1d"
+      }
+    ],
+    "final": "国外默认",
+    "auto_detect_interface": true,
+    "default_domain_resolver": "dns-cn",
+    "default_http_client": "经代理下载"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "store_fakeip": true
+    }
+  }
+}

@@ -1,0 +1,88 @@
+# 业务策略组：界面上每个组一个开关。组名一经发布不要随意改——各客户端按组名保存用户的手动选择。
+#
+# members 的写法：
+#   default: 首次默认出口（放在成员第一位；用户手动改过后，客户端保存用户选择，更新配置不覆盖）
+#   options: standard  = [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]（去掉与 default 重复的一项）
+#   options: 显式列表
+# 引用规则：业务组只能引用地区入口、国外默认、明确规定的专用入口（PayPal·美国固定、Netflix·解锁入口）、DIRECT / REJECT。
+
+# 显示顺序即配置中的顺序
+groups:
+  # ---------- 基础 ----------
+  - {name: 国外默认, category: 基础, special: foreign_default,
+     default: 日本, options: [香港, 韩国, 台湾, 新加坡, 美国, 其他地区],
+     note: 独立选择组，成员为七个地区入口，首次默认日本；所选地区全组不可用时不自动跨国}
+
+  # ---------- AI ----------
+  - {name: OpenAI,    category: AI, default: 日本, options: standard}
+  - {name: Claude,    category: AI, default: 日本, options: standard}
+  - {name: Cursor,    category: AI, default: 日本, options: standard}
+  - {name: Google AI, category: AI, default: 日本, options: standard, note: 原 Gemini 策略组改名}
+  - {name: Copilot,   category: AI, default: 日本, options: standard, note: GitHub Copilot 与 Microsoft Copilot 底层分别维护}
+  - {name: 其他 AI,   category: AI, default: 日本, options: standard, residual: true, note: 不含上面已独立的 AI；国内版 AI 归国内直连}
+
+  # ---------- 流媒体 ----------
+  - {name: YouTube,     category: 流媒体, default: 国外默认, options: standard}
+  - {name: Netflix,     category: 流媒体, default: Netflix·解锁入口, options: standard}
+  - {name: Disney+,     category: 流媒体, default: 国外默认, options: standard}
+  - {name: Max,         category: 流媒体, default: 国外默认, options: standard, note: 服务已于 2025 年改回 HBO Max，组名沿用需求中的 Max}
+  - {name: Prime Video, category: 流媒体, default: 国外默认, options: standard}
+  - {name: Hulu US,     category: 流媒体, default: 美国, options: standard}
+  - {name: Hulu Japan,  category: 流媒体, default: 日本, options: standard}
+  - {name: Abema,       category: 流媒体, default: 日本, options: standard}
+  - {name: DMM,         category: 流媒体, default: 日本, options: standard}
+  - {name: 日本影音,    category: 流媒体, default: 日本, options: standard, residual: true, note: 不含 Hulu Japan、Abema、DMM}
+  - {name: Spotify,     category: 流媒体, default: 国外默认, options: standard}
+  - {name: TikTok,      category: 流媒体, default: 国外默认, options: standard}
+  - {name: Twitch,      category: 流媒体, default: 国外默认, options: standard}
+  - {name: Bilibili 港澳台, category: 流媒体, default: 台湾, options: [香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区, DIRECT],
+     note: 提供香港手动备选}
+  - {name: Bahamut,     category: 流媒体, default: 台湾, options: standard, note: 其他地区可用性按内容实测，不预设香港等效台湾}
+  - {name: 其他流媒体,  category: 流媒体, default: 国外默认, options: standard, residual: true, note: 不含上面已独立的流媒体}
+
+  # ---------- 社交 ----------
+  - {name: Telegram,  category: 社交, default: 国外默认, options: standard}
+  - {name: X,         category: 社交, default: 国外默认, options: standard}
+  - {name: Meta 社交, category: 社交, default: 国外默认, options: standard}
+  - {name: WhatsApp,  category: 社交, default: 国外默认, options: standard}
+  - {name: LINE,      category: 社交, default: 国外默认, options: standard}
+  - {name: Discord,   category: 社交, default: 国外默认, options: standard}
+  - {name: Reddit,    category: 社交, default: 国外默认, options: standard}
+  - {name: LinkedIn,  category: 职业社交, default: 国外默认, options: standard}
+
+  # ---------- 大厂 ----------
+  - {name: Apple,          category: 大厂, default: DIRECT, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区]}
+  - {name: Apple Music/TV, category: 大厂, default: DIRECT, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区],
+     note: 可手动选择地区}
+  - {name: Google,    category: 大厂, default: 国外默认, options: standard}
+  - {name: Microsoft, category: 大厂, default: 国外默认, options: standard}
+  - {name: GitHub,    category: 大厂, default: 国外默认, options: standard}
+
+  # ---------- 开发 / 管理 ----------
+  - {name: 开发下载, category: 开发, default: 国外默认, options: standard, note: 只收经核实的通用开发依赖；Cursor 专属下载归 Cursor，GitHub 专属流量归 GitHub}
+  - {name: 远程控制, category: 管理, default: 日本, options: standard,
+     note: 目前唯一有官方依据的端点是 Cursor Grok Bot 托管计算机（*.cursorvm.com）；直连可用性未实测，所以默认不设 DIRECT}
+
+  # ---------- 支付 ----------
+  - {name: PayPal, category: 支付, default: PayPal·美国固定, options: [美国, 香港, 日本, 韩国, 台湾, 新加坡, 其他地区, DIRECT],
+     note: DIRECT 仅供明确手动选择；选普通地区入口会继承该入口当前模式，可能自动换节点}
+
+  # ---------- 基础 ----------
+  - {name: 广告拦截, category: 基础, default: REJECT, options: [DIRECT]}
+  - {name: 国内直连, category: 基础, default: DIRECT, options: [国外默认]}
+
+# 专用入口（不直接铺满节点给业务组，而是独立筛选）
+special_entries:
+  paypal_fixed:
+    name: PayPal·美国固定
+    # 固定节点：填入节点完整名称（正则会自动转义并加首尾锚点）。留空时退化为“美国节点里手动选一个”，
+    # 此时被选节点删除后客户端会回到美国组第一个节点（同国，但不是固定节点）——见已知限制。
+    pinned_node_name: ""
+    region: us
+  netflix_entry:
+    name: Netflix·解锁入口
+    # 经实测可解锁的节点名称正则（同一国家）。留空表示尚无验证记录：
+    # 此时入口退化为地区选择，默认国外默认，并在配置注释中标明“未验证解锁”。
+    verified_node_regex: ""
+    verified_region: ""        # 例如 jp；只允许同国已验证节点之间故障转移
+    verified_at: ""            # 验证时间，写入产物注释

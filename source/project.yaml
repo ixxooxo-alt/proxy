@@ -1,0 +1,130 @@
+# 统一源：项目级设定（地区、模式、健康检查、DNS 决策、局域网例外、目标客户端版本）
+# 所有客户端产物都从这里和 groups.yaml / services/*.yaml / adblock.yaml 生成，不手工维护单端配置。
+
+project:
+  name: unified-proxy-rules
+  source_version: 2026.09.23-2        # 统一源版本，修改规则数据后递增
+  docs_checked: 2026-09-23             # 官方语法与服务端点文档查阅日期
+
+# 目标客户端与语法依据（详见 docs/02-语法依据与能力矩阵.md）
+targets:
+  mihomo:
+    core: "mihomo v1.19.x（依据 v1.19.31 源码核对；empty-fallback 等字段在更早内核中会被忽略）"
+    clients:
+      - Clash Verge Rev（Windows / macOS，v2.5.x，内置 mihomo）
+      - Clash Meta for Android（v2.11.x，内置 mihomo）
+      - mihomo 内核直接运行（Linux / 路由器等）
+  singbox:
+    core: "sing-box 1.14.x（依据 v1.14.1 文档与源码）；另生成 1.12–1.13 兼容版"
+    clients:
+      - SFA（Android）
+  loon:
+    core: "Loon 3.x（规则匹配顺序依据官方文档：本地 > 插件 > 订阅，域名规则先于 IP 规则，要求 3.0.3+）"
+    clients: [iPhone / iOS, iPad / iPadOS, Mac（Apple 芯片，官方支持的版本）]
+  quantumultx:
+    core: "Quantumult X 1.x（依据官方 sample.conf）"
+    clients: [iPhone / iOS, iPad / iPadOS, Mac（Apple 芯片，官方支持的版本）]
+
+# 地区：名称正则只作初筛，不证明实际出口地区（实测出口记录见 docs/05-验收记录.md）
+# 正则限制：不得包含英文逗号、双引号（Loon / QX 行语法限制）
+regions:
+  - id: hk
+    name: 香港
+    regex: '(?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)'
+  - id: jp
+    name: 日本
+    regex: '(?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)'
+  - id: kr
+    name: 韩国
+    regex: '(?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)'
+  - id: tw
+    name: 台湾
+    regex: '(?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)'
+  - id: sg
+    name: 新加坡
+    regex: '(?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)'
+  - id: us
+    name: 美国
+    regex: '(?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)'
+
+other_region:
+  id: other
+  name: 其他地区
+  # 不匹配以上六个地区、也不是信息节点的节点；默认纯手动，不提供跨国自动模式
+
+# 机场用来显示流量、到期时间的“信息节点”，所有节点组都排除
+info_node_regex: '(?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)'
+
+# 六个明确地区的入口模式（入口组本身是“选择”组，第一项为默认）
+region_modes:
+  - id: manual_first
+    suffix: 手动优先
+    desc: 手动优先·自动兜底（默认）：优先用手选节点，健康检查判定失败后用同地区自动测速，手选节点恢复后切回；不跨国，全部失效时连接失败
+  - id: manual
+    suffix: 手动
+    desc: 纯手动
+  - id: auto
+    suffix: 自动
+    desc: 自动测速（只在同地区内选延迟最低；不代表带宽、解锁或 IP 信誉）
+  - id: failover
+    suffix: 故障转移
+    desc: 顺序故障转移（按订阅内节点顺序取第一个可用）
+  - id: balance
+    suffix: 负载均衡
+    desc: 负载均衡（同一目标尽量固定同一节点）
+
+# 实际生成的模式（客户端不支持的会自动跳过）；手动优先依赖“手动”和“自动”两个子组
+enabled_region_modes: [manual_first, manual, auto, failover, balance]
+
+# 健康检查：先定义检测目标、失败判据、时限与恢复，再映射到各端参数
+health_check:
+  target: generate_204
+  url_https: https://www.gstatic.com/generate_204       # mihomo / sing-box
+  url_http: http://www.gstatic.com/generate_204         # Loon / Quantumult X（移动端，少一次 TLS 握手）
+  expected_status: 204
+  timeout_ms: 5000          # 超过即判定失败
+  interval_s: 300           # 定时检查间隔；lazy：组未被使用时不检查（省电省流量）
+  lazy: true
+  max_failed_times: 3       # mihomo：连续 3 次连接失败立即触发检查，缩短发现故障时间
+  tolerance_ms: 50          # 仅用于“自动测速”的防抖切换，不是故障恢复阈值
+  # 预期：手选节点失效后，最迟一个检查间隔（≤300s）或连续 3 次连接失败后切到同地区自动组；
+  #       手选节点恢复后，下一次检查通过即切回。现有连接不保证无缝迁移。
+
+# DNS 决策（详见 docs/03-DNS决策表.md）
+dns:
+  domestic_doh: [https://223.5.5.5/dns-query, https://1.12.12.12/dns-query]
+  domestic_plain: [223.5.5.5, 119.29.29.29]
+  foreign_doh: [https://1.1.1.1/dns-query, https://8.8.8.8/dns-query]
+  fakeip_v4: 198.18.0.1/16
+  fakeip_v4_cidr: 198.18.0.0/15
+  fakeip_v6: fc00::/18
+  ipv6_answers: false        # 不返回 AAAA；TUN 下 IPv6 字面地址流量仍按规则处理（不等于封住所有 IPv6 路径）
+  # 需要真实 IP（不使用 fake-ip）的域名：局域网、系统联网检测、运营商认证、STUN/NTP
+  real_ip:
+    - {suffix: lan}
+    - {suffix: local}
+    - {suffix: localdomain}
+    - {suffix: home.arpa}
+    - {suffix: msftconnecttest.com}
+    - {suffix: msftncsi.com}
+    - {domain: captive.apple.com}
+    - {domain: localhost.ptlogin2.qq.com}
+    - {suffix: pool.ntp.org}
+    - {domain: time.apple.com}
+    - {domain: time.windows.com}
+    - {suffix: cmpassport.com}
+    - {suffix: jegotrip.com.cn}
+    - {suffix: icitymobile.mobi}
+    - {domain: id6.me}
+
+# 第 2 阶段：必要局域网、内网与本地例外（固定 DIRECT，不经业务组）
+lan:
+  domain_suffix: [lan, local, localdomain, home.arpa, localhost]
+  ipv4: [0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 255.255.255.255/32]
+  ipv6: ['::1/128', 'fc00::/7', 'fe80::/10', 'ff00::/8']
+
+# 控制面安全（mihomo 内核通用产物）
+control:
+  mixed_port: 7890
+  external_controller: 127.0.0.1:9090     # 只监听本机；如需局域网访问，必须同时设置 secret
+  allow_lan: false

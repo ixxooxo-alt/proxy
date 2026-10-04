@@ -1,0 +1,276 @@
+# 路由期望：由需求与官方资料独立写出，不从生成结果反推。
+# expect：策略组名 / DIRECT / 广告拦截；per_client：各端语义不同时的覆盖值（必须写明原因）。
+# 字段 host 表示按域名连接，ip 表示直接 IP 连接。
+
+cases:
+  # ---------- AI（需求第六节） ----------
+  - {host: chatgpt.com, expect: OpenAI}
+  - {host: ws.chatgpt.com, expect: OpenAI, why: 会话推送 WebSocket}
+  - {host: api.openai.com, expect: OpenAI, why: 本机直连 OpenAI API 归 OpenAI}
+  - {host: cdn.oaistatic.com, expect: OpenAI}
+  - {host: u123.ct.sendgrid.net, expect: 国外默认, why: 官方放行清单里的共享第三方，不归 OpenAI}
+  - {host: api.anthropic.com, expect: Claude, why: 本机直连 Anthropic API 归 Claude}
+  - {host: claude.ai, expect: Claude}
+  - {host: downloads.claude.ai, expect: Claude}
+  - {host: platform.claude.com, expect: Claude}
+  - {host: storage.googleapis.com, expect: Google, why: Claude Code 放行清单中的共享云存储}
+  - {host: registry.npmjs.org, expect: 开发下载, why: 通用依赖，不归 Claude}
+  - {host: formulae.brew.sh, expect: 开发下载}
+  - {host: api2.cursor.sh, expect: Cursor}
+  - {host: api5.cursor.sh, expect: Cursor}
+  - {host: agent.global.api5.cursor.sh, expect: Cursor}
+  - {host: marketplace.cursorapi.com, expect: Cursor}
+  - {host: downloads.cursor.com, expect: Cursor, why: Cursor 专属下载归 Cursor}
+  - {host: anysphere-binaries.s3.us-east-1.amazonaws.com, expect: Cursor}
+  - {host: s3.us-east-1.amazonaws.com, expect: 国外默认, why: 共享云不收}
+  - {host: abc.cursorvm.com, expect: 远程控制, why: Grok Bot 托管计算机}
+  - {host: a.b.cursorvm.com, expect: 远程控制, why: 官方要求 *.*.cursorvm.com}
+  - {host: gemini.google.com, expect: Google AI, why: Google AI 在 Google 通用之前}
+  - {host: aistudio.google.com, expect: Google AI}
+  - {host: generativelanguage.googleapis.com, expect: Google AI}
+  - {host: cloudcode-pa.googleapis.com, expect: Google AI}
+  - {host: cloudaicompanion.googleapis.com, expect: Google AI}
+  - {host: antigravity.google, expect: Google AI}
+  - {host: oauth2.googleapis.com, expect: Google, why: 共享登录不归单一 AI}
+  - {host: lh3.googleusercontent.com, expect: Google}
+  - {host: www.google.com, expect: Google}
+  - {host: gemini.google.com.evil.example, expect: 国外默认, why: 负向：后缀边界，不是 Gemini}
+  - {host: api.githubcopilot.com, expect: Copilot, why: GitHub Copilot 在 GitHub 之前}
+  - {host: api.individual.githubcopilot.com, expect: Copilot}
+  - {host: copilot-proxy.githubusercontent.com, expect: Copilot}
+  - {host: raw.githubusercontent.com, expect: GitHub}
+  - {host: github.com, expect: GitHub}
+  - {host: copilot.microsoft.com, expect: Copilot, why: Microsoft Copilot 在 Microsoft 之前}
+  - {host: sydney.bing.com, expect: Copilot}
+  - {host: www.bing.com, expect: Microsoft}
+  - {host: login.microsoftonline.com, expect: Microsoft}
+  - {host: grok.com, expect: 其他 AI, why: Grok/xAI 在 X 之前}
+  - {host: api.x.ai, expect: 其他 AI}
+  - {host: www.perplexity.ai, expect: 其他 AI}
+  - {host: poe.com, expect: 其他 AI}
+  - {host: groq.com, expect: 其他 AI, why: Groq 不是 Grok，但同属其他 AI}
+  - {host: chat.deepseek.com, expect: 国内直连, why: 国内版 AI 不进入其他 AI}
+  - {host: www.doubao.com, expect: 国内直连}
+  - {host: yuanbao.tencent.com, expect: 国内直连}
+  - {host: chat.qwen.ai, expect: 国外默认, why: 通义千问国际版部署在境外，不按品牌归国内}
+  - {host: notopenai.com, expect: 国外默认, why: 负向：后缀边界}
+  - {host: openai.com.evil.example, expect: 国外默认, why: 负向：后缀边界}
+  - {host: fakegoogle.com, expect: 国外默认, why: 负向：后缀边界}
+  # 上游快照核对后补充（dlc@c1c2cf0 / bm7@51d2e1d）
+  - {host: robinfrontend-pa.googleapis.com, expect: Google AI, why: Gemini 后端，比 googleapis.com 更具体}
+  - {host: daily-cloudcode-pa.googleapis.com, expect: Google AI}
+  - {host: alkalicore-pa.clients6.google.com, expect: Google AI}
+  - {host: jules.google.com, expect: Google AI}
+  - {host: stitch.withgoogle.com, expect: Google AI, why: 比 withgoogle.com 更具体}
+  - {host: gemini.gstatic.com, expect: Google AI}
+  - {host: fonts.gstatic.com, expect: Google, why: 共享静态资源}
+  - {host: x1.chatgpt.livekit.cloud, expect: OpenAI, why: ChatGPT 语音}
+  - {host: host.livekit.cloud, expect: 国外默认, why: LiveKit 共享设施，不归 OpenAI}
+  - {host: copilot-workspace.githubnext.com, expect: Copilot}
+  - {host: copilot.com, expect: Copilot}
+  - {host: www.perplexity.com, expect: 其他 AI}
+  - {host: abc.hf.space, expect: 其他 AI}
+  - {host: grok.x.com, expect: X, why: 上游归 xAI，但它在 X 的域名下，剩余集合不得抢走独立服务流量}
+
+  # ---------- 流媒体 ----------
+  - {host: www.youtube.com, expect: YouTube}
+  - {host: rr3---sn-a5mekn6s.googlevideo.com, expect: YouTube}
+  - {host: youtubei.googleapis.com, expect: YouTube, why: YouTube 在 Google 通用之前}
+  - {host: yt3.ggpht.com, expect: YouTube}
+  - {host: lh5.ggpht.com, expect: Google}
+  - {host: www.netflix.com, expect: Netflix}
+  - {host: occ-0-1.1.nflxso.net, expect: Netflix}
+  - {host: www.disneyplus.com, expect: Disney+}
+  - {host: www.hulu.com, expect: Hulu US, why: Hulu 在 Disney+ 之前}
+  - {host: www.hulu.jp, expect: Hulu Japan}
+  - {host: play.max.com, expect: Max}
+  - {host: www.primevideo.com, expect: Prime Video}
+  - {host: atv-ps.amazon.com, expect: Prime Video, why: Prime Video 在 Amazon 之前}
+  - {host: www.amazon.com, expect: 国外默认, why: Amazon 通用归国外默认}
+  - {host: abema.tv, expect: Abema}
+  - {host: www.dmm.com, expect: DMM}
+  - {host: www.nicovideo.jp, expect: 日本影音}
+  - {host: tver.jp, expect: 日本影音}
+  - {host: open.spotify.com, expect: Spotify}
+  - {host: www.tiktok.com, expect: TikTok}
+  - {host: www.twitch.tv, expect: Twitch}
+  - {host: api.bilibili.com, expect: Bilibili 港澳台, why: 港澳台在 Bilibili 通用及国内兜底之前}
+  - {host: www.bilibili.com, expect: 国内直连, why: Bilibili 通用国内规则归国内直连}
+  - {host: i0.hdslb.com, expect: 国内直连}
+  - {host: www.bilibili.tv, expect: 其他流媒体, why: 国际版不是港澳台解锁}
+  - {host: ani.gamer.com.tw, expect: Bahamut}
+  - {host: www.crunchyroll.com, expect: 其他流媒体}
+  - {host: hulu.playback.edge.bamgrid.com, expect: Hulu US, why: Hulu 播放接口位于 Disney 的 bamgrid.com 下，更具体优先}
+  - {host: global.edge.bamgrid.com, expect: Disney+}
+  - {host: atv-ps-fe.amazon.co.jp, expect: Prime Video, why: 远东区播放接口，在 Amazon 通用之前}
+  - {host: www.amazon.co.jp, expect: 国外默认}
+  - {host: d25xi40x97liuc.cloudfront.net, expect: Prime Video, why: 专属 CloudFront 主机}
+  - {host: d111111abcdef8.cloudfront.net, expect: 国外默认, why: 共享 CDN 其余主机不收}
+  - {host: images-na.ssl-images-amazon.com, expect: 国外默认, why: 与 Amazon 购物共用}
+  - {host: prod.hjholdings.tv, expect: Hulu Japan}
+  - {host: www.hjholdings.tv, expect: 国外默认, why: 已收窄为上游列出的 prod 子域}
+  - {host: netflixdnstest7.com, expect: Netflix}
+  - {host: yt3.googleusercontent.com, expect: YouTube, why: 比 googleusercontent.com 更具体}
+  - {host: youtubeembeddedplayer.googleapis.com, expect: YouTube}
+  - {host: log.isnssdk.com, expect: TikTok}
+  - {host: p16-tiktok-dm-sticker-sign-sg.ibyteimg.com, expect: TikTok}
+  - {host: f-radiko.smartstream.ne.jp, expect: 日本影音}
+  - {host: live.nicochannel.jp, expect: 日本影音}
+  - {host: api.dmmapis.com, expect: DMM}
+  - {host: audio4-ak-spotify-com.akamaized.net, expect: Spotify}
+  - {host: www.tubitv.com, expect: 其他流媒体}
+
+  # ---------- 社交 ----------
+  - {host: t.me, expect: Telegram}
+  - {host: web.telegram.org, expect: Telegram}
+  - {ip: 91.108.56.100, expect: Telegram, why: 服务专属 IP}
+  - {ip: 149.154.167.51, expect: Telegram}
+  - {ip: '2001:67c:4e8::1', expect: Telegram}
+  - {host: x.com, expect: X}
+  - {host: pbs.twimg.com, expect: X}
+  - {host: t.co, expect: X}
+  - {host: www.facebook.com, expect: Meta 社交}
+  - {host: www.instagram.com, expect: Meta 社交}
+  - {host: www.threads.com, expect: Meta 社交}
+  - {host: web.whatsapp.com, expect: WhatsApp, why: WhatsApp 在 Meta 之前}
+  - {host: mmg.whatsapp.net, expect: WhatsApp}
+  - {host: www.meta.ai, expect: 其他 AI, why: Meta AI 与 Meta 社交分开}
+  - {host: line.me, expect: LINE}
+  - {host: discord.com, expect: Discord}
+  - {host: www.reddit.com, expect: Reddit}
+  - {host: www.linkedin.com, expect: LinkedIn}
+
+  # ---------- 大厂 / 开发 / 支付 ----------
+  - {host: music.apple.com, expect: Apple Music/TV, why: Apple Music/TV 在 Apple 之前}
+  - {host: aod.itunes.apple.com, expect: Apple Music/TV}
+  - {host: tv.apple.com, expect: Apple Music/TV}
+  - {host: www.apple.com, expect: Apple}
+  - {host: itunes.apple.com, expect: Apple}
+  - {host: www.icloud.com, expect: Apple}
+  - {host: captive.apple.com, expect: DIRECT, why: 系统联网检测固定直连}
+  - {host: www.msftconnecttest.com, expect: DIRECT}
+  - {host: dl.delivery.mp.microsoft.com, expect: 国内直连, why: 系统更新下载直连，比 microsoft.com 更具体}
+  - {host: www.microsoft.com, expect: Microsoft}
+  - {host: onedrive.live.com, expect: Microsoft}
+  - {host: pypi.org, expect: 开发下载}
+  - {host: files.pythonhosted.org, expect: 开发下载}
+  - {host: proxy.golang.org, expect: 开发下载}
+  - {host: registry-1.docker.io, expect: 开发下载}
+  - {host: ghcr.io, expect: GitHub, why: GitHub 专属归 GitHub}
+  - {host: foo.github.io, expect: 国外默认, why: GitHub Pages 共享托管不收}
+  - {host: www.paypal.com, expect: PayPal}
+  - {host: www.paypalobjects.com, expect: PayPal}
+
+  # ---------- 局域网 / 国内 / 兜底 ----------
+  - {host: nas.lan, expect: DIRECT}
+  - {host: printer.local, expect: DIRECT}
+  - {ip: 192.168.1.1, expect: DIRECT}
+  - {ip: 10.0.0.8, expect: DIRECT}
+  - {ip: 'fe80::1', expect: DIRECT}
+  - {host: www.baidu.com, expect: 国内直连}
+  - {host: example.cn, expect: 国内直连, why: "mihomo/sing-box 靠 GeoSite cn；Loon/QX 靠解析后的 GEOIP"}
+  - {host: unknown-cn.example, expect: 国内直连, why: 未分类域名解析到国内 IP}
+  - {ip: 1.2.4.8, expect: 国内直连}
+  - {ip: '240e::1', expect: 国内直连, why: 国内 IPv6 兜底}
+  - {host: unknown-foreign.example, expect: 国外默认, why: 其余目标进入国外默认}
+  - {host: wikipedia.org, expect: 国外默认}
+  - {ip: 8.8.8.8, expect: 国外默认}
+
+  # ---------- 广告与例外（需求第十一节） ----------
+  - {host: stats.g.doubleclick.net, expect: 广告拦截}
+  - {host: adservice.google.com, expect: 广告拦截, why: 自有拦截条目，四端都在产品规则之前}
+  - {host: pixel.facebook.com, expect: 广告拦截}
+  - {host: tracker.twimg.com, expect: 广告拦截, per_client: {loon: X, quantumultx: X},
+     why: "位于产品根域下、只在远程广告集合里的主机：Loon/QX 本地规则优先于远程集合，只能靠自有条目前置（已知限制）"}
+  - {host: s.youtube.com, expect: YouTube, why: 误杀例外，按业务目标放行}
+  - {host: links.app.link, expect: 国外默认, why: 误杀例外}
+  - {host: iadsdk.apple.com, expect: 广告拦截, why: 产品根域下的上游广告条目，四端都用自有条目前置}
+  - {host: graph.instagram.com, expect: 广告拦截}
+  - {host: analytics.google.com, expect: 广告拦截}
+  - {host: copilot-telemetry-service.githubusercontent.com, expect: 广告拦截, why: 上游 @ads 且官方放行清单未列}
+  - {host: copilot-telemetry.githubusercontent.com, expect: Copilot, why: 误杀例外：官方放行清单列出}
+  - {host: collector.github.com, expect: GitHub, why: 误杀例外：官方放行清单列出}
+
+# 开启 / 关闭广告规则前后出口必须一致的例外主机
+exception_consistency:
+  - u123.ct.sendgrid.net
+  - s.youtube.com
+  - links.app.link
+  - m.stripe.network
+  - challenges.cloudflare.com
+  - copilot-telemetry.githubusercontent.com
+  - collector.github.com
+
+# 业务组首次默认出口（需求第五节）
+defaults:
+  国外默认: 日本
+  OpenAI: 日本
+  Claude: 日本
+  Cursor: 日本
+  Google AI: 日本
+  Copilot: 日本
+  其他 AI: 日本
+  YouTube: 国外默认
+  Disney+: 国外默认
+  Max: 国外默认
+  Prime Video: 国外默认
+  Spotify: 国外默认
+  TikTok: 国外默认
+  Twitch: 国外默认
+  其他流媒体: 国外默认
+  Netflix: Netflix·解锁入口
+  Hulu US: 美国
+  Hulu Japan: 日本
+  Abema: 日本
+  DMM: 日本
+  日本影音: 日本
+  Bilibili 港澳台: 台湾
+  Bahamut: 台湾
+  Telegram: 国外默认
+  X: 国外默认
+  Meta 社交: 国外默认
+  WhatsApp: 国外默认
+  LINE: 国外默认
+  Discord: 国外默认
+  Reddit: 国外默认
+  LinkedIn: 国外默认
+  Apple: DIRECT
+  Apple Music/TV: DIRECT
+  Google: 国外默认
+  Microsoft: 国外默认
+  GitHub: 国外默认
+  开发下载: 国外默认
+  PayPal: PayPal·美国固定
+  广告拦截: REJECT
+  国内直连: DIRECT
+
+# 节点名称初筛（名称正则不证明实际出口）
+node_names:
+  "🇭🇰 香港 01": hk
+  "HK-IEPL-02": hk
+  "香港 HKT 家宽": hk
+  "HKG 03": hk
+  "日本 东京 03": jp
+  "JP Tokyo 1": jp
+  "JPN-Osaka": jp
+  "韩国 首尔 01": kr
+  "KR 02": kr
+  "KOR Seoul": kr
+  "台湾 01": tw
+  "TW Hinet": tw
+  "新加坡 01": sg
+  "SG-Premium": sg
+  "Singapore 02": sg
+  "美国 洛杉矶": us
+  "USA Los Angeles": us
+  "US-01": us
+  "🇺🇸 United States": us
+  "美西 01": us
+  "英国 伦敦": other
+  "UK London": other
+  "澳门 01": other
+  "Russia 01": other
+  "Australia Sydney": other
+  "剩余流量：100GB": info
+  "套餐到期：2026-10-01": info
+  "官网 example.com": info

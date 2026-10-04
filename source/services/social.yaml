@@ -1,0 +1,123 @@
+services:
+  - id: telegram
+    group: Telegram
+    title: Telegram
+    upstream: {dlc: [telegram]}
+    rules:
+      - {suffix: telegram.org, ev: dlc}
+      - {suffix: t.me, ev: dlc}
+      - {suffix: telegram.me, ev: dlc}
+      - {suffix: telesco.pe, ev: dlc}
+      - {suffix: telegra.ph, ev: dlc}
+      - {suffix: tdesktop.com, ev: dlc}
+      - {suffix: telegram-cdn.org, ev: dlc}
+      - {suffix: cdn-telegram.org, ev: dlc}
+      - {suffix: fragment.com, ev: dlc}
+      # Telegram 客户端直接用 IP 连接，必须有 IP 规则（第 7 阶段，不触发 DNS 解析）
+      - {ip4: 91.105.192.0/23, ev: telegram-cidr}
+      - {ip4: 91.108.4.0/22, ev: telegram-cidr}
+      - {ip4: 91.108.8.0/22, ev: telegram-cidr}
+      - {ip4: 91.108.12.0/22, ev: telegram-cidr}
+      - {ip4: 91.108.16.0/22, ev: telegram-cidr}
+      - {ip4: 91.108.20.0/22, ev: telegram-cidr}
+      - {ip4: 91.108.56.0/22, ev: telegram-cidr}
+      - {ip4: 149.154.160.0/20, ev: telegram-cidr}
+      - {ip4: 185.76.151.0/24, ev: telegram-cidr}
+      - {ip6: '2001:67c:4e8::/48', ev: telegram-cidr}
+      - {ip6: '2001:b28:f23c::/48', ev: telegram-cidr}
+      - {ip6: '2001:b28:f23d::/48', ev: telegram-cidr}
+      - {ip6: '2001:b28:f23f::/48', ev: telegram-cidr}
+      - {ip6: '2a0a:f280::/32', ev: telegram-cidr}
+
+  - id: x
+    group: X
+    title: X（Twitter）
+    upstream: {dlc: [twitter]}
+    rules:
+      - {suffix: x.com, ev: dlc}
+      - {suffix: twitter.com, ev: dlc}
+      - {suffix: twimg.com, ev: dlc}
+      - {suffix: t.co, ev: dlc}
+      - {suffix: twttr.com, ev: dlc}
+      - {suffix: tweetdeck.com, ev: dlc}
+      - {suffix: pscp.tv, ev: dlc}
+      - {suffix: periscope.tv, ev: dlc}
+
+  - id: meta_social
+    group: Meta 社交
+    title: Facebook、Instagram、Threads、Messenger
+    upstream: {dlc: [facebook, instagram, threads, messenger, meta, oculus]}
+    rules:
+      - {suffix: facebook.com, ev: dlc}
+      - {suffix: facebook.net, ev: dlc}
+      - {suffix: fb.com, ev: dlc}
+      - {suffix: fb.me, ev: dlc}
+      - {suffix: fbcdn.net, ev: dlc}
+      - {suffix: fbsbx.com, ev: dlc}
+      - {suffix: instagram.com, ev: dlc}
+      - {suffix: cdninstagram.com, ev: dlc}
+      - {suffix: ig.me, ev: dlc}
+      - {suffix: threads.net, ev: dlc}
+      - {suffix: threads.com, ev: dlc, note: Threads 2025 年起使用的主域}
+      - {suffix: messenger.com, ev: dlc}
+      - {suffix: m.me, ev: dlc}
+      - {suffix: meta.com, ev: dlc}
+      - {suffix: oculus.com, ev: dlc}
+      - {suffix: oculuscdn.com, ev: dlc}
+
+  - id: whatsapp
+    group: WhatsApp
+    title: WhatsApp
+    upstream: {dlc: [whatsapp]}
+    rules:
+      - {suffix: whatsapp.com, ev: dlc}
+      - {suffix: whatsapp.net, ev: dlc}
+      - {suffix: wa.me, ev: dlc}
+
+  - id: line
+    group: LINE
+    title: LINE
+    upstream: {dlc: [line]}
+    rules:
+      - {suffix: line.me, ev: dlc}
+      - {suffix: line-apps.com, ev: dlc}
+      - {suffix: line-scdn.net, ev: dlc}
+      - {suffix: line-cdn.net, ev: dlc}
+      - {suffix: lin.ee, ev: dlc}
+      - {suffix: linecorp.com, ev: dlc}
+      - {domain: line.naver.jp, ev: dlc}
+
+  - id: discord
+    group: Discord
+    title: Discord
+    upstream: {dlc: [discord]}
+    rules:
+      - {suffix: discord.com, ev: dlc}
+      - {suffix: discord.gg, ev: dlc}
+      - {suffix: discord.co, ev: dlc}
+      - {suffix: discord.dev, ev: dlc}
+      - {suffix: discord.media, ev: dlc}
+      - {suffix: discordapp.com, ev: dlc}
+      - {suffix: discordapp.net, ev: dlc}
+      - {suffix: discordstatus.com, ev: dlc}
+      - {suffix: dis.gd, ev: dlc}
+
+  - id: reddit
+    group: Reddit
+    title: Reddit
+    upstream: {dlc: [reddit]}
+    rules:
+      - {suffix: reddit.com, ev: dlc}
+      - {suffix: redd.it, ev: dlc}
+      - {suffix: redditmedia.com, ev: dlc}
+      - {suffix: redditstatic.com, ev: dlc}
+      - {suffix: redditmail.com, ev: dlc}
+
+  - id: linkedin
+    group: LinkedIn
+    title: LinkedIn
+    upstream: {dlc: [linkedin]}
+    rules:
+      - {suffix: linkedin.com, ev: dlc}
+      - {suffix: licdn.com, ev: dlc}
+      - {suffix: lnkd.in, ev: dlc}
