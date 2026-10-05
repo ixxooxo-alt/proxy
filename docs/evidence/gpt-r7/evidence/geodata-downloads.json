@@ -1,0 +1,26 @@
+[
+  {
+    "name": "geosite.dat",
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat",
+    "bytes": 4253442,
+    "sha256": "d8b751e6af6063bbacf0cbc23385fd37caac1c0e04e05292b5e97213a98ef5fc"
+  },
+  {
+    "name": "geoip.metadb",
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb",
+    "bytes": 8389459,
+    "sha256": "f8f0c314cb184e3d998ce3fe17314611ae0290921ba1917f3340c3621cfe2698"
+  },
+  {
+    "name": "geosite-cn.srs",
+    "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+    "bytes": 56146,
+    "sha256": "2f4af0be08f2ff494a8fcdef992dc92a2267600ce26c9bba17421d1ce9a6715c"
+  },
+  {
+    "name": "geoip-cn.srs",
+    "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+    "bytes": 34185,
+    "sha256": "ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc"
+  }
+]

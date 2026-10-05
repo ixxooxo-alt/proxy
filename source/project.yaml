@@ -1,21 +1,25 @@
-# 统一源：项目级设定（地区、模式、健康检查、DNS 决策、局域网例外、目标客户端版本）
-# 所有客户端产物都从这里和 groups.yaml / services/*.yaml / adblock.yaml 生成，不手工维护单端配置。
+# 统一源：项目级设定（地区的工作模式、健康检查、DNS 决策、局域网例外、目标客户端版本）
+# 所有客户端产物都从这里和 regions.yaml / groups.yaml / services/*.yaml / adblock.yaml 生成，不手工维护单端配置。
 
 project:
   name: unified-proxy-rules
-  source_version: 2026.09.23-2        # 统一源版本，修改规则数据后递增
+  source_version: 2026.10.05-1        # 统一源版本，修改规则数据后递增
   docs_checked: 2026-09-23             # 官方语法与服务端点文档查阅日期
 
 # 目标客户端与语法依据（详见 docs/02-语法依据与能力矩阵.md）
 targets:
   mihomo:
-    core: "mihomo v1.19.x（依据 v1.19.31 源码核对；empty-fallback 等字段在更早内核中会被忽略）"
+    # 2026-10-03 审核：把“已验证的版本”写明，不写宽泛的 v1.19.x。验证过的只有 v1.19.31 这一个版本：字段按它的源码核对，
+    # 并用它的官方内核实际运行过（tools/check_official.py、tools/check_real_routes.py）。更早、更新的内核没有验证；
+    # 配置里的某个字段从哪个版本开始支持，也没有查证（不认识的字段，内核通常是忽略而不是报错）。
+    core: "mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）"
     clients:
       - Clash Verge Rev（Windows / macOS，v2.5.x，内置 mihomo）
       - Clash Meta for Android（v2.11.x，内置 mihomo）
       - mihomo 内核直接运行（Linux / 路由器等）
   singbox:
-    core: "sing-box 1.14.x（依据 v1.14.1 文档与源码）；另生成 1.12–1.13 兼容版"
+    # 1.14 版配置在官方 v1.14.1 上检查并实际运行过；兼容版配置在官方 v1.12.0 和 v1.14.1 上检查过。1.13 没有单独运行过
+    core: "sing-box v1.14.1（已验证）；另生成 1.12 兼容版（在 v1.12.0 上验证，1.13 未单独验证）"
     clients:
       - SFA（Android）
   loon:
@@ -25,35 +29,8 @@ targets:
     core: "Quantumult X 1.x（依据官方 sample.conf）"
     clients: [iPhone / iOS, iPad / iPadOS, Mac（Apple 芯片，官方支持的版本）]
 
-# 地区：名称正则只作初筛，不证明实际出口地区（实测出口记录见 docs/05-验收记录.md）
-# 正则限制：不得包含英文逗号、双引号（Loon / QX 行语法限制）
-regions:
-  - id: hk
-    name: 香港
-    regex: '(?i)(🇭🇰|香港|港|(?<![A-Za-z])HKG?(?![A-Za-z])|Hong\s?Kong)'
-  - id: jp
-    name: 日本
-    regex: '(?i)(🇯🇵|日本|东京|東京|大阪|埼玉|(?<![A-Za-z])JPN?(?![A-Za-z])|Japan|Tokyo|Osaka)'
-  - id: kr
-    name: 韩国
-    regex: '(?i)(🇰🇷|韩国|韓國|首尔|春川|(?<![A-Za-z])(?:KR|KOR)(?![A-Za-z])|Korea|Seoul)'
-  - id: tw
-    name: 台湾
-    regex: '(?i)(🇹🇼|台湾|台灣|臺灣|台北|新北|彰化|(?<![A-Za-z])TWN?(?![A-Za-z])|Taiwan|Taipei)'
-  - id: sg
-    name: 新加坡
-    regex: '(?i)(🇸🇬|新加坡|狮城|獅城|(?<![A-Za-z])SGP?(?![A-Za-z])|Singapore)'
-  - id: us
-    name: 美国
-    regex: '(?i)(🇺🇸|美国|美國|美西|美东|美東|洛杉矶|圣何塞|西雅图|芝加哥|纽约|硅谷|(?<![A-Za-z])USA?(?![A-Za-z])|United\s?States|America|Los\s?Angeles|San\s?Jose|Seattle|Silicon\s?Valley)'
-
-other_region:
-  id: other
-  name: 其他地区
-  # 不匹配以上六个地区、也不是信息节点的节点；默认纯手动，不提供跨国自动模式
-
-# 机场用来显示流量、到期时间的“信息节点”，所有节点组都排除
-info_node_regex: '(?i)(剩余|流量|到期|过期|官网|官方|网址|套餐|重置|客服|Expire|Traffic|Remaining|Reset)'
+# 地区（香港、日本、韩国、台湾、新加坡、美国、其他地区）与按节点名称分地区的词表：见 source/regions.yaml
+# 名称只是初筛，不证明实际出口地区（实测出口记录见 docs/05-验收记录.md）
 
 # 六个明确地区的入口模式（入口组本身是“选择”组，第一项为默认）
 region_modes:

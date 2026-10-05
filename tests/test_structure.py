@@ -93,17 +93,19 @@ class Structure(unittest.TestCase):
     def test_manual_first_semantics(self):
         """手动优先·自动兜底 = 故障转移组，成员依次为 手动、自动（同地区）。
         Loon 额外在末尾附带同地区节点筛选：官方示例称 fallback 只支持节点，嵌套组可能被忽略，
-        附带节点可保证那种情况下该组不为空，且仍只含同地区节点。"""
+        附带节点可保证那种情况下该组不为空，且仍只含同地区节点。附带的是严的那条（F-XX-AUTO）：
+        这条退路是客户端自己选节点，说不清落地的节点不能进。"""
         codes = {"香港": "HK", "日本": "JP", "韩国": "KR", "台湾": "TW", "新加坡": "SG", "美国": "US"}
         for client in ("mihomo-profile", "loon", "quantumultx"):
             gs = groups_of(client)
             for r in REGIONS:
                 g = gs[f"{r}·手动优先"]
                 self.assertIn(g["type"], ("fallback", "available"), client)
-                want = [f"{r}·手动", f"{r}·自动"] + ([f"F-{codes[r]}"] if client == "loon" else [])
+                want = [f"{r}·手动", f"{r}·自动"] + ([f"F-{codes[r]}-AUTO"] if client == "loon" else [])
                 self.assertEqual(g["members"], want, client)
                 if client == "loon":
-                    self.assertEqual(gs[f"{r}·手动"]["members"], [f"F-{codes[r]}"], "附带的节点筛选必须与本地区一致")
+                    self.assertEqual(gs[f"{r}·自动"]["members"], [f"F-{codes[r]}-AUTO"], "附带的节点筛选必须与本地区的自动组一致")
+                    self.assertEqual(gs[f"{r}·手动"]["members"], [f"F-{codes[r]}"])
 
     def test_review_followups(self):
         """外部审核后的修正：Loon 不写无用的局域网共享端口；sing-box 不返回 AAAA 时不配 IPv6 假地址段。"""
@@ -226,7 +228,20 @@ class Structure(unittest.TestCase):
                 self.assertFalse(any("download_detour" in r for r in c["route"]["rule_set"]))
             else:
                 self.assertNotIn("http_clients", c)
-                self.assertTrue(all(r.get("download_detour") == "国外默认" for r in c["route"]["rule_set"]))
+                self.assertTrue(all(r.get("download_detour") == "国外默认" for r in c["route"]["rule_set"]
+                                    if r["type"] == "remote"))
+            # 内联规则集只有一个（DNS 上“走代理组的产品域名”），不带下载相关的字段；其余都是远程的二进制规则集
+            inline = [r for r in c["route"]["rule_set"] if r["type"] == "inline"]
+            self.assertEqual([r["tag"] for r in inline], ["product-proxied"])
+            self.assertEqual(set(inline[0]), {"type", "tag", "rules"})
+            self.assertTrue(all(r["type"] in ("remote", "inline") for r in c["route"]["rule_set"]))
+            # DNS 规则的先后：局域网 → 要真实地址的名单 → 产品规则 → 国内域名集合 → 假地址
+            order = [("rule_set" in r and r["rule_set"]) or ("lan" in r.get("domain_suffix", []) and "lan")
+                     or ("query_type" in r and len(r) == 2 and "fakeip-all") or "list" for r in c["dns"]["rules"]]
+            self.assertEqual(order[0], "lan")
+            self.assertLess(max(i for i, x in enumerate(order) if x == "product-proxied"), order.index("geosite-cn"))
+            self.assertEqual(order[-2:], ["geosite-cn", "fakeip-all"])
+            self.assertEqual(order.count("product-proxied"), 2, "A / AAAA 给假地址一条，其余类型交给经代理的 DNS 一条")
             # 旧版字段不应出现（1.12 起新 DNS 服务器格式；1.13 移除入站 sniff 等旧字段；geosite/geoip 数据库已弃用）
             for s in c["dns"]["servers"]:
                 self.assertIn("type", s)
@@ -263,7 +278,7 @@ class Structure(unittest.TestCase):
         for name, want in CASES["node_names"].items():
             hits = sorted(k for k, rx in compiled.items() if rx.search(name))
             if want == "info":
-                self.assertEqual(hits, [], f"信息节点 {name} 不应进入任何地区")
+                self.assertEqual(hits, [], f"提示行 {name} 不应进入任何地区")
             else:
                 self.assertEqual(hits, [want], f"{name} 期望 {want}，实际 {hits}")
 

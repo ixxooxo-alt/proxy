@@ -1,13 +1,15 @@
 """Loon 产物（iPhone / iPad / Mac 共用）。
 语法依据：https://nsloon.app/docs/（规则优先级：本地 > 插件 > 订阅；域名规则先于 IP 规则，Loon 3.0.3+）
-策略组：select / url-test / fallback / load-balance，支持嵌套；节点筛选用 [Remote Filter] NameRegex。"""
+策略组：select / url-test / fallback / load-balance，支持嵌套；节点筛选用 [Remote Filter] NameRegex
+（官方“节点筛选”页 https://nsloon.app/docs/Node/nodefilter 的常用正则里有否定前瞻 ^(?!.*A)，没有说明用的是什么正则引擎；
+地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py）。"""
 from __future__ import annotations
 
 from typing import List
 
-from .groups import GroupSpec, NodeFilter, build_groups
+from .groups import GroupSpec, NodeFilter, build_groups, shared_filter_labels
 from .model import Model, Plan
-from .util import Rule, check_regex_line_safe, compose_node_regex
+from .util import Rule, check_regex_line_safe
 
 MODES = ["manual_first", "manual", "auto", "failover", "balance"]
 SUB_PLACEHOLDER = "https://REPLACE-ME.invalid/请替换为你的订阅链接"
@@ -24,17 +26,8 @@ def rule_line(r: Rule) -> str:
     }[r.kind]
 
 
-def _filter_name(nf: NodeFilter) -> str:
-    return "F-" + nf.label.upper()
-
-
 def _filter_regex(nf: NodeFilter) -> str:
-    if nf.pinned:
-        rx = nf.exact_regex()
-    elif nf.raw:
-        rx = nf.include
-    else:
-        rx = compose_node_regex(nf.include, nf.exclude)
+    rx = nf.final_regex()
     check_regex_line_safe(rx)
     return rx
 
@@ -44,6 +37,11 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     hc = m.hc
     dns = m.dns
     groups = build_groups(m, MODES)
+    labels = shared_filter_labels(groups, [r["id"] for r in m.regions] + [m.other_region["id"]])
+
+    def _filter_name(nf: NodeFilter) -> str:
+        return "F-" + labels[nf.final_regex()].upper()
+
     L: List[str] = []
     L.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['loon']['core']}")
@@ -81,24 +79,31 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
         "",
         "[Host]",
     ]
-    for sfx in ("lan", "local", "localdomain", "home.arpa"):
+    for sfx in m.project["lan"]["domain_suffix"]:          # 与其他三端同一份局域网后缀
         L.append(f"*.{sfx} = server:system")
     L += ["", "[Proxy]", "", "[Remote Proxy]"]
     for i, u in enumerate(sub_urls or [SUB_PLACEHOLDER], 1):
         L.append(f"订阅{i} = {u}, udp=true, fast-open=false, vmess-aead=true, enabled=true")
 
-    # 节点筛选
-    L += ["", "[Remote Filter]"]
+    # 节点筛选：正则由 source/regions.yaml 的词表拼出（generator/regions.py）；同一条正则只定义一次
+    L += ["", "[Remote Filter]",
+          "# 按节点名称分地区。名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，",
+          "# 在电脑上运行 tools/check_node_names.py。",
+          "# 每个地区两条：F-XX 是按名字归到这个地区的全部节点（手动组用，含名字说不清落地的）；",
+          "# F-XX-AUTO 只收名字只指向这个地区的节点（自动 / 故障转移 / 负载均衡用）。"]
     seen = set()
     for g in groups:
-        if g.nodes is not None:
-            name = _filter_name(g.nodes)
+        for nf in (g.nodes, g.backup_nodes):
+            if nf is None:
+                continue
+            name = _filter_name(nf)
             if name in seen:
                 continue
             seen.add(name)
-            L.append(f'{name} = NameRegex, FilterKey = "{_filter_regex(g.nodes)}"')
+            L.append(f'{name} = NameRegex, FilterKey = "{_filter_regex(nf)}"')
 
     L += ["", "[Proxy Group]",
+          "# 每行末尾的 img-url 是策略组图标的地址（图片在图标仓库里，只影响显示，不影响分流；见 source/icons.yaml）。",
           "# 注意：Loon 官方示例配置注释写明 url-test / fallback“只支持单个节点和远端节点，其他会被忽略”，",
           "# 而现行文档说策略组“支持嵌套”。为避免“手动优先”组在前一种情况下变成空组，它在两个成员组之后",
           "# 还附带同地区节点：若嵌套生效，按 手动 → 自动 → 同地区节点 的顺序；若嵌套被忽略，退化为同地区顺序故障转移，",
@@ -119,6 +124,9 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
             head += f",url = {hc['url_http']},interval = {hc['interval_s']},max-timeout = {hc['timeout_ms']}"
         elif g.kind == "load-balance":
             head += f",url = {hc['url_http']},interval = {hc['interval_s']},max-timeout = {hc['timeout_ms']},algorithm = pcc"
+        icon = m.icon_url(g.name)
+        if icon:
+            head += f",img-url = {icon}"          # 图标只影响显示；地址已做百分号编码，不含逗号和空格
         L.append(head)
 
     L += ["", "[Rule]"]
@@ -138,10 +146,10 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     L.append("# ==== 3b 自有广告 / 跟踪拦截（位于产品根域下，必须在本地产品规则之前） ====")
     emit(plan.ads_local, by_service=False)
     L.append("# ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前） ====")
-    emit(plan.product)
+    emit(plan.product_for("loon"))
     L.append("# ==== 6 国内外域名分类：未引入第三方大集合（其中含宽泛关键词规则），由上面的自有规则与下面的 GEOIP 兜底覆盖 ====")
     L.append("# ==== 7 服务专属 IP（不触发 DNS 解析） ====")
-    emit(plan.service_ip)
+    emit(plan.service_ip_for("loon"))
     L.append("# ==== 8 国内 IP 兜底 ====")
     L.append("GEOIP,CN,国内直连")
     L.append("# ==== 9 其余目标 ====")

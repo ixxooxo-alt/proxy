@@ -1,0 +1,18 @@
+运行时间（UTC）：2026-10-05 07:47:52
+Python：Python 3.11.17，PyYAML：6.0.1
+统一源摘要：98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534
+命令：python3 tools/check_icons.py --icon-repo /home/claude/vendor-src/icon
+
+统一源 2026.10.05-1；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
+图标仓库检出目录的提交：2d43eae18d1be7987b620e53e39b49968fa51b83（2026-10-05 08:58:58 +0800）
+icons.yaml 登记的 checked_commit：2d43eae18d1be7987b620e53e39b49968fa51b83（2026-10-05）
+  [符合] loon/loon.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] mihomo/mihomo-core.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] mihomo/mihomo-profile.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] quantumultx/quantumultx.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] 各端同一个策略组用的是同一个地址
+用到的图片 81 张，合计 6,952,443 字节（客户端显示图标时要下载；缓存不缓存、多久刷新由各客户端决定，没有核对）
+  [符合] 与图标仓库公布的地址清单（icon-urls.json 的 url_256px）对比：81 个地址逐个相同
+
+全部符合
+退出码：0

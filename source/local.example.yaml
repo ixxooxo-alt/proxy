@@ -10,6 +10,16 @@ special_entries:
     verified_region: ""             # 例：jp
     verified_at: ""                 # 例：2026-09-30
 
+# 节点名称分地区的本地补充（某家机场特有的写法；只进 dist/private/，不进公开产物）
+# 先运行 python3 tools/check_node_names.py 节点名.txt，看哪些节点没认出来或分错了，再在这里补。
+node_names:
+  # 给某个地区补关键词。地区 id：hk jp kr tw sg us；其他国家补到 other
+  #   words 按原样出现就算（中文等）；latin 是英文词 / 代码，前后不能紧挨英文字母
+  extra_words:
+    us: {words: [], latin: []}          # 例：{words: [圣路易], latin: [STL]}
+  # 个别节点直接指定地区（写完整节点名称，不分大小写）；region 还可以写 other（其他地区）或 none（不进任何组）
+  assign: []                            # 例：- {name: "Premium 01", region: jp}
+
 # 额外规则（例如公司内网、自建服务）
 extra_services:
   - id: my_company

@@ -1,26 +1,32 @@
 {
-  "generator_version": "1.0.0",
-  "source_version": "2026.09.23-2",
+  "generator_version": "1.4.0",
+  "source_version": "2026.10.05-1",
   "docs_checked": "2026-09-23",
-  "source_sha256": "da8f100af30cae5fdebdd7f38009727ecb18c66ae3ec100d530748439c7626f9",
+  "source_sha256": "98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534",
   "rule_counts": {
     "lan_and_system": 24,
-    "ad_exceptions": 9,
-    "ads_local": 31,
-    "product": 532,
-    "service_ip": 14
+    "ad_exceptions": 10,
+    "ads_local": 71,
+    "product": 850,
+    "service_ip": 14,
+    "product_by_client": {
+      "mihomo": 850,
+      "singbox": 850,
+      "loon": 780,
+      "quantumultx": 780
+    }
   },
   "outputs": {
-    "loon/loon.conf": "19dbe2aebe8f5ad72db646d9c03c6b84fedeabc051b9537c6669bca403ca17f7",
-    "mihomo/mihomo-core.yaml": "6fc7702d589483869290164644b53443fe16af82213513aae684e8dff0703a05",
-    "mihomo/mihomo-profile.yaml": "f54916d0b9168934aa2101a263496bdb42d14c9949db9a12b26fadeb32b9bdbf",
-    "quantumultx/quantumultx.conf": "76adff8b06b0cd8e568e7438773e4dfddb0b5acb8de51a967aee870966511d9b",
-    "sing-box/sing-box-1.12.json": "e21dbffc85c40ef58928b217f88f8f9f807d092b9f1661e4573e5991a0c1bc22",
-    "sing-box/sing-box-1.14.json": "401b5749c4ceb16679571823972d1ed94d3f15b92b2eaf20bbc2e890f31820d8"
+    "loon/loon.conf": "ec1e3f9684aa43c6dbfea98715344fb46ce3057078220d6f5339db99031f748a",
+    "mihomo/mihomo-core.yaml": "0208aad0ab0dab2ec2ff6f291fc12952ab57296b8aaeca88c5c8f24ebdeb929f",
+    "mihomo/mihomo-profile.yaml": "2751f7cf6b539cbba5e8d477f4df57613fbaca96b0cc4b0421cd5189bde294c3",
+    "quantumultx/quantumultx.conf": "1a6065a13c0a6d2e4f1c3841ae2569a3ed47fb183999e6afb56cb4a769d0f9e7",
+    "sing-box/sing-box-1.12.json": "1883187cf9d48e505a65dba708984d5a0c6227e7d410353484f5d551c826dfde",
+    "sing-box/sing-box-1.14.json": "4398f35b5e0c993e12f3d2ef4418364c4003bcac09d7397b98684c2897bf5954"
   },
   "targets": {
     "mihomo": {
-      "core": "mihomo v1.19.x（依据 v1.19.31 源码核对；empty-fallback 等字段在更早内核中会被忽略）",
+      "core": "mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）",
       "clients": [
         "Clash Verge Rev（Windows / macOS，v2.5.x，内置 mihomo）",
         "Clash Meta for Android（v2.11.x，内置 mihomo）",
@@ -28,7 +34,7 @@
       ]
     },
     "singbox": {
-      "core": "sing-box 1.14.x（依据 v1.14.1 文档与源码）；另生成 1.12–1.13 兼容版",
+      "core": "sing-box v1.14.1（已验证）；另生成 1.12 兼容版（在 v1.12.0 上验证，1.13 未单独验证）",
       "clients": [
         "SFA（Android）"
       ]

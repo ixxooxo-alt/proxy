@@ -110,8 +110,17 @@ class SourceValidation(unittest.TestCase):
         def fn(data):
             for g in data["groups"]:
                 if g["name"] == "OpenAI":
-                    g["options"] = ["Cursor"]
+                    g["options"] = ["Grok"]
         self.assertRejected("groups.yaml", fn, "不是地区入口")
+
+    def test_clients_must_be_known_families(self):
+        def fn(data):
+            for s in data["services"]:
+                if s["id"] == "cn_common":
+                    s["clients"] = ["mihomo", "clash"]
+                    return
+            raise KeyError("cn_common")
+        self.assertRejected("services/misc.yaml", fn, "clients 只能写")
 
     def test_community_evidence_needs_upstream_mapping(self):
         # TELASA 在两个快照里都没有，服务没有登记 upstream；标成 dlc 必须被拒绝
@@ -136,7 +145,7 @@ class UpstreamEvidenceRecord(unittest.TestCase):
         self.assertEqual(self.rec["summary"]["failures"], 0)
 
     def test_every_community_rule_is_backed(self):
-        from generator.model import COMMUNITY_EV_SOURCE
+        from generator.model import COMMUNITY_EV_SOURCE, upstream_lists
         index = {(r["service"], r["kind"], r["value"]): r for r in self.rec["rules"]}
         problems = []
         for s in self.m.services:
@@ -152,7 +161,7 @@ class UpstreamEvidenceRecord(unittest.TestCase):
                     continue
                 if got["ev"] != r.ev or got[src]["status"] not in ("same", "covered"):
                     problems.append(f"{s.id} {r.kind},{r.value}：记录为 {got['ev']} / {got[src]['status']}")
-                lists = set(s.upstream.get(src, []))
+                lists = set(upstream_lists(s, src))          # dlc 含 dlc_resolved（例如国内常用网站对照 cn 聚合列表）
                 if not any(h.split(":", 1)[0] in lists for h in got[src]["hits"]):
                     problems.append(f"{s.id} {r.kind},{r.value}：记录里的命中不在 upstream.{src} {sorted(lists)}")
         self.assertFalse(problems, "\n" + "\n".join(problems))
@@ -166,6 +175,11 @@ class UpstreamEvidenceRecord(unittest.TestCase):
         for r in self.plan.ads_local:
             if r.ev == "dlc":
                 self.assertIn((r.kind, r.value), recorded, f"自有拦截 {r.value} 标为 dlc 但记录里没有上游条目")
+
+    def test_client_restricted_services_recorded(self):
+        """不写进 Loon / QX 的服务，记录里要有“写进去会遮挡多少远程广告条目”的核对结果（不写进去的理由可复核）。"""
+        restricted = {s.id for s in self.m.services if s.clients and not {"loon", "quantumultx"} <= set(s.clients)}
+        self.assertEqual(restricted, {x["service"] for x in self.rec.get("client_restricted", [])})
 
 
 if __name__ == "__main__":

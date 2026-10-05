@@ -2,37 +2,41 @@
 
 [中文](README.zh-CN.md)
 
-**One rule source. Four clients. Every rule backed by evidence.**
+**One rule source. Four clients. Every rule has a recorded source.**
 
 A single, auditable split-routing (分流) rule set that generates matching configs for **Loon**, **Quantumult X**, **mihomo / Clash Meta** and **sing-box** from one place. You edit rules once in `source/`; the generator builds every client's config, so the clients never drift apart.
 
 ![clients](https://img.shields.io/badge/clients-Loon%20%7C%20Quantumult%20X%20%7C%20mihomo%20%7C%20sing--box-blue)
-![tests](https://img.shields.io/badge/tests-51%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-188%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%2B-informational)
 ![status](https://img.shields.io/badge/real--device%20testing-not%20yet%20done-orange)
 
 > **Bring your own subscription.** No nodes or subscription links ship with this repo. Every config uses the placeholder `https://REPLACE-ME.invalid/...`, and nothing connects until you replace it with your own subscription.
 
+This README describes source version **2026.10.05-1**. The version is written in the header comment of every generated config and in `dist/manifest.json`; check it before importing. The badges above are static text, not a CI status: the tests were run locally on Linux (Python 3.11) on 2026-10-05.
+
 ---
 
 ## ✨ Features
 
-- **One source, many outputs.** `source/*.yaml` → `python3 build.py` → configs for Loon, Quantumult X, mihomo (profile + core) and sing-box (1.14 and 1.12–1.13).
-- **40+ policy groups**, including:
-  - **AI:** OpenAI, Claude, Cursor, Google AI, Copilot, Other AI
-  - **Streaming:** YouTube, Netflix, Disney+, Max, Prime Video, Hulu US, Hulu Japan, Abema, DMM, Japanese media, Spotify, TikTok, Twitch, Bilibili HK/MO/TW, Bahamut
+- **One source, many outputs.** `source/*.yaml` → `python3 build.py` → configs for Loon, Quantumult X, mihomo (profile + core) and sing-box (a 1.14 config and a 1.12-compatible one).
+- **42 service groups**, including:
+  - **AI:** OpenAI, Claude, Grok (Cursor and xAI share one group), Google AI, Copilot, Apple AI, Other AI
+  - **Streaming:** YouTube, Netflix, Disney+, Max, Prime Video, Hulu US, Hulu Japan, Abema, DMM, Japanese media, Spotify, TikTok, Twitch, Bilibili HK/MO/TW, Bahamut, Other streaming
   - **Social:** Telegram, X, Meta, WhatsApp, LINE, Discord, Reddit, LinkedIn
   - **Big tech and dev:** Apple, Apple Music/TV, Google, Microsoft, GitHub, Dev downloads, Remote control
   - **Payments:** PayPal, pinned to a dedicated **US** node group
-- **Region-aware routing.** Hong Kong, Japan, Korea, Taiwan, Singapore and US entry groups, plus "Other regions". Unmatched overseas traffic goes to **Foreign Default**, which starts on Japan.
-- **Manual-first failover.** Your hand-picked node is used first. If it goes down, the group switches to the fastest node *in the same region* and switches back when yours recovers. It never jumps countries and never falls back to a direct connection. (Modes: manual-first, manual, auto, failover, balance. On sing-box, manual-first becomes same-region auto.)
-- **Fails closed.** If a region filter matches no nodes, the group rejects the traffic (`empty-fallback: REJECT`) instead of sending it out directly.
-- **China direct and LAN direct.** Mainland domains and IPs (GeoSite/GeoIP CN) and private ranges (`192.168.x.x`, `10.x`, `.lan`, `.local`, `home.arpa` …) connect directly.
-- **Ad blocking.** Uses the blackmatrix7 *AdvertisingLite* list plus local block rules, a list of false-positive exceptions, and HTTPDNS handling.
-- **Split DNS.** Domestic DoH (AliDNS 223.5.5.5, DNSPod 1.12.12.12) and foreign DoH (1.1.1.1, 8.8.8.8). AAAA answers are off by default.
-- **Safe defaults.** Controller on `127.0.0.1:9090`, `allow-lan: false`, and TUN off by default in the core config.
-- **Evidence for every rule.** Each rule carries an evidence ID (official docs, a pinned community snapshot, or a maintainer note). The generator stops with an error on duplicate ownership or shadowed rules instead of silently producing output.
-- **Private builds stay private.** Configs built with your subscription go to `dist/private/` and are never written to the shareable `dist/` outputs.
+- **Region-aware routing.** Hong Kong, Japan, Korea, Taiwan, Singapore and US entry groups, plus "Other regions" (manual only). Unmatched overseas traffic goes to **Foreign Default**, which starts on Japan.
+- **Nodes are sorted into regions by name**, from a word list in `source/regions.yaml` rather than hand-written regexes. Each region has two filters: a loose one for the manual group, and a strict one for the auto / failover / balance groups. A node whose name does not clearly say where it lands (`Japan-US 01`, `日本中转 01`, `🇯🇵 Relay 01`, `Premium 01 | Unlock US`) stays in the manual group only. Only a short list of relay wordings is recognised (`中转`, `中继`, `转`, `入口`, `relay`, `transit`, `via`, `经`); other wordings such as `Singapore Entry 01` are read as a landing node. Names are a first-pass filter; they do not prove where a node actually exits.
+- **Manual-first failover (design goal).** Your hand-picked node is used first; if it goes down, the group switches to an available node *in the same region* and switches back when yours recovers, without jumping countries or going direct. mihomo is generated to this design (checked against its source). Loon's group nesting, Quantumult X's switch-back and the real switching times are not confirmed on devices yet. sing-box has no equivalent, so its region entries default to same-region auto.
+- **Fails closed.** On mihomo, a region filter that matches no nodes rejects the traffic (`empty-fallback: REJECT`); on sing-box an empty group points to a blocking placeholder. Empty-group behaviour on Loon and Quantumult X is unverified.
+- **China direct and LAN direct.** Mainland domains and IPs (GeoSite/GeoIP CN) and private ranges (`192.168.x.x`, `10.x`, `.lan`, `.local`, `home.arpa` …) connect directly, and LAN names are resolved by the system DNS.
+- **Ad blocking.** A remote ad list per client family (`category-ads-all` on mihomo and sing-box, blackmatrix7 *AdvertisingLite* on Loon and Quantumult X), plus 71 local block rules and 10 false-positive exceptions. No rewrites, scripts or MITM are included.
+- **Split DNS.** On mihomo and sing-box: fake-ip, domestic DoH (223.5.5.5; mihomo also 1.12.12.12) for direct traffic, foreign DoH through the proxy for the rest. Loon and Quantumult X use domestic DoH only, so domains that match no rule are resolved by a domestic resolver there (see known limits). AAAA answers are off by default.
+- **Policy-group icons.** On Loon, Quantumult X and mihomo-based clients each of the 81 policy groups carries an icon URL pointing to the owner's icon repository ([ixxooxo-alt/icon](https://github.com/ixxooxo-alt/icon)). Icons only affect how groups look. Set `enabled: false` in `source/icons.yaml` and rebuild to get the same configs without them.
+- **Safe defaults.** In the core config the controller listens on `127.0.0.1:9090`, `allow-lan` is `false`, and TUN is off.
+- **A recorded source for every rule.** Each rule carries an evidence ID (official docs, a pinned community snapshot, or a maintainer note). The generator stops with an error on duplicate ownership or shadowed rules instead of silently producing output.
+- **Private builds stay private.** Configs built with your subscription go to `dist/private/`, never to the shareable `dist/` outputs. `dist/private/` and `source/local.yaml` are listed in `.gitignore`.
 
 ## 📱 Supported clients
 
@@ -50,7 +54,7 @@ A single, auditable split-routing (分流) rule set that generates matching conf
 ### Option A: import a ready-made file
 
 1. Download the file for your client from the table above.
-2. Replace `https://REPLACE-ME.invalid/请替换为你的订阅链接` with **your own** subscription URL.
+2. Replace `https://REPLACE-ME.invalid/请替换为你的订阅链接` with **your own** subscription URL (or import first and change the subscription inside the app).
 3. Import it into your client and pick a node in each region's "manual" group.
 
 > Don't commit or share a file once your subscription is in it.
@@ -62,8 +66,8 @@ Requires Python 3.10+ and PyYAML.
 ```bash
 pip install pyyaml
 
-# Keep the subscription in an env var so it stays out of your shell history
-export SUB_URLS='your-subscription-url'
+# read -s keeps the subscription out of your shell history
+read -rs SUB_URLS && export SUB_URLS
 python3 build.py                                  # public outputs -> dist/, private outputs -> dist/private/
 
 # sing-box (SFA): convert a Clash/mihomo subscription into sing-box outbounds
@@ -74,7 +78,9 @@ The node converter only accepts nodes it can represent exactly. Unsupported prot
 
 ### Customize without losing updates
 
-Copy `source/local.example.yaml` to `source/local.yaml` to pin a PayPal node, register a verified Netflix node, or add your own rules. Updating the shared source won't overwrite it.
+Copy `source/local.example.yaml` to `source/local.yaml` to pin a PayPal node, register a verified Netflix node, add your own rules, or tell the generator which region an oddly named node belongs to. Updating the shared source won't overwrite it, and it only affects `dist/private/`.
+
+To see which region group each of your nodes lands in, and why, run `python3 tools/check_node_names.py names.txt` (node names only; no subscription link needed).
 
 ## 🛠 Editing rules
 
@@ -85,10 +91,10 @@ Copy `source/local.example.yaml` to `source/local.yaml` to pin a PayPal node, re
 ## 📂 Layout
 
 ```
-source/      single source of truth (regions, groups, services, adblock, evidence)
+source/      single source of truth (regions, groups, services, adblock, evidence, icons)
 generator/   emitters for Loon, Quantumult X, mihomo, sing-box
 tests/       independent expectations + per-client match-semantics emulation
-tools/       upstream field/evidence checks, Clash connection-log analyzer
+tools/       node-name report, official-core checks, upstream evidence checks, icon check, Clash connection-log analyzer
 dist/        generated, shareable outputs (except dist/private/)
 docs/        requirements, syntax/capability matrix, DNS decisions, rule list, test records, known limits (Chinese)
 ```
@@ -97,16 +103,22 @@ docs/        requirements, syntax/capability matrix, DNS decisions, rule list, t
 
 - [v2fly/domain-list-community](https://github.com/v2fly/domain-list-community): pinned snapshot used as rule evidence
 - [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script): rule evidence, plus the *AdvertisingLite* ad list (Loon / Quantumult X)
-- [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat): GeoSite / GeoIP / ASN data for mihomo (downloaded at runtime via jsDelivr)
+- [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat): GeoSite / GeoIP data for mihomo (downloaded at runtime via jsDelivr)
 - [SagerNet/sing-geosite](https://github.com/SagerNet/sing-geosite) and [sing-geoip](https://github.com/SagerNet/sing-geoip): rule sets for sing-box
 - Official service docs (OpenAI, Anthropic, Cursor, Google, Microsoft, GitHub, …), as recorded in `source/evidence.yaml`
+- Policy-group icons: [ixxooxo-alt/icon](https://github.com/ixxooxo-alt/icon) (the images are not part of this repository)
+
+Remote lists are fetched by the clients themselves and follow upstream, so the same config can match differently on different days.
 
 ## ✅ Verification status
 
-- 51 automated tests pass. Field names were checked against mihomo v1.19.31 and sing-box v1.14.1 source. 490 community-sourced rules were checked one by one against pinned upstream snapshots.
-- An independent review (Sep 29, 2026) ran `mihomo -t` (v1.19.31) and `sing-box check` (v1.14.1) on the generated configs, and both passed.
-- **Not yet tested on real devices.** None of the configs has been imported into Loon, Quantumult X, Clash Verge Rev or SFA and checked in real use. See `docs/05-验收记录.md` and `docs/09-真机验收操作清单.md`.
-- Known gaps (see `docs/06-已知限制与待决事项.md`): there's no separate Apple Intelligence group, so `apple.com` / `icloud.com` go direct. `sora.com` is still listed. Netflix unlock has no verification record yet.
+- 188 automated tests pass. Field names were checked against mihomo v1.19.31 and sing-box v1.14.1 source. 559 community-sourced rules were checked one by one against pinned upstream snapshots.
+- `mihomo -t` (v1.19.31) and `sing-box check` (v1.14.1 for the 1.14 config, v1.12.0 for the compatible one) pass on the generated configs. Other core versions, including sing-box 1.13 and the cores bundled with Clash Verge Rev, Clash Meta for Android and SFA, were not run.
+- Routing was checked with the official cores and real upstream data files: 245 targets on mihomo v1.19.31 and on both sing-box versions, plus 21 DNS decisions and 7 dial-time resolver cases on sing-box, all matching hand-written expectations. Outbounds were replaced with rejects and nothing left the machine, so this shows which group a connection is handed to, not connectivity. Loon and Quantumult X have no core that runs on a computer; for them there is only an in-house emulator.
+- Node grouping by name: 625 hand-labelled names give the same result in Python, in ICU (the regex engine the Apple apps are assumed to use) and in the official mihomo core. None of them come from a real subscription.
+- Five external review rounds so far; findings and fixes are in `docs/08-外部审核记录.md`.
+- **Not yet tested on real devices.** None of the configs has been imported into Loon, Quantumult X, Clash Verge Rev, Clash Meta for Android or SFA and checked in real use. See `docs/05-验收记录.md` and `docs/09-真机验收操作清单.md`.
+- Most important open points (see `docs/06-已知限制与待决事项.md`): whether Loon and Quantumult X accept the long region filters (12–16 KB each) and the icon parameter; whether Quantumult X applies `server-tag-regex` to its auto and balance policies; Loon's second ad-list file uses a format its official docs don't describe; Netflix unlock has no verification record yet; health-check and failover timings are design targets, not measurements.
 
 ## ⚠️ Disclaimer
 

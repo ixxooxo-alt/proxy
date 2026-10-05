@@ -6,9 +6,9 @@ from typing import List
 
 import yaml
 
-from .groups import GroupSpec, build_groups
+from .groups import GroupSpec, build_groups, shared_filter_labels
 from .model import Model, Plan
-from .util import Rule
+from .util import Rule, check_regex_line_safe
 
 MODES = ["manual_first", "manual", "auto", "failover", "balance"]
 PROVIDER_NAME = "订阅1"
@@ -55,6 +55,9 @@ def rule_line(r: Rule) -> str:
     raise ValueError(r.kind)
 
 
+FILTER_MARK = "NODEFILTERPLACEHOLDER"      # 先占位，写出 YAML 后再换成正则或锚点引用（见 _filter_lines）
+
+
 def _group_dict(m: Model, g: GroupSpec) -> dict:
     hc = m.hc
     d = {"name": g.name, "type": g.kind}
@@ -62,12 +65,7 @@ def _group_dict(m: Model, g: GroupSpec) -> dict:
         d["proxies"] = list(g.members)
     if g.nodes is not None:
         d["include-all-providers"] = True
-        if g.nodes.pinned:
-            d["filter"] = g.nodes.exact_regex()
-        elif g.nodes.include:
-            d["filter"] = g.nodes.include
-        if g.nodes.exclude:
-            d["exclude-filter"] = "`".join(g.nodes.exclude)
+        d["filter"] = FILTER_MARK
         d["empty-fallback"] = "REJECT"          # 筛选为空时明确拒绝，不静默 DIRECT（默认 COMPATIBLE 等同直连）
     if g.kind in ("url-test", "fallback", "load-balance"):
         d["url"] = hc["url_https"]
@@ -83,7 +81,37 @@ def _group_dict(m: Model, g: GroupSpec) -> dict:
         d["strategy"] = "consistent-hashing"
     if g.hidden:
         d["hidden"] = True
+    icon = m.icon_url(g.name)
+    if icon:
+        d["icon"] = icon                          # 图标只影响显示（Clash Verge Rev 等界面读取），不影响分流
     return d
+
+
+class _Filters:
+    """节点筛选正则。同一条正则（每个地区的自动 / 故障转移 / 负载均衡三个组、PayPal 固定入口用的美国正则）只写一次：
+    第一次出现时定义 YAML 锚点（&flt-hk），之后用别名（*flt-hk）引用。锚点 / 别名是 YAML 标准写法，
+    mihomo（go-yaml）和 Clash Verge Rev 读取时会展开；这样每条约 10 KB 的正则不用重复几十遍。"""
+
+    def __init__(self, groups: List[GroupSpec], region_ids: List[str]):
+        count: dict = {}
+        for g in groups:
+            if g.nodes is not None:
+                rx = g.nodes.final_regex()
+                check_regex_line_safe(rx)          # 含反引号时 mihomo 会把它拆成多条正则
+                count[rx] = count.get(rx, 0) + 1
+        labels = shared_filter_labels(groups, region_ids)
+        self.name = {rx: "flt-" + labels[rx] for rx, n in count.items() if n > 1}
+        self.defined: set = set()
+
+    def line(self, nf) -> str:
+        rx = nf.final_regex()
+        anchor = self.name.get(rx)
+        if anchor is None:
+            return "filter: " + _scalar(rx)
+        if anchor in self.defined:
+            return f"filter: *{anchor}"
+        self.defined.add(anchor)
+        return f"filter: &{anchor} " + _scalar(rx)
 
 
 def build_rules_text(m: Model, plan: Plan) -> List[str]:
@@ -110,12 +138,12 @@ def build_rules_text(m: Model, plan: Plan) -> List[str]:
     for x in m.adblock["remote_lists"]["mihomo"]:
         lines.append("  - " + _scalar(f"GEOSITE,{x['value']},广告拦截"))
     section("4-5 产品专属、共享依赖与厂商规则（更具体的规则在前，由生成器排序）")
-    emit(plan.product)
+    emit(plan.product_for("mihomo"))
     section("6 国内外域名分类")
     lines.append("  - " + _scalar("GEOSITE,cn,国内直连"))
     lines.append("  - " + _scalar("GEOSITE,geolocation-!cn,国外默认"))
     section("7 服务专属 IP（不触发 DNS 解析）")
-    emit(plan.service_ip)
+    emit(plan.service_ip_for("mihomo"))
     section("8 国内 IP 兜底")
     lines.append("  - " + _scalar("GEOIP,CN,国内直连"))
     section("9 其余目标")
@@ -182,7 +210,14 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
             "proxy-server-nameserver": list(dns["domestic_doh"]),
             "direct-nameserver": list(dns["domestic_doh"]),
             "nameserver": list(dns["foreign_doh"]),
-            "nameserver-policy": {"geosite:cn,private": list(dns["domestic_doh"])},
+            # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字），必须排在 geosite:private 之前：
+            # mihomo 按书写顺序匹配 nameserver-policy。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这条策略，
+            # 否则 DIRECT 出站会直接用 direct-nameserver（公共 DoH）。与 sing-box / Loon / QX 的做法一致。
+            "nameserver-policy": {
+                ",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"],
+                "geosite:cn,private": list(dns["domestic_doh"]),
+            },
+            "direct-nameserver-follow-policy": True,
         }
     }
     sniffer = {
@@ -212,7 +247,8 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
                 "enable": True,
                 "url": hc["url_https"],
                 "expected-status": str(hc["expected_status"]),
-                "interval": 600,
+                # 与组的检查间隔一致：订阅（provider）上的间隔优先于组上的间隔（mihomo healthcheck.go 的注册逻辑）
+                "interval": hc["interval_s"],
                 "timeout": hc["timeout_ms"],
                 "lazy": True,
             },
@@ -234,12 +270,21 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     out.append("")
     out.append(_y({"proxy-providers": providers}).rstrip())
     out.append("")
+    out.append("# 节点筛选（filter）：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写。")
+    out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
+    out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
+    out.append("# 同一条正则只写一次：第一次出现时用 &flt-xx 定义，之后用 *flt-xx 引用（YAML 的锚点 / 别名）。")
+    out.append("# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，运行 tools/check_node_names.py。")
     out.append("proxy-groups:")
+    filters = _Filters(groups, [r["id"] for r in m.regions] + [m.other_region["id"]])
     for g in groups:
         d = _group_dict(m, g)
         if g.comment:
             out.append(f"  # {g.name}：{g.comment}")
         block = _y([d]).rstrip().splitlines()
+        if g.nodes is not None:
+            i = block.index(f"  filter: {FILTER_MARK}")
+            block[i] = "  " + filters.line(g.nodes)
         out.extend("  " + ln for ln in block)
     out.append("")
     out.append("rules:")

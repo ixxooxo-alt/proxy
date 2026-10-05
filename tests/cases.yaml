@@ -1,6 +1,13 @@
 # 路由期望：由需求与官方资料独立写出，不从生成结果反推。
 # expect：策略组名 / DIRECT / 广告拦截；per_client：各端语义不同时的覆盖值（必须写明原因）。
 # 字段 host 表示按域名连接，ip 表示直接 IP 连接。
+#
+# 每个用例跑两遍（2026-10-03 审核 F01 之后）：
+#   1. 远程集合用 tests/fixtures.yaml 的样本（tests/test_routing.py）：检查先后顺序这类语义；
+#   2. 远程集合用真实上游数据的成员快照 tests/data/real_sets.json（tests/test_real_data.py）：检查真实数据下最后交给谁。
+#      mihomo / sing-box 另由 tools/check_real_routes.py 用官方内核实际跑一遍，结果也记在快照里。
+# synthetic: true 的用例只跑第 1 遍：它用一个虚构的主机说明语义，真实集合里没有这个主机。
+# 没有命中任何域名规则的主机，结果取决于解析到的 IP；两遍用的都是 fixtures.yaml 里假定的解析结果（没列出的按境外 IP 算）。
 
 cases:
   # ---------- AI（需求第六节） ----------
@@ -16,12 +23,12 @@ cases:
   - {host: storage.googleapis.com, expect: Google, why: Claude Code 放行清单中的共享云存储}
   - {host: registry.npmjs.org, expect: 开发下载, why: 通用依赖，不归 Claude}
   - {host: formulae.brew.sh, expect: 开发下载}
-  - {host: api2.cursor.sh, expect: Cursor}
-  - {host: api5.cursor.sh, expect: Cursor}
-  - {host: agent.global.api5.cursor.sh, expect: Cursor}
-  - {host: marketplace.cursorapi.com, expect: Cursor}
-  - {host: downloads.cursor.com, expect: Cursor, why: Cursor 专属下载归 Cursor}
-  - {host: anysphere-binaries.s3.us-east-1.amazonaws.com, expect: Cursor}
+  - {host: api2.cursor.sh, expect: Grok}
+  - {host: api5.cursor.sh, expect: Grok}
+  - {host: agent.global.api5.cursor.sh, expect: Grok}
+  - {host: marketplace.cursorapi.com, expect: Grok}
+  - {host: downloads.cursor.com, expect: Grok, why: Cursor 专属下载归 Grok 组（Cursor 与 Grok 合并）}
+  - {host: anysphere-binaries.s3.us-east-1.amazonaws.com, expect: Grok}
   - {host: s3.us-east-1.amazonaws.com, expect: 国外默认, why: 共享云不收}
   - {host: abc.cursorvm.com, expect: 远程控制, why: Grok Bot 托管计算机}
   - {host: a.b.cursorvm.com, expect: 远程控制, why: 官方要求 *.*.cursorvm.com}
@@ -44,15 +51,20 @@ cases:
   - {host: sydney.bing.com, expect: Copilot}
   - {host: www.bing.com, expect: Microsoft}
   - {host: login.microsoftonline.com, expect: Microsoft}
-  - {host: grok.com, expect: 其他 AI, why: Grok/xAI 在 X 之前}
-  - {host: api.x.ai, expect: 其他 AI}
+  - {host: grok.com, expect: Grok, why: Grok / xAI 归 Grok 组（2026-09-30 与 Cursor 合并），在 X 之前}
+  - {host: api.x.ai, expect: Grok}
   - {host: www.perplexity.ai, expect: 其他 AI}
   - {host: poe.com, expect: 其他 AI}
   - {host: groq.com, expect: 其他 AI, why: Groq 不是 Grok，但同属其他 AI}
   - {host: chat.deepseek.com, expect: 国内直连, why: 国内版 AI 不进入其他 AI}
   - {host: www.doubao.com, expect: 国内直连}
   - {host: yuanbao.tencent.com, expect: 国内直连}
-  - {host: chat.qwen.ai, expect: 国外默认, why: 通义千问国际版部署在境外，不按品牌归国内}
+  - {host: chat.qwen.ai, expect: 国外默认, why: "用户决定（2026-10-04）：Qwen 走国外默认。上游的国内域名集合收了 qwen.ai，要靠显式规则排在它前面"}
+  - {host: qwen.ai, expect: 国外默认}
+  - {host: chat.qwenlm.ai, expect: 国外默认, why: Qwen 国际版较早使用的域名}
+  - {host: www.qianwen.com, expect: 国内直连, why: 千问国内版}
+  - {host: www.tongyi.com, expect: 国内直连, why: 通义国内版}
+  - {host: tongyi.aliyun.com, expect: 国内直连}
   - {host: notopenai.com, expect: 国外默认, why: 负向：后缀边界}
   - {host: openai.com.evil.example, expect: 国外默认, why: 负向：后缀边界}
   - {host: fakegoogle.com, expect: 国外默认, why: 负向：后缀边界}
@@ -70,7 +82,7 @@ cases:
   - {host: copilot.com, expect: Copilot}
   - {host: www.perplexity.com, expect: 其他 AI}
   - {host: abc.hf.space, expect: 其他 AI}
-  - {host: grok.x.com, expect: X, why: 上游归 xAI，但它在 X 的域名下，剩余集合不得抢走独立服务流量}
+  - {host: grok.x.com, expect: X, why: 上游归 xAI，但它在 X 的域名下，与 x.com 共用，仍归 X}
 
   # ---------- 流媒体 ----------
   - {host: www.youtube.com, expect: YouTube}
@@ -119,6 +131,28 @@ cases:
   - {host: api.dmmapis.com, expect: DMM}
   - {host: audio4-ak-spotify-com.akamaized.net, expect: Spotify}
   - {host: www.tubitv.com, expect: 其他流媒体}
+
+  # ---------- 2026-09-29 迁入与需求补充 ----------
+  - {host: guzzoni.apple.com, expect: Apple AI, why: Apple AI 在 Apple 之前}
+  - {host: mask.apple-dns.net, expect: Apple AI, why: 比 Apple 组的 apple-dns.net 更具体}
+  - {host: time.apple-dns.net, expect: Apple, why: apple-dns.net 其余主机仍归 Apple}
+  - {host: www.siriusxm.com, expect: 国外默认, why: 关键词 siri 已改为具体主机名，不再误伤}
+  - {host: claude.app, expect: Claude, why: 桌面版官方网络要求}
+  - {host: accounts.x.ai, expect: Grok, why: xAI 统一登录，Cursor 9 月 30 日起也用它登录}
+  - {host: auth.x.ai, expect: Grok, why: Cursor 登录文档列出的最少登录主机}
+  - {host: accounts.spacex.ai, expect: Grok}
+  - {host: auth.grok.com, expect: Grok, why: Cursor 登录文档列出的最少登录主机}
+  - {host: auth.grokusercontent.com, expect: Grok, why: 同上；grokusercontent.com 是 Grok 用户内容域}
+  - {host: auth.grokipedia.com, expect: Grok, why: 同上；Grokipedia 与 Grok 共用账号}
+  - {host: www.spacex.com, expect: 国外默认, why: 只收 spacex.ai 登录域，不收 SpaceX 官网}
+  - {host: sora.com, expect: 国外默认, why: Sora 已停服，规则已删除}
+  - {host: www.google.de, expect: Google, why: Google 官方搜索域名}
+  - {host: contoso.sharepointonline.com, expect: Microsoft, why: M365 官方端点}
+  - {host: myvm.eastus.cloudapp.azure.com, expect: 国外默认, why: azure.com 含客户自有主机，已移出 Microsoft}
+  - {host: log.byteoversea.com, expect: 国外默认, why: 字节海外共用根域，已移出 TikTok}
+  - {host: www.jd.com, expect: 国内直连, why: "mihomo / sing-box 靠显式补充规则；Loon / QX 不写这些规则，靠 GEOIP,CN"}
+  - {host: ad.12306.cn, expect: 广告拦截, why: "国内补充规则不写进 Loon / QX，远程广告集合仍能拦到国内根域下的广告主机"}
+  - {host: pagead2.googlesyndication.com, expect: 广告拦截, why: 从 Cursor 版迁入的广告网络}
 
   # ---------- 社交 ----------
   - {host: t.me, expect: Telegram}
@@ -173,6 +207,7 @@ cases:
   - {ip: 1.2.4.8, expect: 国内直连}
   - {ip: '240e::1', expect: 国内直连, why: 国内 IPv6 兜底}
   - {host: unknown-foreign.example, expect: 国外默认, why: 其余目标进入国外默认}
+  - {host: aka.ms, expect: Microsoft, why: "产品规则排在国内域名集合之前（MetaCubeX 的国内域名集合里有整段 .ms，见下面的 upstream_followed）"}
   - {host: wikipedia.org, expect: 国外默认}
   - {ip: 8.8.8.8, expect: 国外默认}
 
@@ -180,16 +215,90 @@ cases:
   - {host: stats.g.doubleclick.net, expect: 广告拦截}
   - {host: adservice.google.com, expect: 广告拦截, why: 自有拦截条目，四端都在产品规则之前}
   - {host: pixel.facebook.com, expect: 广告拦截}
-  - {host: tracker.twimg.com, expect: 广告拦截, per_client: {loon: X, quantumultx: X},
-     why: "位于产品根域下、只在远程广告集合里的主机：Loon/QX 本地规则优先于远程集合，只能靠自有条目前置（已知限制）"}
+  - {host: tracker.twimg.com, expect: 广告拦截, per_client: {loon: X, quantumultx: X}, synthetic: true,
+     why: "虚构主机，说明语义：位于产品根域下、只在远程广告集合里的主机，mihomo / sing-box 先拦截，Loon / QX 本地规则优先于远程集合，只能靠自有条目前置（已知限制）"}
+  # ---- 远程广告集合：真实数据里各端集合不一样（mihomo / sing-box 用 domain-list-community 的 category-ads-all，
+  #      Loon / Quantumult X 用 blackmatrix7 的 AdvertisingLite）。下面每类取一个真实主机，把差异如实记下来 ----
+  - {host: app-measurement.com, expect: 广告拦截, why: "两边的集合都收了。Loon 上它在 AdvertisingLite_Domain.list 里（域名部分的那个文件）"}
+  - {host: ads.yahoo.com, expect: 广告拦截, per_client: {loon: 国外默认, quantumultx: 国外默认},
+     why: "只在 category-ads-all 里：Loon / QX 不拦（已知差异）"}
+  - {host: ads.viber.com, expect: 国外默认, per_client: {loon: 广告拦截, quantumultx: 广告拦截},
+     why: "只在 AdvertisingLite 里：mihomo / sing-box 不拦（已知差异）"}
+  - {host: t.appsflyer.com, expect: 国外默认, per_client: {loon: 广告拦截, quantumultx: 广告拦截},
+     why: "AdvertisingLite 里的关键词规则 appsflyer：域名里含这个词就拦，只在 Loon / QX 上生效（已知差异）"}
+  - {host: user.wixsite.com, expect: 国外默认, per_client: {loon: 广告拦截, quantumultx: 广告拦截},
+     why: "AdvertisingLite 里的关键词规则 wixsite.com 会连带拦掉 Wix 上的全部站点（上游数据的问题，如实记录；见 docs/06）"}
+  - {host: ads.twitter.com, expect: X, why: "在 AdvertisingLite 里，但位于产品根域下：Loon / QX 本地规则优先，不拦；category-ads-all 没收它，mihomo / sing-box 也不拦"}
   - {host: s.youtube.com, expect: YouTube, why: 误杀例外，按业务目标放行}
   - {host: links.app.link, expect: 国外默认, why: 误杀例外}
   - {host: iadsdk.apple.com, expect: 广告拦截, why: 产品根域下的上游广告条目，四端都用自有条目前置}
-  - {host: graph.instagram.com, expect: 广告拦截}
+  # ---------- 2026-09-30 审核后补充的域名 ----------
+  - {host: github-cloud.s3.amazonaws.com, expect: GitHub, why: Git LFS 存储（官方 Runner 网络要求）}
+  - {host: other-bucket.s3.amazonaws.com, expect: 国外默认, why: 只收 LFS 这一个存储桶，不收 amazonaws.com}
+  - {host: spotify.link, expect: Spotify, why: 分享短链}
+  - {host: golang.org, expect: 开发下载}
+  - {host: bootstrap.pypa.io, expect: 开发下载}
+  - {host: get.pnpm.io, expect: 开发下载}
+  - {host: dotnetcli.blob.core.windows.net, expect: 开发下载, why: .NET 下载专属存储主机}
+  - {host: someone.blob.core.windows.net, expect: 国外默认, why: 不收整个 blob.core.windows.net}
+  - {host: graph.instagram.com, expect: Meta 社交, why: 误杀例外：Instagram 官方 API 主机（审核 F05），上游广告集合会拦}
+  - {host: graph-fallback.instagram.com, expect: 广告拦截, why: 上游 @ads，没有承担正常功能的依据}
   - {host: analytics.google.com, expect: 广告拦截}
   - {host: copilot-telemetry-service.githubusercontent.com, expect: 广告拦截, why: 上游 @ads 且官方放行清单未列}
   - {host: copilot-telemetry.githubusercontent.com, expect: Copilot, why: 误杀例外：官方放行清单列出}
   - {host: collector.github.com, expect: GitHub, why: 误杀例外：官方放行清单列出}
+
+# 跟随上游数据的已知行为。这一节不是“应该这样”的期望，是“上游数据现在是这样、用户决定不更正”的记录：
+#   expect 写这个主机按需求本该去哪里，per_client 写某一端因为上游数据实际去了哪里。
+# 只在真实数据下核对（tests/test_real_data.py；mihomo / sing-box 另由 tools/check_real_routes.py 用官方内核实际跑），
+# 样本数据那一遍不跑：样本里没有这些上游条目。
+# 上游改掉以后，带新数据重跑 tools/check_real_routes.py 会在这里报不一致——那时把这一条和 docs/06 里对应的已知行为一起删掉。
+upstream_followed:
+  - {host: example.ms, expect: 国外默认, per_client: {mihomo: 国内直连},
+     why: "MetaCubeX 的国内域名集合里有整段 .ms（SagerNet 的没有）。r8 加过一条只写进 mihomo 的 DOMAIN-SUFFIX,ms → 国外默认；2026-10-04 用户决定删掉、跟随上游。所以 mihomo 上没被产品规则接住的 .ms 域名走国内直连"}
+
+# sing-box 的 DNS 去向（2026-10-03 审核 F01 的 DNS 部分）。期望按设计人工写出：
+#   按产品规则走代理组的域名，不交给国内 DNS：A 查询给假地址（dns-fakeip），其他类型交给经代理的 dns-foreign；
+#   归国内直连的、在国内域名集合里的 → dns-cn；局域网名字 → dns-local；其余 A → 假地址，其他类型 → dns-foreign。
+# 样本和真实数据的成员快照各跑一遍；tools/check_real_routes.py 再用官方内核实际查一遍（DNS 服务器换成本机替身）。
+singbox_dns:
+  - {host: chat.qwen.ai, type: A, expect: dns-fakeip, why: 走国外默认；上游的国内域名集合收了它，不能交给国内 DNS}
+  - {host: chat.qwen.ai, type: HTTPS, expect: dns-foreign, why: 其他类型的查询也不交给国内 DNS}
+  - {host: www.apple.com.cn, type: A, expect: dns-fakeip, why: "Apple 组（默认直连，可切到地区）：给假地址，直连时由直连出站用国内 DNS 解析"}
+  - {host: music.apple.com, type: A, expect: dns-fakeip, why: Apple Music/TV 组；上游国内域名集合收了它}
+  - {host: guzzoni.apple.com, type: A, expect: dns-fakeip, why: Apple AI 组（默认美国）；上游国内域名集合收了它}
+  - {host: www.recaptcha.net, type: A, expect: dns-fakeip, why: Google 组；上游国内域名集合收了它}
+  - {host: www.google.cn, type: A, expect: dns-fakeip, why: "Google 组；.cn 整段在国内域名集合里"}
+  - {host: api.bilibili.com, type: A, expect: dns-fakeip, why: "Bilibili 港澳台 组；比 bilibili.com（国内直连）更具体，先判断"}
+  - {host: api.bilibili.com, type: HTTPS, expect: dns-foreign}
+  - {host: www.bilibili.com, type: A, expect: dns-cn, why: 国内直连，在国内域名集合里}
+  - {host: www.microsoft.com, type: A, expect: dns-fakeip}
+  - {host: dl.delivery.mp.microsoft.com, type: A, expect: dns-cn, why: "国内直连；比 microsoft.com（Microsoft 组）更具体，先判断"}
+  - {host: www.baidu.com, type: A, expect: dns-cn}
+  - {host: www.baidu.com, type: HTTPS, expect: dns-cn}
+  - {host: www.qianwen.com, type: A, expect: dns-cn, why: 千问国内版}
+  - {host: chatgpt.com, type: A, expect: dns-fakeip}
+  - {host: chatgpt.com, type: HTTPS, expect: dns-foreign}
+  - {host: unknown-foreign.example, type: A, expect: dns-fakeip}
+  - {host: unknown-foreign.example, type: HTTPS, expect: dns-foreign}
+  - {host: nas.lan, type: A, expect: dns-local}
+  - {host: captive.apple.com, type: A, expect: dns-cn, why: 系统联网检测要真实地址}
+
+# sing-box 拨号时的解析（2026-10-04 审核 r9 的 F02）。普通的 DNS 查询走 dns.rules；节点连接自己的服务器、直连出站连接
+# 域名形式的目标时，解析走的是另一条路：出站自己的 domain_resolver，没有的话用 route.default_domain_resolver（国内 DoH），
+# 不看 dns.rules。期望按设计人工写出：局域网里的名字交给系统 DNS（dns-local），公网名字照旧交给国内 DNS（dns-cn）。
+#   kind: node    一个节点，服务器地址是 server；expect 是“连这个节点时，server 这个名字交给哪个 DNS 服务器解析”
+#   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连之前，这个名字交给哪个 DNS 服务器解析”
+# tests/test_structure.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
+# （拨号过程保留，DNS 换成本机替身、所有名字都答 127.0.0.1，所以不会连到本机以外），结果记在快照里。
+singbox_dial:
+  - {kind: node, server: gateway.lan, expect: dns-local, why: 节点的服务器是局域网后缀下的名字（审核方的例子）}
+  - {kind: node, server: proxy.home.arpa, expect: dns-local, why: 审核方的另一个例子}
+  - {kind: node, server: homeproxy, expect: dns-local, why: 不带点的主机名也只有局域网里的 DNS 认识}
+  - {kind: node, server: node.example.com, expect: dns-cn, why: 公网域名的节点照旧由国内 DNS 解析（有意的设计）}
+  - {kind: node, server: lan.example.com, expect: dns-cn, why: "只是名字里有 lan，不是局域网后缀"}
+  - {kind: direct, host: nas.lan, expect: dns-local, why: 域名形式的局域网目标：直连之前先用系统 DNS 解析}
+  - {kind: direct, host: www.baidu.com, expect: dns-cn, why: 国内直连的公网域名：直连出站用默认解析器}
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:
@@ -206,7 +315,7 @@ defaults:
   国外默认: 日本
   OpenAI: 日本
   Claude: 日本
-  Cursor: 日本
+  Grok: 日本
   Google AI: 日本
   Copilot: 日本
   其他 AI: 日本
@@ -235,6 +344,7 @@ defaults:
   Reddit: 国外默认
   LinkedIn: 国外默认
   Apple: DIRECT
+  Apple AI: 美国
   Apple Music/TV: DIRECT
   Google: 国外默认
   Microsoft: 国外默认

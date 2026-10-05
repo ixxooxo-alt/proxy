@@ -1,0 +1,30 @@
+{
+  "original_rules_preserved": true,
+  "outbound_policy_stub": "all groups -> REJECT",
+  "network_scope": "loopback only; no TUN or system proxy",
+  "requests": [
+    {
+      "host": "qwen.ai",
+      "response": [
+        "HTTP/1.1 200 Connection established"
+      ]
+    },
+    {
+      "host": "chat.qwen.ai",
+      "response": [
+        "HTTP/1.1 200 Connection established"
+      ]
+    },
+    {
+      "host": "openai.com",
+      "response": [
+        "HTTP/1.1 200 Connection established"
+      ]
+    }
+  ],
+  "routing_log": [
+    "time=\"2026-10-03T08:06:10.470282973+07:00\" level=info msg=\"[TCP] 127.0.0.1:43318 --> qwen.ai:443 match GeoSite(cn) using 国内直连[REJECT]\"",
+    "time=\"2026-10-03T08:06:10.570933830+07:00\" level=info msg=\"[TCP] 127.0.0.1:43326 --> chat.qwen.ai:443 match GeoSite(cn) using 国内直连[REJECT]\"",
+    "time=\"2026-10-03T08:06:10.671472777+07:00\" level=info msg=\"[TCP] 127.0.0.1:43336 --> openai.com:443 match DomainSuffix(openai.com) using OpenAI[REJECT]\""
+  ]
+}

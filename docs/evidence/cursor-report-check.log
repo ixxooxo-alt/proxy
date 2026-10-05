@@ -1,0 +1,9 @@
+运行时间（UTC）：2026-10-05 07:46:53
+Python：Python 3.11.17，PyYAML：6.0.1
+统一源摘要：98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534
+命令：python3 tools/check_cursor_report.py --write
+
+Cursor 版 533 条：同组 435，同组（只写进 mihomo / sing-box） 70，无专门规则 18，不同组 9，已替换 1
+报告判为不该收的本工程条目 31 条：仍在 23，已不在 4，设计差异 4
+已写入 docs/evidence/cursor-迁入核对.md
+退出码：0

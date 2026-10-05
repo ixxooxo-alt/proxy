@@ -35,7 +35,7 @@ from collections import OrderedDict, defaultdict
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from generator.model import COMMUNITY_EV_SOURCE, build_plan, load  # noqa: E402
+from generator.model import COMMUNITY_EV_SOURCE, build_plan, load, upstream_lists  # noqa: E402
 from generator.util import suffix_match  # noqa: E402
 
 RECORD = os.path.join(ROOT, "docs", "evidence", "upstream-snapshot.json")
@@ -46,6 +46,7 @@ DLC_AGGREGATE_NAMES = {"cn", "private", "google-registry-tld"}
 BM7_AGGREGATES = {"GlobalMedia", "Global", "Proxy", "ProxyLite", "AsianMedia", "ChinaMax", "ChinaMaxNoIP",
                   "ChinaMaxNoMedia", "Developer", "USMedia", "UKMedia"}
 RANK = {"same": 4, "covered": 3, "covered-aggregate": 2, "narrower": 1}
+BM7_AD_LIST = "AdvertisingLite"      # 自有拦截条目里标 bm7-snap 的，要在这份列表里找到同值条目
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +185,7 @@ def evaluate(rule_kind, rule_value, lists, own, is_agg, src):
 
 
 def run(dlc_repo: str, bm7_repo: str):
-    m = load(ROOT)
+    m = load(ROOT, include_local=False)
     plan = build_plan(m)
     failures, notes = [], []
 
@@ -198,14 +199,23 @@ def run(dlc_repo: str, bm7_repo: str):
 
     dlc_own, dlc_inc = parse_dlc(os.path.join(dlc_repo, "data"))
     services = [s for s in m.services if s.file != "local.yaml"]
-    bm7_names = {n for s in services for n in s.upstream.get("bm7", [])}
+    bm7_names = {n for s in services for n in s.upstream.get("bm7", [])} | {BM7_AD_LIST}
     bm7_own, bm7_missing = parse_bm7(bm7_repo, bm7_names)
     for n in bm7_missing:
         failures.append(f"bm7 检出目录里没有 rule/Clash/{n}/{n}.list（稀疏检出时需要加上这个目录）")
     for s in services:
-        for n in s.upstream.get("dlc", []):
+        for n in s.upstream.get("dlc", []) + s.upstream.get("dlc_resolved", []):
             if n not in dlc_own and n not in dlc_inc:
                 failures.append(f"服务 {s.id} 映射的 dlc 列表 {n} 在快照里不存在")
+    # dlc_resolved：展开 include 之后的整个集合（例如 geosite:cn），只认同值条目
+    dlc_resolved_view = {n: resolve(dlc_own, dlc_inc, n)
+                         for s in services for n in s.upstream.get("dlc_resolved", [])}
+
+    def evaluate_dlc(kind, value, s):
+        a = evaluate(kind, value, s.upstream.get("dlc", []), dlc_own, dlc_is_aggregate, "dlc")
+        b = evaluate(kind, value, s.upstream.get("dlc_resolved", []), dlc_resolved_view, lambda n: True, "dlc")
+        best = max((a, b), key=lambda x: RANK.get(x["status"], 0))
+        return {"status": best["status"], "hits": (best["hits"] + [h for h in a["hits"] + b["hits"] if h not in best["hits"]])[:4]}
 
     # 列表 → 映射到它的服务（用于发现归属差异）
     list_owner = defaultdict(set)
@@ -227,7 +237,7 @@ def run(dlc_repo: str, bm7_repo: str):
             if r.kind not in ("domain", "suffix"):
                 continue
             rec = OrderedDict([("service", s.id), ("group", s.group), ("kind", r.kind), ("value", r.value), ("ev", r.ev)])
-            ev_dlc = evaluate(r.kind, r.value, s.upstream.get("dlc", []), dlc_own, dlc_is_aggregate, "dlc")
+            ev_dlc = evaluate_dlc(r.kind, r.value, s)
             ev_bm7 = evaluate(r.kind, r.value, s.upstream.get("bm7", []), bm7_own, lambda n: n in BM7_AGGREGATES, "bm7")
             rec["dlc"], rec["bm7"] = ev_dlc, ev_bm7
             records.append(rec)
@@ -235,7 +245,7 @@ def run(dlc_repo: str, bm7_repo: str):
             ok = {"same", "covered"}
             if src and rec[src]["status"] not in ok:
                 failures.append(f"[{s.id}] {r.kind},{r.value} 标为 {r.ev}，但在 upstream.{src} "
-                                f"{s.upstream.get(src)} 里{'只有汇总列表覆盖' if rec[src]['status'] == 'covered-aggregate' else '找不到（' + rec[src]['status'] + '）'}")
+                                f"{upstream_lists(s, src)} 里{'只有汇总列表覆盖' if rec[src]['status'] == 'covered-aggregate' else '找不到（' + rec[src]['status'] + '）'}")
             if r.ev == "maintainer" and (ev_dlc["status"] in ok or ev_bm7["status"] in ok):
                 upgrade.append(f"[{s.id}] {r.kind},{r.value}：{(ev_dlc['hits'] + ev_bm7['hits'])[:2]}")
             # 归属差异：同一个值在上游非汇总列表里出现，而该列表映射到本项目的另一个服务
@@ -251,15 +261,37 @@ def run(dlc_repo: str, bm7_repo: str):
     ads_other = sum(1 for k, _, _ in ads_all if k not in ("domain", "full"))
     ads_set = {(k, v) for k, v, _ in ads_dom}
 
+    bm7_ads = {(k, v) for k, v, _ in bm7_own.get(BM7_AD_LIST, [])}
+
+    def related(value):
+        """两个快照里与 value 相关、但不是同值同类的条目（同值不同范围，或更窄的子域），供人工判断。"""
+        out = []
+        for lst, entries in sorted(dlc_own.items()):
+            for k, v, a in entries:
+                if k in ("domain", "full") and (v == value or v.endswith("." + value)):
+                    out.append("dlc:" + fmt_entry("dlc", lst, k, v, a))
+        for k, v, _ in bm7_own.get(BM7_AD_LIST, []):
+            if k in ("domain", "full") and (v == value or v.endswith("." + value)):
+                out.append(f"bm7:{BM7_AD_LIST}:{'DOMAIN' if k == 'full' else 'DOMAIN-SUFFIX'},{v}")
+        return out
+
     ads_local_rec = []
     for r in plan.ads_local:
         want = ("domain" if r.kind == "suffix" else "full", r.value)
         present = want in ads_set
-        ads_local_rec.append(OrderedDict([("kind", r.kind), ("value", r.value), ("ev", r.ev), ("in_category_ads_all", present)]))
+        in_bm7 = want in bm7_ads
+        rec = OrderedDict([("kind", r.kind), ("value", r.value), ("ev", r.ev),
+                           ("in_category_ads_all", present), ("in_bm7_" + BM7_AD_LIST, in_bm7)])
+        if not present and not in_bm7:
+            rel = related(r.value)
+            rec["related"] = rel[:8] + ([f"……另有 {len(rel) - 8} 条"] if len(rel) > 8 else [])
+        ads_local_rec.append(rec)
         if r.ev == "dlc" and not present:
             alt = ("full" if want[0] == "domain" else "domain", r.value) in ads_set
             failures.append(f"自有拦截 {r.kind},{r.value} 标为 dlc，但 category-ads-all 里"
                             + ("范围不同（一个含子域、一个不含）" if alt else "没有这一条"))
+        if r.ev == "bm7-snap" and not in_bm7:
+            failures.append(f"自有拦截 {r.kind},{r.value} 标为 bm7-snap，但 blackmatrix7 {BM7_AD_LIST} 里没有同值条目")
 
     def covers_host(rule, kind, value):
         """规则 rule 是否把上游条目 (kind, value) 的拦截范围完全包住。"""
@@ -267,9 +299,11 @@ def run(dlc_repo: str, bm7_repo: str):
             return (rule.kind == "suffix" and suffix_match(value, rule.value)) or (rule.kind == "domain" and value == rule.value)
         return rule.kind == "suffix" and suffix_match(value, rule.value)
 
+    # 只有写进 Loon / Quantumult X 的产品规则会遮挡远程广告集合（mihomo / sing-box 的广告阶段在产品规则之前）
+    loonqx_product = [p for p in plan.product if plan.emitted_to(p, "loon") or plan.emitted_to(p, "quantumultx")]
     under, covering = [], []
     for kind, value, attrs in ads_dom:
-        prods = [p for p in plan.product if (p.kind == "suffix" and suffix_match(value, p.value)) or
+        prods = [p for p in loonqx_product if (p.kind == "suffix" and suffix_match(value, p.value)) or
                  (p.kind == "domain" and value == p.value)]
         if prods:
             p = max(prods, key=lambda x: (x.kind == "domain", x.value.count(".")))
@@ -291,6 +325,25 @@ def run(dlc_repo: str, bm7_repo: str):
                         failures.append(f"category-ads-all 的 {value} 比产品规则 {p.kind},{p.value}（{p.target}）更宽，"
                                         "mihomo / sing-box 会把整条规则拦掉")
 
+    # 只写进部分客户端的服务：记录如果写进 Loon / Quantumult X，会遮挡多少远程广告条目（不写进去的理由，可复核）
+    restricted = []
+    for s in services:
+        excluded = [f for f in ("loon", "quantumultx") if s.clients and f not in s.clients]
+        if not excluded:
+            continue
+        per_root = defaultdict(int)
+        for kind, value, _ in bm7_own.get(BM7_AD_LIST, []):
+            if kind not in ("domain", "full"):
+                continue
+            hit = [r for r in s.rules if (r.kind == "suffix" and suffix_match(value, r.value)) or
+                   (r.kind == "domain" and value == r.value)]
+            if hit:
+                per_root[max(hit, key=lambda x: x.value.count(".")).value] += 1
+        top = sorted(per_root.items(), key=lambda x: (-x[1], x[0]))
+        restricted.append(OrderedDict([("service", s.id), ("clients", list(s.clients)), ("excluded", excluded),
+                                       ("bm7_ads_shadowed_if_emitted", sum(per_root.values())),
+                                       ("by_rule", [f"{k}:{v}" for k, v in top])]))
+
     counts = defaultdict(int)
     for rec in records:
         src = COMMUNITY_EV_SOURCE.get(rec["ev"])
@@ -311,6 +364,7 @@ def run(dlc_repo: str, bm7_repo: str):
         ("ads_local", ads_local_rec),
         ("ads_under_products", under),
         ("ads_covering_rules", covering),
+        ("client_restricted", restricted),
     ])
     return m, result, failures, upgrade, differ, counts
 
@@ -375,6 +429,23 @@ def write_report(m, result, failures, upgrade, differ, counts, missing_by_servic
     L.append("")
     L.append("## 广告拦截")
     L.append("")
+    evc = defaultdict(int)
+    for x in result["ads_local"]:
+        evc[x["ev"]] += 1
+    L.append("自有拦截条目按证据：" + "，".join(f"`{k}` {v} 条" for k, v in sorted(evc.items()))
+             + f"（`dlc` 的在 category-ads-all 里同值出现，`bm7-snap` 的在 blackmatrix7 {BM7_AD_LIST} 里同值出现）。")
+    no_src = [x for x in result["ads_local"] if not x["in_category_ads_all"] and not x.get("in_bm7_" + BM7_AD_LIST)]
+    if no_src:
+        L.append("")
+        L.append("两个快照里都没有同值条目的自有拦截（“相关条目”是快照里同一域名的其他写法或更窄的子域，"
+                 "带 @ads 的才是 dlc 的广告条目；bm7 的 `DOMAIN,` 只拦这一台主机）：")
+        L.append("")
+        L.append("| 自有拦截 | 证据 | 相关条目 |")
+        L.append("|---|---|---|")
+        for x in no_src:
+            rel = "；".join(f"`{e}`" for e in x.get("related", [])) or "无"
+            L.append(f"| `{x['kind']},{x['value']}` | `{x['ev']}` | {rel} |")
+    L.append("")
     L.append(f"快照中 category-ads-all 展开后有 {sm['category_ads_all_domain_entries']} 条域名条目"
              f"（另有 {sm['category_ads_all_keyword_regexp_entries']} 条关键词 / 正则条目，本项目的产品规则不涉及）。")
     L.append("")
@@ -391,6 +462,13 @@ def write_report(m, result, failures, upgrade, differ, counts, missing_by_servic
     for x in cov:
         L.append(f"- `{x['entry']}` 覆盖 `{x['rule']}`（{x['group']}）" + ("，已有误杀例外" if x["exception"] else ""))
     L.append("")
+    for x in result.get("client_restricted", []):
+        top = "、".join(f"`{e.split(':')[0]}` {e.split(':')[1]} 个" for e in x["by_rule"][:5])
+        L.append(f"服务 `{x['service']}` 只写进 {' / '.join(x['clients'])}：如果也写进 {' / '.join(x['excluded'])}，"
+                 f"本地规则会遮挡 blackmatrix7 {BM7_AD_LIST} 里 {x['bm7_ads_shadowed_if_emitted']} 个条目"
+                 + (f"（最多的是 {top}）" if top else "") + "。")
+    if result.get("client_restricted"):
+        L.append("")
     L.append("## 映射列表中未收录的上游条目")
     L.append("")
     L.append("以下只列数量（汇总列表不统计）。未覆盖的主要是防御性注册域名、公司官网 / 招聘站、CNAME 目标、共享设施，"

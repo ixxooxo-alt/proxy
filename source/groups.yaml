@@ -16,9 +16,12 @@ groups:
   # ---------- AI ----------
   - {name: OpenAI,    category: AI, default: 日本, options: standard}
   - {name: Claude,    category: AI, default: 日本, options: standard}
-  - {name: Cursor,    category: AI, default: 日本, options: standard}
+  - {name: Grok,      category: AI, default: 日本, options: standard,
+     note: 2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为一组（Cursor 已改用 xAI 账号登录）；X 应用里的 Grok 与 x.com 共用主机，仍归 X}
   - {name: Google AI, category: AI, default: 日本, options: standard, note: 原 Gemini 策略组改名}
   - {name: Copilot,   category: AI, default: 日本, options: standard, note: GitHub Copilot 与 Microsoft Copilot 底层分别维护}
+  - {name: Apple AI,  category: AI, default: 美国, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 其他地区],
+     note: 需求补充（2026-09-29）：Apple 智能、Siri、iCloud 专用代理；规则排在 Apple 组之前。是否可用以 Apple 公布的可用地区为准，中国大陆不可用，所以不提供 DIRECT}
   - {name: 其他 AI,   category: AI, default: 日本, options: standard, residual: true, note: 不含上面已独立的 AI；国内版 AI 归国内直连}
 
   # ---------- 流媒体 ----------
@@ -59,7 +62,7 @@ groups:
   - {name: GitHub,    category: 大厂, default: 国外默认, options: standard}
 
   # ---------- 开发 / 管理 ----------
-  - {name: 开发下载, category: 开发, default: 国外默认, options: standard, note: 只收经核实的通用开发依赖；Cursor 专属下载归 Cursor，GitHub 专属流量归 GitHub}
+  - {name: 开发下载, category: 开发, default: 国外默认, options: standard, note: 只收经核实的通用开发依赖；Cursor 专属下载归 Grok 组，GitHub 专属流量归 GitHub}
   - {name: 远程控制, category: 管理, default: 日本, options: standard,
      note: 目前唯一有官方依据的端点是 Cursor Grok Bot 托管计算机（*.cursorvm.com）；直连可用性未实测，所以默认不设 DIRECT}
 

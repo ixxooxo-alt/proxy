@@ -1,6 +1,8 @@
 """本地覆盖（固定节点、已验证解锁节点、自定义规则）与私密产物隔离。"""
 import os
+import re
 import shutil
+import subprocess
 import tempfile
 import unittest
 
@@ -36,12 +38,18 @@ class LocalOverrides(unittest.TestCase):
     def test_pinned_paypal_and_verified_netflix(self):
         conf = yaml.safe_load(emit_mihomo.build(self.m, self.p, "profile"))
         g = {x["name"]: x for x in conf["proxy-groups"]}
-        self.assertEqual(g["PayPal·美国固定"]["filter"], r"^美国\ PayPal\ 专用\ \(01\)$")
+        rx = g["PayPal·美国固定"]["filter"]
+        self.assertTrue(re.search(rx, "美国 PayPal 专用 (01)"))
+        for other in ("美国 PayPal 专用 (01) 备用", "x美国 PayPal 专用 (01)", "美国 PayPal 专用 01", "美国 01"):
+            self.assertFalse(re.search(rx, other), "固定节点只认完整名称")
+        for bad in (",", '"', "`", " "):
+            self.assertNotIn(bad, rx, "固定节点的正则也要能原样写进 Loon / QX 的一行")
         self.assertEqual(g["PayPal·美国固定"]["empty-fallback"], "REJECT", "固定节点被删除时明确失败")
         self.assertEqual(g["Netflix·解锁入口"]["type"], "fallback")
         self.assertEqual(g["Netflix·解锁入口"]["filter"], "^(日本 03|日本 05)$")
         loon = emit_loon.build(self.m, self.p)
-        self.assertIn('F-PAYPAL = NameRegex, FilterKey = "^美国\\ PayPal\\ 专用\\ \\(01\\)$"', loon)
+        self.assertIn(f'F-PAYPAL = NameRegex, FilterKey = "{rx}"', loon)
+        self.assertIn("PayPal·美国固定 = select,F-PAYPAL", loon)
         self.assertIn("Netflix·解锁入口 = fallback,F-NETFLIX", loon)
         qx = emit_qx.build(self.m, self.p)
         self.assertIn("available=Netflix·解锁入口, server-tag-regex=^(日本 03|日本 05)$", qx)
@@ -66,7 +74,7 @@ class ReducedModes(unittest.TestCase):
             m = load(d)
             p = build_plan(m)
             conf = emulate.parse_loon(emit_loon.build(m, p))
-            self.assertEqual(len(conf["groups"]), 68)
+            self.assertEqual(len(conf["groups"]), 69)
             self.assertEqual(conf["groups"]["香港"]["members"], ["香港·手动优先", "香港·手动", "香港·自动"])
         finally:
             shutil.rmtree(d)
@@ -130,6 +138,43 @@ class PrivateOutputs(unittest.TestCase):
             else:
                 os.environ["SUB_URLS"] = old
             shutil.rmtree(out)
+
+
+class GitIgnore(unittest.TestCase):
+    """工程从 2026-10-05 起放进 Git 仓库（用户的 GitHub 公开仓库）。带订阅的私密产物和个人覆盖不能被提交：
+    “订阅链接、Token、密钥、密码和证书私钥不得进入公开产物、普通日志、交接摘要或 Git 提交”。"""
+    PRIVATE = ("dist/private/loon.conf", "dist/private/manifest.json", "dist/private/sing-box-1.14.json",
+               "dist/private/请勿分享.txt", "source/local.yaml")
+    PUBLIC = ("dist/loon/loon.conf", "dist/manifest.json", "source/local.example.yaml", "source/project.yaml", "build.py")
+
+    def test_private_paths_are_listed(self):
+        with open(os.path.join(ROOT, ".gitignore"), encoding="utf-8") as f:
+            lines = [ln.strip() for ln in f if ln.strip() and not ln.lstrip().startswith("#")]
+        self.assertIn("dist/private/", lines)
+        self.assertIn("source/local.yaml", lines)
+        self.assertFalse([ln for ln in lines if ln.startswith("!")], "不用“!”开头的反向规则：它能把上面忽略掉的文件又放回来")
+
+    @unittest.skipUnless(shutil.which("git"), "需要 git")
+    def test_git_really_ignores_them(self):
+        d = tempfile.mkdtemp()
+        try:
+            shutil.copy(os.path.join(ROOT, ".gitignore"), d)
+            for rel in self.PRIVATE + self.PUBLIC:
+                path = os.path.join(d, *rel.split("/"))
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write("x\n")
+            env = {**os.environ, "GIT_CONFIG_NOSYSTEM": "1", "HOME": d}
+            subprocess.run(["git", "init", "-q", d], check=True, env=env, capture_output=True)
+            r = subprocess.run(["git", "-C", d, "-c", "core.quotepath=off", "status", "--porcelain", "-uall"],
+                               check=True, env=env, capture_output=True, text=True, encoding="utf-8")
+            seen = {line[3:] for line in r.stdout.splitlines()}
+            for rel in self.PRIVATE:
+                self.assertNotIn(rel, seen, f"{rel} 会被 git add 收进去")
+            for rel in self.PUBLIC:
+                self.assertIn(rel, seen, f"{rel} 是公开内容，不该被忽略")
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
 
 
 if __name__ == "__main__":

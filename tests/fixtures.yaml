@@ -1,4 +1,7 @@
-# 模拟用的远程数据样本：真实的 GeoSite / GeoIP / 广告集合内容未知，这里只放测试需要的少量条目。
+# 模拟用的远程数据样本：只放检查“先后顺序”这类语义需要的少量条目，不代表真实集合的内容。
+# 真实集合的成员关系另记在 tests/data/real_sets.json（由 tools/check_real_routes.py 从上游数据文件生成），
+# tests/test_real_data.py 用它把全部用例再跑一遍。
+# dns：假定的解析结果（两种跑法都用它）。没列出的主机按“解析到境外 IP”算。
 dns:
   www.baidu.com: 110.242.68.66
   unknown-cn.example: 1.2.4.8
@@ -14,15 +17,20 @@ dns:
   foo.github.io: 185.199.108.153
   gemini.google.com.evil.example: 104.18.1.4
   example.cn: 1.2.4.9
+  www.jd.com: 110.242.68.3
 geoip:
   cn: [1.2.4.0/24, 110.242.0.0/16, 223.5.5.0/24, 119.29.29.0/24, 36.110.0.0/16, '240e::/20']
 geosite:
-  cn: [cn, baidu.com, qq.com, bilibili.com]
+  # qwen.ai、recaptcha.net、music.apple.com、qianwen.com、tongyi.com 取自真实的国内域名集合：
+  # 走代理组的域名落在国内域名集合里时，路由和 sing-box 的 DNS 都要靠排在前面的规则处理（审核 F01）
+  cn: [cn, baidu.com, qq.com, bilibili.com, qwen.ai, recaptcha.net, music.apple.com, qianwen.com, tongyi.com]
   geolocation-!cn: [wikipedia.org]
   private: [lan, local]
   category-ads-all: [doubleclick.net, googlesyndication.com, ct.sendgrid.net, s.youtube.com, tracker.twimg.com, adservice.google.com, app.link,
-                     iadsdk.apple.com, graph.instagram.com, copilot-telemetry.githubusercontent.com, collector.github.com]
-# Loon / Quantumult X 远程广告集合样本（与 category-ads-all 同一批主机）
+                     iadsdk.apple.com, graph.instagram.com, copilot-telemetry.githubusercontent.com, collector.github.com, ad.12306.cn,
+                     app-measurement.com, ads.yahoo.com]
+# Loon / Quantumult X 远程广告集合样本。大部分与 category-ads-all 是同一批主机；后面几条是两边不一样的（各取一个真实例子），
+# 含两条关键词规则
 ad_list:
   - [suffix, doubleclick.net]
   - [suffix, googlesyndication.com]
@@ -35,3 +43,9 @@ ad_list:
   - [suffix, graph.instagram.com]
   - [domain, copilot-telemetry.githubusercontent.com]
   - [suffix, collector.github.com]
+  - [suffix, ad.12306.cn]
+  - [suffix, app-measurement.com]
+  - [suffix, ads.viber.com]
+  - [domain, ads.twitter.com]
+  - [keyword, appsflyer]
+  - [keyword, wixsite.com]

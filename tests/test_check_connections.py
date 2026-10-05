@@ -17,7 +17,7 @@ LOG_LINES = [
     {"type": "info", "payload": "[TCP] 127.0.0.1:50003 --> api.newservice.example:443 match Match using 国外默认[日本 01]"},
     {"type": "info", "payload": "[TCP] 127.0.0.1:50004 --> tracker.example:443 match GeoSite(category-ads-all) using 广告拦截[REJECT]"},
     {"type": "info", "payload": "[TCP] 127.0.0.1:50005 --> hulu.playback.edge.bamgrid.com:443 match GeoSite(category-ads-all) using 广告拦截[REJECT]"},
-    {"type": "info", "payload": "[TCP] 127.0.0.1:50006 --> www.baidu.com:443 match GeoSite(cn) using 国内直连[DIRECT]"},
+    {"type": "info", "payload": "[TCP] 127.0.0.1:50006 --> www.gov.cn:443 match GeoSite(cn) using 国内直连[DIRECT]"},
     {"type": "info", "payload": "[UDP] 127.0.0.1:50007 --> 91.108.56.100:443 match IPCIDR(91.108.56.0/22) using Telegram[日本 01]"},
     {"type": "info", "payload": "[TCP] 127.0.0.1:50008 --> nas.lan:5000 match DomainSuffix(lan) using DIRECT"},
     {"type": "info", "payload": "[TCP] 127.0.0.1:50009 --> api.newservice.example:443 match Match using 国外默认[日本 02]"},
@@ -86,7 +86,7 @@ class ConnectionLogTool(unittest.TestCase):
         self.assertEqual(self.cat("api.newservice.example"), "fallback_foreign")
         self.assertEqual(self.cat("tracker.example"), "ads_upstream")
         self.assertEqual(self.cat("hulu.playback.edge.bamgrid.com"), "ads_over_product")
-        self.assertEqual(self.cat("www.baidu.com"), "fallback_cn")
+        self.assertEqual(self.cat("www.gov.cn"), "fallback_cn")          # 国内常用网站清单（cn_common）以外的国内主机
         merged = [x for x in self.result["by_cat"]["fallback_foreign"] if x["host"] == "api.newservice.example"][0]
         self.assertEqual(merged["count"], 2)
         self.assertEqual(merged["nodes"], {"日本 01", "日本 02"})

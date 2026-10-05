@@ -145,15 +145,17 @@ def read_records(paths: Iterable[str]) -> List[Record]:
 class Expectation:
     """按统一源算出主机应进的组；本项目没有专门规则时返回 None（交给 GeoSite / GeoIP / MATCH 兜底）。"""
 
+    FAMILY = "mihomo"          # 本工具读的是 mihomo 内核的日志 / 连接快照
+
     def __init__(self, plan):
         self.plan = plan
-        self.ip_rules = [r for r in plan.lan if r.kind in ("ip4", "ip6")] + list(plan.service_ip)
+        self.ip_rules = [r for r in plan.lan if r.kind in ("ip4", "ip6")] + list(plan.service_ip_for(self.FAMILY))
 
     def target(self, host: str) -> Optional[str]:
         try:
             ip = ipaddress.ip_address(host)
         except ValueError:
-            return self.plan.intended_target(host)
+            return self.plan.intended_target(host, self.FAMILY)
         for r in self.ip_rules:
             net = ipaddress.ip_network(r.value)
             if ip.version == net.version and ip in net:
@@ -300,7 +302,7 @@ def main(argv=None):
     ap.add_argument("--service", help="本次测试的服务 id（如 netflix）或组名（如 Netflix）")
     ap.add_argument("--out", help="报告写到这个文件（默认打印到屏幕）")
     a = ap.parse_args(argv)
-    m = load(ROOT)
+    m = load(ROOT)          # 含 local.yaml：分析的是你实际导入的配置（有 local.yaml 时是 dist/private 里那份）
     plan = build_plan(m)
     records = read_records(a.files)
     if not records:

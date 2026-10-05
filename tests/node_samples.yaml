@@ -1,0 +1,35 @@
+# 官方程序检查用的样例节点（全部虚构：example 域名、假密码、假 UUID）。
+# 覆盖转换器支持的每种协议，以及审核 F01 / F02 / F03 提到的边界：
+# HTTP / AnyTLS 的 UDP、与策略组同名的节点、v2ray-plugin 的 mux=false、路径里的 ?ed=、带额外请求头的 HTTP Upgrade。
+proxies:
+  - {name: "香港 SS", type: ss, server: hk.example.net, port: 8388, cipher: 2022-blake3-aes-128-gcm, password: "RVhBTVBMRS1LRVktMTIzNA==", udp: true}
+  - {name: "香港 SS 无 UDP", type: ss, server: hk2.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE}
+  - {name: "日本 SS v2ray-plugin 关 mux", type: ss, server: jp.example.net, port: 443, cipher: aes-128-gcm, password: EXAMPLE,
+     plugin: v2ray-plugin, plugin-opts: {mode: websocket, tls: true, host: cdn.example.com, path: /ws, mux: false}}
+  - {name: "日本 SS obfs", type: ss, server: jp2.example.net, port: 80, cipher: aes-128-gcm, password: EXAMPLE,
+     plugin: obfs, plugin-opts: {mode: http}}
+  - {name: "日本 VLESS Reality", type: vless, server: jp3.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000001,
+     flow: xtls-rprx-vision, tls: true, servername: www.example.com, client-fingerprint: chrome, network: tcp, udp: true,
+     reality-opts: {public-key: "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA", short-id: abcd}}
+  - {name: "美国 Trojan WS ed", type: trojan, server: us.example.net, port: 443, password: EXAMPLE, sni: us.example.net,
+     network: ws, ws-opts: {path: "/ray?ed=2048", headers: {Host: us.example.net}}}
+  - {name: "美国 VMess HTTPUpgrade", type: vmess, server: us2.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000002,
+     alterId: 0, cipher: auto, tls: true, servername: us2.example.net, network: ws, udp: true,
+     ws-opts: {path: /up, v2ray-http-upgrade: true, headers: {Host: us2.example.net, X-Token: example}}}
+  - {name: "新加坡 HY2", type: hysteria2, server: sg.example.net, port: 443, ports: "20000-30000", password: EXAMPLE,
+     sni: sg.example.net, up: 50, down: 200, obfs: salamander, obfs-password: EXAMPLE-OBFS}
+  - {name: "台湾 TUIC", type: tuic, server: tw.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000003,
+     password: EXAMPLE, sni: tw.example.net, congestion-controller: bbr, udp-relay-mode: native, alpn: [h3]}
+  - {name: "韩国 VMess gRPC", type: vmess, server: kr.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000004,
+     alterId: 0, cipher: auto, tls: true, servername: kr.example.net, network: grpc, grpc-opts: {grpc-service-name: svc}, udp: true}
+  - {name: "韩国 AnyTLS", type: anytls, server: kr2.example.net, port: 443, password: EXAMPLE, sni: kr2.example.net, udp: true}
+  - {name: "美国 HTTP", type: http, server: us3.example.net, port: 8080, username: user, password: EXAMPLE}
+  - {name: "美国 HTTPS", type: http, server: us4.example.net, port: 443, tls: true, sni: us4.example.net}
+  - {name: "美国 SOCKS5", type: socks5, server: us5.example.net, port: 1080, udp: true}
+  # 与策略组 / 出站同名：转换器必须改名，否则整份配置被 sing-box 拒绝（F02）
+  - {name: "日本", type: ss, server: jp4.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
+  - {name: "DIRECT", type: ss, server: x1.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
+  - {name: "无可用节点", type: ss, server: x2.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
+  # 应被报告并跳过：AnyTLS 未开启 UDP、缺密码
+  - {name: "韩国 AnyTLS 无 UDP", type: anytls, server: kr3.example.net, port: 443, password: EXAMPLE}
+  - {name: "缺密码", type: trojan, server: x3.example.net, port: 443}

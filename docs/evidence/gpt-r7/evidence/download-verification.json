@@ -1,0 +1,23 @@
+[
+  {
+    "file": "/workspace/scratch/ce4c6bd3b3ae/audit-tools/mihomo-v1.19.31",
+    "release_asset": "mihomo-linux-amd64-v1.19.31.gz",
+    "sha256": "d5e74bbddbdfff49a1aef7775bf5911da59f0d7196ed509a0ac914b3653dd5f1",
+    "bytes": 22789792,
+    "verified": true
+  },
+  {
+    "file": "/workspace/scratch/ce4c6bd3b3ae/audit-tools/sing-box-v1.14.1",
+    "release_asset": "sing-box-1.14.1-linux-amd64.tar.gz",
+    "sha256": "12cb2816b52febb356f6a885b740cc8758c3f30b8ae0ca8edba80f0d2d35343f",
+    "bytes": 31664335,
+    "verified": true
+  },
+  {
+    "file": "/workspace/scratch/ce4c6bd3b3ae/audit-tools/sing-box-v1.12.0",
+    "release_asset": "sing-box-1.12.0-linux-amd64.tar.gz",
+    "sha256": "f59b1253ae0143997cb46915af30d14a33431dcbd7e39edacfcde8d73050faaf",
+    "bytes": 16358300,
+    "verified": true
+  }
+]

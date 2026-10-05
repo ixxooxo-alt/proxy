@@ -1,6 +1,9 @@
 """Quantumult X 产物（iPhone / iPad / Mac 共用）。
 语法依据：官方 sample.conf（https://github.com/crossutility/Quantumult-X/blob/master/sample.conf）。
 策略：static（手选）/ available（第一个可用）/ url-latency-benchmark（测速）/ dest-hash（按目标散列，作负载均衡）。
+节点筛选：server-tag-regex。sample.conf 的注释写它“only work for static, available and round-robin type of polices”，
+同一文件的示例又把它写在 dest-hash 和 url-latency-benchmark 上（2026-10-02 读取）；所以“X·自动”“X·负载均衡”
+是否按正则取节点，要在设备上确认（docs/06）。地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py。
 分流优先级：本地 filter_local > 远程 filter_remote（不使用 inserted-resource）；域名类先于 IP 类。"""
 from __future__ import annotations
 
@@ -8,7 +11,7 @@ from typing import List
 
 from .groups import NodeFilter, build_groups
 from .model import Model, Plan
-from .util import Rule, check_regex_line_safe, compose_node_regex
+from .util import Rule, check_regex_line_safe
 
 MODES = ["manual_first", "manual", "auto", "failover", "balance"]
 SUB_PLACEHOLDER = "https://REPLACE-ME.invalid/请替换为你的订阅链接"
@@ -31,12 +34,7 @@ def rule_line(r: Rule) -> str:
 
 
 def _regex(nf: NodeFilter) -> str:
-    if nf.pinned:
-        rx = nf.exact_regex()
-    elif nf.raw:
-        rx = nf.include
-    else:
-        rx = compose_node_regex(nf.include, nf.exclude)
+    rx = nf.final_regex()
     check_regex_line_safe(rx)
     return rx
 
@@ -76,10 +74,15 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     for s in dns["domestic_plain"]:
         L.append(f"server={s}")
     L.append("doh-server=" + ", ".join(dns["domestic_doh"]))
-    for sfx in ("lan", "local", "localdomain", "home.arpa"):
+    for sfx in m.project["lan"]["domain_suffix"]:          # 与其他三端同一份局域网后缀
         L.append(f"server=/*.{sfx}/system")
 
-    L += ["", "[policy]"]
+    L += ["", "[policy]",
+          "# server-tag-regex：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写。",
+          "# 每个地区两条：“手动”用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；",
+          "# “自动 / 故障转移 / 负载均衡”用严的（只收名字只指向这个地区的节点）。",
+          "# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，在电脑上运行 tools/check_node_names.py。",
+          "# 每行末尾的 img-url 是策略组图标的地址（图片在图标仓库里，只影响显示，不影响分流；见 source/icons.yaml）。"]
     for g in groups:
         kind = KIND_MAP[g.kind]
         if g.nodes is not None:
@@ -89,6 +92,9 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
         line = f"{kind}={g.name}, {body}"
         if kind == "url-latency-benchmark":
             line += f", check-interval={hc['interval_s']}, alive-checking=false, tolerance={hc['tolerance_ms']}"
+        icon = m.icon_url(g.name)
+        if icon:
+            line += f", img-url={icon}"           # 图标只影响显示；地址已做百分号编码，不含逗号和空格
         L.append(line)
 
     L += ["", "[server_remote]"]
@@ -117,10 +123,10 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     L.append("# ==== 3b 自有广告 / 跟踪拦截 ====")
     emit(plan.ads_local, by_service=False)
     L.append("# ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前） ====")
-    emit(plan.product)
+    emit(plan.product_for("quantumultx"))
     L.append("# ==== 6 国内外域名分类：未引入第三方大集合，由自有规则与 GEOIP 兜底覆盖 ====")
     L.append("# ==== 7 服务专属 IP ====")
-    emit(plan.service_ip)
+    emit(plan.service_ip_for("quantumultx"))
     L.append("# ==== 8 国内 IP 兜底 ====")
     L.append("geoip, cn, 国内直连")
     L.append("# ==== 9 其余目标 ====")

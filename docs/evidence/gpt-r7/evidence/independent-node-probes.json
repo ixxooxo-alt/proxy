@@ -1,0 +1,367 @@
+[
+  {
+    "name": "日本 01 全网站解锁",
+    "regex_groups": [],
+    "classifier": {
+      "groups": [],
+      "basis": "info",
+      "hits": {},
+      "notes": [
+        "信息节点，含“网站”"
+      ]
+    }
+  },
+  {
+    "name": "Japan 01 | Unlimited Traffic",
+    "regex_groups": [],
+    "classifier": {
+      "groups": [],
+      "basis": "info",
+      "hits": {},
+      "notes": [
+        "信息节点，含“Traffic”"
+      ]
+    }
+  },
+  {
+    "name": "🇯🇵 Tokyo 01 | Streaming Websites",
+    "regex_groups": [
+      "jp"
+    ],
+    "classifier": {
+      "groups": [
+        "jp"
+      ],
+      "basis": "flag",
+      "hits": {
+        "jp": [
+          "🇯🇵"
+        ]
+      },
+      "notes": []
+    }
+  },
+  {
+    "name": "美国 01 ChatGPT官网可用",
+    "regex_groups": [],
+    "classifier": {
+      "groups": [],
+      "basis": "info",
+      "hits": {},
+      "notes": [
+        "信息节点，含“官网”"
+      ]
+    }
+  },
+  {
+    "name": "日本-美国 01",
+    "regex_groups": [
+      "jp",
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "jp",
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": [
+        "同时有 日本、美国 的词，说不清落地，两个组都进"
+      ]
+    }
+  },
+  {
+    "name": "日本 01 经  美国中转",
+    "regex_groups": [
+      "jp"
+    ],
+    "classifier": {
+      "groups": [
+        "jp"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": [
+        "美国的词在中转位置，按落地归 日本"
+      ]
+    }
+  },
+  {
+    "name": "日本 01 经 美国中转",
+    "regex_groups": [
+      "jp"
+    ],
+    "classifier": {
+      "groups": [
+        "jp"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": [
+        "美国的词在中转位置，按落地归 日本"
+      ]
+    }
+  },
+  {
+    "name": "日本01 | 解锁: 美国",
+    "regex_groups": [
+      "jp",
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "jp",
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": [
+        "同时有 日本、美国 的词，说不清落地，两个组都进"
+      ]
+    }
+  },
+  {
+    "name": "日本01 | 解锁 美国",
+    "regex_groups": [
+      "jp"
+    ],
+    "classifier": {
+      "groups": [
+        "jp"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": [
+        "美国的词在中转位置，按落地归 日本"
+      ]
+    }
+  },
+  {
+    "name": "新加坡 01 HKBN",
+    "regex_groups": [
+      "sg"
+    ],
+    "classifier": {
+      "groups": [
+        "sg"
+      ],
+      "basis": "text",
+      "hits": {
+        "hk": [
+          "HKBN"
+        ],
+        "sg": [
+          "新加坡"
+        ]
+      },
+      "notes": [
+        "香港让位给 新加坡"
+      ]
+    }
+  },
+  {
+    "name": "美国 San Jose 01",
+    "regex_groups": [
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "us": [
+          "美国",
+          "San Jose"
+        ]
+      },
+      "notes": []
+    }
+  },
+  {
+    "name": "美国 奥克兰 01",
+    "regex_groups": [
+      "other"
+    ],
+    "classifier": {
+      "groups": [
+        "other"
+      ],
+      "basis": "text",
+      "hits": {
+        "us": [
+          "美国"
+        ],
+        "other": [
+          "奥克兰"
+        ]
+      },
+      "notes": [
+        "带其他国家的词“奥克兰”",
+        "名字里的 美国（美国） 不算落地"
+      ]
+    }
+  },
+  {
+    "name": "US Oakland 01",
+    "regex_groups": [
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "us": [
+          "US"
+        ]
+      },
+      "notes": []
+    }
+  },
+  {
+    "name": "香港 01 纽约时报解锁",
+    "regex_groups": [
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "hk": [
+          "香港",
+          "港"
+        ],
+        "us": [
+          "纽约"
+        ]
+      },
+      "notes": [
+        "香港让位给 美国"
+      ]
+    }
+  },
+  {
+    "name": "🇭🇰 日本 01",
+    "regex_groups": [
+      "hk"
+    ],
+    "classifier": {
+      "groups": [
+        "hk"
+      ],
+      "basis": "flag",
+      "hits": {
+        "jp": [
+          "日本"
+        ],
+        "hk": [
+          "🇭🇰"
+        ]
+      },
+      "notes": [
+        "按国旗算；名字里的 日本（日本） 不算落地"
+      ]
+    }
+  },
+  {
+    "name": "🇯🇵 Tokyo 01 🇺🇸",
+    "regex_groups": [
+      "jp",
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "jp",
+        "us"
+      ],
+      "basis": "flag",
+      "hits": {
+        "jp": [
+          "🇯🇵"
+        ],
+        "us": [
+          "🇺🇸"
+        ]
+      },
+      "notes": [
+        "同时有 日本、美国 的国旗，说不清落地，两个组都进"
+      ]
+    }
+  },
+  {
+    "name": "日本 01",
+    "regex_groups": [
+      "jp"
+    ],
+    "classifier": {
+      "groups": [
+        "jp"
+      ],
+      "basis": "text",
+      "hits": {
+        "jp": [
+          "日本"
+        ]
+      },
+      "notes": []
+    }
+  },
+  {
+    "name": "美国 01",
+    "regex_groups": [
+      "us"
+    ],
+    "classifier": {
+      "groups": [
+        "us"
+      ],
+      "basis": "text",
+      "hits": {
+        "us": [
+          "美国"
+        ]
+      },
+      "notes": []
+    }
+  }
+]

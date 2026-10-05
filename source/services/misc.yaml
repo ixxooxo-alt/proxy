@@ -12,6 +12,7 @@ services:
       - {suffix: deno.land, ev: dlc}
       - {suffix: jsr.io, ev: maintainer, note: 两个上游快照都未收录}
       - {suffix: bun.sh, ev: maintainer, note: 两个上游快照都未收录}
+      - {domain: get.pnpm.io, ev: gh-agent-allowlist, note: pnpm 安装脚本（2026-09-30 补）}
   - id: dev_python
     group: 开发下载
     title: Python 生态
@@ -22,6 +23,9 @@ services:
       - {suffix: python.org, ev: dlc}
       - {suffix: anaconda.org, ev: dlc}
       - {suffix: anaconda.com, ev: dlc}
+      - {domain: pip.pypa.io, ev: gh-agent-allowlist, note: pip 文档与安装说明（2026-09-30 补）}
+      - {domain: bootstrap.pypa.io, ev: gh-agent-allowlist, note: get-pip.py 安装脚本（2026-09-30 补）}
+      - {domain: download.pytorch.org, ev: gh-agent-allowlist, note: PyTorch 安装包（2026-09-30 补）}
   - id: dev_go
     group: 开发下载
     title: Go 生态
@@ -30,6 +34,7 @@ services:
       - {domain: proxy.golang.org, ev: dlc}
       - {domain: sum.golang.org, ev: dlc}
       - {suffix: go.dev, ev: dlc}
+      - {suffix: golang.org, ev: gh-agent-allowlist, note: Go 官方下载与跳转（2026-09-30 补）；proxy / sum.golang.org 同在本组}
   - id: dev_rust
     group: 开发下载
     title: Rust 生态
@@ -40,12 +45,13 @@ services:
       - {suffix: rustup.rs, ev: dlc}
   - id: dev_jvm
     group: 开发下载
-    title: JVM 生态（Maven / Gradle）
+    title: JVM 生态（Maven / Gradle / JDK）
     upstream: {dlc: [category-dev], bm7: [Developer]}
     rules:
       - {suffix: maven.org, ev: bm7-snap}
       - {domain: repo.maven.apache.org, ev: maintainer, note: 上游只在汇总列表 category-dev 里收了整个 apache.org}
       - {suffix: gradle.org, ev: maintainer, note: 两个上游快照都未收录；services / plugins.gradle.org 为下载与插件门户}
+      - {domain: api.adoptium.net, ev: gh-agent-allowlist, note: Eclipse Temurin JDK 下载接口（2026-09-30 补）}
   - id: dev_other
     group: 开发下载
     title: 其他语言与容器镜像
@@ -64,6 +70,12 @@ services:
       - {suffix: gcr.io, ev: dlc}
       - {suffix: pkg.dev, ev: maintainer, note: Google Artifact Registry；上游只有 google-registry-tld 里的整个 .dev 顶级域，不作为证据}
       - {suffix: k8s.io, ev: dlc, note: registry.k8s.io}
+      - {suffix: getcomposer.org, ev: gh-agent-allowlist, note: PHP Composer 安装与下载（2026-09-30 补）}
+      - {domain: download.swift.org, ev: gh-agent-allowlist, note: Swift 工具链下载（2026-09-30 补）}
+      - {domain: cache.ruby-lang.org, ev: gh-agent-allowlist, note: Ruby 源码包下载（2026-09-30 补）}
+      - {domain: cdn.playwright.dev, ev: gh-agent-allowlist, note: Playwright 浏览器下载（2026-09-30 补）}
+      - {domain: dotnetcli.blob.core.windows.net, ev: gh-agent-allowlist, note: .NET SDK / 运行时下载；只收这一个存储主机，不收 blob.core.windows.net（2026-09-30 补）}
+      - {domain: nugetregistryv2prod.blob.core.windows.net, ev: gh-agent-allowlist, note: NuGet 包文件存储；只收这一个存储主机（2026-09-30 补）}
 
   # ---------- 支付 ----------
   - id: paypal
@@ -98,3 +110,86 @@ services:
     rules:
       - {suffix: windowsupdate.com, ev: maintainer, note: Windows 更新}
       - {suffix: delivery.mp.microsoft.com, ev: maintainer, note: Windows / 商店分发，比 microsoft.com 更具体，先匹配}
+
+  # ---------- 国内常用网站：从 Cursor 版迁入的 72 条国内域名作补充（bilibili.com、b23.tv 已在哔哩哔哩通用里，不重复写） ----------
+  # 全部在 domain-list-community 快照展开后的 geosite:cn 里同值出现。
+  # 只生成到 mihomo / sing-box：这两端广告拦截排在这些规则之前，写进去没有副作用（本来也会被 GEOSITE,cn 命中）。
+  # 不生成到 Loon / Quantumult X：这两端本地规则优先于远程广告集合，写成本地规则会让 blackmatrix7 AdvertisingLite 里
+  # 落在这些域名下的 954 个国内广告主机失效（qq.com 下 203 个、baidu.com 下 187 个等）。这些域名在这两端仍由后面的
+  # GEOIP,CN 兜底直连（前提是解析到国内 IP，国内网络下通常如此；若某个主机解析到境外 CDN，会走国外默认）。
+  - id: cn_common
+    group: 国内直连
+    title: 国内常用网站（补充）
+    clients: [mihomo, singbox]
+    upstream: {dlc_resolved: [cn]}
+    rules:
+      - {suffix: 10010.com, ev: dlc}
+      - {suffix: 12306.cn, ev: dlc}
+      - {suffix: 126.com, ev: dlc}
+      - {suffix: 163.com, ev: dlc}
+      - {suffix: 1688.com, ev: dlc}
+      - {suffix: 360.com, ev: dlc}
+      - {suffix: 36kr.com, ev: dlc}
+      - {suffix: 4399.com, ev: dlc}
+      - {suffix: 58.com, ev: dlc}
+      - {suffix: abchina.com, ev: dlc}
+      - {suffix: alipay.com, ev: dlc}
+      - {suffix: alipayobjects.com, ev: dlc}
+      - {suffix: aliyun.com, ev: dlc}
+      - {suffix: aliyundrive.com, ev: dlc}
+      - {suffix: amap.com, ev: dlc}
+      - {suffix: autonavi.com, ev: dlc}
+      - {suffix: baidu.com, ev: dlc}
+      - {suffix: bankcomm.com, ev: dlc}
+      - {suffix: bdstatic.com, ev: dlc}
+      - {suffix: biligame.com, ev: dlc}
+      - {suffix: ccb.com, ev: dlc}
+      - {suffix: cctv.com, ev: dlc}
+      - {suffix: chinaunicom.com, ev: dlc}
+      - {suffix: cmbchina.com, ev: dlc}
+      - {suffix: csdn.net, ev: dlc}
+      - {suffix: ctrip.com, ev: dlc}
+      - {suffix: dianping.com, ev: dlc}
+      - {suffix: dingtalk.com, ev: dlc}
+      - {suffix: douban.com, ev: dlc}
+      - {suffix: douyin.com, ev: dlc}
+      - {suffix: eastmoney.com, ev: dlc}
+      - {suffix: ele.me, ev: dlc}
+      - {suffix: gitee.com, ev: dlc}
+      - {suffix: hao123.com, ev: dlc}
+      - {suffix: hupu.com, ev: dlc}
+      - {suffix: ifeng.com, ev: dlc}
+      - {suffix: iqiyi.com, ev: dlc}
+      - {suffix: ixigua.com, ev: dlc}
+      - {suffix: jd.com, ev: dlc}
+      - {suffix: kuaishou.com, ev: dlc}
+      - {suffix: meituan.com, ev: dlc}
+      - {suffix: mgtv.com, ev: dlc}
+      - {suffix: mihoyo.com, ev: dlc}
+      - {suffix: netease.com, ev: dlc}
+      - {suffix: pinduoduo.com, ev: dlc}
+      - {suffix: qpic.cn, ev: dlc}
+      - {suffix: qq.com, ev: dlc}
+      - {suffix: sina.cn, ev: dlc}
+      - {suffix: sina.com.cn, ev: dlc}
+      - {suffix: smzdm.com, ev: dlc}
+      - {suffix: so.com, ev: dlc}
+      - {suffix: sogou.com, ev: dlc}
+      - {suffix: sohu.com, ev: dlc}
+      - {suffix: suning.com, ev: dlc}
+      - {suffix: taobao.com, ev: dlc}
+      - {suffix: tmall.com, ev: dlc}
+      - {suffix: toutiao.com, ev: dlc}
+      - {suffix: unionpay.com, ev: dlc}
+      - {suffix: vip.com, ev: dlc}
+      - {suffix: weibo.cn, ev: dlc}
+      - {suffix: weibo.com, ev: dlc}
+      - {suffix: xiaohongshu.com, ev: dlc}
+      - {suffix: xiaojukeji.com, ev: dlc}
+      - {suffix: xinhuanet.com, ev: dlc}
+      - {suffix: xueqiu.com, ev: dlc}
+      - {suffix: yangkeduo.com, ev: dlc}
+      - {suffix: youdao.com, ev: dlc}
+      - {suffix: youku.com, ev: dlc}
+      - {suffix: zhihu.com, ev: dlc}
+      - {suffix: zhimg.com, ev: dlc}

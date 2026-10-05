@@ -1,0 +1,11 @@
+# 私密产物与个人覆盖：里面有订阅链接、节点信息、个人规则。永远不要提交，也不要发给别人。
+dist/private/
+source/local.yaml
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 生成过程中断时可能留下的临时文件（见 docs/01“更新”）
+.new-*
+.bak-*

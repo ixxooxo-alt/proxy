@@ -37,7 +37,7 @@ SAMPLE = [
 
 class NodeConversion(unittest.TestCase):
     def setUp(self):
-        self.out, self.report = convert(SAMPLE)
+        self.out, self.report, self.renamed = convert(SAMPLE)
         self.by = {o["tag"]: o for o in self.out}
 
     def test_supported_protocols(self):
@@ -93,5 +93,130 @@ class NodeConversion(unittest.TestCase):
         self.assertEqual(ob["无可用节点"]["type"], "block")
 
 
-if __name__ == "__main__":
-    unittest.main()
+# sing-box v1.14.1 各出站允许的顶层字段（option/*.go 结构体的 json 标签；DialerOptions 只列本转换器会写的几项）。
+# 用来离线防止 F01 这类“字段名在别的出站存在、但这个出站没有”的错误；最终以官方 sing-box check 为准。
+DIAL = {"tag", "type", "server", "server_port", "tcp_fast_open", "tcp_multi_path"}
+ALLOWED = {
+    "shadowsocks": DIAL | {"method", "password", "plugin", "plugin_opts", "network", "udp_over_tcp", "multiplex"},
+    "vmess": DIAL | {"uuid", "security", "alter_id", "global_padding", "authenticated_length", "network", "tls",
+                     "packet_encoding", "multiplex", "transport"},
+    "vless": DIAL | {"uuid", "flow", "network", "tls", "multiplex", "transport", "packet_encoding"},
+    "trojan": DIAL | {"password", "network", "tls", "multiplex", "transport"},
+    "hysteria2": DIAL | {"server_ports", "hop_interval", "up_mbps", "down_mbps", "obfs", "password", "network", "tls"},
+    "tuic": DIAL | {"uuid", "password", "congestion_control", "udp_relay_mode", "udp_over_stream", "zero_rtt_handshake",
+                    "heartbeat", "network", "tls"},
+    "anytls": DIAL | {"tls", "password", "idle_session_check_interval", "idle_session_timeout", "min_idle_session"},
+    "socks": DIAL | {"version", "username", "password", "network", "udp_over_tcp"},
+    "http": DIAL | {"username", "password", "tls", "path", "headers"},
+}
+
+
+def one(d):
+    out, report, renamed = convert([d])
+    return (out[0] if out else None), "\n".join(report)
+
+
+class NodeConversionNegative(unittest.TestCase):
+    """审核 F01 / F02 / F03 / F12 的负向输入：要么等价转换，要么报告并跳过，不能静默改语义。"""
+
+    def test_fields_exist_on_each_outbound_type(self):
+        base = {"server": "x.example.net", "port": 443}
+        samples = [
+            {"name": "http 无 udp", "type": "http", **base},
+            {"name": "http 带账号", "type": "http", "username": "u", "password": "p", "tls": True, **base},
+            {"name": "socks 无 udp", "type": "socks5", **base},
+            {"name": "anytls udp", "type": "anytls", "password": "p", "udp": True, **base},
+            {"name": "trojan 无 udp", "type": "trojan", "password": "p", **base},
+            {"name": "ss 无 udp", "type": "ss", "cipher": "aes-128-gcm", "password": "p", **base},
+        ] + SAMPLE
+        out, report, _ = convert(samples)
+        for o in out:
+            extra = set(o) - ALLOWED[o["type"]]
+            self.assertFalse(extra, f"{o['tag']}（{o['type']}）写了该出站没有的字段 {sorted(extra)}")
+        by = {o["tag"]: o for o in out}
+        self.assertNotIn("network", by["http 无 udp"], "HTTP 出站没有 network 字段（F01）")
+        self.assertEqual(by["socks 无 udp"]["network"], "tcp")
+
+    def test_anytls_without_udp_is_reported(self):
+        ob, rep = one({"name": "a", "type": "anytls", "server": "x.example.net", "port": 443, "password": "p"})
+        self.assertIsNone(ob)
+        self.assertIn("UDP", rep)
+
+    def test_missing_required_fields_are_reported(self):
+        base = {"server": "x.example.net", "port": 443}
+        cases = [
+            {"name": "ss 缺密码", "type": "ss", "cipher": "aes-128-gcm", **base},
+            {"name": "ss 缺加密", "type": "ss", "password": "p", **base},
+            {"name": "trojan 空密码", "type": "trojan", "password": "", **base},
+            {"name": "vmess 缺 uuid", "type": "vmess", **base},
+            {"name": "vless 缺 uuid", "type": "vless", **base},
+            {"name": "hy2 缺密码", "type": "hysteria2", **base},
+            {"name": "tuic 缺密码", "type": "tuic", "uuid": "u", **base},
+            {"name": "anytls 缺密码", "type": "anytls", "udp": True, **base},
+            {"name": "端口不是数字", "type": "ss", "cipher": "aes-128-gcm", "password": "p", "server": "x", "port": "abc"},
+            {"name": "缺服务器", "type": "trojan", "password": "p", "port": 443},
+        ]
+        out, report, _ = convert(cases + ["不是字典", 42])
+        self.assertEqual(out, [])
+        text = "\n".join(report)
+        for c in cases:
+            self.assertIn(c["name"], text)
+        self.assertNotIn('"None"', json.dumps(out))
+        self.assertIn("第 12 项", text)
+
+    def test_v2ray_plugin_mux_and_host_semantics(self):
+        base = {"type": "ss", "server": "x.example.net", "port": 443, "cipher": "aes-128-gcm", "password": "p",
+                "plugin": "v2ray-plugin"}
+        off, _ = one({"name": "关 mux", **base, "plugin-opts": {"mode": "websocket", "mux": False}})
+        self.assertIn("mux=0", off["plugin_opts"], "mux: false 不能被当成缺省重新开启（F03）")
+        self.assertIn("host=bing.com", off["plugin_opts"], "缺省 Host 按 mihomo 的 bing.com 写出")
+        on, _ = one({"name": "缺省 mux", **base, "plugin-opts": {"mode": "websocket", "host": "cdn.example.com"}})
+        self.assertIn("mux=1", on["plugin_opts"])
+        self.assertIn("host=cdn.example.com", on["plugin_opts"])
+        for opts in ({"mode": "websocket", "headers": {"X-A": "1"}}, {"mode": "websocket", "some-new-key": 1},
+                     {"host": "a.example.com"}, {"mode": "websocket", "v2ray-http-upgrade": True}):
+            ob, rep = one({"name": "不支持", **base, "plugin-opts": opts})
+            self.assertIsNone(ob, opts)
+            self.assertIn("不支持", rep)
+
+    def test_obfs_plugin_semantics(self):
+        base = {"type": "ss", "server": "x.example.net", "port": 443, "cipher": "aes-128-gcm", "password": "p",
+                "plugin": "obfs"}
+        ob, _ = one({"name": "obfs", **base, "plugin-opts": {"mode": "tls"}})
+        self.assertEqual(ob["plugin_opts"], "obfs=tls;obfs-host=bing.com")
+        for opts in ({}, {"mode": "http", "extra": 1}):
+            ob, rep = one({"name": "obfs 不支持", **base, "plugin-opts": opts})
+            self.assertIsNone(ob, opts)
+
+    def test_ws_early_data_and_http_upgrade(self):
+        base = {"type": "vmess", "server": "x.example.net", "port": 443, "uuid": "u", "network": "ws", "udp": True}
+        ob, _ = one({"name": "ed 在路径里", **base, "ws-opts": {"path": "/ray?ed=2048"}})
+        self.assertEqual(ob["transport"], {"type": "ws", "path": "/ray", "max_early_data": 2048,
+                                           "early_data_header_name": "Sec-WebSocket-Protocol"})
+        ob, _ = one({"name": "ed 无头名", **base, "ws-opts": {"path": "/ray", "max-early-data": 2048}})
+        self.assertNotIn("early_data_header_name", ob["transport"], "未写头名时两个内核都把 early data 放在路径里")
+        ob, _ = one({"name": "httpupgrade", **base, "ws-opts": {"path": "/up", "v2ray-http-upgrade": True,
+                                                              "headers": {"Host": "h.example.com", "X-Token": "t"}}})
+        self.assertEqual(ob["transport"], {"type": "httpupgrade", "path": "/up", "host": "h.example.com",
+                                           "headers": {"X-Token": "t"}})
+        ob, rep = one({"name": "httpupgrade+ed", **base, "ws-opts": {"v2ray-http-upgrade": True, "max-early-data": 1}})
+        self.assertIsNone(ob)
+
+    def test_names_colliding_with_groups_are_renamed_and_still_filtered(self):
+        m, p = model_and_plan()
+        reserved = emit_singbox.reserved_tags(m)
+        self.assertTrue({"日本", "DIRECT", "无可用节点", "Grok", "日本·自动"} <= reserved)
+        nodes = [{"name": n, "type": "ss", "server": "x.example.net", "port": 443, "cipher": "aes-128-gcm",
+                  "password": "p", "udp": True} for n in ("日本", "DIRECT", "无可用节点", "日本（节点）")]
+        out, report, renamed = convert(nodes, reserved)
+        tags = [o["tag"] for o in out]
+        self.assertEqual(len(tags), 4)
+        self.assertFalse(set(tags) & reserved)
+        self.assertEqual(len(set(tags)), 4)
+        self.assertEqual(sorted(renamed.values()), sorted(["日本", "DIRECT", "无可用节点", "日本（节点）"]))
+        conf = json.loads(emit_singbox.build(m, p, "1.14", out, renamed))
+        all_tags = [o["tag"] for o in conf["outbounds"]]
+        self.assertEqual(len(all_tags), len(set(all_tags)), "整份配置不能有重名出站")
+        ob = {o["tag"]: o for o in conf["outbounds"]}
+        jp = [renamed.get(t, t) for t in ob["日本·手动"]["outbounds"]]
+        self.assertIn("日本", jp, "改名后仍按订阅原名进入日本组")

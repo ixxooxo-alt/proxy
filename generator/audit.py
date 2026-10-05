@@ -9,7 +9,9 @@ from .model import COMMUNITY_EV_SOURCE, Model, Plan
 
 KIND_ZH = {"domain": "精确域名", "suffix": "域名后缀", "keyword": "关键词", "ip4": "IPv4 段", "ip6": "IPv6 段"}
 EV_ZH = {"official": "官方（已查阅）", "official-unfetched": "官方（未能重新抓取，需复核）",
-         "community": "社区规则集", "maintainer": "维护者知识（需实测）"}
+         "community": "社区规则集", "maintainer": "维护者知识（需实测）",
+         "requirement": "需求指定（照搬给定基线，未找到其他依据）",
+         "imported": "从另一版导入（未找到依据）"}
 STATUS_ZH = {"same": "同值", "covered": "上级域名覆盖", "covered-aggregate": "仅汇总列表覆盖",
              "narrower": "上游更窄", "absent": "未找到"}
 
@@ -39,13 +41,21 @@ def _upstream_cell(rec, ev) -> str:
 
 
 def write_audit(m: Model, plan: Plan, path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(render_audit(m, plan))
+
+
+def render_audit(m: Model, plan: Plan) -> str:
     L = []
     L.append("# 规则清单与证据（自动生成，请勿手改）")
     L.append("")
-    L.append(f"统一源版本：{m.project['project']['source_version']}　文档查阅日期：{m.project['project']['docs_checked']}")
+    L.append(f"统一源版本：{m.project['project']['source_version']}　基线文档查阅日期：{m.project['project']['docs_checked']}"
+             "（之后新增或复查的来源，逐条查阅日期见“证据来源”一节）")
     L.append("")
     L.append("每条规则记录：匹配条件、匹配类型、证据来源、性质（专属 / 共享）、说明。"
-             "“排除”一栏记录官方放行清单里出现、但不归该服务的主机及理由——官方放行清单不等于产品归属表。")
+             "“排除”一栏记录官方放行清单里出现、但不归该服务的主机及理由——官方放行清单不等于产品归属表。"
+             "排除项里写了“去向”的，是经过核对的断言（用上游数据的成员快照和官方内核检查四个客户端都把它交给这个组）；"
+             "没写去向的只表示没有收，落到哪里取决于上游集合与解析结果。")
     L.append("")
 
     # 证据统计
@@ -95,14 +105,17 @@ def write_audit(m: Model, plan: Plan, path: str) -> None:
             L.append("| 条件 | 类型 | 证据 | 上游核对 | 性质 | 说明 |")
             L.append("|---|---|---|---|---|---|")
             for r in s.rules:
-                nature = "共享" if "shared" in r.note or r.value in ("googleapis.com", "gstatic.com", "googleusercontent.com") else "专属"
+                nature = "共享" if r.nature == "shared" else "专属"
                 up = _upstream_cell(record.get((s.id, r.kind, r.value)), r.ev) if r.kind in ("domain", "suffix") else "—"
                 L.append(f"| `{r.value}` | {KIND_ZH[r.kind]} | `{r.ev}` | {up} | {nature} | {r.note} |")
             if s.shared_excluded:
                 L.append("")
                 L.append("排除（不归本服务）：")
                 for x in s.shared_excluded:
-                    L.append(f"- `{x['host']}`（证据 `{x.get('ev', '')}`）：{x.get('why', '')}")
+                    to = ""
+                    if x.get("to"):
+                        to = f" **去向：{x['to']}**（核对用的主机：" + "、".join(f"`{h}`" for h in x["probe"]) + "）"
+                    L.append(f"- `{x['host']}`（证据 `{x.get('ev', '')}`）：{x.get('why', '')}{to}")
     L.append("")
     L.append("## 广告拦截")
     L.append("")
@@ -122,5 +135,4 @@ def write_audit(m: Model, plan: Plan, path: str) -> None:
     L.append("")
     L.append("HTTPDNS：暂无经过验证的条目，未启用。复写 / 脚本 / MITM：未内置。")
     L.append("")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(L))
+    return "\n".join(L)

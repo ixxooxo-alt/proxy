@@ -1,0 +1,5856 @@
+{
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。sing-box 的 dial 是拨号时名字交给哪个 DNS 服务器，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核；每份记录里的 routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，测试用它确认记录对应的就是现在生成的配置。",
+ "assumed_dns": {
+  "default": "203.0.113.77",
+  "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
+ },
+ "generated": "2026-10-05",
+ "hosts": {
+  "a.b.cursorvm.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "abc.cursorvm.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "abc.hf.space": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:hf.space"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:hf.space"
+   }
+  },
+  "abema.tv": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:abema.tv"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:abema.tv"
+   }
+  },
+  "accounts.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "accounts.spacex.ai": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "accounts.x.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:x.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:x.ai"
+   }
+  },
+  "ad.12306.cn": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:ad.12306.cn"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:ad.12306.cn",
+    "cn": "suffix:cn"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:ad.12306.cn"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:ad.12306.cn",
+    "geosite-cn": "suffix:12306.cn"
+   }
+  },
+  "ads.twitter.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:ads.twitter.com"
+   },
+   "mihomo": {
+    "geolocation-!cn": "suffix:twitter.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:ads.twitter.com"
+   },
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:twitter.com"
+   }
+  },
+  "ads.viber.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:ads.viber.com"
+   },
+   "mihomo": {
+    "geolocation-!cn": "suffix:viber.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:ads.viber.com"
+   },
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:viber.com"
+   }
+  },
+  "ads.yahoo.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "suffix:ads.yahoo.com",
+    "geolocation-!cn": "suffix:yahoo.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "suffix:ads.yahoo.com",
+    "geosite-geolocation-!cn": "suffix:ads.yahoo.com"
+   }
+  },
+  "adservice.google.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list": "keyword:adservice"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:adservice.google.com",
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "keyword:adservice"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:adservice.google.com",
+    "geosite-cn": "full:adservice.google.com",
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "agent.global.api5.cursor.sh": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cursor.sh"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cursor.sh"
+   }
+  },
+  "aistudio.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "aka.ms": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:ms",
+    "geolocation-!cn": "suffix:aka.ms"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:aka.ms"
+   }
+  },
+  "alkalicore-pa.clients6.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:alkalicore-pa.clients6.google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "analytics.google.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "full:analytics.google.com",
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "full:analytics.google.com",
+    "geosite-geolocation-!cn": "full:analytics.google.com"
+   }
+  },
+  "ani.gamer.com.tw": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:gamer.com.tw"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:gamer.com.tw"
+   }
+  },
+  "antigravity.google": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:.google"
+   }
+  },
+  "anysphere-binaries.s3.us-east-1.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
+  "aod.itunes.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:aod.itunes.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "api.anthropic.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:anthropic.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:anthropic.com"
+   }
+  },
+  "api.bilibili.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:bilibili.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:bilibili.com"
+   }
+  },
+  "api.dmmapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:dmmapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:dmmapis.com"
+   }
+  },
+  "api.github.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:github.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:github.com"
+   }
+  },
+  "api.githubcopilot.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:githubcopilot.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubcopilot.com"
+   }
+  },
+  "api.individual.githubcopilot.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:githubcopilot.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubcopilot.com"
+   }
+  },
+  "api.openai.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:openai.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:openai.com"
+   }
+  },
+  "api.workos.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "api.x.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:x.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:x.ai"
+   }
+  },
+  "api2.cursor.sh": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cursor.sh"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cursor.sh"
+   }
+  },
+  "api5.cursor.sh": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cursor.sh"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cursor.sh"
+   }
+  },
+  "apihub.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "app-measurement.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:app-measurement.com"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:app-measurement.com",
+    "geolocation-!cn": "suffix:app-measurement.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:app-measurement.com"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:app-measurement.com",
+    "geosite-cn": "full:app-measurement.com"
+   }
+  },
+  "atv-ps-fe.amazon.co.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazon.co.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazon.co.jp"
+   }
+  },
+  "atv-ps.amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazon.com"
+   }
+  },
+  "audio4-ak-spotify-com.akamaized.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:audio4-ak-spotify-com.akamaized.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:akamaized.net"
+   }
+  },
+  "auth.grok.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:grok.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:grok.com"
+   }
+  },
+  "auth.grokipedia.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:grokipedia.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:grokipedia.com"
+   }
+  },
+  "auth.grokusercontent.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "auth.x.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:x.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:x.ai"
+   }
+  },
+  "bootstrap.pypa.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:pypa.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:pypa.io"
+   }
+  },
+  "captive.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "cdn.oaistatic.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:oaistatic.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:oaistatic.com"
+   }
+  },
+  "challenges.cloudflare.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cloudflare.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cloudflare.com"
+   }
+  },
+  "chat.deepseek.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:deepseek.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:deepseek.com"
+   }
+  },
+  "chat.qwen.ai": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:qwen.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:qwen.ai"
+   }
+  },
+  "chat.qwenlm.ai": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:qwenlm.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:qwenlm.ai"
+   }
+  },
+  "chatgpt.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:chatgpt.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:chatgpt.com"
+   }
+  },
+  "chromium-review.googlesource.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googlesource.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googlesource.com"
+   }
+  },
+  "claude.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:claude.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:claude.ai"
+   }
+  },
+  "claude.app": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "cloudaicompanion.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:cloudaicompanion.googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "cloudcode-pa.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:cloudcode-pa.googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "cloudresourcemanager.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "collector.github.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "suffix:collector.github.com",
+    "geolocation-!cn": "suffix:github.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "suffix:collector.github.com",
+    "geosite-geolocation-!cn": "suffix:collector.github.com"
+   }
+  },
+  "contoso.sharepointonline.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:sharepointonline.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:sharepointonline.com"
+   }
+  },
+  "copilot-proxy.githubusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:copilot-proxy.githubusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubusercontent.com"
+   }
+  },
+  "copilot-telemetry-service.githubusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "full:copilot-telemetry-service.githubusercontent.com",
+    "geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "full:copilot-telemetry-service.githubusercontent.com",
+    "geosite-geolocation-!cn": "full:copilot-telemetry-service.githubusercontent.com"
+   }
+  },
+  "copilot-telemetry.githubusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "full:copilot-telemetry.githubusercontent.com",
+    "geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "full:copilot-telemetry.githubusercontent.com",
+    "geosite-geolocation-!cn": "full:copilot-telemetry.githubusercontent.com"
+   }
+  },
+  "copilot-workspace.githubnext.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:copilot-workspace.githubnext.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubnext.com"
+   }
+  },
+  "copilot.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:copilot.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:copilot.com"
+   }
+  },
+  "copilot.microsoft.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:microsoft.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:microsoft.com"
+   }
+  },
+  "d111111abcdef8.cloudfront.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cloudfront.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cloudfront.net"
+   }
+  },
+  "d25xi40x97liuc.cloudfront.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:d25xi40x97liuc.cloudfront.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cloudfront.net"
+   }
+  },
+  "daily-cloudcode-pa.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:daily-cloudcode-pa.googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "default.exp-tas.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:default.exp-tas.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:exp-tas.com"
+   }
+  },
+  "discord.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:discord.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:discord.com"
+   }
+  },
+  "dl.delivery.mp.microsoft.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:dl.delivery.mp.microsoft.com",
+    "geolocation-!cn": "suffix:microsoft.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:dl.delivery.mp.microsoft.com",
+    "geosite-geolocation-!cn": "suffix:microsoft.com"
+   }
+  },
+  "dotnetcli.blob.core.windows.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:windows.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:windows.net"
+   }
+  },
+  "downloads.claude.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:claude.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:claude.ai"
+   }
+  },
+  "downloads.cursor.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cursor.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cursor.com"
+   }
+  },
+  "example.cn": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:cn"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:cn"
+   }
+  },
+  "example.ms": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:ms"
+   },
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "f-radiko.smartstream.ne.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:smartstream.ne.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:smartstream.ne.jp"
+   }
+  },
+  "fakegoogle.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "feedback-pa.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "files.pythonhosted.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:pythonhosted.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:pythonhosted.org"
+   }
+  },
+  "firebaselogging-pa.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:firebaselogging-pa.googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "fls-na.amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazon.com"
+   }
+  },
+  "fonts.gstatic.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:gstatic.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:fonts.gstatic.com",
+    "geosite-geolocation-!cn": "suffix:gstatic.com"
+   }
+  },
+  "foo.github.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:github.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:github.io"
+   }
+  },
+  "formulae.brew.sh": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:brew.sh"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:brew.sh"
+   }
+  },
+  "gemini.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "gemini.google.com.evil.example": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "gemini.gstatic.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:gstatic.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:gstatic.com"
+   }
+  },
+  "generativelanguage.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "get.pnpm.io": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "ghcr.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:ghcr.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ghcr.io"
+   }
+  },
+  "github-cloud.s3.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:github-cloud.s3.amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
+  "github.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:github.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:github.com"
+   }
+  },
+  "global.edge.bamgrid.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:bamgrid.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:bamgrid.com"
+   }
+  },
+  "golang.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:golang.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:golang.org"
+   }
+  },
+  "graph-fallback.instagram.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "suffix:graph-fallback.instagram.com",
+    "geolocation-!cn": "suffix:instagram.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "suffix:graph-fallback.instagram.com",
+    "geosite-geolocation-!cn": "suffix:graph-fallback.instagram.com"
+   }
+  },
+  "graph.instagram.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "suffix:graph.instagram.com",
+    "geolocation-!cn": "suffix:instagram.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "suffix:graph.instagram.com",
+    "geosite-geolocation-!cn": "suffix:graph.instagram.com"
+   }
+  },
+  "grok.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:grok.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:grok.com"
+   }
+  },
+  "grok.x.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:x.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:x.com"
+   }
+  },
+  "groq.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:groq.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:groq.com"
+   }
+  },
+  "guzzoni.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:guzzoni.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "host.livekit.cloud": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:host.livekit.cloud"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:host.livekit.cloud"
+   }
+  },
+  "hulu.playback.edge.bamgrid.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:hulu.playback.edge.bamgrid.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:bamgrid.com"
+   }
+  },
+  "humb.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "i0.hdslb.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:hdslb.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:hdslb.com"
+   }
+  },
+  "iadsdk.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "category-ads-all": "suffix:iadsdk.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-category-ads-all": "suffix:iadsdk.apple.com",
+    "geosite-geolocation-!cn": "suffix:iadsdk.apple.com"
+   }
+  },
+  "images-eu.ssl-images-amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:images-eu.ssl-images-amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   }
+  },
+  "images-fe.ssl-images-amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:images-fe.ssl-images-amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   }
+  },
+  "images-na.ssl-images-amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:images-na.ssl-images-amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   }
+  },
+  "images.workoscdn.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "itunes.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:itunes.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "js.intercomcdn.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:intercomcdn.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:intercomcdn.com"
+   }
+  },
+  "js.stripe.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:stripe.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:stripe.com"
+   }
+  },
+  "jules.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "lh3.googleusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   }
+  },
+  "lh5.ggpht.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:ggpht.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ggpht.com"
+   }
+  },
+  "lh5.googleusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   }
+  },
+  "line.me": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:line.me"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:line.me"
+   }
+  },
+  "links.app.link": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "live.nicochannel.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:nicochannel.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:nicochannel.jp"
+   }
+  },
+  "log.byteoversea.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "log.isnssdk.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "login.microsoftonline.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:microsoftonline.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:microsoftonline.com"
+   }
+  },
+  "m.media-amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:media-amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:media-amazon.com"
+   }
+  },
+  "m.stripe.network": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:stripe.network"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:stripe.network"
+   }
+  },
+  "marketplace.cursorapi.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cursorapi.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cursorapi.com"
+   }
+  },
+  "mask.apple-dns.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple-dns.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple-dns.net"
+   }
+  },
+  "mmg.whatsapp.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:whatsapp.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:whatsapp.net"
+   }
+  },
+  "music.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:music.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "myvm.eastus.cloudapp.azure.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:azure.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:azure.com"
+   }
+  },
+  "nas.lan": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "netflixdnstest7.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:netflixdnstest7.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:netflixdnstest7.com"
+   }
+  },
+  "notopenai.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "oauth2.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "occ-0-1.1.nflxso.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:nflxso.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:nflxso.net"
+   }
+  },
+  "onedrive.live.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:live.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:live.com"
+   }
+  },
+  "open.spotify.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:spotify.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:spotify.com"
+   }
+  },
+  "openai.com.evil.example": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "openaicom.imgix.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:openaicom.imgix.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:imgix.net"
+   }
+  },
+  "other-bucket.s3.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
+  "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:p16-tiktok-dm-sticker-sign-sg.ibyteimg.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "full:p16-tiktok-dm-sticker-sign-sg.ibyteimg.com"
+   }
+  },
+  "pagead2.googlesyndication.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:googlesyndication.com"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:googlesyndication.com",
+    "geolocation-!cn": "suffix:googlesyndication.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:googlesyndication.com"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:googlesyndication.com",
+    "geosite-geolocation-!cn": "suffix:.googlesyndication.com"
+   }
+  },
+  "pbs.twimg.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:twimg.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:twimg.com"
+   }
+  },
+  "people.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "pixel.facebook.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "full:pixel.facebook.com"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:pixel.facebook.com",
+    "geolocation-!cn": "suffix:facebook.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "full:pixel.facebook.com"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:pixel.facebook.com",
+    "geosite-geolocation-!cn": "suffix:pixel.facebook.com"
+   }
+  },
+  "platform.claude.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:claude.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:claude.com"
+   }
+  },
+  "play.max.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:max.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:max.com"
+   }
+  },
+  "poe.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:poe.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:poe.com"
+   }
+  },
+  "portal.azure.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:azure.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:azure.com"
+   }
+  },
+  "printer.local": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "prod.hjholdings.tv": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "proxy.golang.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:golang.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:golang.org"
+   }
+  },
+  "pypi.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:pypi.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:pypi.org"
+   }
+  },
+  "qwen.ai": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:qwen.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:qwen.ai"
+   }
+  },
+  "raw.githubusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubusercontent.com"
+   }
+  },
+  "registry-1.docker.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:docker.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:docker.io"
+   }
+  },
+  "registry.npmjs.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:npmjs.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:npmjs.org"
+   }
+  },
+  "robinfrontend-pa.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "rr3---sn-a5mekn6s.googlevideo.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googlevideo.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googlevideo.com"
+   }
+  },
+  "s.youtube.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:youtube.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:youtube.com"
+   }
+  },
+  "s3.us-east-1.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
+  "servd-anthropic-website.b-cdn.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:servd-anthropic-website.b-cdn.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:b-cdn.net"
+   }
+  },
+  "serviceusage.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "someone.blob.core.windows.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:windows.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:windows.net"
+   }
+  },
+  "sora.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:sora.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:sora.com"
+   }
+  },
+  "spotify.link": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:spotify.link"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:spotify.link"
+   }
+  },
+  "static.siege-amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:static.siege-amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:siege-amazon.com"
+   }
+  },
+  "stats.g.doubleclick.net": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:doubleclick.net"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:doubleclick.net",
+    "geolocation-!cn": "suffix:doubleclick.net"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:doubleclick.net"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:doubleclick.net",
+    "geosite-geolocation-!cn": "suffix:.doubleclick.net"
+   }
+  },
+  "stitch.withgoogle.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:withgoogle.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:withgoogle.com"
+   }
+  },
+  "storage.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "sydney.bing.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:bing.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:bing.com"
+   }
+  },
+  "t.appsflyer.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list": "keyword:appsflyer"
+   },
+   "mihomo": {},
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "keyword:appsflyer"
+   },
+   "singbox": {}
+  },
+  "t.co": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:t.co"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:t.co"
+   }
+  },
+  "t.me": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:t.me"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:t.me"
+   }
+  },
+  "time.apple-dns.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple-dns.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple-dns.net"
+   }
+  },
+  "tongyi.aliyun.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:aliyun.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:tongyi.aliyun.com"
+   }
+  },
+  "tracker.twimg.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:twimg.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:twimg.com"
+   }
+  },
+  "turn.livekit.cloud": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:turn.livekit.cloud"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:turn.livekit.cloud"
+   }
+  },
+  "tv.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "tver.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:tver.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:tver.jp"
+   }
+  },
+  "u123.ct.sendgrid.net": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "unknown-cn.example": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "unknown-foreign.example": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "user.wixsite.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list": "keyword:wixsite.com"
+   },
+   "mihomo": {
+    "geolocation-!cn": "suffix:wixsite.com"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "keyword:wixsite.com"
+   },
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:wixsite.com"
+   }
+  },
+  "web.telegram.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:telegram.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:telegram.org"
+   }
+  },
+  "web.whatsapp.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:whatsapp.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:whatsapp.com"
+   }
+  },
+  "widget.intercom.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:intercom.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:intercom.io"
+   }
+  },
+  "wikipedia.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:wikipedia.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:wikipedia.org"
+   }
+  },
+  "workos.imgix.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:imgix.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:imgix.net"
+   }
+  },
+  "ws.chatgpt.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:chatgpt.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:chatgpt.com"
+   }
+  },
+  "www.amazon.co.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazon.co.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazon.co.jp"
+   }
+  },
+  "www.amazon.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazon.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazon.com"
+   }
+  },
+  "www.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:www.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "www.apple.com.cn": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:cn"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:apple.com.cn"
+   }
+  },
+  "www.baidu.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:baidu.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:baidu.com"
+   }
+  },
+  "www.bilibili.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:bilibili.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:bilibili.com"
+   }
+  },
+  "www.bilibili.tv": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:bilibili.tv"
+   },
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "www.bing.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:bing.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:bing.com"
+   }
+  },
+  "www.byteglb.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "www.byteoversea.net": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "www.crunchyroll.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:crunchyroll.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:crunchyroll.com"
+   }
+  },
+  "www.disneyplus.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:disneyplus.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:disneyplus.com"
+   }
+  },
+  "www.dmm.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:dmm.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:dmm.com"
+   }
+  },
+  "www.doubao.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:doubao.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:doubao.com"
+   }
+  },
+  "www.facebook.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:facebook.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:facebook.com"
+   }
+  },
+  "www.google.cn": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:cn"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:google.cn"
+   }
+  },
+  "www.google.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "www.google.de": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:google.de"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:google.de"
+   }
+  },
+  "www.hjholdings.tv": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "www.hulu.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:hulu.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:hulu.com"
+   }
+  },
+  "www.hulu.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:hulu.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:hulu.jp"
+   }
+  },
+  "www.icloud.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:icloud.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:icloud.com"
+   }
+  },
+  "www.instagram.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:instagram.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:instagram.com"
+   }
+  },
+  "www.jd.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:jd.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:jd.com"
+   }
+  },
+  "www.linkedin.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:linkedin.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:linkedin.com"
+   }
+  },
+  "www.meta.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:meta.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:meta.ai"
+   }
+  },
+  "www.microsoft.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:www.microsoft.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:microsoft.com"
+   }
+  },
+  "www.msftconnecttest.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:msftconnecttest.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:msftconnecttest.com"
+   }
+  },
+  "www.netflix.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:netflix.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:netflix.com"
+   }
+  },
+  "www.nicovideo.jp": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:nicovideo.jp"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:nicovideo.jp"
+   }
+  },
+  "www.paypal.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:paypal.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:paypal.com"
+   }
+  },
+  "www.paypalobjects.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:paypalobjects.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:paypalobjects.com"
+   }
+  },
+  "www.perplexity.ai": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:perplexity.ai"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:perplexity.ai"
+   }
+  },
+  "www.perplexity.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:perplexity.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:perplexity.com"
+   }
+  },
+  "www.primevideo.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:primevideo.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:primevideo.com"
+   }
+  },
+  "www.qianwen.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:qianwen.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:qianwen.com"
+   }
+  },
+  "www.recaptcha.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:recaptcha.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:www.recaptcha.net"
+   }
+  },
+  "www.reddit.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:reddit.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:reddit.com"
+   }
+  },
+  "www.siriusxm.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "www.spacex.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:spacex.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:spacex.com"
+   }
+  },
+  "www.threads.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:threads.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:threads.com"
+   }
+  },
+  "www.tiktok.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:tiktok.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:tiktok.com"
+   }
+  },
+  "www.tongyi.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:tongyi.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:tongyi.com"
+   }
+  },
+  "www.tubitv.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:tubitv.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:tubitv.com"
+   }
+  },
+  "www.twitch.tv": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:twitch.tv"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:twitch.tv"
+   }
+  },
+  "www.youtube.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:youtube.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:youtube.com"
+   }
+  },
+  "x.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:x.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:x.com"
+   }
+  },
+  "x1.chatgpt.livekit.cloud": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:chatgpt.livekit.cloud"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:chatgpt.livekit.cloud"
+   }
+  },
+  "youtubeembeddedplayer.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "youtubei.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "yt3.ggpht.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:ggpht.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:ggpht.com"
+   }
+  },
+  "yt3.googleusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:yt3.googleusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   }
+  },
+  "yuanbao.tencent.com": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:tencent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:yuanbao.tencent.com"
+   }
+  }
+ },
+ "ips": {
+  "1.2.4.8": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "1.2.4.9": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "10.0.0.8": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "104.18.1.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "104.18.1.2": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "104.18.1.3": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "104.18.1.4": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "110.242.68.3": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "110.242.68.66": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "149.154.167.51": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "167.89.118.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "18.155.1.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "185.199.108.153": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "192.168.1.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "2001:67c:4e8::1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "208.80.154.224": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "240e::1": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "47.246.1.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "52.217.1.1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "8.8.8.8": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "91.108.56.100": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "93.184.215.14": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  },
+  "fe80::1": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   }
+  }
+ },
+ "oddities": {
+  "mihomo_cn_whole_tld": [
+   "alibaba",
+   "alipay",
+   "anquan",
+   "baidu",
+   "citic",
+   "cn",
+   "full",
+   "icbc",
+   "ms",
+   "shouji",
+   "sina",
+   "sohu",
+   "taobao",
+   "tmall",
+   "unicom",
+   "wang",
+   "weibo",
+   "xihuan",
+   "xn--1qqw23a",
+   "xn--3bst00m",
+   "xn--3ds443g",
+   "xn--55qw42g",
+   "xn--55qx5d",
+   "xn--5tzm5g",
+   "xn--6frz82g",
+   "xn--6qq986b3xl",
+   "xn--8y0a063a",
+   "xn--9et52u",
+   "xn--9krt00a",
+   "xn--czr694b",
+   "xn--czrs0t",
+   "xn--czru2d",
+   "xn--fiq228c5hs",
+   "xn--fiq64b",
+   "xn--fiqs8s",
+   "xn--fiqz9s",
+   "xn--fjq720a",
+   "xn--g2xx48c",
+   "xn--hxt814e",
+   "xn--imr513n",
+   "xn--io0a7i",
+   "xn--kput3i",
+   "xn--nyqy26a",
+   "xn--otu796d",
+   "xn--rhqv96g",
+   "xn--ses554g",
+   "xn--unup4y",
+   "xn--vhquv",
+   "xn--vuq861b",
+   "xn--xhq521b",
+   "xn--zfr164b",
+   "yun"
+  ],
+  "mihomo_cn_whole_tld_not_in_dlc_tld_cn": [
+   "full",
+   "ms",
+   "wang"
+  ],
+  "singbox_cn_has_ms": false
+ },
+ "official": {
+  "mihomo": {
+   "config": "mihomo/mihomo-core.yaml",
+   "config_sha256": "0208aad0ab0dab2ec2ff6f291fc12952ab57296b8aaeca88c5c8f24ebdeb929f",
+   "routes": {
+    "1.2.4.8": [
+     "GeoIP(cn)",
+     "国内直连"
+    ],
+    "10.0.0.8": [
+     "IPCIDR(10.0.0.0/8)",
+     "DIRECT"
+    ],
+    "149.154.167.51": [
+     "IPCIDR(149.154.160.0/20)",
+     "Telegram"
+    ],
+    "192.168.1.1": [
+     "IPCIDR(192.168.0.0/16)",
+     "DIRECT"
+    ],
+    "2001:67c:4e8::1": [
+     "IPCIDR(2001:67c:4e8::/48)",
+     "Telegram"
+    ],
+    "240e::1": [
+     "GeoIP(cn)",
+     "国内直连"
+    ],
+    "8.8.8.8": [
+     "Match",
+     "国外默认"
+    ],
+    "91.108.56.100": [
+     "IPCIDR(91.108.56.0/22)",
+     "Telegram"
+    ],
+    "a.b.cursorvm.com": [
+     "DomainSuffix(cursorvm.com)",
+     "远程控制"
+    ],
+    "abc.cursorvm.com": [
+     "DomainSuffix(cursorvm.com)",
+     "远程控制"
+    ],
+    "abc.hf.space": [
+     "DomainSuffix(hf.space)",
+     "其他 AI"
+    ],
+    "abema.tv": [
+     "DomainSuffix(abema.tv)",
+     "Abema"
+    ],
+    "accounts.google.com": [
+     "DomainSuffix(google.com)",
+     "Google"
+    ],
+    "accounts.spacex.ai": [
+     "DomainSuffix(spacex.ai)",
+     "Grok"
+    ],
+    "accounts.x.ai": [
+     "DomainSuffix(x.ai)",
+     "Grok"
+    ],
+    "ad.12306.cn": [
+     "GeoSite(category-ads-all)",
+     "广告拦截"
+    ],
+    "ads.twitter.com": [
+     "DomainSuffix(twitter.com)",
+     "X"
+    ],
+    "ads.viber.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "ads.yahoo.com": [
+     "GeoSite(category-ads-all)",
+     "广告拦截"
+    ],
+    "adservice.google.com": [
+     "DomainSuffix(adservice.google.com)",
+     "广告拦截"
+    ],
+    "agent.global.api5.cursor.sh": [
+     "DomainSuffix(cursor.sh)",
+     "Grok"
+    ],
+    "aistudio.google.com": [
+     "Domain(aistudio.google.com)",
+     "Google AI"
+    ],
+    "aka.ms": [
+     "DomainSuffix(aka.ms)",
+     "Microsoft"
+    ],
+    "alkalicore-pa.clients6.google.com": [
+     "Domain(alkalicore-pa.clients6.google.com)",
+     "Google AI"
+    ],
+    "analytics.google.com": [
+     "Domain(analytics.google.com)",
+     "广告拦截"
+    ],
+    "ani.gamer.com.tw": [
+     "DomainSuffix(gamer.com.tw)",
+     "Bahamut"
+    ],
+    "antigravity.google": [
+     "DomainSuffix(antigravity.google)",
+     "Google AI"
+    ],
+    "anysphere-binaries.s3.us-east-1.amazonaws.com": [
+     "Domain(anysphere-binaries.s3.us-east-1.amazonaws.com)",
+     "Grok"
+    ],
+    "aod.itunes.apple.com": [
+     "Domain(aod.itunes.apple.com)",
+     "Apple Music/TV"
+    ],
+    "api.anthropic.com": [
+     "DomainSuffix(anthropic.com)",
+     "Claude"
+    ],
+    "api.bilibili.com": [
+     "Domain(api.bilibili.com)",
+     "Bilibili 港澳台"
+    ],
+    "api.dmmapis.com": [
+     "DomainSuffix(dmmapis.com)",
+     "DMM"
+    ],
+    "api.github.com": [
+     "DomainSuffix(github.com)",
+     "GitHub"
+    ],
+    "api.githubcopilot.com": [
+     "DomainSuffix(githubcopilot.com)",
+     "Copilot"
+    ],
+    "api.individual.githubcopilot.com": [
+     "DomainSuffix(githubcopilot.com)",
+     "Copilot"
+    ],
+    "api.openai.com": [
+     "DomainSuffix(openai.com)",
+     "OpenAI"
+    ],
+    "api.workos.com": [
+     "Match",
+     "国外默认"
+    ],
+    "api.x.ai": [
+     "DomainSuffix(x.ai)",
+     "Grok"
+    ],
+    "api2.cursor.sh": [
+     "DomainSuffix(cursor.sh)",
+     "Grok"
+    ],
+    "api5.cursor.sh": [
+     "DomainSuffix(cursor.sh)",
+     "Grok"
+    ],
+    "apihub.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "app-measurement.com": [
+     "GeoSite(category-ads-all)",
+     "广告拦截"
+    ],
+    "atv-ps-fe.amazon.co.jp": [
+     "DomainSuffix(atv-ps-fe.amazon.co.jp)",
+     "Prime Video"
+    ],
+    "atv-ps.amazon.com": [
+     "Domain(atv-ps.amazon.com)",
+     "Prime Video"
+    ],
+    "audio4-ak-spotify-com.akamaized.net": [
+     "Domain(audio4-ak-spotify-com.akamaized.net)",
+     "Spotify"
+    ],
+    "auth.grok.com": [
+     "DomainSuffix(grok.com)",
+     "Grok"
+    ],
+    "auth.grokipedia.com": [
+     "DomainSuffix(grokipedia.com)",
+     "Grok"
+    ],
+    "auth.grokusercontent.com": [
+     "DomainSuffix(grokusercontent.com)",
+     "Grok"
+    ],
+    "auth.x.ai": [
+     "DomainSuffix(x.ai)",
+     "Grok"
+    ],
+    "bootstrap.pypa.io": [
+     "Domain(bootstrap.pypa.io)",
+     "开发下载"
+    ],
+    "captive.apple.com": [
+     "Domain(captive.apple.com)",
+     "DIRECT"
+    ],
+    "cdn.oaistatic.com": [
+     "DomainSuffix(oaistatic.com)",
+     "OpenAI"
+    ],
+    "challenges.cloudflare.com": [
+     "Domain(challenges.cloudflare.com)",
+     "国外默认"
+    ],
+    "chat.deepseek.com": [
+     "DomainSuffix(deepseek.com)",
+     "国内直连"
+    ],
+    "chat.qwen.ai": [
+     "DomainSuffix(qwen.ai)",
+     "国外默认"
+    ],
+    "chat.qwenlm.ai": [
+     "DomainSuffix(qwenlm.ai)",
+     "国外默认"
+    ],
+    "chatgpt.com": [
+     "DomainSuffix(chatgpt.com)",
+     "OpenAI"
+    ],
+    "chromium-review.googlesource.com": [
+     "DomainSuffix(googlesource.com)",
+     "Google"
+    ],
+    "claude.ai": [
+     "DomainSuffix(claude.ai)",
+     "Claude"
+    ],
+    "claude.app": [
+     "DomainSuffix(claude.app)",
+     "Claude"
+    ],
+    "cloudaicompanion.googleapis.com": [
+     "Domain(cloudaicompanion.googleapis.com)",
+     "Google AI"
+    ],
+    "cloudcode-pa.googleapis.com": [
+     "Domain(cloudcode-pa.googleapis.com)",
+     "Google AI"
+    ],
+    "cloudresourcemanager.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "collector.github.com": [
+     "DomainSuffix(collector.github.com)",
+     "GitHub"
+    ],
+    "contoso.sharepointonline.com": [
+     "DomainSuffix(sharepointonline.com)",
+     "Microsoft"
+    ],
+    "copilot-proxy.githubusercontent.com": [
+     "Domain(copilot-proxy.githubusercontent.com)",
+     "Copilot"
+    ],
+    "copilot-telemetry-service.githubusercontent.com": [
+     "Domain(copilot-telemetry-service.githubusercontent.com)",
+     "广告拦截"
+    ],
+    "copilot-telemetry.githubusercontent.com": [
+     "Domain(copilot-telemetry.githubusercontent.com)",
+     "Copilot"
+    ],
+    "copilot-workspace.githubnext.com": [
+     "Domain(copilot-workspace.githubnext.com)",
+     "Copilot"
+    ],
+    "copilot.com": [
+     "DomainSuffix(copilot.com)",
+     "Copilot"
+    ],
+    "copilot.microsoft.com": [
+     "DomainSuffix(copilot.microsoft.com)",
+     "Copilot"
+    ],
+    "d111111abcdef8.cloudfront.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "d25xi40x97liuc.cloudfront.net": [
+     "Domain(d25xi40x97liuc.cloudfront.net)",
+     "Prime Video"
+    ],
+    "daily-cloudcode-pa.googleapis.com": [
+     "Domain(daily-cloudcode-pa.googleapis.com)",
+     "Google AI"
+    ],
+    "default.exp-tas.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "discord.com": [
+     "DomainSuffix(discord.com)",
+     "Discord"
+    ],
+    "dl.delivery.mp.microsoft.com": [
+     "DomainSuffix(delivery.mp.microsoft.com)",
+     "国内直连"
+    ],
+    "dotnetcli.blob.core.windows.net": [
+     "Domain(dotnetcli.blob.core.windows.net)",
+     "开发下载"
+    ],
+    "downloads.claude.ai": [
+     "DomainSuffix(claude.ai)",
+     "Claude"
+    ],
+    "downloads.cursor.com": [
+     "DomainSuffix(cursor.com)",
+     "Grok"
+    ],
+    "example.cn": [
+     "GeoSite(cn)",
+     "国内直连"
+    ],
+    "example.ms": [
+     "GeoSite(cn)",
+     "国内直连"
+    ],
+    "f-radiko.smartstream.ne.jp": [
+     "DomainSuffix(smartstream.ne.jp)",
+     "日本影音"
+    ],
+    "fakegoogle.com": [
+     "Match",
+     "国外默认"
+    ],
+    "fe80::1": [
+     "IPCIDR(fe80::/10)",
+     "DIRECT"
+    ],
+    "feedback-pa.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "files.pythonhosted.org": [
+     "DomainSuffix(pythonhosted.org)",
+     "开发下载"
+    ],
+    "firebaselogging-pa.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "fls-na.amazon.com": [
+     "DomainSuffix(amazon.com)",
+     "国外默认"
+    ],
+    "fonts.gstatic.com": [
+     "DomainSuffix(gstatic.com)",
+     "Google"
+    ],
+    "foo.github.io": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "formulae.brew.sh": [
+     "DomainSuffix(brew.sh)",
+     "开发下载"
+    ],
+    "gemini.google.com": [
+     "Domain(gemini.google.com)",
+     "Google AI"
+    ],
+    "gemini.google.com.evil.example": [
+     "Match",
+     "国外默认"
+    ],
+    "gemini.gstatic.com": [
+     "DomainSuffix(gemini.gstatic.com)",
+     "Google AI"
+    ],
+    "generativelanguage.googleapis.com": [
+     "Domain(generativelanguage.googleapis.com)",
+     "Google AI"
+    ],
+    "get.pnpm.io": [
+     "Domain(get.pnpm.io)",
+     "开发下载"
+    ],
+    "ghcr.io": [
+     "DomainSuffix(ghcr.io)",
+     "GitHub"
+    ],
+    "github-cloud.s3.amazonaws.com": [
+     "Domain(github-cloud.s3.amazonaws.com)",
+     "GitHub"
+    ],
+    "github.com": [
+     "DomainSuffix(github.com)",
+     "GitHub"
+    ],
+    "global.edge.bamgrid.com": [
+     "DomainSuffix(bamgrid.com)",
+     "Disney+"
+    ],
+    "golang.org": [
+     "DomainSuffix(golang.org)",
+     "开发下载"
+    ],
+    "graph-fallback.instagram.com": [
+     "DomainSuffix(graph-fallback.instagram.com)",
+     "广告拦截"
+    ],
+    "graph.instagram.com": [
+     "DomainSuffix(graph.instagram.com)",
+     "Meta 社交"
+    ],
+    "grok.com": [
+     "DomainSuffix(grok.com)",
+     "Grok"
+    ],
+    "grok.x.com": [
+     "DomainSuffix(x.com)",
+     "X"
+    ],
+    "groq.com": [
+     "DomainSuffix(groq.com)",
+     "其他 AI"
+    ],
+    "guzzoni.apple.com": [
+     "Domain(guzzoni.apple.com)",
+     "Apple AI"
+    ],
+    "host.livekit.cloud": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "hulu.playback.edge.bamgrid.com": [
+     "Domain(hulu.playback.edge.bamgrid.com)",
+     "Hulu US"
+    ],
+    "humb.apple.com": [
+     "DomainSuffix(apple.com)",
+     "Apple"
+    ],
+    "i0.hdslb.com": [
+     "DomainSuffix(hdslb.com)",
+     "国内直连"
+    ],
+    "iadsdk.apple.com": [
+     "DomainSuffix(iadsdk.apple.com)",
+     "广告拦截"
+    ],
+    "images-eu.ssl-images-amazon.com": [
+     "DomainSuffix(ssl-images-amazon.com)",
+     "国外默认"
+    ],
+    "images-fe.ssl-images-amazon.com": [
+     "DomainSuffix(ssl-images-amazon.com)",
+     "国外默认"
+    ],
+    "images-na.ssl-images-amazon.com": [
+     "DomainSuffix(ssl-images-amazon.com)",
+     "国外默认"
+    ],
+    "images.workoscdn.com": [
+     "Match",
+     "国外默认"
+    ],
+    "itunes.apple.com": [
+     "DomainSuffix(apple.com)",
+     "Apple"
+    ],
+    "js.intercomcdn.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "js.stripe.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "jules.google.com": [
+     "DomainSuffix(jules.google.com)",
+     "Google AI"
+    ],
+    "lh3.googleusercontent.com": [
+     "DomainSuffix(googleusercontent.com)",
+     "Google"
+    ],
+    "lh5.ggpht.com": [
+     "DomainSuffix(ggpht.com)",
+     "Google"
+    ],
+    "lh5.googleusercontent.com": [
+     "DomainSuffix(googleusercontent.com)",
+     "Google"
+    ],
+    "line.me": [
+     "DomainSuffix(line.me)",
+     "LINE"
+    ],
+    "links.app.link": [
+     "DomainSuffix(app.link)",
+     "国外默认"
+    ],
+    "live.nicochannel.jp": [
+     "DomainSuffix(nicochannel.jp)",
+     "日本影音"
+    ],
+    "log.byteoversea.com": [
+     "Match",
+     "国外默认"
+    ],
+    "log.isnssdk.com": [
+     "DomainSuffix(isnssdk.com)",
+     "TikTok"
+    ],
+    "login.microsoftonline.com": [
+     "DomainSuffix(microsoftonline.com)",
+     "Microsoft"
+    ],
+    "m.media-amazon.com": [
+     "DomainSuffix(media-amazon.com)",
+     "国外默认"
+    ],
+    "marketplace.cursorapi.com": [
+     "DomainSuffix(cursorapi.com)",
+     "Grok"
+    ],
+    "mask.apple-dns.net": [
+     "Domain(mask.apple-dns.net)",
+     "Apple AI"
+    ],
+    "mmg.whatsapp.net": [
+     "DomainSuffix(whatsapp.net)",
+     "WhatsApp"
+    ],
+    "music.apple.com": [
+     "DomainSuffix(music.apple.com)",
+     "Apple Music/TV"
+    ],
+    "myvm.eastus.cloudapp.azure.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "nas.lan": [
+     "DomainSuffix(lan)",
+     "DIRECT"
+    ],
+    "netflixdnstest7.com": [
+     "DomainSuffix(netflixdnstest7.com)",
+     "Netflix"
+    ],
+    "notopenai.com": [
+     "Match",
+     "国外默认"
+    ],
+    "oauth2.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "occ-0-1.1.nflxso.net": [
+     "DomainSuffix(nflxso.net)",
+     "Netflix"
+    ],
+    "onedrive.live.com": [
+     "DomainSuffix(live.com)",
+     "Microsoft"
+    ],
+    "open.spotify.com": [
+     "DomainSuffix(spotify.com)",
+     "Spotify"
+    ],
+    "openai.com.evil.example": [
+     "Match",
+     "国外默认"
+    ],
+    "openaicom.imgix.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "other-bucket.s3.amazonaws.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
+     "DomainSuffix(ibyteimg.com)",
+     "TikTok"
+    ],
+    "pagead2.googlesyndication.com": [
+     "DomainSuffix(googlesyndication.com)",
+     "广告拦截"
+    ],
+    "pbs.twimg.com": [
+     "DomainSuffix(twimg.com)",
+     "X"
+    ],
+    "people.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "pixel.facebook.com": [
+     "DomainSuffix(pixel.facebook.com)",
+     "广告拦截"
+    ],
+    "platform.claude.com": [
+     "DomainSuffix(claude.com)",
+     "Claude"
+    ],
+    "play.max.com": [
+     "DomainSuffix(max.com)",
+     "Max"
+    ],
+    "poe.com": [
+     "DomainSuffix(poe.com)",
+     "其他 AI"
+    ],
+    "portal.azure.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "printer.local": [
+     "DomainSuffix(local)",
+     "DIRECT"
+    ],
+    "prod.hjholdings.tv": [
+     "DomainSuffix(prod.hjholdings.tv)",
+     "Hulu Japan"
+    ],
+    "proxy.golang.org": [
+     "Domain(proxy.golang.org)",
+     "开发下载"
+    ],
+    "pypi.org": [
+     "DomainSuffix(pypi.org)",
+     "开发下载"
+    ],
+    "qwen.ai": [
+     "DomainSuffix(qwen.ai)",
+     "国外默认"
+    ],
+    "raw.githubusercontent.com": [
+     "DomainSuffix(githubusercontent.com)",
+     "GitHub"
+    ],
+    "registry-1.docker.io": [
+     "DomainSuffix(docker.io)",
+     "开发下载"
+    ],
+    "registry.npmjs.org": [
+     "DomainSuffix(npmjs.org)",
+     "开发下载"
+    ],
+    "robinfrontend-pa.googleapis.com": [
+     "DomainSuffix(robinfrontend-pa.googleapis.com)",
+     "Google AI"
+    ],
+    "rr3---sn-a5mekn6s.googlevideo.com": [
+     "DomainSuffix(googlevideo.com)",
+     "YouTube"
+    ],
+    "s.youtube.com": [
+     "Domain(s.youtube.com)",
+     "YouTube"
+    ],
+    "s3.us-east-1.amazonaws.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "servd-anthropic-website.b-cdn.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "serviceusage.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "someone.blob.core.windows.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "sora.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "spotify.link": [
+     "DomainSuffix(spotify.link)",
+     "Spotify"
+    ],
+    "static.siege-amazon.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "stats.g.doubleclick.net": [
+     "DomainSuffix(doubleclick.net)",
+     "广告拦截"
+    ],
+    "stitch.withgoogle.com": [
+     "DomainSuffix(stitch.withgoogle.com)",
+     "Google AI"
+    ],
+    "storage.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
+    "sydney.bing.com": [
+     "Domain(sydney.bing.com)",
+     "Copilot"
+    ],
+    "t.appsflyer.com": [
+     "Match",
+     "国外默认"
+    ],
+    "t.co": [
+     "DomainSuffix(t.co)",
+     "X"
+    ],
+    "t.me": [
+     "DomainSuffix(t.me)",
+     "Telegram"
+    ],
+    "time.apple-dns.net": [
+     "DomainSuffix(apple-dns.net)",
+     "Apple"
+    ],
+    "tongyi.aliyun.com": [
+     "Domain(tongyi.aliyun.com)",
+     "国内直连"
+    ],
+    "turn.livekit.cloud": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "tv.apple.com": [
+     "DomainSuffix(tv.apple.com)",
+     "Apple Music/TV"
+    ],
+    "tver.jp": [
+     "DomainSuffix(tver.jp)",
+     "日本影音"
+    ],
+    "u123.ct.sendgrid.net": [
+     "DomainSuffix(ct.sendgrid.net)",
+     "国外默认"
+    ],
+    "unknown-cn.example": [
+     "GeoIP(cn)",
+     "国内直连"
+    ],
+    "unknown-foreign.example": [
+     "Match",
+     "国外默认"
+    ],
+    "user.wixsite.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "web.telegram.org": [
+     "DomainSuffix(telegram.org)",
+     "Telegram"
+    ],
+    "web.whatsapp.com": [
+     "DomainSuffix(whatsapp.com)",
+     "WhatsApp"
+    ],
+    "widget.intercom.io": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "wikipedia.org": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "workos.imgix.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "ws.chatgpt.com": [
+     "DomainSuffix(chatgpt.com)",
+     "OpenAI"
+    ],
+    "www.amazon.co.jp": [
+     "DomainSuffix(amazon.co.jp)",
+     "国外默认"
+    ],
+    "www.amazon.com": [
+     "DomainSuffix(amazon.com)",
+     "国外默认"
+    ],
+    "www.apple.com": [
+     "DomainSuffix(apple.com)",
+     "Apple"
+    ],
+    "www.baidu.com": [
+     "DomainSuffix(baidu.com)",
+     "国内直连"
+    ],
+    "www.bilibili.com": [
+     "DomainSuffix(bilibili.com)",
+     "国内直连"
+    ],
+    "www.bilibili.tv": [
+     "DomainSuffix(bilibili.tv)",
+     "其他流媒体"
+    ],
+    "www.bing.com": [
+     "DomainSuffix(bing.com)",
+     "Microsoft"
+    ],
+    "www.byteglb.com": [
+     "Match",
+     "国外默认"
+    ],
+    "www.byteoversea.net": [
+     "Match",
+     "国外默认"
+    ],
+    "www.crunchyroll.com": [
+     "DomainSuffix(crunchyroll.com)",
+     "其他流媒体"
+    ],
+    "www.disneyplus.com": [
+     "DomainSuffix(disneyplus.com)",
+     "Disney+"
+    ],
+    "www.dmm.com": [
+     "DomainSuffix(dmm.com)",
+     "DMM"
+    ],
+    "www.doubao.com": [
+     "DomainSuffix(doubao.com)",
+     "国内直连"
+    ],
+    "www.facebook.com": [
+     "DomainSuffix(facebook.com)",
+     "Meta 社交"
+    ],
+    "www.google.com": [
+     "DomainSuffix(google.com)",
+     "Google"
+    ],
+    "www.google.de": [
+     "DomainSuffix(google.de)",
+     "Google"
+    ],
+    "www.hjholdings.tv": [
+     "Match",
+     "国外默认"
+    ],
+    "www.hulu.com": [
+     "DomainSuffix(hulu.com)",
+     "Hulu US"
+    ],
+    "www.hulu.jp": [
+     "DomainSuffix(hulu.jp)",
+     "Hulu Japan"
+    ],
+    "www.icloud.com": [
+     "DomainSuffix(icloud.com)",
+     "Apple"
+    ],
+    "www.instagram.com": [
+     "DomainSuffix(instagram.com)",
+     "Meta 社交"
+    ],
+    "www.jd.com": [
+     "DomainSuffix(jd.com)",
+     "国内直连"
+    ],
+    "www.linkedin.com": [
+     "DomainSuffix(linkedin.com)",
+     "LinkedIn"
+    ],
+    "www.meta.ai": [
+     "DomainSuffix(meta.ai)",
+     "其他 AI"
+    ],
+    "www.microsoft.com": [
+     "DomainSuffix(microsoft.com)",
+     "Microsoft"
+    ],
+    "www.msftconnecttest.com": [
+     "DomainSuffix(msftconnecttest.com)",
+     "DIRECT"
+    ],
+    "www.netflix.com": [
+     "DomainSuffix(netflix.com)",
+     "Netflix"
+    ],
+    "www.nicovideo.jp": [
+     "DomainSuffix(nicovideo.jp)",
+     "日本影音"
+    ],
+    "www.paypal.com": [
+     "DomainSuffix(paypal.com)",
+     "PayPal"
+    ],
+    "www.paypalobjects.com": [
+     "DomainSuffix(paypalobjects.com)",
+     "PayPal"
+    ],
+    "www.perplexity.ai": [
+     "DomainSuffix(perplexity.ai)",
+     "其他 AI"
+    ],
+    "www.perplexity.com": [
+     "DomainSuffix(perplexity.com)",
+     "其他 AI"
+    ],
+    "www.primevideo.com": [
+     "DomainSuffix(primevideo.com)",
+     "Prime Video"
+    ],
+    "www.qianwen.com": [
+     "DomainSuffix(qianwen.com)",
+     "国内直连"
+    ],
+    "www.reddit.com": [
+     "DomainSuffix(reddit.com)",
+     "Reddit"
+    ],
+    "www.siriusxm.com": [
+     "Match",
+     "国外默认"
+    ],
+    "www.spacex.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "www.threads.com": [
+     "DomainSuffix(threads.com)",
+     "Meta 社交"
+    ],
+    "www.tiktok.com": [
+     "DomainSuffix(tiktok.com)",
+     "TikTok"
+    ],
+    "www.tongyi.com": [
+     "DomainSuffix(tongyi.com)",
+     "国内直连"
+    ],
+    "www.tubitv.com": [
+     "DomainSuffix(tubitv.com)",
+     "其他流媒体"
+    ],
+    "www.twitch.tv": [
+     "DomainSuffix(twitch.tv)",
+     "Twitch"
+    ],
+    "www.youtube.com": [
+     "DomainSuffix(youtube.com)",
+     "YouTube"
+    ],
+    "x.com": [
+     "DomainSuffix(x.com)",
+     "X"
+    ],
+    "x1.chatgpt.livekit.cloud": [
+     "DomainSuffix(chatgpt.livekit.cloud)",
+     "OpenAI"
+    ],
+    "youtubeembeddedplayer.googleapis.com": [
+     "DomainSuffix(youtubeembeddedplayer.googleapis.com)",
+     "YouTube"
+    ],
+    "youtubei.googleapis.com": [
+     "Domain(youtubei.googleapis.com)",
+     "YouTube"
+    ],
+    "yt3.ggpht.com": [
+     "Domain(yt3.ggpht.com)",
+     "YouTube"
+    ],
+    "yt3.googleusercontent.com": [
+     "Domain(yt3.googleusercontent.com)",
+     "YouTube"
+    ],
+    "yuanbao.tencent.com": [
+     "Domain(yuanbao.tencent.com)",
+     "国内直连"
+    ]
+   },
+   "routing_sha256": "8ff13365f581e712d8caaaaac696258aa200d032fcddd0543905d6ecbd8adb50",
+   "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
+  },
+  "singbox": {
+   "config": "sing-box/sing-box-1.14.json",
+   "config_sha256": "4398f35b5e0c993e12f3d2ef4418364c4003bcac09d7397b98684c2897bf5954",
+   "dial": {
+    "direct nas.lan": "dns-local",
+    "direct www.baidu.com": "dns-cn",
+    "node gateway.lan": "dns-local",
+    "node homeproxy": "dns-local",
+    "node lan.example.com": "dns-cn",
+    "node node.example.com": "dns-cn",
+    "node proxy.home.arpa": "dns-local"
+   },
+   "dial_without_fix": {
+    "direct nas.lan": "dns-cn",
+    "direct www.baidu.com": "dns-cn",
+    "node gateway.lan": "dns-cn",
+    "node homeproxy": "dns-cn",
+    "node lan.example.com": "dns-cn",
+    "node node.example.com": "dns-cn",
+    "node proxy.home.arpa": "dns-cn"
+   },
+   "dns": {
+    "api.bilibili.com A": "dns-fakeip",
+    "api.bilibili.com HTTPS": "dns-foreign",
+    "captive.apple.com A": "dns-cn",
+    "chat.qwen.ai A": "dns-fakeip",
+    "chat.qwen.ai HTTPS": "dns-foreign",
+    "chatgpt.com A": "dns-fakeip",
+    "chatgpt.com HTTPS": "dns-foreign",
+    "dl.delivery.mp.microsoft.com A": "dns-cn",
+    "guzzoni.apple.com A": "dns-fakeip",
+    "music.apple.com A": "dns-fakeip",
+    "nas.lan A": "dns-local",
+    "unknown-foreign.example A": "dns-fakeip",
+    "unknown-foreign.example HTTPS": "dns-foreign",
+    "www.apple.com.cn A": "dns-fakeip",
+    "www.baidu.com A": "dns-cn",
+    "www.baidu.com HTTPS": "dns-cn",
+    "www.bilibili.com A": "dns-cn",
+    "www.google.cn A": "dns-fakeip",
+    "www.microsoft.com A": "dns-fakeip",
+    "www.qianwen.com A": "dns-cn",
+    "www.recaptcha.net A": "dns-fakeip"
+   },
+   "routes": {
+    "1.2.4.8": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "10.0.0.8": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "149.154.167.51": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "192.168.1.1": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "2001:67c:4e8::1": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "240e::1": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "8.8.8.8": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "91.108.56.100": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "a.b.cursorvm.com": [
+     "domain_suffix=cursorvm.com",
+     "远程控制"
+    ],
+    "abc.cursorvm.com": [
+     "domain_suffix=cursorvm.com",
+     "远程控制"
+    ],
+    "abc.hf.space": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "abema.tv": [
+     "domain=[abematv.akamaized.net linear-abematv.akamaized.net ds-linear-abematv.akamaized.net...] domain_suffix=[abema.tv a",
+     "Abema"
+    ],
+    "accounts.google.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "accounts.spacex.ai": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "accounts.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "ad.12306.cn": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "ads.twitter.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "ads.viber.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "ads.yahoo.com": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "adservice.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "agent.global.api5.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "aistudio.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "aka.ms": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "alkalicore-pa.clients6.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "analytics.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "ani.gamer.com.tw": [
+     "domain=[bahamut.akamaized.net gamer-cds.cdn.hinet.net gamer2-cds.cdn.hinet.net] domain_suffix=[gamer.com.tw bahamut.com.",
+     "Bahamut"
+    ],
+    "antigravity.google": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "anysphere-binaries.s3.us-east-1.amazonaws.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "aod.itunes.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "api.anthropic.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "api.bilibili.com": [
+     "domain=[api.bilibili.com app.bilibili.com bangumi.bilibili.com...]",
+     "Bilibili 港澳台"
+    ],
+    "api.dmmapis.com": [
+     "domain_suffix=[dmm.com dmm.co.jp dmm-extension.com...]",
+     "DMM"
+    ],
+    "api.github.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "api.githubcopilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "api.individual.githubcopilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "api.openai.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "api.workos.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "api.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "api2.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "api5.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "apihub.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "app-measurement.com": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "atv-ps-fe.amazon.co.jp": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "atv-ps.amazon.com": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "audio4-ak-spotify-com.akamaized.net": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "auth.grok.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.grokipedia.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.grokusercontent.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "bootstrap.pypa.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "captive.apple.com": [
+     "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
+     "DIRECT"
+    ],
+    "cdn.oaistatic.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "challenges.cloudflare.com": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "chat.deepseek.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "chat.qwen.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "chat.qwenlm.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "chatgpt.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "chromium-review.googlesource.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "claude.ai": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "claude.app": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "cloudaicompanion.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "cloudcode-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "cloudresourcemanager.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "collector.github.com": [
+     "domain_suffix=collector.github.com",
+     "GitHub"
+    ],
+    "contoso.sharepointonline.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "copilot-proxy.githubusercontent.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot-telemetry-service.githubusercontent.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "copilot-telemetry.githubusercontent.com": [
+     "domain=copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot-workspace.githubnext.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot.microsoft.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "d111111abcdef8.cloudfront.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "d25xi40x97liuc.cloudfront.net": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "daily-cloudcode-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "default.exp-tas.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "discord.com": [
+     "domain_suffix=[discord.com discord.gg discord.co...]",
+     "Discord"
+    ],
+    "dl.delivery.mp.microsoft.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "dotnetcli.blob.core.windows.net": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "downloads.claude.ai": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "downloads.cursor.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "example.cn": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
+    "example.ms": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "f-radiko.smartstream.ne.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "fakegoogle.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "fe80::1": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "feedback-pa.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "files.pythonhosted.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "firebaselogging-pa.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "fls-na.amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "fonts.gstatic.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "foo.github.io": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "formulae.brew.sh": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "gemini.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "gemini.google.com.evil.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "gemini.gstatic.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "generativelanguage.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "get.pnpm.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "ghcr.io": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "github-cloud.s3.amazonaws.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "github.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "global.edge.bamgrid.com": [
+     "domain_suffix=bamgrid.com",
+     "Disney+"
+    ],
+    "golang.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "graph-fallback.instagram.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "graph.instagram.com": [
+     "domain_suffix=graph.instagram.com",
+     "Meta 社交"
+    ],
+    "grok.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "grok.x.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "groq.com": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "guzzoni.apple.com": [
+     "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
+     "Apple AI"
+    ],
+    "host.livekit.cloud": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "hulu.playback.edge.bamgrid.com": [
+     "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
+     "Hulu US"
+    ],
+    "humb.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "i0.hdslb.com": [
+     "domain_suffix=[bilibili.com bilivideo.com bilivideo.cn...]",
+     "国内直连"
+    ],
+    "iadsdk.apple.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "images-eu.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images-fe.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images-na.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images.workoscdn.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "itunes.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "js.intercomcdn.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "js.stripe.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "jules.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "lh3.googleusercontent.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "lh5.ggpht.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "lh5.googleusercontent.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "line.me": [
+     "domain=line.naver.jp domain_suffix=[line.me line-apps.com line-scdn.net...]",
+     "LINE"
+    ],
+    "links.app.link": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "live.nicochannel.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "log.byteoversea.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "log.isnssdk.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "login.microsoftonline.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "m.media-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "marketplace.cursorapi.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "mask.apple-dns.net": [
+     "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
+     "Apple AI"
+    ],
+    "mmg.whatsapp.net": [
+     "domain_suffix=[whatsapp.com whatsapp.net wa.me]",
+     "WhatsApp"
+    ],
+    "music.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "myvm.eastus.cloudapp.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "nas.lan": [
+     "domain_suffix=[lan local localdomain...]",
+     "DIRECT"
+    ],
+    "netflixdnstest7.com": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "notopenai.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "oauth2.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "occ-0-1.1.nflxso.net": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "onedrive.live.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "open.spotify.com": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "openai.com.evil.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "openaicom.imgix.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "other-bucket.s3.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "pagead2.googlesyndication.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "pbs.twimg.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "people.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "pixel.facebook.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "platform.claude.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "play.max.com": [
+     "domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
+    ],
+    "poe.com": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "portal.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "printer.local": [
+     "domain_suffix=[lan local localdomain...]",
+     "DIRECT"
+    ],
+    "prod.hjholdings.tv": [
+     "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
+     "Hulu Japan"
+    ],
+    "proxy.golang.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "pypi.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "qwen.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "raw.githubusercontent.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "registry-1.docker.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "registry.npmjs.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "robinfrontend-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "rr3---sn-a5mekn6s.googlevideo.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "s.youtube.com": [
+     "domain=s.youtube.com",
+     "YouTube"
+    ],
+    "s3.us-east-1.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "servd-anthropic-website.b-cdn.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "serviceusage.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "someone.blob.core.windows.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "sora.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "spotify.link": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "static.siege-amazon.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "stats.g.doubleclick.net": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "stitch.withgoogle.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "storage.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "sydney.bing.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "t.appsflyer.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "t.co": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "t.me": [
+     "domain_suffix=[telegram.org t.me telegram.me...]",
+     "Telegram"
+    ],
+    "time.apple-dns.net": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "tongyi.aliyun.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "turn.livekit.cloud": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "tv.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "tver.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "u123.ct.sendgrid.net": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "unknown-cn.example": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "unknown-foreign.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "user.wixsite.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "web.telegram.org": [
+     "domain_suffix=[telegram.org t.me telegram.me...]",
+     "Telegram"
+    ],
+    "web.whatsapp.com": [
+     "domain_suffix=[whatsapp.com whatsapp.net wa.me]",
+     "WhatsApp"
+    ],
+    "widget.intercom.io": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "wikipedia.org": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "workos.imgix.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "ws.chatgpt.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "www.amazon.co.jp": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "www.amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "www.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "www.baidu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "www.bilibili.com": [
+     "domain_suffix=[bilibili.com bilivideo.com bilivideo.cn...]",
+     "国内直连"
+    ],
+    "www.bilibili.tv": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.bing.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "www.byteglb.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.byteoversea.net": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.crunchyroll.com": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.disneyplus.com": [
+     "domain_suffix=[disneyplus.com disney-plus.net dssott.com...]",
+     "Disney+"
+    ],
+    "www.dmm.com": [
+     "domain_suffix=[dmm.com dmm.co.jp dmm-extension.com...]",
+     "DMM"
+    ],
+    "www.doubao.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.facebook.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.google.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.google.de": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.hjholdings.tv": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.hulu.com": [
+     "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
+     "Hulu US"
+    ],
+    "www.hulu.jp": [
+     "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
+     "Hulu Japan"
+    ],
+    "www.icloud.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "www.instagram.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.jd.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "www.linkedin.com": [
+     "domain_suffix=[linkedin.com licdn.com lnkd.in]",
+     "LinkedIn"
+    ],
+    "www.meta.ai": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "www.microsoft.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "www.msftconnecttest.com": [
+     "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
+     "DIRECT"
+    ],
+    "www.netflix.com": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "www.nicovideo.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "www.paypal.com": [
+     "domain_suffix=[paypal.com paypalobjects.com paypal.me]",
+     "PayPal"
+    ],
+    "www.paypalobjects.com": [
+     "domain_suffix=[paypal.com paypalobjects.com paypal.me]",
+     "PayPal"
+    ],
+    "www.perplexity.ai": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "www.perplexity.com": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "www.primevideo.com": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "www.qianwen.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.reddit.com": [
+     "domain_suffix=[reddit.com redd.it redditmedia.com...]",
+     "Reddit"
+    ],
+    "www.siriusxm.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.spacex.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "www.threads.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.tiktok.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "www.tongyi.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.tubitv.com": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.twitch.tv": [
+     "domain_suffix=[twitch.tv ttvnw.net jtvnw.net...]",
+     "Twitch"
+    ],
+    "www.youtube.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "x.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "x1.chatgpt.livekit.cloud": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "youtubeembeddedplayer.googleapis.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "youtubei.googleapis.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yt3.ggpht.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yt3.googleusercontent.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yuanbao.tencent.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ]
+   },
+   "routing_sha256": "4e91a3f613c17d039813d7fe4eb61dfe4ece3f8ae5d013e7e734bf5e8d82031e",
+   "version": "sing-box version 1.14.1"
+  },
+  "singbox112": {
+   "config": "sing-box/sing-box-1.12.json",
+   "config_sha256": "1883187cf9d48e505a65dba708984d5a0c6227e7d410353484f5d551c826dfde",
+   "dial": {
+    "direct nas.lan": "dns-local",
+    "direct www.baidu.com": "dns-cn",
+    "node gateway.lan": "dns-local",
+    "node homeproxy": "dns-local",
+    "node lan.example.com": "dns-cn",
+    "node node.example.com": "dns-cn",
+    "node proxy.home.arpa": "dns-local"
+   },
+   "dial_without_fix": {
+    "direct nas.lan": "dns-cn",
+    "direct www.baidu.com": "dns-cn",
+    "node gateway.lan": "dns-cn",
+    "node homeproxy": "dns-cn",
+    "node lan.example.com": "dns-cn",
+    "node node.example.com": "dns-cn",
+    "node proxy.home.arpa": "dns-cn"
+   },
+   "dns": {
+    "api.bilibili.com A": "dns-fakeip",
+    "api.bilibili.com HTTPS": "dns-foreign",
+    "captive.apple.com A": "dns-cn",
+    "chat.qwen.ai A": "dns-fakeip",
+    "chat.qwen.ai HTTPS": "dns-foreign",
+    "chatgpt.com A": "dns-fakeip",
+    "chatgpt.com HTTPS": "dns-foreign",
+    "dl.delivery.mp.microsoft.com A": "dns-cn",
+    "guzzoni.apple.com A": "dns-fakeip",
+    "music.apple.com A": "dns-fakeip",
+    "nas.lan A": "dns-local",
+    "unknown-foreign.example A": "dns-fakeip",
+    "unknown-foreign.example HTTPS": "dns-foreign",
+    "www.apple.com.cn A": "dns-fakeip",
+    "www.baidu.com A": "dns-cn",
+    "www.baidu.com HTTPS": "dns-cn",
+    "www.bilibili.com A": "dns-cn",
+    "www.google.cn A": "dns-fakeip",
+    "www.microsoft.com A": "dns-fakeip",
+    "www.qianwen.com A": "dns-cn",
+    "www.recaptcha.net A": "dns-fakeip"
+   },
+   "routes": {
+    "1.2.4.8": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "10.0.0.8": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "149.154.167.51": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "192.168.1.1": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "2001:67c:4e8::1": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "240e::1": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "8.8.8.8": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "91.108.56.100": [
+     "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
+     "Telegram"
+    ],
+    "a.b.cursorvm.com": [
+     "domain_suffix=cursorvm.com",
+     "远程控制"
+    ],
+    "abc.cursorvm.com": [
+     "domain_suffix=cursorvm.com",
+     "远程控制"
+    ],
+    "abc.hf.space": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "abema.tv": [
+     "domain=[abematv.akamaized.net linear-abematv.akamaized.net ds-linear-abematv.akamaized.net...] domain_suffix=[abema.tv a",
+     "Abema"
+    ],
+    "accounts.google.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "accounts.spacex.ai": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "accounts.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "ad.12306.cn": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "ads.twitter.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "ads.viber.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "ads.yahoo.com": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "adservice.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "agent.global.api5.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "aistudio.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "aka.ms": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "alkalicore-pa.clients6.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "analytics.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "ani.gamer.com.tw": [
+     "domain=[bahamut.akamaized.net gamer-cds.cdn.hinet.net gamer2-cds.cdn.hinet.net] domain_suffix=[gamer.com.tw bahamut.com.",
+     "Bahamut"
+    ],
+    "antigravity.google": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "anysphere-binaries.s3.us-east-1.amazonaws.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "aod.itunes.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "api.anthropic.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "api.bilibili.com": [
+     "domain=[api.bilibili.com app.bilibili.com bangumi.bilibili.com...]",
+     "Bilibili 港澳台"
+    ],
+    "api.dmmapis.com": [
+     "domain_suffix=[dmm.com dmm.co.jp dmm-extension.com...]",
+     "DMM"
+    ],
+    "api.github.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "api.githubcopilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "api.individual.githubcopilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "api.openai.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "api.workos.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "api.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "api2.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "api5.cursor.sh": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "apihub.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "app-measurement.com": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
+    ],
+    "atv-ps-fe.amazon.co.jp": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "atv-ps.amazon.com": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "audio4-ak-spotify-com.akamaized.net": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "auth.grok.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.grokipedia.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.grokusercontent.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "auth.x.ai": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "bootstrap.pypa.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "captive.apple.com": [
+     "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
+     "DIRECT"
+    ],
+    "cdn.oaistatic.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "challenges.cloudflare.com": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "chat.deepseek.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "chat.qwen.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "chat.qwenlm.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "chatgpt.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "chromium-review.googlesource.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "claude.ai": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "claude.app": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "cloudaicompanion.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "cloudcode-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "cloudresourcemanager.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "collector.github.com": [
+     "domain_suffix=collector.github.com",
+     "GitHub"
+    ],
+    "contoso.sharepointonline.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "copilot-proxy.githubusercontent.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot-telemetry-service.githubusercontent.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "copilot-telemetry.githubusercontent.com": [
+     "domain=copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot-workspace.githubnext.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "copilot.microsoft.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "d111111abcdef8.cloudfront.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "d25xi40x97liuc.cloudfront.net": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "daily-cloudcode-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "default.exp-tas.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "discord.com": [
+     "domain_suffix=[discord.com discord.gg discord.co...]",
+     "Discord"
+    ],
+    "dl.delivery.mp.microsoft.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "dotnetcli.blob.core.windows.net": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "downloads.claude.ai": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "downloads.cursor.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "example.cn": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
+    "example.ms": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "f-radiko.smartstream.ne.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "fakegoogle.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "fe80::1": [
+     "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
+     "DIRECT"
+    ],
+    "feedback-pa.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "files.pythonhosted.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "firebaselogging-pa.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "fls-na.amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "fonts.gstatic.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "foo.github.io": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "formulae.brew.sh": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "gemini.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "gemini.google.com.evil.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "gemini.gstatic.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "generativelanguage.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "get.pnpm.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "ghcr.io": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "github-cloud.s3.amazonaws.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "github.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "global.edge.bamgrid.com": [
+     "domain_suffix=bamgrid.com",
+     "Disney+"
+    ],
+    "golang.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "graph-fallback.instagram.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "graph.instagram.com": [
+     "domain_suffix=graph.instagram.com",
+     "Meta 社交"
+    ],
+    "grok.com": [
+     "domain_suffix=[x.ai grok.com grokipedia.com...]",
+     "Grok"
+    ],
+    "grok.x.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "groq.com": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "guzzoni.apple.com": [
+     "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
+     "Apple AI"
+    ],
+    "host.livekit.cloud": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "hulu.playback.edge.bamgrid.com": [
+     "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
+     "Hulu US"
+    ],
+    "humb.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "i0.hdslb.com": [
+     "domain_suffix=[bilibili.com bilivideo.com bilivideo.cn...]",
+     "国内直连"
+    ],
+    "iadsdk.apple.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "images-eu.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images-fe.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images-na.ssl-images-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "images.workoscdn.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "itunes.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "js.intercomcdn.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "js.stripe.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "jules.google.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "lh3.googleusercontent.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "lh5.ggpht.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "lh5.googleusercontent.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "line.me": [
+     "domain=line.naver.jp domain_suffix=[line.me line-apps.com line-scdn.net...]",
+     "LINE"
+    ],
+    "links.app.link": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "live.nicochannel.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "log.byteoversea.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "log.isnssdk.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "login.microsoftonline.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "m.media-amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "marketplace.cursorapi.com": [
+     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "Grok"
+    ],
+    "mask.apple-dns.net": [
+     "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
+     "Apple AI"
+    ],
+    "mmg.whatsapp.net": [
+     "domain_suffix=[whatsapp.com whatsapp.net wa.me]",
+     "WhatsApp"
+    ],
+    "music.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "myvm.eastus.cloudapp.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "nas.lan": [
+     "domain_suffix=[lan local localdomain...]",
+     "DIRECT"
+    ],
+    "netflixdnstest7.com": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "notopenai.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "oauth2.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "occ-0-1.1.nflxso.net": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "onedrive.live.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "open.spotify.com": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "openai.com.evil.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "openaicom.imgix.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "other-bucket.s3.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "pagead2.googlesyndication.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "pbs.twimg.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "people.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "pixel.facebook.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "platform.claude.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "play.max.com": [
+     "domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
+    ],
+    "poe.com": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "portal.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "printer.local": [
+     "domain_suffix=[lan local localdomain...]",
+     "DIRECT"
+    ],
+    "prod.hjholdings.tv": [
+     "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
+     "Hulu Japan"
+    ],
+    "proxy.golang.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "pypi.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "qwen.ai": [
+     "domain_suffix=[qwen.ai qwenlm.ai]",
+     "国外默认"
+    ],
+    "raw.githubusercontent.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
+    ],
+    "registry-1.docker.io": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "registry.npmjs.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
+    "robinfrontend-pa.googleapis.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "rr3---sn-a5mekn6s.googlevideo.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "s.youtube.com": [
+     "domain=s.youtube.com",
+     "YouTube"
+    ],
+    "s3.us-east-1.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "servd-anthropic-website.b-cdn.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "serviceusage.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "someone.blob.core.windows.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "sora.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "spotify.link": [
+     "domain=[audio-ak-spotify-com.akamaized.net audio4-ak-spotify-com.akamaized.net heads-ak-spotify-com.akamaized.net...] do",
+     "Spotify"
+    ],
+    "static.siege-amazon.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "stats.g.doubleclick.net": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "stitch.withgoogle.com": [
+     "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
+     "Google AI"
+    ],
+    "storage.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "sydney.bing.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "t.appsflyer.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "t.co": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "t.me": [
+     "domain_suffix=[telegram.org t.me telegram.me...]",
+     "Telegram"
+    ],
+    "time.apple-dns.net": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "tongyi.aliyun.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "turn.livekit.cloud": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "tv.apple.com": [
+     "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
+     "Apple Music/TV"
+    ],
+    "tver.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "u123.ct.sendgrid.net": [
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "国外默认"
+    ],
+    "unknown-cn.example": [
+     "rule_set=geoip-cn",
+     "国内直连"
+    ],
+    "unknown-foreign.example": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "user.wixsite.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "web.telegram.org": [
+     "domain_suffix=[telegram.org t.me telegram.me...]",
+     "Telegram"
+    ],
+    "web.whatsapp.com": [
+     "domain_suffix=[whatsapp.com whatsapp.net wa.me]",
+     "WhatsApp"
+    ],
+    "widget.intercom.io": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "wikipedia.org": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "workos.imgix.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "ws.chatgpt.com": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "www.amazon.co.jp": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "www.amazon.com": [
+     "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
+     "国外默认"
+    ],
+    "www.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "www.baidu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "www.bilibili.com": [
+     "domain_suffix=[bilibili.com bilivideo.com bilivideo.cn...]",
+     "国内直连"
+    ],
+    "www.bilibili.tv": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.bing.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "www.byteglb.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.byteoversea.net": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.crunchyroll.com": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.disneyplus.com": [
+     "domain_suffix=[disneyplus.com disney-plus.net dssott.com...]",
+     "Disney+"
+    ],
+    "www.dmm.com": [
+     "domain_suffix=[dmm.com dmm.co.jp dmm-extension.com...]",
+     "DMM"
+    ],
+    "www.doubao.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.facebook.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.google.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.google.de": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.hjholdings.tv": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.hulu.com": [
+     "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
+     "Hulu US"
+    ],
+    "www.hulu.jp": [
+     "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
+     "Hulu Japan"
+    ],
+    "www.icloud.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "www.instagram.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.jd.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
+    "www.linkedin.com": [
+     "domain_suffix=[linkedin.com licdn.com lnkd.in]",
+     "LinkedIn"
+    ],
+    "www.meta.ai": [
+     "domain_suffix=[mistral.ai character.ai midjourney.com...]",
+     "其他 AI"
+    ],
+    "www.microsoft.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
+    ],
+    "www.msftconnecttest.com": [
+     "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
+     "DIRECT"
+    ],
+    "www.netflix.com": [
+     "domain_suffix=[netflix.com netflix.net nflxext.com...]",
+     "Netflix"
+    ],
+    "www.nicovideo.jp": [
+     "domain_suffix=[nicovideo.jp nimg.jp dmc.nico...]",
+     "日本影音"
+    ],
+    "www.paypal.com": [
+     "domain_suffix=[paypal.com paypalobjects.com paypal.me]",
+     "PayPal"
+    ],
+    "www.paypalobjects.com": [
+     "domain_suffix=[paypal.com paypalobjects.com paypal.me]",
+     "PayPal"
+    ],
+    "www.perplexity.ai": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "www.perplexity.com": [
+     "domain=[ppl-ai-file-upload.s3.amazonaws.com pplx-res.cloudinary.com] domain_suffix=[perplexity.ai pplx.ai perplexity.com",
+     "其他 AI"
+    ],
+    "www.primevideo.com": [
+     "domain=[atv-ps.amazon.com msh.amazon.co.uk d1v5ir2lpwr8os.cloudfront.net...] domain_suffix=[primevideo.com aiv-cdn.net a",
+     "Prime Video"
+    ],
+    "www.qianwen.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.reddit.com": [
+     "domain_suffix=[reddit.com redd.it redditmedia.com...]",
+     "Reddit"
+    ],
+    "www.siriusxm.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "www.spacex.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "www.threads.com": [
+     "domain_suffix=[facebook.com facebook.net fb.com...]",
+     "Meta 社交"
+    ],
+    "www.tiktok.com": [
+     "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
+     "TikTok"
+    ],
+    "www.tongyi.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ],
+    "www.tubitv.com": [
+     "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
+     "其他流媒体"
+    ],
+    "www.twitch.tv": [
+     "domain_suffix=[twitch.tv ttvnw.net jtvnw.net...]",
+     "Twitch"
+    ],
+    "www.youtube.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "x.com": [
+     "domain_suffix=[x.com twitter.com twimg.com...]",
+     "X"
+    ],
+    "x1.chatgpt.livekit.cloud": [
+     "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
+     "OpenAI"
+    ],
+    "youtubeembeddedplayer.googleapis.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "youtubei.googleapis.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yt3.ggpht.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yt3.googleusercontent.com": [
+     "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
+     "YouTube"
+    ],
+    "yuanbao.tencent.com": [
+     "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
+     "国内直连"
+    ]
+   },
+   "routing_sha256": "6b9df15f01cb90b11923e2f204e62ee15edd3ffbfd59d5e1962f3acc72b56203",
+   "version": "sing-box version 1.12.0"
+  }
+ },
+ "sizes": {
+  "loon": {
+   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list": {
+    "domain": 0,
+    "ignored": {
+     "URL-REGEX": 2
+    },
+    "ip": 187,
+    "keyword": 187,
+    "suffix": 0
+   },
+   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": {
+    "domain": 23753,
+    "ignored": {},
+    "ip": 0,
+    "keyword": 0,
+    "suffix": 13939
+   }
+  },
+  "mihomo": {
+   "category-ads-all": 911,
+   "cn": 111224,
+   "geolocation-!cn": 27217
+  },
+  "mihomo_geoip_cn": 9648,
+  "quantumultx": {
+   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": {
+    "domain": 23753,
+    "ignored": {},
+    "ip": 187,
+    "keyword": 187,
+    "suffix": 13939
+   }
+  },
+  "singbox": {
+   "geosite-category-ads-all": 911,
+   "geosite-cn": 9303,
+   "geosite-geolocation-!cn": 23905
+  },
+  "singbox_ip": {
+   "geoip-cn": 8045
+  }
+ },
+ "source_version": "2026.10.05-1",
+ "sources": {
+  "loon": {
+   "AdvertisingLite.list": {
+    "bytes": 12884,
+    "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
+    "sha256": "613a96d2485716a9bdb663844d947267cd6c344d6d7461ad3b579c3c4f5aea41"
+   },
+   "AdvertisingLite_Domain.list": {
+    "bytes": 595785,
+    "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
+    "sha256": "90fc37c6affc550aa62f8449ee69fae42113f70a66906cf2a6cfafd8b76c2bde"
+   }
+  },
+  "mihomo": {
+   "geoip.dat": {
+    "bytes": 16515432,
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "sha256": "391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd"
+   },
+   "geoip.metadb": {
+    "bytes": 8389459,
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "sha256": "2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2"
+   },
+   "geosite.dat": {
+    "bytes": 4253623,
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "sha256": "79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134"
+   }
+  },
+  "quantumultx": {
+   "AdvertisingLite.list": {
+    "bytes": 1486832,
+    "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
+    "sha256": "566865dfe8f72c1145567c05d0a72ab8111443f4cddc9a8d636e7cfa756b8e10"
+   }
+  },
+  "singbox": {
+   "geoip-cn.srs": {
+    "bytes": 34185,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "sha256": "ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc"
+   },
+   "geosite-category-ads-all.srs": {
+    "bytes": 8244,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "sha256": "a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324"
+   },
+   "geosite-cn.srs": {
+    "bytes": 56145,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "sha256": "fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c"
+   },
+   "geosite-geolocation-!cn.srs": {
+    "bytes": 168020,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
+   }
+  }
+ },
+ "without_corrections": {
+  "mihomo chat.qwen.ai": {
+   "correction_needed": true,
+   "group": "国内直连",
+   "rule": "GeoSite(cn)"
+  },
+  "singbox chat.qwen.ai": {
+   "correction_needed": true,
+   "group": "国内直连",
+   "rule": "rule_set=geosite-cn"
+  },
+  "singbox dns chat.qwen.ai": {
+   "correction_needed": true,
+   "server": "dns-cn"
+  },
+  "singbox dns music.apple.com": {
+   "correction_needed": true,
+   "server": "dns-cn"
+  }
+ }
+}

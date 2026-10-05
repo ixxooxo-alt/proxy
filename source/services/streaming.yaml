@@ -22,7 +22,7 @@ services:
       - {domain: yt3.ggpht.com, ev: dlc, note: 频道头像；ggpht.com 其余归 Google}
       - {domain: yt3.googleusercontent.com, ev: dlc, note: 频道头像与横幅；googleusercontent.com 其余归 Google}
     shared_excluded:
-      - {host: ggpht.com, ev: dlc, why: 上游把整个 ggpht.com 归 youtube；它也承载 Google Play、Blogger 等图片，本项目只把 yt3.ggpht.com 归 YouTube，其余归 Google}
+      - {host: ggpht.com, ev: dlc, to: Google, probe: [lh5.ggpht.com], why: 上游把整个 ggpht.com 归 youtube；它也承载 Google Play、Blogger 等图片，本项目只把 yt3.ggpht.com 归 YouTube，其余归 Google}
       - {host: "youtube-ui.l.google.com / wide-youtube.l.google.com", ev: dlc, why: CNAME 目标，客户端不直接请求}
 
   - id: netflix
@@ -100,10 +100,10 @@ services:
       - {domain: dmqdd6hw24ucf.cloudfront.net, ev: dlc}
       - {domain: avodmp4s3ww-a.akamaihd.net, ev: bm7-snap, note: 专属 Akamai 主机}
     shared_excluded:
-      - {host: media-amazon.com, ev: maintainer, why: 与 Amazon 购物共用的图片域名 → Amazon 通用（国外默认）}
-      - {host: "images-na / images-eu / images-fe.ssl-images-amazon.com", ev: dlc, why: 上游 primevideo 列表收录，但与 Amazon 购物共用 → Amazon 通用（国外默认）}
-      - {host: static.siege-amazon.com, ev: dlc, why: 上游收录；用途未核实，可能与 Amazon 购物页面共用，未收录（落入国外默认）}
-      - {host: "www.amazon.com / fls-na.amazon.com", ev: bm7-snap, why: bm7 PrimeVideo 收录，但属于 Amazon 购物 / 通用日志 → Amazon 通用}
+      - {host: media-amazon.com, ev: maintainer, to: 国外默认, probe: [m.media-amazon.com], why: 与 Amazon 购物共用的图片域名 → Amazon 通用（国外默认）}
+      - {host: "images-na / images-eu / images-fe.ssl-images-amazon.com", ev: dlc, to: 国外默认, probe: [images-na.ssl-images-amazon.com, images-eu.ssl-images-amazon.com, images-fe.ssl-images-amazon.com], why: 上游 primevideo 列表收录，但与 Amazon 购物共用 → Amazon 通用（国外默认）}
+      - {host: static.siege-amazon.com, ev: dlc, to: 国外默认, probe: [static.siege-amazon.com], why: 上游收录；用途未核实，可能与 Amazon 购物页面共用，未收录（落入国外默认）}
+      - {host: "www.amazon.com / fls-na.amazon.com", ev: bm7-snap, to: 国外默认, probe: [www.amazon.com, fls-na.amazon.com], why: bm7 PrimeVideo 收录，但属于 Amazon 购物 / 通用日志 → Amazon 通用}
 
   - id: hulu_us
     group: Hulu US
@@ -197,6 +197,7 @@ services:
       - {suffix: spotifycdn.net, ev: dlc}
       - {suffix: pscdn.co, ev: dlc}
       - {suffix: spoti.fi, ev: dlc}
+      - {suffix: spotify.link, ev: dlc, note: 分享短链；Spotify 官方 oEmbed 文档也列出（2026-09-30 审核 D03）}
       - {domain: audio-ak-spotify-com.akamaized.net, ev: dlc}
       - {domain: audio4-ak-spotify-com.akamaized.net, ev: dlc}
       - {domain: heads-ak-spotify-com.akamaized.net, ev: dlc}
@@ -230,9 +231,6 @@ services:
       - {suffix: tiktokminis.us, ev: dlc}
       - {suffix: tiktokglobalshopv.com, ev: dlc}
       - {suffix: bytedapm.com, ev: dlc, note: 性能监控}
-      - {suffix: byteoversea.com, ev: dlc, note: 字节海外共用，归 TikTok}
-      - {suffix: byteoversea.net, ev: dlc, note: 同上}
-      - {suffix: byteglb.com, ev: dlc, note: 同上}
       - {suffix: ibytedtos.com, ev: dlc}
       - {suffix: ibyteimg.com, ev: dlc}
       - {suffix: ipstatp.com, ev: bm7-snap}
@@ -247,6 +245,7 @@ services:
       - {suffix: ttwstatic.com, ev: dlc}
     shared_excluded:
       - {host: snssdk.com, ev: bm7-snap, why: bm7 TikTok 收录，但抖音、今日头条等国内应用共用，不归 TikTok}
+      - {host: "byteoversea.com / byteoversea.net / byteglb.com", ev: dlc, to: 国外默认, probe: [log.byteoversea.com, www.byteoversea.net, www.byteglb.com], why: 字节海外多个产品（CapCut、Lark 等）共用的根域，不归 TikTok，落入国外默认（2026-09-29 按对照意见移出）}
       - {host: "capcut.com / marscode.com / trae.ai / tiktokmusic.app", ev: bm7-snap, why: 字节其他产品，不归 TikTok}
       - {host: "roovza.*.appsflyersdk.com", ev: dlc, why: 上游收录；AppsFlyer 第三方归因统计，不归 TikTok}
       - {host: "*.edgesuite.net / *.edgekey.net / tiktokcdn.com.akamaized.net 等", ev: dlc, why: CNAME 目标，客户端不直接请求}

@@ -1,8 +1,12 @@
 """按各客户端文档描述的匹配语义，模拟“生成出来的配置文本”会把一个连接交给哪个策略。
 这里解析的是 dist/ 里的真实产物，而不是生成器的内部数据，用来发现“生成器写错语法 / 顺序”的问题。
-远程集合（广告、国内域名、GeoIP）内容未知，用 fixtures.yaml 里的样本代替。
+远程集合（广告、国内域名、GeoIP）有两种来源：
+  - Fixtures：tests/fixtures.yaml 里的几条样本，用来检查先后顺序这类语义；
+  - SnapshotFixtures：tests/data/real_sets.json 记录的真实上游数据成员关系（由 tools/check_real_routes.py 生成），
+    用来检查“在真实数据下最后交给谁”（2026-10-03 审核 F01：只用样本看不出 qwen.ai 在真实的国内域名集合里）。
+解析结果（某个域名解析到哪个 IP）两种来源下都是 fixtures.yaml 里假定的。
 
-这是自制模拟器，不能替代官方解析器与真机验证。"""
+这是自制模拟器，不能替代官方解析器与真机验证；mihomo / sing-box 另用官方内核实际跑一遍（tools/check_real_routes.py）。"""
 from __future__ import annotations
 
 import ipaddress
@@ -49,6 +53,54 @@ class Fixtures:
 
     def geoip_match(self, code: str, ip: str) -> bool:
         return in_cidrs(ip, self.geoip.get(code.lower(), []))
+
+    # Loon / Quantumult X 订阅的远程规则文件（url 是配置里写的地址）。样本里不分文件：每个远程广告集合都用同一份样本
+    def remote_host_hit(self, url: str, host: str) -> bool:
+        return any((t == "domain" and host == v) or (t == "suffix" and suffix_match(host, v)) or (t == "keyword" and v in host)
+                   for t, v in self.ads)
+
+    def remote_ip_hit(self, url: str, ip: str) -> bool:
+        return False
+
+
+class SnapshotFixtures(Fixtures):
+    """真实上游数据的成员快照。family：mihomo / singbox / loon / quantumultx（同名集合在各端的数据不一样，
+    例如 mihomo 用 MetaCubeX 的 geosite.dat，sing-box 用 SagerNet 的 .srs）。
+    快照里没有某个主机的记录时直接报错，不当成“不在集合里”。"""
+
+    def __init__(self, snap: dict, family: str, dns: Dict[str, str]):
+        self.ads_on = True
+        self.exception_values = set()
+        self.snap, self.family = snap, family
+        self.dns = dict(dns)
+
+    def _rec(self, kind: str, key: str) -> dict:
+        try:
+            return self.snap[kind][key][self.family]
+        except KeyError:
+            raise KeyError(f"成员快照里没有 {key} 的记录：加了新的用例或排除项之后，要重新运行 "
+                           "tools/check_real_routes.py --write-snapshot（需要官方内核和上游数据文件）") from None
+
+    def site(self, name: str, host: str) -> bool:
+        if self.family not in ("mihomo", "singbox"):
+            raise AssertionError(f"{self.family} 的配置不应该引用域名集合 {name}")
+        return (name if self.family == "mihomo" else "geosite-" + name) in self._rec("hosts", host)
+
+    def geoip_match(self, code: str, ip: str) -> bool:
+        if code.lower() != "cn":
+            raise AssertionError(f"快照只记录了国内 IP 段，配置引用了 {code}")
+        # Loon / Quantumult X 用 App 自带的 GeoIP 库，拿不到；这里假定与 mihomo 的数据一致
+        fam = self.family if self.family in ("mihomo", "singbox") else "mihomo"
+        try:
+            return bool(self.snap["ips"][ip][fam]["cn"])
+        except KeyError:
+            raise KeyError(f"成员快照里没有 IP {ip} 的记录：重新运行 tools/check_real_routes.py --write-snapshot") from None
+
+    def remote_host_hit(self, url: str, host: str) -> bool:
+        return url in self._rec("hosts", host)
+
+    def remote_ip_hit(self, url: str, ip: str) -> bool:
+        return url in self._rec("ips", ip)
 
 
 # ---------------------------------------------------------------------------
@@ -137,12 +189,9 @@ def singbox_route(conf: dict, c: Conn, fx: Fixtures) -> str:
         action = r.get("action", "route")
         if action in ("sniff",) or r.get("protocol") == "dns":
             continue
-        if action == "resolve":
-            if c.ip is None and c.host:
-                resolved = fx.resolve(c.host)
-            continue
         if drop_adblock and action == "reject":
             continue
+        conditional = any(k in r for k in ("domain", "domain_suffix", "domain_keyword", "ip_cidr", "rule_set"))
         matched = False
         if any(k in r for k in ("domain", "domain_suffix", "domain_keyword")) and c.host:
             h = c.host
@@ -151,15 +200,64 @@ def singbox_route(conf: dict, c: Conn, fx: Fixtures) -> str:
         if "ip_cidr" in r and resolved:
             matched = matched or in_cidrs(resolved, r["ip_cidr"])
         if "rule_set" in r:
-            tag = r["rule_set"]
-            if tag.startswith("geoip-"):
-                matched = bool(resolved) and fx.geoip_match(tag[len("geoip-"):], resolved)
-            elif tag.startswith("geosite-") and c.host:
-                name = tag[len("geosite-"):]
-                matched = fx.site(name, c.host)
+            matched = matched or any(_singbox_rule_set(conf, tag, c.host, resolved, fx) for tag in _as_list(r["rule_set"]))
+        if action == "resolve":
+            # 不带条件的 resolve 对所有连接生效；带条件的（局域网后缀 → 系统 DNS）只对命中的连接生效。
+            # 目标本来就是 IP 时什么都不做
+            if (matched or not conditional) and c.ip is None and c.host:
+                resolved = fx.resolve(c.host)
+            continue
         if matched:
             return "REJECT" if action == "reject" else r["outbound"]
     return conf["route"]["final"]
+
+
+def _as_list(v) -> list:
+    return v if isinstance(v, list) else [v]
+
+
+def _singbox_rule_set(conf: dict, tag: str, host: Optional[str], ip: Optional[str], fx: Fixtures) -> bool:
+    """规则集：内联的按它自己写的域名判断；远程的（geosite-* / geoip-*）问数据来源。"""
+    rs = next((x for x in conf["route"]["rule_set"] if x["tag"] == tag), None)
+    if rs is None:
+        raise AssertionError(f"规则引用了没有定义的规则集 {tag}")
+    if rs["type"] == "inline":
+        for rule in rs["rules"]:
+            extra = set(rule) - {"domain", "domain_suffix", "domain_keyword"}
+            if extra:
+                raise ValueError(f"模拟器不认识内联规则集里的字段 {sorted(extra)}")
+            if host and (host in rule.get("domain", []) or any(suffix_match(host, x) for x in rule.get("domain_suffix", []))
+                         or any(k in host for k in rule.get("domain_keyword", []))):
+                return True
+        return False
+    if tag.startswith("geoip-"):
+        return bool(ip) and fx.geoip_match(tag[len("geoip-"):], ip)
+    if tag.startswith("geosite-"):
+        return bool(host) and fx.site(tag[len("geosite-"):], host)
+    raise ValueError(f"模拟器不认识的规则集 {tag}")
+
+
+SINGBOX_DNS_RULE_KEYS = {"domain", "domain_suffix", "domain_keyword", "rule_set", "query_type", "server"}
+
+
+def singbox_dns(conf: dict, host: str, qtype: str, fx: Fixtures) -> str:
+    """sing-box 的 DNS 规则：按书写顺序，第一条命中的规则决定这次查询交给哪个 DNS 服务器；都不命中用 final。
+    一条规则里域名类条件（含规则集）之间是“或”，与 query_type 之间是“且”（官方文档的默认规则匹配逻辑）。
+    返回服务器标签（dns-cn / dns-foreign / dns-fakeip / dns-local）。"""
+    for r in conf["dns"]["rules"]:
+        extra = set(r) - SINGBOX_DNS_RULE_KEYS
+        if extra:
+            raise ValueError(f"模拟器不认识 DNS 规则里的字段 {sorted(extra)}")
+        if "query_type" in r and qtype not in r["query_type"]:
+            continue
+        if any(k in r for k in ("domain", "domain_suffix", "domain_keyword", "rule_set")):
+            ok = (host in r.get("domain", []) or any(suffix_match(host, x) for x in r.get("domain_suffix", []))
+                  or any(k in host for k in r.get("domain_keyword", []))
+                  or any(_singbox_rule_set(conf, tag, host, None, fx) for tag in _as_list(r.get("rule_set", []))))
+            if not ok:
+                continue
+        return r["server"]
+    return conf["dns"]["final"]
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +312,9 @@ LOON_DOMAIN = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD"}
 LOON_IP = {"IP-CIDR", "IP-CIDR6", "GEOIP"}
 
 
-def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_types, norm):
+def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_types, norm, remote_ip_resolves=False):
+    """先域名类、后 IP 类；同一类里本地规则先于订阅的远程规则（Loon 官方：本地 > 插件 > 订阅；域名规则先于 IP 规则）。
+    remote_ip_resolves：远程规则里的 IP 段遇到域名连接时会不会先解析再比（Loon 的带 no-resolve，不会；Quantumult X 会）。"""
     drop_adblock = not fx.ads_on
     def dom_ok(t, v, h):
         t = norm(t)
@@ -230,9 +330,8 @@ def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_
             if norm(p[0]) in dom_types and dom_ok(p[0], p[1].lower(), c.host):
                 return p[2]
         for r in remote:
-            for t, v in fx.ads:
-                if t in ("domain", "suffix") and dom_ok({"domain": "DOMAIN", "suffix": "DOMAIN-SUFFIX"}[t], v, c.host):
-                    return r["policy"]
+            if fx.remote_host_hit(r["url"], c.host):
+                return r["policy"]
     ip = c.ip
     for p in local:
         t = norm(p[0])
@@ -250,6 +349,13 @@ def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_
                 return p[2]
         elif in_cidrs(cur, [p[1]]):
             return p[2]
+    cur = ip
+    if cur is None and c.host and remote_ip_resolves:
+        cur = fx.resolve(c.host)
+    if cur is not None:
+        for r in remote:
+            if fx.remote_ip_hit(r["url"], cur):
+                return r["policy"]
     return final
 
 
@@ -288,5 +394,6 @@ def parse_qx(text: str) -> dict:
 def qx_route(conf: dict, c: Conn, fx: Fixtures) -> str:
     def norm(t):
         return QX_NORM.get(t, t)
-    out = _loon_like_route(conf["local"], conf["remote"], conf["final"], c, fx, LOON_DOMAIN, LOON_IP, norm)
+    out = _loon_like_route(conf["local"], conf["remote"], conf["final"], c, fx, LOON_DOMAIN, LOON_IP, norm,
+                           remote_ip_resolves=True)
     return {"direct": "DIRECT", "reject": "REJECT"}.get(out, out)

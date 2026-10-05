@@ -153,9 +153,15 @@ def check_singbox(src: str, c: Checker):
             act = r.get("action", "route")
             c.value(fn + " route.rule.action", act, set(action_keys))
             c.keys(fn + " route.rule", r, rule_keys | action_keys[act])
-        rs_keys = F("_RuleSet") | F("RemoteRuleSet")
+        # 规则集按类型分别核对：remote（远程 .srs）与 inline（2026-10-04 起 DNS 规则引用的内联规则集 product-proxied，
+        # 它里面的每条规则是“无头规则”，字段在 DefaultHeadlessRule 里）
+        rs_types = {"remote": F("_RuleSet") | F("RemoteRuleSet"), "inline": F("_RuleSet") | F("PlainRuleSet")}
+        headless = F("DefaultHeadlessRule") | {"type"}
         for rs in route["rule_set"]:
-            c.keys(fn + f" rule_set {rs['tag']}", rs, rs_keys)
+            c.value(fn + f" rule_set {rs['tag']}.type", rs.get("type"), set(rs_types))
+            c.keys(fn + f" rule_set {rs['tag']}", rs, rs_types.get(rs.get("type"), set()))
+            for r in rs.get("rules", []) if rs.get("type") == "inline" else []:
+                c.keys(fn + f" rule_set {rs['tag']} 的规则", r, headless)
         for h in conf.get("http_clients", []):
             c.keys(fn + " http_client", h, F("_HTTPClientOptions"))
         c.keys(fn + " experimental", conf["experimental"], F("ExperimentalOptions"))

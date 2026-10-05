@@ -1,4 +1,4 @@
-"""通用工具：域名 / CIDR 校验、规则覆盖关系、正则组合、稳定输出。"""
+"""通用工具：域名 / CIDR 校验、规则覆盖关系、稳定输出。"""
 from __future__ import annotations
 
 import hashlib
@@ -6,7 +6,6 @@ import ipaddress
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
 
 LABEL_RE = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)$")
 
@@ -14,7 +13,7 @@ LABEL_RE = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)$")
 BANNED_SHARED_SUFFIXES = {
     "amazonaws.com", "cloudfront.net", "akamaized.net", "akamaihd.net", "akamai.net",
     "edgekey.net", "edgesuite.net", "fastly.net", "fastlylb.net", "cloudflare.net",
-    "azureedge.net", "azurewebsites.net", "windows.net", "trafficmanager.net",
+    "azureedge.net", "azurewebsites.net", "windows.net", "trafficmanager.net", "azure.com",
     "appspot.com", "firebaseapp.com", "web.app", "herokuapp.com", "vercel.app",
     "netlify.app", "github.io", "workers.dev", "pages.dev", "cdn77.org", "b-cdn.net",
     "jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com",
@@ -49,6 +48,7 @@ class Rule:
     ev: str = ""
     note: str = ""
     order: int = 0            # 源文件中的顺序，用于稳定排序
+    nature: str = ""          # "shared"：共享依赖（例如 Google 的共享接口根域）；空 = 产品专属
 
     @property
     def key(self):
@@ -91,43 +91,26 @@ def cidr_covers(broad: str, narrow: str) -> bool:
     return b.version == n.version and n.subnet_of(b)
 
 
-def strip_flag_group(regex: str) -> str:
-    """'(?i)(A|B)' -> 'A|B'，用于组合。"""
-    r = regex
-    if r.startswith("(?i)"):
-        r = r[4:]
-    if r.startswith("(") and r.endswith(")"):
-        # 确认最外层括号成对
-        depth = 0
-        for i, ch in enumerate(r):
-            if ch == "(" and (i == 0 or r[i - 1] != "\\"):
-                depth += 1
-            elif ch == ")" and (i == 0 or r[i - 1] != "\\"):
-                depth -= 1
-                if depth == 0 and i != len(r) - 1:
-                    return r
-        return r[1:-1]
-    return r
-
-
-def compose_node_regex(include: Optional[str], exclude: Iterable[str]) -> str:
-    """组合成单个正则：包含 include 且不包含任何 exclude。供 Loon / QX / sing-box 使用。
-    只使用 (?i)、分组、交替、前瞻与定长后顾，Python re / .NET regexp2 / ICU 都支持。"""
-    excl = "|".join(strip_flag_group(e) for e in exclude)
-    parts = ["(?i)^"]
-    if excl:
-        parts.append(f"(?!.*(?:{excl}))")
-    if include:
-        parts.append(f".*(?:{strip_flag_group(include)}).*$")
-    else:
-        parts.append(".*$")
-    return "".join(parts)
-
-
 def check_regex_line_safe(regex: str) -> None:
-    for bad in (",", '"', "\n"):
+    """节点筛选正则要原样写进 Loon / Quantumult X 的一行、mihomo 的 filter 里：
+    不能有英文逗号（QX、Loon 用它分隔参数）、双引号（Loon 用它包住正则）、换行、反引号（mihomo 用它分隔多条正则）。"""
+    for bad in (",", '"', "\n", "`"):
         if bad in regex:
-            raise ValueError(f"节点正则不能包含 {bad!r}（Loon / QX 行语法限制）: {regex}")
+            raise ValueError(f"节点正则不能包含 {bad!r}（Loon / QX 行语法、mihomo filter 的限制）: {regex[:80]}")
+
+
+def safe_stdout() -> None:
+    """节点名里常有国旗等表情符号。Windows 上把输出重定向到文件或管道时，默认编码（GBK）写不了它们：
+    重定向时改用 UTF-8；直接显示在终端时，写不了的字符用 ? 代替，不让工具因此中断。"""
+    import sys
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            if stream.isatty():
+                stream.reconfigure(errors="replace")
+            else:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
 
 
 def sha256_text(s: str) -> str:

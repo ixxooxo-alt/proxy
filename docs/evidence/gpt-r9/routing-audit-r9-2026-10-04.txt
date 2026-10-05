@@ -1,0 +1,134 @@
+分流配置 r9 审核报告
+审核日期：2026-10-04
+对象：proxy-rules-review-2026.10.04-r9.zip
+统一源：2026.10.04-2；生成器：1.3.1
+
+结论
+
+统一规则源 → 规则计划 → 四个生成后端的框架可以保留。没有发现本轮检查所覆盖的 mihomo / sing-box 配置存在解析错误。发现一处已由官方内核实际分组复现的逻辑漏洞，以及一处由目标版本源码确认的条件性 DNS 解析问题。两者应局部修正，不需要重写项目。
+
+这次只审核，没有修改上传包内的源代码、规则、测试或成品配置。
+
+一、已复现的问题
+
+F01：严筛把已排除的“解锁／中转”地名重新当作落地依据
+严重程度：分组／分流错误；优先处理。
+证据等级：Python 逐步分类、实际生成正则、mihomo v1.19.31 实际分组三者均复现。
+
+位置：
+  generator/regions.py，第 644、663–666 行：mine 使用任何位置的地区词；text_s 的第二个分支只要求没有其他地区词，不要求本地区存在有效落地词。
+  generator/regions.py，第 936–940 行：有效落地词全部缺失时从 txt 恢复地区；随后只要 groups 长度为 1，就写入 auto。
+  generator/groups.py，第 117–141 行：严筛被自动测速、故障转移、负载均衡和 Loon 手动优先的兜底节点共用。
+  dist/ 的四种后端均使用上述公共判断逻辑。
+
+独立反例：
+  IEPL 01 Unlock US       → 美国手动组，并进入美国自动／故障转移／负载均衡组。
+  Premium 01 | 解锁美国   → 美国手动组，并进入美国自动／故障转移／负载均衡组。
+  日本中转 01             → 日本手动组，并进入日本自动／故障转移／负载均衡组。
+
+mihomo 官方内核在五个虚构节点上的结果：前两个反例都在美国自动类组，第三个反例在日本自动类组；对照节点“美国 01”“日本 01”正常进入对应自动类组。节点服务器均为本机地址，没有真实订阅或对外通信。
+
+为什么是问题：
+  这些名字中唯一的地名已经被本项目自己的 _effective 判断明确标为非落地信息。“能解锁美国内容”不代表“出口在美国”；“日本中转”也没有说明最终出口。宽筛保留这些节点方便手选可以成立，但严筛不能因为缺少第二个地名，就把明确无效的第一个地名升级为有效落地依据。
+  当前实现与 docs/02 中“或者名字里只提到它一个地区”的宽松定义是一致的；问题在于这个定义本身仍然允许没有有效落地信息的名字进入自动类组，未充分落实“说不清落地只留手动”的决定。
+  原有测试通过不是正则引擎失效，而是 Python 分类器和正则生成器共享了同一项错误判断，现有人工样本没有阻止这类反例进入自动组。
+
+建议局部修改：
+  宽筛可以继续保留现状；严筛必须至少具有本地区有效国旗、有效落地词，或 local.yaml 的明确指定。
+  从严筛删除“仅凭任意位置出现单一地区词即可通过”的分支；分类器从 txt 恢复地区时，不自动填写 auto。
+  将上述三个名字加入人工期望样本，手动归属可保持，自动期望为空；保留两个正常节点作为对照。
+  同步调整 docs/02 的严筛定义。无需增加策略组或额外流程。
+
+依据：
+  本包 docs/00-需求原文.md 中 2026-10-04 的决定，以及 docs/02-语法依据与能力矩阵.md 中“有效词”“解锁说明”“两条筛选”的定义。
+  mihomo v1.19.31：adapter/outboundgroup/groupbase.go 的 NewGroupBase / GetProxies，实际读取生成 filter 并按节点名分组。
+  https://raw.githubusercontent.com/MetaCubeX/mihomo/v1.19.31/adapter/outboundgroup/groupbase.go
+
+二、源码确认的条件性问题
+
+F02：sing-box 的局域网 DNS 规则没有覆盖节点服务器域名的拨号解析
+严重程度：条件性解析错误；可能将内部主机名查询交给公共 DNS。
+证据等级：目标版本源码确认；生成的具体配置已通过官方 check；本轮未完成拨号运行复现。
+
+位置：
+  generator/emit_singbox.py，第 223 行：route.default_domain_resolver 固定为 dns-cn。
+  generator/emit_singbox.py，第 260 行：普通 DNS 查询中的局域网后缀交给 dns-local。
+  generator/emit_singbox.py，第 175、178 行：DIRECT 出站和转换后的节点未按局域网域名设置专门的 resolver。
+  dist/sing-box/sing-box-1.14.json 与 sing-box-1.12.json 的对应字段。
+
+具体触发条件：
+  一个代理节点的 server 为 gateway.lan、proxy.home.arpa 等只有路由器／公司 DNS 认识的名字，且节点没有自行指定 domain_resolver。
+  本轮生成了如下有效配置，sing-box v1.14.1 check 退出码为 0：
+    route.default_domain_resolver = dns-cn
+    DNS 局域网规则 = domain_suffix [lan, local, localdomain, home.arpa, localhost] → dns-local
+    SOCKS 节点 = server gateway.lan，未设置 domain_resolver
+
+为什么是问题：
+  普通 DNS 查询匹配 dns.rules，与节点拨号解析 server，是两条不同路径。
+  sing-box v1.14.1 的 common/dialer/dialer.go：未指定节点 resolver 时，将全局 default_domain_resolver 对应的 transport 填入 DNSQueryOptions。
+  dns/router.go 的 Lookup：当 options.Transport 非空时，直接向该 transport 查询，不走 matchDNS 的分域名规则。
+  因此 gateway.lan 的节点解析会使用 dns-cn，而不会因为 dns.rules 中有“.lan → dns-local”就改用系统 DNS。公共 DNS 无法解析内部名字时，节点不可用；即便失败，内部名称也已经被查询出去了。
+
+范围说明：
+  这不等于默认 TUN 下所有 NAS 访问都会失败。普通 DNS 先经 dns-local 得到真实局域网 IP，再以 IP 直连的路径通常不需要这次拨号解析。
+  同一个解析机制也涉及 DIRECT 接收到域名形式目标的情况，但本报告不把混合代理入站的假设扩大成当前仅 TUN 成品的普遍故障。
+  使用公网节点域名时，国内 DNS 解析节点仍是本项目有意采用的正常方案。
+
+建议局部修改：
+  对节点 server 命中已有局域网后缀的情况，生成节点级 domain_resolver: dns-local；其他公网节点保持现状。
+  如需支持以域名形式进入 DIRECT 的内部目标，在对应局域网直连规则之前显式 resolve 到 dns-local。
+  不要把所有 DIRECT 或所有节点的 resolver 一概改成系统 DNS；那会改变现有公共域名的解析策略。
+  为此场景补一个保留真实 DIRECT／节点拨号过程的本机 DNS 替身验证即可。
+
+依据：
+  https://sing-box.sagernet.org/configuration/shared/dial/ 的 domain_resolver。
+  https://sing-box.sagernet.org/configuration/route/ 的 default_domain_resolver。
+  sing-box v1.14.1 common/dialer/dialer.go 的 NewWithOptions。
+  sing-box v1.14.1 common/dialer/resolve.go 的 DialContext。
+  sing-box v1.14.1 dns/router.go 的 Lookup（options.Transport 非空的分支）。
+  https://raw.githubusercontent.com/SagerNet/sing-box/v1.14.1/common/dialer/dialer.go
+  https://raw.githubusercontent.com/SagerNet/sing-box/v1.14.1/common/dialer/resolve.go
+  https://raw.githubusercontent.com/SagerNet/sing-box/v1.14.1/dns/router.go
+
+三、本轮实际执行的检查
+
+1. python3 build.py --check：通过，包含 manifest.json；成品与统一源一致。
+2. 原有 unittest：160 / 160 通过，耗时约 70 秒。测试中的故意错误输入与预期失败不是实际失败。
+3. 官方程序从各自 GitHub Releases 获取，下载摘要与发布接口提供的 SHA-256 一致。
+4. mihomo v1.19.31 -t：mihomo-core.yaml、mihomo-profile.yaml 均通过。
+5. sing-box v1.14.1 check：1.14 配置、1.12 配置，以及带样例节点的 1.14 配置均通过。
+6. sing-box v1.12.0 check：1.12 配置及带样例节点的 1.12 配置均通过。
+7. 官方检查工具的负向自检：HTTP 出站增加不支持的 network 字段，官方解析器确实拒绝。
+8. mihomo 实际分组：原有 2218 个名字和带本地补充的 2241 个名字均符合项目现有人工期望；另加的 F01 反例实际进入自动类组。
+9. 以本轮新下载的上游数据执行 mihomo 的 19 个目标实际规则选择：Qwen、通义、Apple Music、Apple、Microsoft 下载例外、六个已有显式规则的 .ms 域名、example.ms、nas.lan、Instagram 例外、OpenAI、Claude、B 站接口均与当前设计一致。出口为拒绝替身，验证范围是规则选择，不是网站连通性。
+
+本轮 geosite.dat 摘要：c7d7f1a5d15344b2fb97fb9f08f999c16d19e0b63b5b3a9a13b97a97e52b9dbd
+本轮 geoip.dat 摘要：391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd
+本轮 geoip.metadb 摘要：68dda901d6030dc43ec238efe31dae514c53a66f79fca2fa3999b66485e4f8b0
+
+本轮没有独立完成：
+  sing-box 运行阶段的路由／DNS 探针。即便测试入站只监听本机、未开 TUN，1.14.1 仍因 create netlink socket: operation not permitted 退出，1.12.0 也在 start service 阶段被当前环境限制。这是审核环境限制，不是上传配置语法错误。
+  Loon / Quantumult X 真机导入及运行。不能把 ICU 或自制解析器通过写成两款 App 导入成功。
+  真实订阅连通性、真实出口国家、业务登录／支付／播放及故障恢复时间。
+  全部服务域名的在线用途逐条重查；本轮重点是框架、生成语法及逻辑边界。
+
+四、其余重点的审核判断
+
+1. sing-box 产品 DNS 分层：当前结构合理。更具体的国内例外在宽泛产品规则之前，产品代理域名的 A/AAAA 进入 fake-ip；Apple／Apple Music 默认直连时，由 DIRECT 的 resolver 解析并不构成语法错误。F02 针对另一条内部名称拨号路径。
+2. mihomo 不照搬这次产品 DNS 分层：理由基本成立。在 fake-ip 生效且代理接收到域名的路径上，nameserver-policy 不会先把所有产品域名解析成真实地址。该判断不能延伸为浏览器自带 DoH、所有排除 fake-ip 的名字和直接 IP 连接的保证。
+3. 官方内核＋拒绝替身的方法：适合确认规则交给哪个组，不能确认真实节点 DNS、远程规则下载、TLS、接管和故障恢复。把 DNS 替成 UDP 替身、移除 detour、把 DIRECT 替成 block，会避开 F02 所在的拨号过程；项目已有文档对主要验证边界的说明基本准确。
+4. 真实成员快照测试：对已登记主机的上游归属错误有实际帮助，不是纯粹重复模拟器。但是它校验的是旧的官方运行记录，并没有在每次 unittest 时重新启动内核；没有收录的反例仍可漏掉。tests/test_real_data.py 第 116 行还让 1.12 模拟器共用 singbox 的已保存官方记录，该快照的正式记录是 1.14；不能将其单独描述为“本次 unittest 已实跑 1.12”。
+5. .ms 的已知行为记录：可以接受。upstream_followed 将本来期望、客户端实际结果、理由分开，且对应用户明确决定。本轮 mihomo 确认 example.ms 仍走 GeoSite(cn)，aka.ms／1drv.ms／gfx.ms／sfx.ms／svc.ms／nico.ms 的显式规则仍优先命中；不重新报告为遗漏。未逐项搜索全部 .ms 服务。
+6. 提示行、解锁边界、香港让位：已列明的九种限制不重复报为新错误。本轮新增问题是 F01 的“唯一非落地地名仍进入严筛”，与已记录的竖线解锁边界错误不同。
+7. Loon 第二个广告文件、长正则、fallback 嵌套：仍保留待真机验证。官方订阅规则页没有给出该纯域名格式的明确契约；现行策略组文档与旧 example.conf 对嵌套的说法有差别。仅凭猜测不判为导入失败。
+8. Quantumult X：doh-server 多服务器一行、局域网域名绑定 system 的写法与官方 sample.conf 一致。server-tag-regex 在 url-latency-benchmark／dest-hash 上的注释与示例矛盾仍在，不能凭静态阅读宣布已验证，也不能直接判为不支持。
+9. docs/05 的事实／推断／未验证区分基本恰当；F01 修正前，应收窄“严筛只收明确落地”的语义承诺。原有 160 项全绿和人工样本一致，只证明当前期望被满足。
+
+官方资料：
+  Loon 匹配顺序：https://nsloon.app/docs/Rule/
+  Loon 策略组：https://nsloon.app/docs/Policy/policygroup/
+  Loon 订阅规则：https://nsloon.app/docs/Rule/sub_rule/
+  Loon 节点筛选：https://nsloon.app/docs/Node/nodefilter/
+  Loon 系统 DNS 映射：https://nsloon.app/docs/DNS/hostmap/
+  Quantumult X 官方示例：https://raw.githubusercontent.com/crossutility/Quantumult-X/master/sample.conf
+  mihomo DNS：https://wiki.metacubex.one/config/dns/

@@ -14,14 +14,22 @@ remote_lists:
     - {kind: rule_set, tag: geosite-category-ads-all,
        url: "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
        source: "SagerNet sing-geosite（源自 domain-list-community）"}
+  # Loon：上游把这份集合拆成两个文件，README 写明“AdvertisingLite.list、AdvertisingLite_Domain.list 共同使用”。
+  #   AdvertisingLite.list        只有关键词 187 条、IP 段 187 条、URL 正则 2 条（URL 正则要配合 MITM 才生效，本项目不用）
+  #   AdvertisingLite_Domain.list 域名 37,692 条（23,753 条精确域名 + 13,939 条后缀；每行一个域名，以“.”开头的表示含子域）
+  # 2026-10-04 以前只订阅了第一个文件（当时只抓了文件头，头里写的是两个文件合计的 38,068 条），
+  # 所以 Loon 上那 37,692 条域名一直没有生效。按固定快照 51d2e1d 里的文件逐行核对后补上第二个文件。
   loon:
     - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list",
        tag: 广告拦截-AdvertisingLite, ev: bm7,
-       source: "blackmatrix7 AdvertisingLite（2026-09-23 抓取文件头：38,068 条，更新于 2025-12-08）"}
+       source: "blackmatrix7 AdvertisingLite 的关键词与 IP 部分（快照 51d2e1d：关键词 187、IP 段 187、URL 正则 2；更新于 2025-12-08）"}
+    - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list",
+       tag: 广告拦截-AdvertisingLite-域名, ev: bm7,
+       source: "blackmatrix7 AdvertisingLite 的域名部分（快照 51d2e1d：37,692 条；更新于 2025-12-08）"}
   quantumultx:
     - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list",
        tag: 广告拦截-AdvertisingLite, ev: bm7,
-       source: "blackmatrix7 AdvertisingLite（2026-09-23 抓取文件头：38,066 条，更新于 2025-12-08）"}
+       source: "blackmatrix7 AdvertisingLite（快照 51d2e1d：38,066 条，其中域名 37,692、关键词 187、IP 段 187；更新于 2025-12-08）"}
 
 # 自有拦截条目：主要用于“位于产品根域下的广告 / 跟踪主机”，保证 Loon / QX 也能先于产品规则拦截。
 # ev: dlc 的条目来自固定快照里 category-ads-all 展开后、落在本项目产品规则范围内的全部条目
@@ -44,11 +52,53 @@ local_ads:
   - {suffix: ad.games.dmm.com, ev: dlc, note: DMM 游戏广告}
   - {domain: adstudio-assets.scdn.co, ev: dlc, note: Spotify 广告素材}
   - {domain: an.facebook.com, ev: maintainer, note: Meta Audience Network}
+  # 以下 41 条是 Cursor 版的独立广告网络（其 ads-reject.list），2026-09-29 迁入：15 条在 dlc category-ads-all 快照里同值出现，
+  # 17 条只在 blackmatrix7 AdvertisingLite 快照里，9 条两边都没有（证据 cursor-import，单独列在 docs/06）
+  - {suffix: adcolony.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: adform.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: adnxs.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: adotmob.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adsafeprotected.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adsrvr.org, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adtechus.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: advertising.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: alimama.com, ev: cursor-import, note: 阿里妈妈广告（淘宝联盟推广链接可能受影响）}
+  - {suffix: amazon-adsystem.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: casalemedia.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: chartboost.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: criteo.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: doubleclick.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: doubleclick.net, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: doubleverify.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: everesttech.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: flashtalking.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: googleadservices.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: googlesyndication.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: googletagservices.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: inmobi.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: inner-active.mobi, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: ironsrc.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: media.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: moatads.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: openx.net, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: outbrain.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: pubmatic.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: quantserve.com, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: rubiconproject.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: scorecardresearch.com, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: smaato.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: smartadserver.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: taboola.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: tanx.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: tapjoy.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: teads.tv, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: umeng.com, ev: cursor-import, note: 友盟统计（也提供推送、一键登录，拦截可能影响部分国内 App 的这些功能）}
+  - {suffix: umengcloud.com, ev: cursor-import, note: 友盟（同上）}
+  - {suffix: vungle.com, ev: bm7-snap, note: 广告 / 跟踪网络}
 local_tracking:
   - {suffix: pixel.facebook.com, ev: dlc, note: Meta 像素}
   - {suffix: analytics.facebook.com, ev: dlc, note: Meta 统计}
-  - {suffix: graph.instagram.com, ev: dlc, note: Instagram 统计上报（上游标为 @ads）}
-  - {suffix: graph-fallback.instagram.com, ev: dlc, note: 同上}
+  - {suffix: graph-fallback.instagram.com, ev: dlc, note: Instagram 统计上报（上游标为 @ads）；graph.instagram.com 是官方 API 主机，已改为误杀例外}
   - {suffix: graph.whatsapp.com, ev: dlc, note: WhatsApp 统计上报（上游标为 @ads）}
   - {suffix: graph.whatsapp.net, ev: dlc, note: 同上}
   - {suffix: analytics-alv.google.com, ev: dlc, note: Google 统计}
@@ -81,6 +131,7 @@ exceptions:
   - {domain: s.youtube.com, ev: maintainer, why: YouTube 播放统计；部分广告集合会拦截，影响观看记录}
   - {domain: copilot-telemetry.githubusercontent.com, ev: ghcopilot-net, why: Copilot 客户端遥测；GitHub 官方放行清单列出，上游广告集合（@ads）会拦截}
   - {suffix: collector.github.com, ev: ghcopilot-net, why: GitHub 分析遥测；Copilot 官方放行清单列出（collector.github.com/*），上游广告集合（@ads）会拦截}
+  - {suffix: graph.instagram.com, ev: meta-ig-api, why: Instagram 官方 API 主机（发消息、发内容等都走它），不只是统计上报；上游广告集合（@ads）会拦截（2026-09-30 审核 F05）}
 
 # 复写 / 脚本 / MITM：本版本不内置。
 # - 需要设备上生成并信任证书，本项目不预装、不共享、不写入任何证书或私钥。

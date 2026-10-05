@@ -1,0 +1,184 @@
+test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... ok
+test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_check_detects_manifest_tampering) ... ok
+test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
+test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
+节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpx09eh_el/不存在.yaml'
+未改动任何产物（公开产物也没有更新）。
+ok
+test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
+F09 复现的三种输入，以及拼错的字段、重复的键，都要在写盘前失败。 ... 统一源校验失败：
+  - 例外 example-unknown.org 的目标 不存在的组 不是已有的业务组
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - 组 国外默认 引用了自己（会形成循环）
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - local_ads {'suffix': 'https://ads.example.com/x', 'ev': 'maintainer'} 必须且只能有一个合法的 suffix / domain
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
+统一源有错误，未改动任何产物。
+groups.yaml：YAML 重复键 'groups'（第 93 行）
+统一源有错误，未改动任何产物。
+ok
+test_failure_while_replacing_rolls_back (test_build_pipeline.Transaction.test_failure_while_replacing_rolls_back) ... ok
+test_failure_while_staging_leaves_everything (test_build_pipeline.Transaction.test_failure_while_staging_leaves_everything) ... ok
+test_success_replaces_all (test_build_pipeline.Transaction.test_success_replaces_all) ... ok
+test_detects_broken_references (test_build_pipeline.Verifier.test_detects_broken_references) ... ok
+test_classification (test_check_connections.ConnectionLogTool.test_classification) ... ok
+test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
+用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
+test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... ok
+test_adopted_removals_are_gone (test_cursor_report.CursorReport.test_adopted_removals_are_gone) ... ok
+test_every_difference_has_a_disposition (test_cursor_report.CursorReport.test_every_difference_has_a_disposition) ... ok
+test_requested_migrations_route_to_the_same_group (test_cursor_report.CursorReport.test_requested_migrations_route_to_the_same_group)
+2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。 ... ok
+test_loon_and_qx_use_system_dns_for_lan_suffixes (test_dns_lan.LanDns.test_loon_and_qx_use_system_dns_for_lan_suffixes) ... ok
+test_mihomo_provider_health_check_matches_groups (test_dns_lan.LanDns.test_mihomo_provider_health_check_matches_groups) ... ok
+test_mihomo_sends_lan_suffixes_to_system_dns_first (test_dns_lan.LanDns.test_mihomo_sends_lan_suffixes_to_system_dns_first) ... ok
+test_singbox_uses_local_dns_for_lan_suffixes (test_dns_lan.LanDns.test_singbox_uses_local_dns_for_lan_suffixes) ... ok
+test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... ok
+test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
+模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
+test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_local_rules_route) ... ok
+test_pinned_paypal_and_verified_netflix (test_local_and_private.LocalOverrides.test_pinned_paypal_and_verified_netflix) ... ok
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... ok
+test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
+test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
+test_supported_protocols (test_nodes.NodeConversion.test_supported_protocols) ... ok
+test_tls_never_relaxed (test_nodes.NodeConversion.test_tls_never_relaxed) ... ok
+test_unsupported_reported_not_silently_changed (test_nodes.NodeConversion.test_unsupported_reported_not_silently_changed) ... ok
+test_anytls_without_udp_is_reported (test_nodes.NodeConversionNegative.test_anytls_without_udp_is_reported) ... ok
+test_fields_exist_on_each_outbound_type (test_nodes.NodeConversionNegative.test_fields_exist_on_each_outbound_type) ... ok
+test_missing_required_fields_are_reported (test_nodes.NodeConversionNegative.test_missing_required_fields_are_reported) ... ok
+test_names_colliding_with_groups_are_renamed_and_still_filtered (test_nodes.NodeConversionNegative.test_names_colliding_with_groups_are_renamed_and_still_filtered) ... ok
+test_obfs_plugin_semantics (test_nodes.NodeConversionNegative.test_obfs_plugin_semantics) ... ok
+test_v2ray_plugin_mux_and_host_semantics (test_nodes.NodeConversionNegative.test_v2ray_plugin_mux_and_host_semantics) ... ok
+test_ws_early_data_and_http_upgrade (test_nodes.NodeConversionNegative.test_ws_early_data_and_http_upgrade) ... ok
+test_bad_input (test_regions.CheckerTool.test_bad_input) ... ok
+test_build_writes_grouping_report_to_private (test_regions.CheckerTool.test_build_writes_grouping_report_to_private) ... ok
+test_clash_file_only_names_are_read (test_regions.CheckerTool.test_clash_file_only_names_are_read) ... ok
+test_report_from_text_file (test_regions.CheckerTool.test_report_from_text_file) ... ok
+test_every_word_lands_in_its_own_region (test_regions.Consistency.test_every_word_lands_in_its_own_region) ... ok
+test_no_node_is_lost_and_other_is_exclusive (test_regions.Consistency.test_no_node_is_lost_and_other_is_exclusive)
+非信息节点至少进一个组；“其他地区”不和六个地区同时出现；这批样本里最多同时进两个地区。 ... ok
+test_random_names_agree (test_regions.Consistency.test_random_names_agree)
+随机拼出来的名字（地区词、国旗、中转词、箭头、常见标签随机组合，种子固定）：两种实现结果相同， ... ok
+test_regex_and_step_by_step_agree (test_regions.Consistency.test_regex_and_step_by_step_agree)
+两种实现（拼出来的正则、逐步判断）在全部样本上结果相同。 ... ok
+test_loon (test_regions.GeneratedConfigs.test_loon) ... ok
+test_mihomo (test_regions.GeneratedConfigs.test_mihomo) ... ok
+test_quantumultx (test_regions.GeneratedConfigs.test_quantumultx) ... ok
+test_singbox_groups_nodes_at_build_time (test_regions.GeneratedConfigs.test_singbox_groups_nodes_at_build_time) ... ok
+test_composed_regex (test_regions.HandWrittenExpectations.test_composed_regex) ... ok
+test_known_limits_are_recorded_as_they_are (test_regions.HandWrittenExpectations.test_known_limits_are_recorded_as_they_are)
+已知分不对的写法：结果要和记录的一致（规则改动让它们变了，就该更新记录和文档）。 ... ok
+test_sample_file_is_big_enough_and_unique (test_regions.HandWrittenExpectations.test_sample_file_is_big_enough_and_unique) ... ok
+test_step_by_step_classifier (test_regions.HandWrittenExpectations.test_step_by_step_classifier) ... ok
+test_users_own_airport_style (test_regions.HandWrittenExpectations.test_users_own_airport_style)
+用户截图里的写法：台湾节点前面是 🇨🇳，带“家宽”字样。 ... ok
+test_cities_of_other_countries_are_never_claimed (test_regions.IndependentNames.test_cities_of_other_countries_are_never_claimed) ... ok
+test_country_names_and_flags (test_regions.IndependentNames.test_country_names_and_flags) ... ok
+test_reference_data_is_complete (test_regions.IndependentNames.test_reference_data_is_complete) ... ok
+test_bad_local_input_is_rejected (test_regions.LocalNodeNames.test_bad_local_input_is_rejected) ... ok
+test_extra_words_and_assignments (test_regions.LocalNodeNames.test_extra_words_and_assignments) ... ok
+test_private_outputs_only (test_regions.LocalNodeNames.test_private_outputs_only)
+本地补充的词和指定的节点只在 dist/private/ 的配置里生效，公开配置不变。 ... ok
+test_public_model_ignores_local (test_regions.LocalNodeNames.test_public_model_ignores_local) ... ok
+test_icu_engine_agrees (test_regions.Portability.test_icu_engine_agrees)
+系统里有 ICU 时，用它实际跑一遍（推断 Loon / QX 用的是苹果系统自带的正则，底层是 ICU）。放在子进程里： ... ok
+test_no_character_with_special_meaning (test_regions.Portability.test_no_character_with_special_meaning) ... ok
+test_only_constructs_every_engine_supports (test_regions.Portability.test_only_constructs_every_engine_supports) ... ok
+test_size_is_bounded (test_regions.Portability.test_size_is_bounded) ... ok
+test_adjacent_flags_are_read_in_pairs (test_regions.Rules.test_adjacent_flags_are_read_in_pairs) ... ok
+test_explanations_are_human_readable (test_regions.Rules.test_explanations_are_human_readable) ... ok
+test_flag_first_and_neutral_flags (test_regions.Rules.test_flag_first_and_neutral_flags) ... ok
+test_info_words (test_regions.Rules.test_info_words) ... ok
+test_latin_boundaries (test_regions.Rules.test_latin_boundaries) ... ok
+test_other_country_wins_over_region_words (test_regions.Rules.test_other_country_wins_over_region_words) ... ok
+test_transit_positions (test_regions.Rules.test_transit_positions) ... ok
+test_via_must_be_a_separate_word (test_regions.Rules.test_via_must_be_a_separate_word) ... ok
+test_yielding_region (test_regions.Rules.test_yielding_region) ... ok
+test_ascii_word_must_go_to_latin (test_regions.SourceValidation.test_ascii_word_must_go_to_latin) ... ok
+test_flag_in_two_places (test_regions.SourceValidation.test_flag_in_two_places) ... ok
+test_latin_word_charset (test_regions.SourceValidation.test_latin_word_charset) ... ok
+test_missing_region_for_paypal (test_regions.SourceValidation.test_missing_region_for_paypal) ... ok
+test_only_one_yielding_region (test_regions.SourceValidation.test_only_one_yielding_region) ... ok
+test_pattern_with_forbidden_character (test_regions.SourceValidation.test_pattern_with_forbidden_character) ... ok
+test_same_word_in_two_regions (test_regions.SourceValidation.test_same_word_in_two_regions) ... ok
+test_unknown_field_and_yaml_boolean (test_regions.SourceValidation.test_unknown_field_and_yaml_boolean) ... ok
+test_ad_exceptions_same_exit_with_and_without_ads (test_routing.RoutingCases.test_ad_exceptions_same_exit_with_and_without_ads) ... ok
+test_all_cases_all_clients (test_routing.RoutingCases.test_all_cases_all_clients) ... ok
+test_apple_ai_before_apple (test_routing.RoutingCases.test_apple_ai_before_apple)
+Apple AI 的全部地址在四端都先命中 Apple AI；普通苹果地址仍命中 Apple；不再有关键词规则误伤 siriusxm.com。 ... ok
+test_apple_ai_matches_cursor_baseline (test_routing.RoutingCases.test_apple_ai_matches_cursor_baseline)
+与对照报告明细（docs/evidence/cursor-对照明细.csv）里 Cursor 版的 18 条逐条相同，唯一差别是关键词 siri 换成三条后缀。 ... ok
+test_every_product_rule_wins_for_its_own_hosts (test_routing.RoutingCases.test_every_product_rule_wins_for_its_own_hosts)
+对每条产品规则取代表主机（精确域名本身；后缀本身与一个子域）， ... ok
+test_service_ip_rules_do_not_trigger_resolution (test_routing.RoutingCases.test_service_ip_rules_do_not_trigger_resolution)
+服务专属 IP 规则只匹配直接 IP 连接：域名连接解析到 Telegram 段也不应被它截走（no-resolve 语义）。 ... ok
+test_failure_propagates (test_run_checks.RunChecksExitCode.test_failure_propagates) ... ok
+test_success_returns_zero (test_run_checks.RunChecksExitCode.test_success_returns_zero) ... ok
+test_clients_must_be_known_families (test_source.SourceValidation.test_clients_must_be_known_families) ... ok
+test_community_evidence_needs_upstream_mapping (test_source.SourceValidation.test_community_evidence_needs_upstream_mapping) ... ok
+test_current_source_is_valid (test_source.SourceValidation.test_current_source_is_valid) ... ok
+test_duplicate_rule_rejected (test_source.SourceValidation.test_duplicate_rule_rejected) ... ok
+test_exception_target_conflict_rejected (test_source.SourceValidation.test_exception_target_conflict_rejected) ... ok
+test_google_shared_root_not_for_ai (test_source.SourceValidation.test_google_shared_root_not_for_ai) ... ok
+test_group_member_must_be_region_or_entry (test_source.SourceValidation.test_group_member_must_be_region_or_entry) ... ok
+test_keyword_rule_needs_justification (test_source.SourceValidation.test_keyword_rule_needs_justification) ... ok
+test_paypal_must_not_follow_foreign_default (test_source.SourceValidation.test_paypal_must_not_follow_foreign_default) ... ok
+test_residual_group_cannot_steal_independent_service (test_source.SourceValidation.test_residual_group_cannot_steal_independent_service) ... ok
+test_shared_cloud_root_rejected (test_source.SourceValidation.test_shared_cloud_root_rejected) ... ok
+test_unknown_evidence_rejected (test_source.SourceValidation.test_unknown_evidence_rejected) ... ok
+test_unmatched_exception_needs_target (test_source.SourceValidation.test_unmatched_exception_needs_target) ... ok
+test_client_restricted_services_recorded (test_source.UpstreamEvidenceRecord.test_client_restricted_services_recorded)
+不写进 Loon / QX 的服务，记录里要有“写进去会遮挡多少远程广告条目”的核对结果（不写进去的理由可复核）。 ... ok
+test_every_community_rule_is_backed (test_source.UpstreamEvidenceRecord.test_every_community_rule_is_backed) ... ok
+test_snapshots_match_evidence_registry (test_source.UpstreamEvidenceRecord.test_snapshots_match_evidence_registry) ... ok
+test_upstream_ads_under_products_are_handled (test_source.UpstreamEvidenceRecord.test_upstream_ads_under_products_are_handled)
+category-ads-all 落在产品规则内的条目，四端都必须一致处理（自有拦截或误杀例外）。 ... ok
+test_business_groups_present (test_structure.Structure.test_business_groups_present) ... ok
+test_defaults (test_structure.Structure.test_defaults) ... ok
+test_deterministic (test_structure.Structure.test_deterministic) ... ok
+test_dist_matches_source (test_structure.Structure.test_dist_matches_source) ... ok
+test_final_is_foreign_default (test_structure.Structure.test_final_is_foreign_default) ... ok
+test_line_formats (test_structure.Structure.test_line_formats) ... ok
+test_manual_first_semantics (test_structure.Structure.test_manual_first_semantics)
+手动优先·自动兜底 = 故障转移组，成员依次为 手动、自动（同地区）。 ... ok
+test_mihomo_flavors_and_control_plane (test_structure.Structure.test_mihomo_flavors_and_control_plane) ... ok
+test_no_group_cycles (test_structure.Structure.test_no_group_cycles) ... ok
+test_no_secrets_in_public_outputs (test_structure.Structure.test_no_secrets_in_public_outputs) ... ok
+test_no_silent_direct_in_node_groups (test_structure.Structure.test_no_silent_direct_in_node_groups) ... ok
+test_node_name_screening (test_structure.Structure.test_node_name_screening) ... ok
+test_parse (test_structure.Structure.test_parse) ... ok
+test_paypal (test_structure.Structure.test_paypal) ... ok
+test_references_resolve (test_structure.Structure.test_references_resolve) ... ok
+test_region_entries (test_structure.Structure.test_region_entries) ... ok
+test_review_followups (test_structure.Structure.test_review_followups)
+外部审核后的修正：Loon 不写无用的局域网共享端口；sing-box 不返回 AAAA 时不配 IPv6 假地址段。 ... ok
+test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
+
+----------------------------------------------------------------------
+Ran 125 tests in 40.149s
+
+OK
+已生成 7 个公开产物到 out（订阅为占位符）
+私密产物已写入 out/private（含local.yaml，请勿分享）
+产物与统一源一致（含 manifest.json）。
+已生成 7 个公开产物到 out（订阅为占位符）
+产物与统一源一致（含 manifest.json）。
+以下产物与统一源不一致，需要重新生成：
+  manifest.json
+以下产物与统一源不一致，需要重新生成：
+  loon/loon.conf（缺失）
+  manifest.json
+已生成 7 个公开产物到 out（订阅为占位符）
+已生成 7 个公开产物到 out（订阅为占位符）
+报告已写入 /tmp/tmpl_gpmgky/report.md
+报告已写入 /tmp/tmpl_gpmgky/report.md
+已生成 7 个公开产物到 /tmp/tmpdz3qps3o（订阅为占位符）
+已生成 7 个公开产物到 ../../../../../tmp/tmppgbs4lsq（订阅为占位符）
+私密产物已写入 ../../../../../tmp/tmppgbs4lsq/private（含订阅，请勿分享）
