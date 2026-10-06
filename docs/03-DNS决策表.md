@@ -7,12 +7,12 @@
 | 国内服务解析 | `nameserver-policy` 把 GeoSite cn / private 交给 223.5.5.5、1.12.12.12 的 DoH；直连出站用 `direct-nameserver`（同一组 DoH） | DNS 规则把 geosite-cn 交给 `dns-cn`（223.5.5.5 DoH，直连）；直连出站用 `default_domain_resolver: dns-cn`。产品规则里走代理组的域名先判断、不进这一条（见下面“sing-box：产品规则先于国内域名集合”） | `doh-server` 223.5.5.5 / 1.12.12.12。官方文档：同时配置时优先用加密 DNS，并发查询全部服务器、取最先返回的；加密 DNS 查询失败时默认回落到普通的 `dns-server`（这个行为可以在 App 的 DNS 服务器页面关掉） | `doh-server` 同上。配置里还写了两个国内 UDP 的 `server=`：官方示例说明，设了 DoH / DoQ 之后，系统 DNS 和没有绑定域名的普通 `server=` 都会被忽略，所以这两条只在去掉 DoH 时才起作用；DoH 查询失败时怎么办，官方示例没有写（❓） | 访问国内站点，查看返回的 IP 是否为国内节点；抓包确认没有发往境外 DNS |
 | 境外服务解析与出口 | fake-ip：不在本机解析；需要按 IP 判断时，`nameserver`（1.1.1.1、8.8.8.8 DoH）按规则经代理发出（`respect-rules`） | fake-ip：产品规则里走代理组的域名和未分类域名的 A / AAAA 查询直接给假地址；其他类型的查询（HTTPS / SVCB 等）和“需要按 IP 判断”时的解析，用经“国外默认”发出的 `dns-foreign`（1.1.1.1 DoH） | 标准版（`loon.conf`）：命中域名规则的连接不在本机解析；没有命中任何域名规则的域名，要先用上一行的国内 DNS 解析，再按 IP 规则判断（见下方“已知取舍”第一条，结论是有条件的）。严格版（`loon-strict.conf`，2026-10-06）：这类域名不解析，直接走国外默认，见“Loon / Quantumult X：严格版”一节 | 同 Loon（`quantumultx.conf` / `quantumultx-strict.conf`） | mihomo / sing-box：抓包确认本机无明文 DNS 发往境外；Loon / QX：确认命中产品规则的域名不产生本机 DNS 查询 |
 | 代理节点自身域名 | `proxy-server-nameserver` 用国内 DoH，直连查询，避免“要代理才能解析代理”的循环。节点的服务器如果是局域网里的名字（`gateway.lan`、不带点的主机名），由 `proxy-server-nameserver-policy` 交给 `system`（系统 DNS）——节点这条路不看 `nameserver-policy`，见最后一节“mihomo：三个解析器各管各的”（2026-10-05，审核 r10 的 R10-F01；要内核 v1.19.20 或更新） | `route.default_domain_resolver: dns-cn`（国内 DoH，直连）。节点的服务器如果是局域网里的名字（`gateway.lan`、不带点的主机名），这个节点另写 `domain_resolver: dns-local`（系统 DNS）——见下面“sing-box：拨号时的解析不看 DNS 规则”（2026-10-05） | 由 App 处理。官方文档的“节点”一页写了顺序：“节点服务器域名的解析顺序为：匹配到的 Host Map、节点的 server-dns、SSID DNS、全局 DNS。”（https://nsloon.app/docs/Node/ ，2026-10-06 查阅；`server-dns` 要 3.5.2 (996) 及以上）。按这句话，`[Host]` 里 `*.lan = server:system` 这几行对节点服务器也起作用：服务器是 `gateway.lan` 的节点由系统 DNS 解析，公网域名的节点由全局 DNS（国内 DoH）解析。没有在 App 里验证。**更正**：r11 的文档写的是“官方文档没有写这一点”，当时只查了“DNS”“DNS 映射”两页，漏看了“节点”这一页 | 由 App 处理。服务器是局域网名字的节点由谁解析，官方示例配置里没有写，也没有验证 | 断开所有代理组后重启客户端，节点仍能连上。有自建在局域网里的节点时：看它能不能连上 |
-| 局域网、公司内网、本地名称 | `nameserver-policy` 第一条把 `+.lan/+.local/+.localdomain/+.home.arpa/+.localhost` 交给 `system`（系统 DNS，即路由器 / 公司 DNS）；`direct-nameserver-follow-policy: true` 让 DIRECT 连接的解析也走这条；`fake-ip-filter` 让它们拿真实地址；局域网段与这些后缀在规则第 2 阶段固定直连（2026-09-30 审核 F04 后补上，以前这些名字会被发给公共 DoH）。这一行管的是访问目标；节点自己的服务器地址见上一行 | DNS 规则把这些后缀交给 `dns-local`（系统 DNS）；局域网段固定直连。以域名形式到达直连出站的局域网名字，路由里先用一条 `resolve` 规则交给 `dns-local` 解析（2026-10-05，见“sing-box：拨号时的解析不看 DNS 规则”一节） | `[Host]` 里 `*.lan` 等交给 `server:system`；`real-ip` 不给假地址；`skip-proxy`、`bypass-tun` 排除私有网段 | `server=/*.lan/system` 等；`dns_exclusion_list`；`excluded_routes` | 访问 NAS / 打印机 / 路由器管理页；公司内网另在 `local.yaml` 加规则 |
+| 局域网、公司内网、本地名称 | `nameserver-policy` 第一条把 `+.lan/+.local/+.localdomain/+.home.arpa/+.localhost` 交给 `system`（系统 DNS：内核从系统读到的 DNS 服务器，通常是路由器 / 公司下发的，但不保证——2026-10-07 更正，见最后一节“`system` 指的是谁”）；`direct-nameserver-follow-policy: true` 让 DIRECT 连接的解析也走这条；`fake-ip-filter` 让它们拿真实地址；局域网段与这些后缀在规则第 2 阶段固定直连（2026-09-30 审核 F04 后补上，以前这些名字会被发给公共 DoH）。这一行管的是访问目标；节点自己的服务器地址见上一行 | DNS 规则把这些后缀交给 `dns-local`（系统 DNS）；局域网段固定直连。以域名形式到达直连出站的局域网名字，路由里先用一条 `resolve` 规则交给 `dns-local` 解析（2026-10-05，见“sing-box：拨号时的解析不看 DNS 规则”一节） | `[Host]` 里 `*.lan` 等交给 `server:system`；`real-ip` 不给假地址；`skip-proxy`、`bypass-tun` 排除私有网段 | `server=/*.lan/system` 等；`dns_exclusion_list`；`excluded_routes` | 访问 NAS / 打印机 / 路由器管理页；公司内网另在 `local.yaml` 加规则 |
 | 系统联网检测 | Windows NCSI、Apple 强制门户等拿真实 IP 并固定直连 | 同左 | 同左（real-ip） | 同左（dns_exclusion_list） | Wi-Fi 图标不再误报“无网络”；酒店 / 机场 Wi-Fi 能弹出登录页 |
 | 应用自带 DNS（HTTPDNS） | 未拦截：不等于广告，默认不启用（`adblock.yaml` 的 httpdns 为空） | 同左 | 同左；`hijack-dns` 接管发往 8.8.8.8 / 1.1.1.1 等的明文 53 端口查询 | 同左 | 对具体 App 实测：拦截后能否回退系统 DNS |
 | 浏览器安全 DNS（DoH） | 浏览器自己加密查询，客户端看不到；fake-ip 失效时靠嗅探 SNI 恢复域名（sniffer） | `sniff` 动作恢复域名 | `sni-sniffing = true` | ❓ 依赖 App 自身行为 | 浏览器开 / 关安全 DNS 各访问一次，看是否命中同一策略 |
 | 域名识别失败、直接 IP 连接 | 按 IP 规则：局域网 → Telegram 等专属段（不解析）→ 国内 IP → 国外默认 | 同左 | 同左 | 同左（专属段规则会触发解析，见限制） | 用 IP 直接访问一个国内、一个境外地址 |
-| IPv6 | `dns.ipv6: false` 不返回 AAAA；内核 `ipv6: true` 仍处理 IPv6 字面地址连接 | `strategy: ipv4_only`；TUN 同时有 IPv6 地址，IPv6 流量按规则处理 | `ip-mode = ipv4-only` | `no-ipv6`（官方：只让 AAAA 失败） | 关闭 AAAA ≠ 所有 IPv6 路径都受控：需在双栈网络下用 IPv6 字面地址测试是否仍经 TUN 与规则 |
+| IPv6 | `dns.ipv6: false` 不返回 AAAA；内核 `ipv6: true` 仍处理 IPv6 字面地址连接。这是交付的配置：Clash Verge Rev 开虚拟网卡时会改写 `dns.ipv6`、补上 IPv6 假地址段（最后一节） | `strategy: ipv4_only`；TUN 同时有 IPv6 地址，IPv6 流量按规则处理 | `ip-mode = ipv4-only` | `no-ipv6`（官方：只让 AAAA 失败） | 关闭 AAAA ≠ 所有 IPv6 路径都受控：需在双栈网络下用 IPv6 字面地址测试是否仍经 TUN 与规则 |
 | 缓存 | 内核缓存；`store-fake-ip` 保存映射 | `cache_file.store_fakeip` | 运行期 LRU，退出清空（官方） | App 内 | 重启客户端后已打开的连接是否正常 |
 
 ## 已知取舍
@@ -25,7 +25,7 @@
   - **2026-10-06 起另有严格版**：上面说的都是标准版。你问“国外 IP 的时候不泄露国内 DNS”以后，这两端各多生成了一份严格版，反过来做——先按域名认出国内网站，其余域名不在本机解析、直接走代理。标准版没有改，两份可以在 App 里随时切换。做法、依据、代价见“Loon / Quantumult X：严格版”一节。以前这里写的“可以做而没有做的：给这两端加一份境外域名集合”是另一种做法（列出境外域名），没有采用：境外域名列不全，没列到的仍然要先问国内 DNS。
 - **mihomo 上的整段 `.ms`**（2026-10-04，你的决定：不更正、跟随上游）：MetaCubeX 的国内域名集合里有整段后缀 `ms`，mihomo 的路由（`GEOSITE,cn`）和 DNS（`nameserver-policy` 的 `geosite:cn`）用的是同一个集合，所以没有被产品规则接住的 `.ms` 域名在 mihomo 上由国内 DNS 解析并直连。有规则的 `.ms` 域名（`aka.ms`、`1drv.ms` 等）按各自的组走，走代理时不在本机解析。sing-box 的集合里没有这一条。详见 `docs/06`“2026-10-04”一节。
 - **Quantumult X 的专属 IP 段**：没有 no-resolve，域名连接走到 Telegram 段规则时会先解析；只影响没有命中任何域名规则的连接。
-- **IPv6**：所有端都选择“不返回 AAAA”。这只阻止多数应用主动走 IPv6，不控制应用直接使用 IPv6 字面地址的情况；那部分流量在 TUN 模式下仍会按规则走（国内 IPv6 直连、其余走国外默认），在系统代理模式下可能绕过客户端。
+- **IPv6**：所有端的配置都选择“不返回 AAAA”（mihomo 这一条在 Clash Verge Rev 开虚拟网卡时会被 App 改掉，见最后一节）。这只阻止多数应用主动走 IPv6，不控制应用直接使用 IPv6 字面地址的情况；那部分流量在 TUN 模式下仍会按规则走（国内 IPv6 直连、其余走国外默认），在系统代理模式下可能绕过客户端。
 - **局域网后缀的来源**：四端都从 `source/project.yaml` 的 `lan.domain_suffix` 生成（mihomo 的 `nameserver-policy` 和节点专用的 `proxy-server-nameserver-policy`、sing-box 的 `dns-local` DNS 规则、路由里的 `resolve` 规则和节点上的 `domain_resolver`、Loon 的 `[Host]`、QX 的 `server=/…/system`），改一处四端同步。公司自定义的内网域名（不在这些后缀下的）：把后缀加进 `lan.domain_suffix`，四端的解析和直连规则、两个内核对节点服务器的处理一起生效（`tests/test_dns_lan.py` 用一个虚构的后缀核对过 mihomo 和 sing-box）。只在 `local.yaml` 里加直连规则是不够的：`local.yaml` 现在改不了这份后缀列表，那样加的域名在 mihomo 下仍由国内 DoH 解析。要留意 `project.yaml` 是公开的统一源的一部分，加进去的后缀会出现在公开产物里；需要“只进私密产物”的写法时告诉我，现在没有。`.local` 的 mDNS 名字是否能解析取决于系统 DNS，未实测。
 - **不带点的主机名作为访问目标**（`http://nas/`、`http://printer/`；r10 核对 sing-box 拨号解析时顺带看的，r11 查清了 mihomo 上 DNS 那一半。这部分规则 r10、r11 都没有动，以前的版本同样如此）：局域网的规则只认后缀（`.lan`、`.local` 等）和私有网段，不认“没有点的名字”。分两种情况：
   - 设备先查 DNS（TUN 模式下的常见情况）。mihomo 把这个查询交给了**国内的公共 DNS**，它不认识这个名字，解析失败。原因在上游数据：MetaCubeX 的 `private` 集合里有一条正则 `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`，匹配“字母开头的单个标签”，这类名字于是落到 `nameserver-policy` 里 `geosite:cn,private → 国内 DoH` 那一条。官方 v1.19.31 实测，记成了固定用例（`tests/cases.yaml` 的 `mihomo_dns`，标了 `limit`）。sing-box 给的是假地址（r10 时的一次性核对）。
@@ -52,7 +52,7 @@
 说明：
 
 - “走代理组”包括默认直连的 Apple、Apple Music/TV、Apple Push（2026-10-06 加的）三个组：给假地址之后，组选直连时由直连出站用国内 DNS 解析（和以前一样），组切到某个地区时由代理解析——不会出现“组已经切到美国，地址还是国内 DNS 解析的”。
-- 第 2 步有一处和这个设计不一致，2026-10-06 的全集一致性核对查出来的：“需要真实地址的域名”整个名单都交给 `dns-cn`，而其中几个名字的路由并不是直连（`time.windows.com` 归 Microsoft 组，`pool.ntp.org` 落到国外默认）。见“走代理的域名不交给国内 DNS”一节和 `docs/06` 待决事项第 15 项。
+- 第 2 步有一处和这个设计不一致，2026-10-06 的逐条扫描查出来的：“需要真实地址的域名”整个名单都交给 `dns-cn`，而其中几个名字的路由并不是直连（`time.windows.com` 归 Microsoft 组，`pool.ntp.org` 落到国外默认）。见“走代理的域名不交给国内 DNS”一节和 `docs/06` 待决事项第 15 项。
 - 归“国内直连”的产品规则（国内常用网站等）不用写进第 3、4 步：它们本来就由第 5、6 步处理，结果和以前一样。
 - mihomo 不需要对应的改动：fake-ip 模式下，命中域名规则的连接不在本机解析，域名直接交给代理；`nameserver-policy` 里的国内集合只在需要解析时才用得到。这句话只管“fake-ip 生效、内核收到的是域名”这条路；浏览器自带的安全 DNS、被排除在 fake-ip 之外的名字、直接按 IP 发起的连接不在这句话的范围里（2026-10-04 审核 r9 时审核方指出的边界）。
 - 验证：22 条 DNS 去向用例（`tests/cases.yaml` 的 `singbox_dns`；2026-10-06 加了一条 Apple Push 的），官方内核 v1.14.1 与 v1.12.0 实际查询的结果、自制模拟器、人工期望三者一致；另对全部“期望走代理组”的主机逐个检查 A 查询得到假地址、HTTPS 查询交给 `dns-foreign`（`tests/test_real_data.py`）。自检：把第 3、4 步拿掉，官方内核把 `chat.qwen.ai`、`music.apple.com` 的 A 查询交给了 `dns-cn`。日志 `docs/evidence/real-route-check.log`。
@@ -143,7 +143,7 @@ dns:
 
 没有验证的：
 
-- **`system` 在真实系统上向谁查询**。核对时把它换成了替身。源码（`dns/system*.go`）里，Linux / macOS 读 `/etc/resolv.conf`，Windows 另有实现，Clash Meta for Android 的构建又是一套（没有看）；TUN 接管了 53 端口时它会不会绕回内核自己，没有实测。`nameserver-policy` 里的 `system` 从 r6 起就在用，是同一个东西。
+- **`system` 在真实系统上向谁查询**。核对时把它换成了替身。2026-10-07 把三个系统的源码都读了（GPT 审核 r12 提醒“`system` 不保证就是你家的路由器”），结论在最后一节“`system` 指的是谁”：通常是路由器 / 公司下发的 DNS；内核从系统读不到 DNS 时用内置的 114.114.114.114 和 8.8.8.8；macOS 上开着 Clash Verge Rev 的虚拟网卡时，按源码推断是 114.114.114.114，这时局域网里的节点解析不到。都没有在真实系统上验证。`nameserver-policy` 里的 `system` 从 r6 起就在用，是同一个东西。
 - 真实网络、真实节点、TUN 接管下的表现。
 - **客户端有没有把配置文件里的 dns 段原样交给内核**。Clash Verge Rev 有“DNS 覆写”开关；2026-10-06 读了它的源码，行为比 r11 写的清楚了，见最后一节“客户端这一侧”。Clash Meta for Android 有没有类似的设置没有核对。两个客户端内置的内核版本也没有核对。
 - Loon / Quantumult X：服务器是局域网名字的节点由谁解析。Loon 官方文档的“节点”一页写了顺序（Host Map 排第一，见开头表格“代理节点自身域名”一行的更正），按它 `[Host]` 的那几行管得到节点服务器，没有在 App 里验证；Quantumult X 的官方示例配置里没有写，不知道。
@@ -192,7 +192,7 @@ dns:
 | blackmatrix7 `ChinaMax_Domain.list` | 上游文件，配置里直接订阅它的地址（内容跟着上游变）。mihomo 用的 `geosite:cn` 就是从它来的：MetaCubeX 的数据仓库说明里写着“`geosite:cn` 源替换为 ios_rule_script/ChinaMax_Domain”（https://github.com/MetaCubeX/meta-rules-dat ，2026-10-06 查阅）；拿固定快照和 2026-10-05 的 `geosite.dat` 逐条比，`geosite:cn` 的 111,224 条里有 110,712 条在这份清单里同值出现，其余的差别里包括 `geosite:cn` 的 52 条整段顶级域（一次性核对，2026-10-06） | 按固定快照 `51d2e1d` 读：111,277 条，只有域名和后缀两类，**不含整段顶级域** | 只有 Loon |
 
 - 为什么要自己生成一份：Loon 那份上游大清单不含整段 `.cn`；Quantumult X 没有可以直接订阅的成品——blackmatrix7 给它的只有 `ChinaMax.list`，里面混着 13 条关键词规则（`baidu`、`aliyun`、`stripe` 等，含这些字样的域名都会被当成国内）和 65 条 UA 规则。
-- 所以**两端认得的国内网站不一样多**：只在大清单里的域名，Loon 严格版直连，Quantumult X 严格版走代理。要让 Quantumult X 也用上大清单，得在你的仓库里放一份转换过的副本，而 blackmatrix7 的仓库是 GPL-2.0，这件事没有替你决定，列在 `docs/06` 待决事项第 19 项。
+- 所以**两端认得的国内网站不一样多**：只在大清单里的域名，Loon 严格版直连，Quantumult X 严格版走代理。差多少（一次性估算，2026-10-06 做、2026-10-07 重跑结果相同，按固定快照 `51d2e1d`；脚本和输出在 `handoff/notes/qx_strict_coverage.*`）：大清单的 111,277 条里，Quantumult X 严格版的自有清单接得住 5,753 条（5.2%），另有 78 条被本地的产品规则先接走；剩下 105,446 条（94.8%）在 Loon 严格版直连、在 Quantumult X 严格版走代理。按结尾分，最多的是 `.com` 87,603 条、`.net` 7,546 条、`.org` 2,144 条、`.cc` 1,532 条；`.cn` 结尾的自有清单全部接得住。随手挑的 30 个常见大站（百度、淘宝、京东、B 站、支付宝、招商银行等）也都接得住——这 30 个不是严格统计，接不住的大多是小网站、公司官网。要让 Quantumult X 也用上大清单，得在你的仓库里放一份转换过的副本，而 blackmatrix7 的仓库是 GPL-2.0，这件事没有替你决定，列在 `docs/06` 待决事项第 19 项。
 - 清单和兜底文件放在你自己的仓库里，严格版按 `https://raw.githubusercontent.com/ixxooxo-alt/proxy/main/dist/…` 引用。**仓库的 `main` 更新到这一版之前，这三个地址打不开，严格版用不了**；以后文件改名、仓库改成私有，引用它们的规则也会失效。
 
 **代价和它改变的东西**（都记成了用例，`tests/cases.yaml`）
@@ -218,8 +218,12 @@ dns:
 - 两个 App 是否接受这些写法、规则先后是否如上面所说、没被接住的域名是否真的不产生本机 DNS 查询。
 - 六千条 / 十一万条的远程规则在手机上的加载时间和内存占用。Loon 官方文档“订阅规则”一页说它“支持数十万条规则”，并给了一组数字（iPhone 15 Pro、Loon 3.2.0 (712)：20 万条 `DOMAIN` / `DOMAIN-SUFFIX` 规则的查询在 1 毫秒以内），说的是匹配速度，不是加载时间和内存；Quantumult X 没有查到类似的说明。
 - 上游大清单的格式（每行一个域名，“.”开头表示含子域）在 Loon 官方文档里没有写，和广告集合的第二个文件是同一种情况（`docs/06` 待决事项第 11 项）。
+- **严格版只保证“为了判断规则，不在本机解析”**（GPT 审核 r12 第 3 点：这是验证的边界，不是已经复现的漏洞）。下面这些路径不在这个保证里，也都没有验证：
+  - 手机上的程序自己发出的 DNS 查询，尤其 A / AAAA 以外的类型，比如 HTTPS（类型 65，iOS 的浏览器访问网站时常发）。两个 App 对这类查询是直接回空应答，还是转给 `[dns]` 里的国内 DNS，官方文档没有写。会转的话，没被接住的域名的这一部分查询国内 DNS 仍然看得到。mihomo 上的同一个问题见下面“逐条扫描”一节的第二类和待决事项第 16 项。
+  - 浏览器自己的安全 DNS（DoH）；程序缓存了地址以后直接按 IP 连接（那样走的是 IP 规则）；你自己在 App 里另加的规则、插件；系统在隧道之外发出的流量。
+  `docs/09` 第 1b 节第 3、4 步能看出其中一部分。
 
-## 走代理的域名不交给国内 DNS：三项固定核对与全集一致性（2026-10-06）
+## 走代理的域名不交给国内 DNS：三项固定核对与逐条扫描（2026-10-06；2026-10-07 修订）
 
 这一节说的是 mihomo（Clash Verge Rev / Clash Meta for Android）和 sing-box（SFA）。它们的配置这一轮**没有改**（除了新加的 Apple Push 组），加的是检查：把“国外的连接，名字不要让国内 DNS 看到”这句话拆成能用官方内核实际跑的几项。做法沿用拨号核对的办法（`tools/check_real_routes.py`）：内核是官方发布的程序（mihomo v1.19.31，sing-box v1.14.1 和 v1.12.0），系统 / 国内 / 境外三类 DNS 各换成一个本机替身，看“这个名字被哪个替身收到过”。
 
@@ -230,14 +234,14 @@ dns:
 | ① 有规则、走代理组的域名（`www.youtube.com`、`gemini.google.com`、`chat.qwen.ai`），内核处理这个连接的全过程 | 三类替身都没有收到关于它的查询 | 同左 |
 | ② 没有被任何域名规则接住的域名（虚构的 `never-listed-site.org`、泄露测试网站那一类的 `r1.test.dnsleaktest.com`） | 只有境外 DNS 的替身收到（为了判断最后的 `GEOIP,CN` 要解析一次） | 只有 `dns-foreign` 的替身收到（路由里的 `resolve` 动作） |
 | 对照：国内直连的公网域名（`www.baidu.com`） | 国内 DNS 的替身收到 | `dns-cn` 的替身收到 |
-| 设备发来的 DNS 查询 | 走代理的域名和哪个集合里都没有的域名：A 查询直接给假地址，HTTPS 查询直接回空应答，都不向上游查询；TXT 这类其他类型交给境外 DNS | A 查询给假地址；其他类型交给 `dns-foreign`（以前就有的 22 条用例） |
-| ③ 境外 DNS 不应答：把境外替身改成只收不答，每个连接保持 14 秒不断开（mihomo 的 DNS 超时是 5 秒，sing-box 是 10 秒），同一批连接和查询重跑一遍 | 收到查询的替身与正常那一遍完全相同：连接 6 条、查询 11 条，其中 4 条只有境外替身收到 | 同左：连接 6 条、查询 22 条，其中 6 条只有境外替身收到 |
+| 设备发来的 DNS 查询 | 走代理的域名和哪个集合里都没有的域名：A 查询直接给假地址，AAAA、HTTPS 查询直接回空应答，都不向上游查询；TXT 这类其他类型交给境外 DNS。AAAA 那条用例（`google.cn`）是 2026-10-07 加的；这一行说的都是交付的原始配置，Clash Verge Rev 开虚拟网卡时 AAAA 可能变成假的 IPv6 地址（最后一节） | A 查询给假地址；其他类型交给 `dns-foreign`（以前就有的 22 条用例） |
+| ③ 境外 DNS 不应答：把境外替身改成只收不答，每个连接保持 14 秒不断开（mihomo 的 DNS 超时是 5 秒，sing-box 是 10 秒），同一批连接和查询重跑一遍 | 收到查询的替身与正常那一遍完全相同：连接 6 条、查询 ⟦mihomo_dns_n⟧ 条，其中 4 条只有境外替身收到 | 同左：连接 6 条、查询 22 条，其中 6 条只有境外替身收到 |
 
-第 ③ 项的意思是：境外 DNS 连不上时，内核没有转去问国内 DNS 或系统 DNS，那个连接只是失败。
+第 ③ 项能说明的只有这些：**在这次“境外替身只收不答”的测试里**，14 秒的观察时间内，内核没有转去问国内 DNS 或系统 DNS，那个连接只是失败。别的失败方式——连接被重置、TLS 证书出错、HTTP 报错、返回 SERVFAIL——没有试；替身是 UDP 的，真实配置里是 DoH；真实节点、真实 DoH 的全链路、App 改写过的配置也都没有验证。所以它不能说成“境外 DNS 不管怎么连不上都不会回落”。支持同一方向、但不是实测的两点：配置里没有给境外查询安排国内的 `fallback`（`tests/test_dns_lan.py` 有静态断言）；mihomo v1.19.31 的解析器在没有 `fallback` 时直接返回主服务器的结果或错误（源码 `dns/resolver.go` 的 `ipExchange`）。（2026-10-07 按 GPT 审核 r12 第 5 点收窄：r12 这里写的是“境外 DNS 连不上时”，说宽了。）
 
-**全集一致性**（`tools/dns_route_consistency.py`）
+**逐条扫描**（`tools/dns_route_consistency.py`；r12 叫它“全集一致性”，2026-10-07 按 GPT 审核 r12 第 4 点改名，因为它不是“全部域名”的证明）
 
-上面的用例只有十几个名字。另外做了一遍全集的：把“名字会交给国内 DNS”的集合整个拿出来，逐条取代表主机（条目本身；后缀条目再取它的一个子域），看路由有没有把它交给代理组；再反过来把配置里每条域名规则的值也查一遍。判断用自制模拟器加读进来的真实集合；走代理组的每个主机和按固定间隔抽出来的 200 个主机，再交给官方内核实际跑，核对模拟器没有算错。
+上面的用例只有十几个名字。另外把“名字会交给国内 DNS”的集合整个拿出来，逐条取代表主机（条目本身；后缀条目再取它的一个子域），看路由有没有把它交给代理组；再反过来把配置里每条域名规则的值也查一遍。判断用自制模拟器加读进来的真实集合；走代理组的每个主机和按固定间隔抽出来的 200 个主机，再交给官方内核实际跑，核对模拟器没有算错。
 
 | | 扫了多少 | 名字会交给国内 DNS 的 | 其中路由是国内直连 / 直连 / 拦截 | 归默认直连、可切换的组（Apple） | 走代理组 |
 |---|---|---|---|---|---|
@@ -246,13 +250,15 @@ dns:
 
 官方内核核对：sing-box 每个版本 206 个主机（路由结果、A 与 HTTPS 查询的去向都与模拟器相同）；mihomo 574 个主机（路由结果与模拟器相同，TXT 查询都由国内 DNS 的替身收到）。自检：把 sing-box DNS 规则里“走代理组的产品域名”那一层拿掉再扫，走代理组的从 5 个变成 152 个——这项核对看得见它要防的错误。
 
+表里的数都是**代表主机**的个数：只对这份快照（2026-10-05 的上游数据）和“条目本身加一个子域”这种取法成立，不是互联网上实际受影响的主机有多少。它也不是“全部合法域名、全部规则组合”的证明：正则和关键词覆盖的范围、比代表主机更深的子域、手动切换过的策略组、客户端改写过的配置、真实的解析结果都不在里面（下面“没有覆盖的”）。
+
 “走代理组”的那些就是“名字交给国内 DNS、连接却从代理出去”的情况。它们都是现状的如实记录，**这一轮没有改**，分三类：
 
 | 类别 | 哪一端 | 是什么 | 实际影响 | 待决事项 |
 |---|---|---|---|---|
-| “要真实地址的名单”里路由不直连的名字 | sing-box 的 5 个：`time.windows.com`（Microsoft 组）、`pool.ntp.org` 和它的子域（国外默认）、`icitymobile.mobi` 和它的子域（没有域名规则，按解析到的 IP 决定）。`time.apple.com` 归 Apple 组，默认直连，组切到代理时也属于这一类 | DNS 规则的第二条把这份名单整个交给 `dns-cn`，名单里的名字不一定直连 | 国内 DNS 看得到这几个名字的查询；它们是对时和运营商认证用的，不是你访问的网站。标准版的 Loon / Quantumult X 同理（名单里的名字先在本机解析）；严格版把它们固定直连了 | 第 15 项 |
-| 上游的国内域名集合收了、路由靠产品规则交给代理组的域名 | mihomo 的 142 个：`qwen.ai`、`google.cn`、`aka.ms` 等几个 `.ms` 域名、`bilibili.tv`、`download.microsoft.com` 这一批微软下载主机、B 站港澳台用的几个接口主机等 | `nameserver-policy` 里只有“国内域名集合 → 国内 DNS”，没有 sing-box 那样“走代理组的产品域名先判断”的一层 | **只影响地址以外的查询类型**（TXT、SRV 这类，普通上网很少用到）：设备查 A 得到的是假地址，AAAA / HTTPS 是空应答，连接本身不解析——官方内核实测 `qwen.ai` 的 TXT 查询交给了国内 DNS，记成了用例（`mihomo_dns`，标了 `limit`） | 第 16 项 |
-| 上游 `private` 集合里的名字 | mihomo 的 222 个：反向解析域（`10.in-addr.arpa` 这类，190 个）、保留后缀（`test`、`invalid`、`internal`、`example`）、路由器登录域名（`tplinkwifi.net`、`router.asus.com` 等） | `nameserver-policy` 的那一条写的是 `geosite:cn,private`，`fake-ip-filter` 又让它们拿真实地址；路由上只有局域网后缀固定直连 | 这些名字本来就该由路由器回答，交给国内的公共 DNS 多半解析不到或者解析错。和“不带点的名字”是同一个原因 | 第 14 项 |
+| “要真实地址的名单”里路由不直连的名字 | sing-box 的 5 个代表主机：`time.windows.com`（Microsoft 组）、`pool.ntp.org` 和它的子域（国外默认）、`icitymobile.mobi` 和它的子域（没有域名规则，按解析到的 IP 决定）。`time.apple.com` 归 Apple 组，默认直连，组切到代理时也属于这一类 | DNS 规则的第二条把这份名单整个交给 `dns-cn`，名单里的名字不一定直连 | 国内 DNS 看得到这几个名字的查询；它们是对时和运营商认证用的，不是你访问的网站。标准版的 Loon / Quantumult X 同理（名单里的名字先在本机解析）；严格版把它们固定直连了 | 第 15 项 |
+| 上游的国内域名集合收了、路由靠产品规则交给代理组的域名 | mihomo 的 142 个代表主机：`qwen.ai`、`google.cn`、`aka.ms` 等几个 `.ms` 域名、`bilibili.tv`、`download.microsoft.com` 这一批微软下载主机、B 站港澳台用的几个接口主机等 | `nameserver-policy` 里只有“国内域名集合 → 国内 DNS”，没有 sing-box 那样“走代理组的产品域名先判断”的一层 | 按交付的原始配置，**只影响地址以外的查询类型**（TXT、SRV 这类，普通上网很少用到）：设备查 A 得到的是假地址，AAAA / HTTPS 是空应答，连接本身不解析——官方内核实测 `qwen.ai` 的 TXT 查询交给了国内 DNS（标了 `limit`）、`google.cn` 的 AAAA 查询是空应答，都记成了用例（`mihomo_dns`）。2026-10-07 另把这 142 个主机的 A / AAAA / HTTPS 各查了一遍（一次性核对，`handoff/notes/r12_review_probes.*`）：A 全是假地址，AAAA、HTTPS 全是空应答，三类替身都没有收到，与 GPT 审核 r12 时的复测相同。Clash Verge Rev 开虚拟网卡、App 的 IPv6 开关开着时，AAAA 会变成假的 IPv6 地址（最后一节），同样不向上游查询 | 第 16 项 |
+| 上游 `private` 集合里的名字 | mihomo 的 222 个代表主机：反向解析域（`10.in-addr.arpa` 这类，190 个）、保留后缀（`test`、`invalid`、`internal`、`example`）、路由器登录域名（`tplinkwifi.net`、`router.asus.com` 等） | `nameserver-policy` 的那一条写的是 `geosite:cn,private`，`fake-ip-filter` 又让它们拿真实地址；路由上只有局域网后缀固定直连 | 这些名字本来就该由路由器回答，交给国内的公共 DNS 多半解析不到或者解析错。和“不带点的名字”是同一个原因 | 第 14 项 |
 
 另有一条不在扫描范围里、但性质相同的已知限制：四个客户端的“国内直连”都是可以切换的组（直连 / 国外默认，默认直连）。把它切到“国外默认”以后，sing-box 仍然先按 DNS 规则把国内域名集合里的域名交给 `dns-cn` 解析，再把连接交给代理（`docs/06` 待决事项第 17 项）；mihomo 和 Loon / Quantumult X 上，被域名规则接住的部分不在本机解析。
 
@@ -261,9 +267,11 @@ dns:
 - 真实的虚拟网卡路径。核对用的是本机的代理端口和临时的 DNS 端口，不是 TUN；系统在 TUN 之外自己发出的 DNS 查询（见下一节）内核看不到，这里也看不到。
 - 境外 DNS 的那条连接本身从哪里出去。配置里境外 DNS 是 1.1.1.1 / 8.8.8.8 的 DoH，mihomo 开了 `respect-rules`、sing-box 写了 `detour: 国外默认`；固定核对里它们被换成了本机替身。2026-10-06 做过一次性的核对（不在交付包里）：mihomo 用回真实的 DoH 地址时，日志里是 `[TCP] mihomo --> 1.1.1.1:443 match Match using 国外默认`，即这条连接按规则交给了国外默认。
 - 代表主机只有“条目本身和它的一个子域”，正则条目（sing-box 8 条、mihomo 1 条）取不出代表主机，没有扫。
+- 境外 DNS 除了“只收不答”以外的失败方式（见第 ③ 项下面那段）。
+- 客户端改写过的配置：上面的结果都是交付的原始配置跑出来的；Clash Verge Rev 开虚拟网卡时会改 dns 段，“DNS 覆写”、扩展配置也能改（最后一节）。
 - 解析结果是假定的（没列出的主机按境外 IP 算），只影响“没被域名规则接住、靠 IP 决定去向”的那几个主机。
 
-## 客户端这一侧：哪些设置会让上面的设计不成立（2026-10-06）
+## 客户端这一侧：哪些设置会让上面的设计不成立（2026-10-06；2026-10-07 补充）
 
 配置文件只管得到“内核收到的流量和查询”。下面这些在 App 或系统里，配置文件管不到；每个客户端要手动确认的清单在 `docs/01`“每个客户端要手动确认的开关”，这里记依据。除了写明“官方文档”的，都是读源码得到的，**没有在 App 里验证**。
 
@@ -271,8 +279,14 @@ dns:
 - **Clash Verge Rev 的“DNS 覆写”**（读的是 v2.5.7 标签和 2026-10-05 的 dev 分支 `30f05a7`，`src-tauri/src/enhance/mod.rs` 的 `merge_dns_config`；更新日志 v2.5.4、v2.5.5、v2.5.7）：
   - v2.5.4 起，覆写只盖掉界面里**填了值的字段**，没填的保留配置文件里的（按字段整个替换，不是往里合并：界面里填了 `nameserver-policy`，配置文件里的那一整张表就被换掉；布尔值填“关”不算填了值）；订阅自带 DNS 设置时打开覆写要先确认，订阅更新以后覆写自动关闭；v2.5.5 起按订阅分别记忆；v2.5.7 修了“确认开启的覆写重启后被自动关闭”。界面上的原话是“如果你不清楚这里的设置请不要修改，并保持 DNS 覆写关闭”。
   - **更正**：r11 的文档只说它“近几个版本行为有变动”，依据是问题单；现在按源码写清楚了。结论不变——保持关闭。
-- **Clash Verge Rev 开虚拟网卡时会改写 `dns.ipv6`**（`src-tauri/src/enhance/tun.rs` 的 `use_tun`）：fake-ip 模式下，它把 `dns.ipv6` 设成和顶层的 `ipv6` 一样；顶层的 `ipv6` 又会被 App 自己保存的设置盖掉（`merge_default_config`，App 的模板默认是 `true`）。也就是说，本项目写的 `dns.ipv6: false`（不返回 AAAA）在这个客户端开着虚拟网卡时，实际跟着 App 设置里的 IPv6 开关走。这是 App 自己的那一步；在它之后，你自己加的“扩展配置 / 扩展脚本”还可以再改这个值，“DNS 覆写”开着并且管着这一项时又以它为准（v2.5.7 源码里有一项测试专门区分这两种情况，审核方指出的）——所以最后是什么，要看 App 里的运行时配置，不能只按这里推。想保持“不返回 AAAA”，把 App 里的 IPv6 开关关掉。macOS 上它还会在开虚拟网卡时把系统 DNS 改成 114.114.114.114（官方常见问题页写的是 223.6.6.6，以源码为准），这是为了让系统的 DNS 查询能被虚拟网卡接到。
-- **Clash Verge Rev 的“严格路由”只能在 App 里开**：v2.5.4 的更新日志写着“优化 TUN 配置优先级：界面设置优先”，源码里 App 保存的 TUN 各项逐个盖到配置文件的 `tun` 段上（`constants.rs` 的 `GUI_KEYS` 含 `strict-route`，模板默认 `false`）。所以在 `mihomo-profile.yaml` 里写 `tun.strict-route: true` 不起作用，本项目没有写。它的作用，mihomo 官方文档的说法是在 Windows 上“添加防火墙规则以阻止 Windows 的普通多宿主 DNS 解析行为造成的 DNS 泄露”——Windows 会同时向各个网卡的 DNS 发查询，不开的话物理网卡那一路会绕过虚拟网卡。副作用：内核示例配置的注释说打开以后别的设备访问不到这台电脑；官方文档说它“可能会使某些应用程序（如 VirtualBox）在某些情况下无法正常工作”。读了内核用的 sing-tun 的 Windows 实现（MetaCubeX/sing-tun 2026-10-02 的代码 `f870488`；mihomo v1.19.31 钉的是稍早的 v0.4.24，没有逐行比过）：它拦的是本机向外发起的、目标端口 53 的连接（放行内核自己的进程和虚拟网卡上的连接），虚拟网卡没有 IPv6 地址时另外拦掉全部 IPv6 出站；macOS 的实现里没有用到这个选项。
+- **Clash Verge Rev 开虚拟网卡时会改写 `dns.ipv6`**（`src-tauri/src/enhance/tun.rs` 的 `use_tun`）：fake-ip 模式下，它把 `dns.ipv6` 设成和顶层的 `ipv6` 一样；顶层的 `ipv6` 又会被 App 自己保存的设置盖掉（`merge_default_config`，App 的模板默认是 `true`）。也就是说，本项目写的 `dns.ipv6: false`（不返回 AAAA）在这个客户端开着虚拟网卡时，实际跟着 App 设置里的 IPv6 开关走。这是 App 自己的那一步；在它之后，你自己加的“扩展配置 / 扩展脚本”还可以再改这个值，“DNS 覆写”开着并且管着这一项时又以它为准（v2.5.7 源码里有一项测试专门区分这两种情况，审核方指出的）——所以最后是什么，要看 App 里的运行时配置，不能只按这里推。想保持“不返回 AAAA”，把 App 里的 IPv6 开关关掉。
+  - **IPv6 开关开着时还多一样**（GPT 审核 r12 第 4 点指出，2026-10-07 核对源码属实）：配置里没有 `fake-ip-range6` 时，`use_tun` 会补上 `2001:2::0/64`（v2.5.7 `tun.rs` 第 46–48 行；开着“DNS 覆写”时 `enhance/mod.rs` 的 `ensure_fake_ip_range6` 也会补）。mihomo v1.19.31 只在顶层 `ipv6` 开着、而且本机有公网 IPv6 地址时才用这一段（`config/config.go` 的 `parseIPV6`），用了以后，走 fake-ip 的名字的 AAAA 查询拿到的是这一段里的假地址，不再是空应答。拿官方内核照这个改法试过（一次性核对，`handoff/notes/r12_review_probes.*`）：当作机器有公网 IPv6 时，待决事项第 16 项那 142 个主机的 AAAA 都拿到了 `2001:2::` 开头的假地址，HTTPS 仍是空应答，三类 DNS 替身都没有收到查询；没有公网 IPv6 时仍是空应答。它改变的是“设备拿到什么地址”，不是“查询交给谁”。本项目文档里“AAAA 为空”的说法都只指交付的原始配置。
+  - macOS 上它还会在开虚拟网卡时把系统 DNS 改成 114.114.114.114（官方常见问题页写的是 223.6.6.6，以源码为准），这是为了让系统的 DNS 查询能被虚拟网卡接到。做法是 `networksetup -setdnsservers`，改的是默认路由所在网卡对应的那个网络服务（v2.5.7 `scripts/set_dns.sh`）。它的一个连带后果见下面“`system` 指的是谁”。
+- **Clash Verge Rev 的“严格路由”在 App 里开，开完看一眼运行时配置**（2026-10-07 按 GPT 审核 r12 第 6 点改了说法）：v2.5.4 的更新日志写着“优化 TUN 配置优先级：界面设置优先”。v2.5.7 的源码里，App 自己保存的设置中 `tun` 下**有**的那几项（`constants.rs` 的 `GUI_KEYS`，含 `strict-route`）会盖到配置文件的 `tun` 段上，之后的扩展配置、扩展脚本也改不动它们（`enhance/mod.rs` 的 `merge_default_config`、`gui_tun_keys`、`enforce_tun`）。全新安装时 App 的设置按模板生成，模板里有 `strict-route: false`（`config/clash.rs` 的 `template`），所以常见的情况下，配置文件里写的 `tun.strict-route: true` 会被盖成 false——本项目没有写它。**r12 这里写的是“写在配置文件里不起作用，只能在 App 里开”，说得太绝对**：App 只在保存的设置里完全没有 `tun` 这一段时才补模板（`IClashTemp::new`），保存过 `tun`、却不含 `strict-route` 的时候，配置文件里写的值不会被盖掉。准确的做法是：在 App 的界面里开，再在运行时配置里看 `tun.strict-route` 是不是 `true`。它的作用，mihomo 官方文档的说法是在 Windows 上“添加防火墙规则以阻止 Windows 的普通多宿主 DNS 解析行为造成的 DNS 泄露”——Windows 会同时向各个网卡的 DNS 发查询，不开的话物理网卡那一路会绕过虚拟网卡。副作用：内核示例配置的注释说打开以后别的设备访问不到这台电脑；官方文档说它“可能会使某些应用程序（如 VirtualBox）在某些情况下无法正常工作”。读了内核用的 sing-tun 的 Windows 实现：先读的是 MetaCubeX/sing-tun 2026-10-02 的代码 `f870488`；2026-10-07 又读了 mihomo v1.19.31 的 `go.mod` 钉的 v0.4.24（GPT 审核 r12 引的也是这一版），两者的 `tun_windows.go` 只差一处——`f870488` 在拦掉 IPv6 之前多放行三种 IPv6 邻居发现报文——所以下面的描述对 v0.4.24 同样成立：它拦的是本机向外发起的、目标端口 53 的连接（放行内核自己的进程和虚拟网卡上的连接），虚拟网卡没有 IPv6 地址时另外拦掉全部 IPv6 出站；另外它把虚拟网卡的 DNS 设成虚拟网卡上的地址。它管的是“发往 53 端口的查询走不走虚拟网卡”，不是“所有 DNS 都被接管”：程序自己用 DoH（443 端口）或者别的端口的加密 DNS，不在它的范围里。macOS 的实现里没有用到这个选项。
+- **`system` 指的是谁**（2026-10-07；GPT 审核 r12 第 11 点提醒“`system` 不保证就是你家的路由器”。下面是读 mihomo v1.19.31 源码的结论，没有在真实系统上验证）。本项目把局域网后缀（`nas.lan` 这类访问目标，和服务器是局域网名字的节点）交给 `system`，意思是“问系统设置里的 DNS”。内核从哪里读：Windows 是“已连接、有网关”的网卡上设置的 DNS（`dns/system_windows.go`）；macOS / Linux 是 `/etc/resolv.conf` 里的 `nameserver`（`dns/system_posix.go`）；Clash Meta for Android 是 App 交给内核的当前网络的 DNS（`dns/patch_android.go`）。虚拟网卡自己的 DNS 地址会被排除。**一个都读不到时，内核用内置的 114.114.114.114 和 8.8.8.8**（`dns/system.go`）。所以 `system` 通常就是路由器 / 公司下发的 DNS，但不保证；以前开头的表写成“即路由器 / 公司 DNS”，说满了。已知会不是路由器的两种情况：
+  - **macOS 上开着 Clash Verge Rev 的虚拟网卡**：App 把系统 DNS 改成了 114.114.114.114（上面一条），`/etc/resolv.conf` 跟着变（这一步是 macOS 的行为，我按常识推断），内核的 `system` 于是去问 114.114.114.114——路由器才认识的 `nas.lan`、局域网里的节点 `gateway.lan` 都解析不到，这些名字也被发给了这个公共 DNS。推断，没有在 Mac 上验证；验收步骤在 `docs/09` 第 1 节“局域网”一行。
+  - **Windows 上照 `docs/01` 开关表里的那句话，不开严格路由、把网卡的 DNS 改成公网地址**：`system` 就是那个公网地址，结果同上。
+  这两种情况配置文件改不了（配置里不知道你家路由器的地址）。可以考虑的办法都没有试过：用 IP 地址访问局域网里的设备；mihomo 有“向某个网卡的 DHCP 要 DNS”的写法（`dhcp://网卡名`，`config/config.go`），也许能写进你自己电脑的私密配置。用到了再定。
 - **mihomo 官方文档写明的两条限制**（TUN 一页，https://wiki.metacubex.one/config/inbound/tun/ ，2026-10-06 查阅）：“在 MacOS/Windows 无法自动劫持发往局域网的 dns 请求”——系统 DNS 填的是路由器地址时，查询不进内核；“在 Android 如开启私人dns 则无法自动劫持 dns 请求”——系统设置里的“私人 DNS”要选“关闭”（“自动”这一档算不算开启，文档没有说）。
 - **浏览器自己的“安全 DNS”**：浏览器直接用 DoH 查询，内核看不到这个查询，只能靠嗅探恢复域名（开头表格“浏览器安全 DNS”一行）。查询去了哪家由浏览器的设置决定。
 - **Loon**：加密 DNS 查询失败时默认回落到明文的普通 DNS，这个行为只能在 App 的 DNS 服务器页面里关（官方文档“DNS”一页），配置文件里没有对应的字段。

@@ -337,7 +337,8 @@ singbox_dns:
 #   kind: proxied   有规则、走代理组的域名；expect: none = 三个替身都没有收到关于它的查询（规则判断时不解析，连接交给代理）
 #   kind: unlisted  没有被任何域名规则接住的域名；expect: dns-foreign = 为了判断后面的国内 IP 规则要解析一次，只问境外 DNS
 # 这两类加上“直连公网域名”那条对照，另外在“境外 DNS 替身只收不答”的条件下重跑一遍（每个连接保持 14 秒，比内核的 DNS 超时长）：
-# 结果必须和正常那一遍相同——境外 DNS 不应答时，内核不会转去问国内 / 系统 DNS。记录在快照的 dial_foreign_silent 里。
+# 结果必须和正常那一遍相同——境外 DNS 只收不答时，内核没有转去问国内 / 系统 DNS。记录在快照的 dial_foreign_silent 里。
+# 只试了“只收不答”这一种失败方式（替身是 UDP 的）；连接被重置、证书错误、SERVFAIL 这些没有试，结论不能直接推到真实的 DoH 故障上（docs/03）。
 # 名字的选法：不用 .example 结尾的（上游的 private 集合把 example 当保留后缀收了），不用容器 hosts 文件里有的名字。
 singbox_dial:
   - {kind: node, server: gateway.lan, expect: dns-local, why: 节点的服务器是局域网后缀下的名字（审核方的例子）}
@@ -356,8 +357,10 @@ singbox_dial:
 # mihomo 的 DNS 查询去向：设备上的程序发来的查询（TUN 接管的查询走这条）交给哪一类 DNS。
 # 前四条和局域网名字有关——2026-10-05 处理审核 r10 的 R10-F01 时自查加的：局域网后缀 → 系统 DNS 这一条（2026-09-30 审核 F04）
 # 以前只有静态检查，没有用官方内核跑过。后面几条是 2026-10-06 加的：走代理的域名、哪个集合里都没有的域名，查询交给谁。
-# expect：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS；
-#         fake-ip = 直接给假地址，不向任何上游查询；empty = 内核直接回一个没有记录的应答，同样不向任何上游查询。
+# expect：system = 系统 DNS（内核从系统读到的 DNS 服务器，通常是路由器 / 公司内网的 DNS，但不保证，见 docs/03“客户端这一侧”）；
+#         domestic = 国内 DNS；foreign = 境外 DNS；fake-ip = 直接给假地址，不向任何上游查询；
+#         empty = 内核直接回一个一条记录都没有的应答，同样不向任何上游查询（2026-10-07 起按应答里的记录总数判断，以前只看 A 记录）。
+# 这些都是交付的原始配置下的结果；客户端改写了 dns 段时（例如 Clash Verge Rev 开虚拟网卡时改 dns.ipv6）会不同，见 docs/03。
 # 期望是人工写的；tools/check_real_routes.py 用官方内核实际查询（三类 DNS 各换成一个本机替身），结果记在快照里。
 # 同一批查询另外在“境外 DNS 替身只收不答”的条件下重跑一遍，收到查询的替身必须不变（记录在 dns_foreign_silent）。
 # 标了 limit 的是已知限制的现状（docs/06），记在这里是为了让文档里的说法有据可查：哪天改了或者上游数据变了，这里会提示。
@@ -374,13 +377,16 @@ mihomo_dns:
   - {host: never-listed-query.net, type: A, expect: fake-ip, why: "虚构的名字，哪个集合里都没有：同样直接给假地址"}
   - {host: never-listed-txt.net, type: TXT, expect: foreign, why: "同上，其他类型交给境外 DNS"}
   - {host: www.qq.com, type: TXT, expect: domestic, why: "对照：国内域名集合里、路由也走国内直连的域名，交给国内 DNS"}
+  - {host: google.cn, type: AAAA, expect: empty,
+     why: "交付的配置里 dns.ipv6 是 false：AAAA 查询直接回空应答，不向任何上游查询。google.cn 在上游的国内域名集合里、路由走 Google 组，属于待决事项 16 那一类（2026-10-07 加，GPT 审核 r12 第 4 点：“AAAA 为空”要限定在交付的原始配置）。Clash Verge Rev 开虚拟网卡、App 的 IPv6 开关开着、机器有公网 IPv6 时会变成假的 IPv6 地址，同样不向上游查询（docs/03“客户端这一侧”）"}
   - {host: qwen.ai, type: TXT, expect: domestic, limit: true,
-     why: "已知限制（2026-10-06 全集一致性核对查出来的）：上游的国内域名集合收了 qwen.ai，路由靠排在前面的显式规则把它交给国外默认，但 nameserver-policy 里没有对应的一条，所以地址以外的查询类型仍交给国内 DNS。A 查询给假地址、连接本身不解析，不受影响。sing-box 的 DNS 规则里有这一层，没有这个问题"}
+     why: "已知限制（2026-10-06 逐条扫描查出来的）：上游的国内域名集合收了 qwen.ai，路由靠排在前面的显式规则把它交给国外默认，但 nameserver-policy 里没有对应的一条，所以地址以外的查询类型仍交给国内 DNS。A 查询给假地址、连接本身不解析，不受影响。sing-box 的 DNS 规则里有这一层，没有这个问题"}
 
 # mihomo 拨号时的解析（2026-10-05 审核 r10 的 R10-F01）。mihomo 里“内核自己要连一个域名形式的地址”有两条路，各用各的解析器：
 #   节点连接自己的服务器 → proxy-server-nameserver，它的例外写在 proxy-server-nameserver-policy 里，不看 nameserver-policy；
 #   直连出口连接域名形式的目标 → direct-nameserver；开了 direct-nameserver-follow-policy 时先看 nameserver-policy。
-# 期望按设计人工写出，写的是“交给哪一类 DNS”：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS。
+# 期望按设计人工写出，写的是“交给哪一类 DNS”：system = 系统 DNS（内核从系统读到的 DNS 服务器，通常是路由器 / 公司内网的 DNS，但不保证）；
+# domestic = 国内 DNS；foreign = 境外 DNS。
 # 用例和上面 sing-box 的是同一批名字，两个内核对同一个名字的归类应该相同（dns-local 对 system，dns-cn 对 domestic），测试会核对。
 #   kind: node    一个节点，服务器地址是 server；expect 是“连这个节点时，server 这个名字交给哪一类 DNS 解析”
 #   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连时，这个名字交给哪一类 DNS 解析”
@@ -401,8 +407,8 @@ mihomo_dial:
   - {kind: unlisted, host: never-listed-site.org, expect: foreign, why: "虚构的名字，没有被任何域名规则接住：为了判断最后的 GEOIP,CN 要解析一次，只问境外 DNS"}
   - {kind: unlisted, host: r1.test.dnsleaktest.com, expect: foreign, why: "DNS 泄露测试网站用的那一类随机子域名"}
 
-# 国内 DNS 与路由的全集一致性（2026-10-06）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；现在有的，
-# 必须属于下面列出的已知类别。全集怎么扫的见 tools/dns_route_consistency.py；扫描结果连同官方内核的抽查记在快照的
+# 国内 DNS 与路由的逐条扫描（2026-10-06；r12 时叫“全集一致性”）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；
+# 现在有的，必须属于下面列出的已知类别。怎么扫的见 tools/dns_route_consistency.py（每个条目取代表主机，不是全部域名）；扫描结果连同官方内核的抽查记在快照的
 # consistency 里，tests/test_real_data.py 逐个核对：每个不一致的主机都能归到某一类，每一类都确实还有主机（没有了就该删掉）。
 # 这些都是现状的记录，不是“应该这样”——标准版这一轮没有改，怎么处理列在 docs/06 的待决事项里。
 #   kind: real_ip     名字在“要真实地址的名单”里（source/project.yaml 的 dns.real_ip），路由没有把它固定为直连
@@ -413,7 +419,7 @@ dns_route_consistency:
     - {kind: real_ip, why: "DNS 规则第二条把要真实地址的名单整个交给 dns-cn；其中 time.windows.com 路由归 Microsoft 组，pool.ntp.org 落到国外默认，icitymobile.mobi 没有域名规则、按解析到的 IP 决定。待决事项 15"}
   mihomo:
     - {kind: private, why: "nameserver-policy 的 geosite:cn,private 把 private 集合也交给国内 DNS，fake-ip-filter 又让它们拿真实地址；路由上只有局域网后缀固定直连，其余按解析到的 IP 决定。待决事项 14"}
-    - {kind: product_cn, why: "nameserver-policy 里没有“走代理组的产品域名”这一层（sing-box 的 DNS 规则里有）。只影响地址以外的查询类型：A 查询给假地址，AAAA / HTTPS 回空应答，连接本身不解析。待决事项 16"}
+    - {kind: product_cn, why: "nameserver-policy 里没有“走代理组的产品域名”这一层（sing-box 的 DNS 规则里有）。交付的配置里只影响地址以外的查询类型：A 查询给假地址，AAAA / HTTPS 回空应答（Clash Verge Rev 开虚拟网卡时 AAAA 可能是假的 IPv6 地址，同样不向上游查询），连接本身不解析。待决事项 16"}
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:

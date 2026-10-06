@@ -7,7 +7,7 @@
 
 1. 改 `source/`（规则、分组、DNS），需要时改 `generator/`、`tests/`、`tools/`。
    - 版本号：`source/project.yaml` 的 `source_version`（改了规则数据就递增，`年.月.日-序号`）；`build.py` 的 `GENERATOR_VERSION`（改了生成器就递增）。
-   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r12）。
+   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r13）。r13 没有改规则数据和生成器，所以统一源版本和生成器版本都没有动——只改了测试、工具、文档时不用递增。
 2. `python3 build.py`，`python3 -m unittest discover -s tests`。
 3. 改了规则、DNS、出站，或者换了上游数据：重新生成快照
    `python3 tools/check_real_routes.py --mihomo "$MIHOMO_BIN" --singbox "$SINGBOX_BIN" --singbox-112 "$SINGBOX112_BIN" --geodata-dir "$GEODATA_DIR" --srs-dir "$SRS_DIR" --bm7 "$BM7_SRC" --dlc "$DLC_SRC" --geodata-origin "$GEODATA_ORIGIN" --srs-origin "$SRS_ORIGIN" --bm7-origin "$BM7_ORIGIN" --write-snapshot`
@@ -46,3 +46,4 @@
 | `pack.py` | 打交付包 | 通用。2026-10-06 在 r12 的工程目录上重打，与发出去的包逐字节相同 |
 | `verify_package.sh` | 解包核对 | 通用。2026-10-06 用它核对过 r12 的包（加 `--without-handoff`）：逐文件相同、244 项测试通过、扫描没有命中 |
 | `r12-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r12 汇总变异日志、写 `mutations.log`、核对文档数字用的脚本 | **原样存档，不能直接用**：里面的类数、日志文件名、数字、说明文字都是 r12 的，路径假定日志和它放在同一个目录。当作下一版的样子来改 |
+| `r13-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r13 用的同样三个脚本（日志目录作为参数传入，代码状态从 `run_mutations.sh` 写的文件读） | 同上，原样存档；下一版照着改类数、数字和说明文字 |

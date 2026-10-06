@@ -17,7 +17,8 @@ tests/test_routing.py 里的“国内域名集合”“广告集合”只是 tes
 2026-10-06 起快照里另有三样东西，这里也核对：
   - “国外的连接，名字不要让国内 DNS 看到”的固定核对：走代理组的域名在连接过程中没有被任何 DNS 替身收到；没被域名规则接住的
     域名只有境外 DNS 的替身收到；境外替身只收不答时结果不变（内核没有转去问国内 / 系统 DNS）；
-  - 国内 DNS 与路由的全集一致性：“名字交给国内 DNS、连接却走代理组”的主机，每一个都属于 cases.yaml 里列出的已知类别；
+  - 国内 DNS 与路由的逐条扫描（r12 时叫“全集一致性”）：“名字交给国内 DNS、连接却走代理组”的代表主机，每一个都属于
+    cases.yaml 里列出的已知类别；
   - Loon 严格版订阅的国内域名集合（blackmatrix7 ChinaMax_Domain）的成员关系。严格版引用的自有远程规则文件不在快照里，
     模拟器直接用这次生成的内容。
 """
@@ -349,7 +350,7 @@ class SingboxDns(unittest.TestCase):
     def test_proxied_hosts_never_go_to_domestic_dns(self):
         """对每个“期望走代理组”的主机（来自全部用例和排除项）：A 查询得到假地址，其他类型交给经代理的 DNS。
         样本和真实成员关系各查一遍。
-        已知的例外只有一类（2026-10-06 全集一致性核对查出来的，待决事项 15）：“要真实地址的名单”里的名字。DNS 规则的第二条
+        已知的例外只有一类（2026-10-06 逐条扫描查出来的，待决事项 15）：“要真实地址的名单”里的名字。DNS 规则的第二条
         把这份名单整个交给 dns-cn，而其中几个名字的路由不是直连（time.windows.com 归 Microsoft 组、pool.ntp.org 落到国外默认、
         time.apple.com 归默认直连的 Apple 组）。这里如实核对它们现在确实交给 dns-cn——哪天改了，这里和 docs/06 一起改。"""
         m, _ = model_and_plan()
@@ -602,15 +603,15 @@ class DnsLeakChecks(unittest.TestCase):
 
 
 class DnsRouteConsistency(unittest.TestCase):
-    """国内 DNS 与路由的全集一致性（2026-10-06；怎么扫的见 tools/dns_route_consistency.py）。
+    """国内 DNS 与路由的逐条扫描（2026-10-06；怎么扫的见 tools/dns_route_consistency.py；r12 时叫“全集一致性”）。
     快照的 consistency 里记着：名字会交给国内 DNS 的代表主机有多少、其中路由走代理组的是哪些。
-    这里核对：扫的确实是全集；走代理组的每一个主机都属于 cases.yaml 的 dns_route_consistency 里列出的已知类别，
+    这里核对：集合里的条目确实都扫到了；走代理组的每一个主机都属于 cases.yaml 的 dns_route_consistency 里列出的已知类别，
     判断类别用的是统一源（不是快照自己的说法）；每个已知类别都确实还有主机。"""
 
     def setUp(self):
         self.m, self.plan = model_and_plan()
         self.snap = snapshot()
-        self.assertIn("consistency", self.snap, "快照里没有全集一致性的记录" + HINT)
+        self.assertIn("consistency", self.snap, "快照里没有逐条扫描的记录" + HINT)
         self.cons = self.snap["consistency"]
         self.real_ip = [(r.get("suffix"), r.get("domain")) for r in self.m.dns["real_ip"]]
 
@@ -687,6 +688,66 @@ class DnsRouteConsistency(unittest.TestCase):
         hosts = {x["host"] for x in mi}
         self.assertIn("qwen.ai", hosts, "mihomo_dns 里那条已知限制（qwen.ai 的 TXT 查询交给国内 DNS）说的就是这一类")
         self.assertEqual(self.snap["official"]["mihomo"]["dns"]["qwen.ai TXT"], "domestic")
+
+
+class ProbeReplyParsing(unittest.TestCase):
+    """核对工具怎么认“内核自己回了什么”（tools/check_real_routes.py 的 dns_exchange、reply_kind）。不需要官方内核：
+    本机起一个只回一次的假 DNS 服务器，回几种构造好的应答，看每种是不是都认对。
+    2026-10-07 处理 GPT 对 r12 的审核时发现：以前只读应答里的 A 记录、按“没有 A 记录”判空应答，所以 AAAA 查询拿到了地址、
+    HTTPS 查询拿到了记录，也会被记成 empty——审核方第 8 条说的“AAAA 全部为空应答”这类结论，这个工具其实看不出真假（变异 M100）。"""
+
+    FAKE_NET = None
+
+    @classmethod
+    def setUpClass(cls):
+        import ipaddress
+        import check_real_routes as crr  # noqa: E402（tools/ 已在 sys.path 里）
+        cls.crr = crr
+        cls.FAKE_NET = ipaddress.ip_network("198.18.0.0/16")
+
+    def ask(self, qtype, answers=(), rcode=0):
+        """answers：[(记录类型, 记录内容的字节)]。返回 dns_exchange 的结果。"""
+        import socket
+        import struct
+        import threading
+        srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        srv.bind(("127.0.0.1", 0))
+        srv.settimeout(5)
+
+        def serve():
+            data, addr = srv.recvfrom(4096)
+            _, _, end = self.crr._parse_question(data)
+            head = data[:2] + struct.pack("!HHHHH", 0x8180 | rcode, 1, len(answers), 0, 0)
+            body = b"".join(b"\xc0\x0c" + struct.pack("!HHIH", t, 1, 60, len(rd_)) + rd_ for t, rd_ in answers)
+            srv.sendto(head + data[12:end] + body, addr)
+
+        th = threading.Thread(target=serve, daemon=True)
+        th.start()
+        try:
+            return self.crr.dns_exchange(srv.getsockname()[1], "probe.example", qtype)
+        finally:
+            th.join(5)
+            srv.close()
+
+    def kind(self, reply):
+        return self.crr.reply_kind(reply, self.FAKE_NET)
+
+    def test_each_kind_of_reply_is_told_apart(self):
+        import ipaddress
+        import socket
+        q = self.crr.QTYPE
+        aaaa = self.ask(q["AAAA"], [(28, ipaddress.ip_address("2001:2::5").packed)])
+        self.assertEqual(aaaa, (0, ["2001:2::5"], 1), "AAAA 记录要读出来：应答里有地址，不是空应答")
+        self.assertEqual(self.kind(aaaa), "answer:2001:2::5", "AAAA 查询拿到了地址，不是空应答")
+        https = self.ask(q["HTTPS"], [(65, b"\x00\x01\x00")])
+        self.assertEqual(https, (0, [], 1), "HTTPS 记录不是地址，但要算进记录数：它不是空应答")
+        self.assertEqual(self.kind(https), "records:1", "HTTPS 查询拿到了一条记录，不是空应答")
+        self.assertEqual(self.kind(self.ask(q["AAAA"])), "empty")
+        self.assertEqual(self.kind(self.ask(q["HTTPS"])), "empty")
+        self.assertEqual(self.kind(self.ask(q["A"], [(1, socket.inet_aton("198.18.0.7"))])), "fake-ip")
+        self.assertEqual(self.kind(self.ask(q["A"], [(1, socket.inet_aton("203.0.113.5"))])), "answer:203.0.113.5")
+        self.assertEqual(self.kind(self.ask(q["A"], rcode=2)), "rcode-2")
+        self.assertEqual(self.kind(None), "no-reply")
 
 
 if __name__ == "__main__":

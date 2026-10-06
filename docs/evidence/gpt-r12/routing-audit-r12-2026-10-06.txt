@@ -1,0 +1,202 @@
+分流配置 r12 审核报告
+审核日期：2026-10-06
+对象：01-proxy-rules-review-2026.10.06-r12.zip
+统一源：2026.10.06-1；生成器：1.5.0
+压缩包 SHA-256：bb92d97b6a9f53bfe970d255337c503bd73d03fdee7fa315e55ab4c4b1a7210e
+
+一、结论
+
+先阅读了根目录 00-审核说明.md，再结合需求、设计讨论、已知限制、上一轮审核和实际产物检查。
+
+本次没有确认新增、可复现的配置语法错误或分流错误。统一源生成框架、上一轮 mihomo 局域网节点 DNS 修复、Apple Push 分组和新增图标，在本次能够验证的范围内通过。
+
+两份 Loon / Quantumult X 严格版只能给出“静态检查通过，真机行为待验证”的结论。尤其 Quantumult X 的远程资源顺序、远程域名规则与本地 IP 规则之间的优先级，仍没有足够的一手依据替代真机验证。不能把这个版本说成“四端已实测完全不泄漏”。
+
+没有发现需要立即重写框架的理由。下一步的重点应是严格版真机验收，以及少量测试、文档补强。没有修改项目配置、统一源或测试，也没有推送仓库。
+
+本报告不把包内已经明确登记、且用户接受的取舍重新算作新增错误；例如标准版现有 DNS 例外、严格版引用文件尚未发布、Quantumult X 远程兜底失效时退回标准行为等。
+
+二、本次独立验证及边界
+
+1. python3 build.py --check：通过。12 个公开产物，包括 manifest，与统一源一致。
+2. python3 -m unittest discover -s tests -v：244 项通过。
+3. 官方 mihomo v1.19.31：两份配置检查通过；节点分组核对通过，含本地补充样例。基础核对实际加载 2,283 个合成节点，本地补充核对加载 2,306 个。
+4. 官方 sing-box：1.14 配置在 1.14.1 上检查通过；1.12 兼容配置在 1.12.0 和 1.14.1 上检查通过；带样例节点的检查也通过。
+5. 重新运行 mihomo 的 260 个路由目标，结果全部与包内官方记录一致。
+6. 重新运行 mihomo 的 12 个连接/拨号用例和 11 个 DNS 查询用例；重新运行“境外 DNS 只收不答、连接保持 14 秒”的一组用例，结果符合预期。
+7. 独立增加 6 个节点域名边界输入：auditnode、auditnode.lan、auditnode.local、auditnode.home.arpa 均走系统 DNS 替身；auditnode.lan.example.com、auditnode.public.net 均走国内 DNS 替身。未见通配符扩大到所有公网域名的问题。
+8. 对包内归为 product_cn 的 142 个 mihomo 冲突样本，逐一查询 A、AAAA、HTTPS，共 426 次：142 次 A 全部为 fake-ip，142 次 AAAA 全部为空应答，142 次 HTTPS 全部为空应答，没有这些样本向国内 DNS 替身发出地址/HTTPS 查询的反例。另复测 qwen.ai 所属域的 TXT 查询，确实交给国内 DNS。
+9. 从登记的 domain-list-community 固定提交重新取得数据并展开：清单全文与 source/data/cn-domains.txt 逐字节一致；6,142 条后缀、12 条精确域名；许可副本与上游 LICENSE 一致。
+10. 新增 Apple Push 图标下载成功，是可解码的 256×256 PNG。图标仓库指定提交只新增两种尺寸的 Apple Push 图片并修改 README，原有图标没有改动。原有图标沿用上一轮结果，本次没有重新下载全部图片。
+
+必须区分的边界：
+- DNS 动态检查使用真实 mihomo 内核，但把系统/国内/境外 DNS 地址换成回环 UDP 替身，出口拒绝或仅连接回环。没有验证真实机场节点、真实 DoH 全链路或 TUN 接管。
+- 本次复用了上一轮核验过的内核及 2026-10-04 取得的上游二进制规则数据，没有宣称重新验证了当前所有浮动上游内容。260 个目标在这份数据上的结果仍与包内记录一致。
+- sing-box 在本环境可以执行 check，但运行服务失败：1.14.1 报 create netlink socket: operation not permitted，1.12.0 报 operation not permitted。因此，本次没有独立复现它的运行期 DNS 结果；包内运行记录及对应的离线摘要检查不能冒充本次实测。
+- 未执行全部 98 类变异检查；244 项测试通过也不等同于重新执行所有外部数据扫描、所有平台实机测试。
+- 没有 Loon、Quantumult X 或 Clash Verge Rev 的真机/桌面 GUI 实测条件。长正则的 App 导入、图标实际显示、TUN、iOS 推送和资源更新行为仍需终端验收。
+
+三、按审核说明的 11 个重点逐项答复
+
+1. 严格版的四处推断
+
+位置：generator/emit_loon.py 的 strict 分支；dist/loon/loon-strict.conf 第 1215、1219–1225 行；generator/emit_qx.py 第 120 行起；dist/quantumultx/quantumultx-strict.conf 第 122–128 行。
+
+Loon：官方 IP 规则页说明 no-resolve 不为域名执行 DNS 查询，逻辑规则页有包含 GEOIP 与 no-resolve 的子规则例子。现有写法有依据，本次没有找到否定它的官方材料。但这些材料仍不等于单独一行 GEOIP,CN,策略,no-resolve 已在目标 App 导入验证。
+
+官方规则页支持“域名优先、规则来源分层”的整体设计；对多条远程资源之间的精确冲突顺序，仍建议保留待真机确认的标注。不能用按同一假设写出的模拟器来证明 App 的真实顺序。
+
+Quantumult X：官方 sample.conf 确实给出 host-keyword,.,proxy 用来避免未匹配域名的 DNS 查询，且明确纯 IP 请求不匹配域名规则。它支持保留 IP 规则的方向。没有取得足以确认本方案两种跨资源优先级的一手说明。
+
+结论：不能判为已证实错误，也不能升格为四处全部实测通过。现有“事实/推断/未验证”区分基本正确。[S1–S3]
+
+2. Quantumult X 的兜底放远程末尾是否正确
+
+位置：dist/quantumultx/quantumultx-strict.conf 第 122–128 行；dist/quantumultx/rules/domain-fallback.list；generator/strict.py。
+
+放在远程末尾是有理由的候选方案。官方仓库 issue #251 确实有用户报告：本地 host-keyword 的句点兜底会挡住远程规则。它是用户报告，不是开发者给出的完整优先级规范。不能仅凭它认定当前远程方案已经获得官方保证。
+
+force-policy=国外默认 与官方示例对 force-policy 的说明一致，远程文件里的 proxy 会被它覆盖，没有发现此处目标名引用错误。
+
+不建议未经真机验证就把兜底挪回本地，或给全部资源加 inserted-resource。两种改法可能改变广告和产品规则优先级。
+
+当前的“远程资源失效时不再严格”已如实披露，不重复列为新漏洞。真正的验收应同时确认：广告仍拦截、国内样本直连、未收录域名不在本机解析、纯 IP 仍按 IP 规则处理。现有 docs/09 第 1b 节是合适的验收起点。[S3、S4]
+
+3. 严格版是否还有漏掉的本机解析路径
+
+本次没有确认新的配置级漏口。Loon 本地 IP 规则全部 no-resolve、严格版真实地址名单固定 DIRECT、Quantumult X 使用域名兜底的结构都与设计一致。
+
+仍不能用“路由判断不触发 A 查询”证明所有 DNS 类型和所有终端路径都安全。独立 DNS 查询、浏览器自带 DoH、缓存后的纯 IP 连接、其他插件/用户规则、系统在隧道之外的流量，不能仅靠这些域名规则排除。这里是验证边界，不是已经复现的新漏洞。
+
+远程上游广告 IP 规则的 no-resolve 统计是固定快照的事实；浮动上游以后改变，手机端不会因为离线测试曾经通过就自动得到保证。项目已有相关说明，不要求违背用户“跟随上游”的决定锁版本。
+
+4. 全集一致性方法与三类冲突的影响
+
+位置：tools/dns_route_consistency.py 的 representatives、sweep_mihomo、sweep_singbox；tests/test_real_data.py 的 kind_of；docs/03 的“全集一致性”一节。
+
+它适合作为“全条目代表样本扫描”，不构成全部合法域名、全部规则组合的数学证明。后缀本身加一个子域能覆盖大量错误，叠加配置内具体域名规则再反向核对也有价值；但正则/关键词覆盖、不同层级的子域、手动切换策略组、运行时覆写和真实解析结果不在这个证明范围内。
+
+三类归因没有发现明显错误：sing-box 的真实地址例外、mihomo 的产品域名与 cn 集合冲突、mihomo 的 private 解析与路由不一致，需要分别处理。5、142、222 都是该快照和代表样本算法下的计数，不应理解为互联网上全部实际受影响主机数量。
+
+对第 16 项，本次额外把 142 个 product_cn 样本的 A/AAAA/HTTPS 全部交给官方内核复测，支持“当前原始配置下，地址查询不会因此送往国内 DNS，TXT 等其他类型仍可能送往国内 DNS”的判断。这个结论不应脱离 fake-ip、fake-ip-filter 和实际运行配置的条件。
+
+Clash Verge Rev v2.5.7 还有一个可补充到文档的细节：开 IPv6/TUN 时 use_tun 不仅改 dns.ipv6，还可能补 fake-ip-range6: 2001:2::0/64。此时 AAAA 可返回假的 IPv6 地址，而非一律空应答；这不等于查询被交给国内 DNS。建议 docs/03 将“AAAA 为空”明确限定为交付原始配置。[S5、S6]
+
+5. 只收不答的 UDP 测试能否推到所有真实 DoH 故障
+
+位置：tools/check_real_routes.py 第 457 行起的 singbox_dial_probe、第 559 行起的 mihomo_dial_probe；docs/03 的三项固定核对。
+
+不能直接推广。本次重跑支持“这些用例、该内核和替身设置下，观察窗口内没有转问其他类别的 DNS”。它没有验证 TLS 证书错误、HTTP 错误、TCP reset、SERVFAIL 等真实 DoH 故障路径，更没有验证真实节点与 GUI 覆写后的最终行为。
+
+配置中没有给境外查询安排显式国内 fallback、mihomo 解析器源码的无 fallback 分支，也支持当前设计方向，但它们不应被写成全环境零泄漏保证。建议把表后“境外 DNS 连不上时”的宽泛表述收紧为“本次无应答测试中”。这是文档精度建议，不是测试失败。[S7]
+
+6. 客户端手动开关表
+
+位置：docs/01“每个客户端要手动确认的开关”；docs/03“客户端这一侧”。
+
+对照 Clash Verge Rev v2.5.7 的 enhance/mod.rs、enhance/tun.rs、constants.rs，三项核心判断有源码支持：DNS 覆写按非空字段覆盖；fake-ip 模式开 TUN 会改写 DNS 的 IPv6 设置；已保存的 GUI TUN 字段优先级高。
+
+需要保留条件：源码的 gui_tun_keys 只把 App 配置中已有的 GUI 字段加入覆盖集合。因此“在配置文件里写 strict-route 永远无效/只能在界面开”是面向常见已保存设置的操作建议，不是适用于任何空白或定制 App 状态的内核规则。更准确的表述是“在 App 界面设置，并核对运行时值，避免被已保存 GUI 设置覆盖”。
+
+同时，不应把“严格路由开着”理解为 DoH、任意程序自带 DNS、任何端口都被统一接管。mihomo 所用 sing-tun v0.4.24 的 Windows 代码会设置 TUN DNS，并用防火墙处理隧道外 53 端口等路径；它不是任意加密 DNS 的内容检查器。现有文档已经披露这类边界。
+
+对于 Windows/macOS 实际系统 DNS、局域网可用性，仍需实机确认；不将源码推断冒充实测。现有“DNS 覆写关闭、看运行时配置、Android 私人 DNS 关闭”的操作方向没有发现需要推翻的问题。[S6、S8、S9]
+
+7. 国内域名清单选择、@ads、来源
+
+位置：source/strict.yaml；source/data/cn-domains.txt；source/data/LICENSE-domain-list-community.txt；tools/update_cn_list.py；generator/strict.py。
+
+从固定提交重新展开 cn 后，全文和许可副本均一致，没有发现转换遗漏、错误去重或来源登记失真的问题。排除 3 条正则是明确的能力取舍，未假装完全等价。删除被父后缀覆盖的项不改变这一层的匹配范围。
+
+带 @ads 的条目保留，不意味着强制放行广告：它们仍须排在广告规则之后；其他已存在的本地规则优先关系也必须保留。这一点最终仍取决于 App 的实际优先级。
+
+Loon 大清单与 Quantumult X 自有清单的覆盖差异已经明示；不属于转换语法错误。许可检查结论仅是“保留的文本与来源一致”，不是额外作出法律合规保证。[S10]
+
+8. 句点关键词及 49 个整段顶级域是否违背范围要求
+
+句点兜底的作用就是接住其他带点域名，范围与“其余域名交给国外默认”的目标相符，和用 baidu、stripe 等短关键词猜测产品归属不是同一用途。允许它作为兜底是合理的。
+
+49 个整段顶级域是把相应域名空间按国内清单处理的政策，不能证明这些域名都解析到中国 IP、由中国主体运营或都适合直连。对于用户已确认的“按清单识别国内网站”的严格版，可以作为明确取舍保留；如果目标改成“只有中国 IP 才直连”，它就不再等价，而且不解析便无法普遍实现该目标。
+
+因此不把两者直接判为违反需求的新错误，但建议持续保留这层解释，不用“国内域名清单”代替实际 IP 地理归属证明。
+
+9. Apple Push
+
+位置：source/services/bigtech.yaml 第 60–69 行；source/icons.yaml；各端 Apple Push 组及 push.apple.com 后缀规则。
+
+Apple 官方企业网络要求列出了 *.push.apple.com。单列这一后缀，放在 apple.com 总规则之前，范围和顺序合理；默认 DIRECT 符合此前默认行为及“有时需要走代理”的需求。
+
+本次 mihomo 实跑 push.apple.com、init.push.apple.com、init-p01st.push.apple.com、1-courier.push.apple.com，均命中 Apple Push。组、图标地址和文件均未发现问题。
+
+没有域名信息的连接、已建立的长连接是否立即切换、5223/443 是否可用，仍需终端和节点验证。不建议为了覆盖这些情况把整个 17.0.0.0/8 都归入 Apple Push，那会把大量非推送 Apple 流量一起纳入。[S11]
+
+10. M91 / M92 是否补静态断言
+
+建议补，而且只需少量直接断言。
+
+位置：tests/test_dns_lan.py 或现有 DNS 行为测试；generator/emit_mihomo.py 的 dns.nameserver；generator/emit_singbox.py 中通用 resolve 动作。
+
+建议表达设计约束：mihomo 默认 nameserver 引用 source/project.yaml 的境外 DNS 集合；sing-box 用于未匹配域名的通用 resolve 使用 dns-foreign；dns-foreign 的出站仍为国外默认。不要误把局域网专用 resolve 也要求成 dns-foreign。
+
+这能在离线阶段直接说明违反了哪条要求，而不只是提示官方记录摘要过期。保留真实内核回归即可，无需为此引入大套新测试框架。当前两类变异并非完全检测不到，本次不将此项列为漏测导致的已确认配置错误。
+
+11. 上一轮修复、正则与图标
+
+r10 的 R10-F01 已修复。generator/emit_mihomo.py 第 19 行起生成的 proxy-server-nameserver-policy 确实作用在节点解析路径。局域网后缀及单标签节点走系统 DNS 替身，普通公网节点仍走国内 DNS 替身。
+
+'*' 在本次实测中没有变成“所有域名都走 system”。system 仍表示内核取得的系统解析器，而不是“保证就是你家的路由器”；真实系统上读到了哪些 DNS，必须结合系统和 GUI 的运行状态判断。
+
+地区分组正则未变化，官方 mihomo 分组回归通过；已有严格程度取舍不重复报错。Loon / Quantumult X 的超长行、正则能力和组嵌套仍需真机。
+
+新增图标的语法沿用既有框架，Apple Push 文件有效，未见空格编码或文件名错误。sing-box 没有强塞不存在的图标字段，做法正确。
+
+四、建议的处理顺序
+
+1. 保留当前框架，不为本次审核重写四端配置。
+2. 下一版补 M91/M92 的设计断言；将“全集”“DNS 连不上”“AAAA 为空”等表述限定到相应样本、测试方式和运行配置。
+3. 严格版仍按“待真机验收”管理。在三个自有规则文件按既定流程发布后，先执行 docs/09 第 1b 节，重点观察真实 DNS 查询和跨资源规则优先级；通过前不宣称完成零泄漏验收。
+4. 包内已经登记的标准版 DNS 例外仍按待决事项处理，不因为新增了测试就认为例外已经消失，也不在本次审核中擅自修改用户确认过的标准版行为。
+
+五、主要一手依据
+
+[S1] Loon IP 规则、no-resolve：
+https://nsloon.app/docs/Rule/ip_rule/
+https://nsloon.app/docs/Rule/logic_rule/
+
+[S2] Loon 规则优先级：
+https://nsloon.app/docs/Rule/
+
+[S3] Quantumult X 官方示例，DNS、force-policy、句点兜底：
+https://raw.githubusercontent.com/crossutility/Quantumult-X/master/sample.conf
+
+[S4] Quantumult X issue #251（用户报告，非开发者规范）：
+https://github.com/crossutility/Quantumult-X/issues/251
+
+[S5] mihomo v1.19.31 fake-ip 对 A/AAAA/SVCB/HTTPS 的处理：
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/middleware.go
+
+[S6] Clash Verge Rev v2.5.7 配置合并及 TUN 处理：
+https://github.com/clash-verge-rev/clash-verge-rev/blob/v2.5.7/src-tauri/src/enhance/mod.rs
+https://github.com/clash-verge-rev/clash-verge-rev/blob/v2.5.7/src-tauri/src/enhance/tun.rs
+https://github.com/clash-verge-rev/clash-verge-rev/blob/v2.5.7/src-tauri/src/constants.rs
+
+[S7] mihomo v1.19.31 DNS 解析器及无 fallback 分支：
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/resolver.go
+
+[S8] mihomo TUN 官方说明：
+https://wiki.metacubex.one/config/inbound/tun/
+
+[S9] sing-tun v0.4.24 Windows 实现：
+https://github.com/MetaCubeX/sing-tun/blob/v0.4.24/tun_windows.go
+
+[S10] 国内清单固定来源：
+https://github.com/v2fly/domain-list-community/tree/c1c2cf0d252871e8739747714df06e8d2671f72f
+
+[S11] Apple 企业网络要求与 APNs 连接要求：
+https://support.apple.com/en-us/101555
+https://support.apple.com/en-us/102266
+
+补充：图标仓库本次新增提交：
+https://github.com/ixxooxo-alt/icon/commit/f250126f57228b0b32f3445b21078e382e6152e9
+
+—— 报告结束 ——

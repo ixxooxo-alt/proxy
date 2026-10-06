@@ -1,5 +1,5 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的全集一致性（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
@@ -5216,6 +5216,7 @@
     "api.openai.com HTTPS": "empty",
     "chatgpt.com A": "fake-ip",
     "claude.ai TXT": "foreign",
+    "google.cn AAAA": "empty",
     "nas.home.arpa A": "system",
     "never-listed-query.net A": "fake-ip",
     "never-listed-txt.net TXT": "foreign",
@@ -5229,6 +5230,7 @@
     "api.openai.com HTTPS": "empty",
     "chatgpt.com A": "fake-ip",
     "claude.ai TXT": "foreign",
+    "google.cn AAAA": "empty",
     "nas.home.arpa A": "system",
     "never-listed-query.net A": "fake-ip",
     "never-listed-txt.net TXT": "foreign",
@@ -5242,6 +5244,7 @@
     "api.openai.com HTTPS": "empty",
     "chatgpt.com A": "fake-ip",
     "claude.ai TXT": "foreign",
+    "google.cn AAAA": "empty",
     "nas.home.arpa A": "system",
     "never-listed-query.net A": "fake-ip",
     "never-listed-txt.net TXT": "foreign",
@@ -5255,6 +5258,7 @@
     "api.openai.com HTTPS": "empty",
     "chatgpt.com A": "fake-ip",
     "claude.ai TXT": "foreign",
+    "google.cn AAAA": "empty",
     "nas.home.arpa A": "domestic",
     "never-listed-query.net A": "fake-ip",
     "never-listed-txt.net TXT": "foreign",
@@ -5268,6 +5272,7 @@
     "api.openai.com HTTPS": "empty",
     "chatgpt.com A": "fake-ip",
     "claude.ai TXT": "foreign",
+    "google.cn AAAA": "empty",
     "nas.home.arpa A": "system",
     "never-listed-query.net A": "fake-ip",
     "never-listed-txt.net TXT": "foreign",
@@ -8670,17 +8675,17 @@
   "mihomo": {
    "geoip.dat": {
     "bytes": 16515432,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd"
    },
    "geoip.metadb": {
     "bytes": 8389459,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2"
    },
    "geosite.dat": {
     "bytes": 4253623,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134"
    }
   },
@@ -8694,22 +8699,22 @@
   "singbox": {
    "geoip-cn.srs": {
     "bytes": 34185,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
     "sha256": "ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc"
    },
    "geosite-category-ads-all.srs": {
     "bytes": 8244,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
     "sha256": "a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324"
    },
    "geosite-cn.srs": {
     "bytes": 56145,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
     "sha256": "fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c"
    },
    "geosite-geolocation-!cn.srs": {
     "bytes": 168020,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
     "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
    }
   }

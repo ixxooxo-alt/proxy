@@ -19,16 +19,17 @@
   4. mihomo 里名字交给哪一类 DNS 解析（2026-10-05 审核 r10 的 R10-F01）：第 1 步把出口都换成了 REJECT、也没有节点，
      同样碰不到拨号。这一步另起一次内核：规则、DNS 段的结构原样；系统 DNS、国内 DNS、境外 DNS 三类服务器各换成一个本机替身
      （都答 127.0.0.1）；加几个节点（服务器地址取自 tests/cases.yaml 的 mihomo_dial，端口是本机一个没人监听的端口），直连保持直连。
-     看的是：节点服务器的名字、域名形式的直连目标（mihomo_dial），以及设备发来的 DNS 查询（mihomo_dns，只有和局域网名字
-     有关的几条），各是哪一类替身收到的。再把三处有关的设置各去掉一处重跑，确认每一处只管它自己那条路。
+     看的是：节点服务器的名字、域名形式的直连目标（mihomo_dial），以及设备发来的 DNS 查询（mihomo_dns，r11 时只有和局域网名字
+     有关的几条，之后加的见第 5 步），各是哪一类替身收到的。再把三处有关的设置各去掉一处重跑，确认每一处只管它自己那条路。
   5. “国外的连接，名字不要让国内 DNS 看到”的三项固定核对（2026-10-06）。用的还是第 3、4 步的办法，用例多了两类
      （tests/cases.yaml 的 singbox_dial / mihomo_dial 里 kind: proxied、unlisted，mihomo_dns 里后加的几条）：
        走代理组的域名——规则判断时不解析，三个 DNS 替身都收不到它；
        没被任何域名规则接住的域名——只有境外 DNS 的替身收到；
        境外 DNS 不应答——把境外替身改成只收不答、每个连接保持 14 秒（比内核的 DNS 超时长）重跑一遍，
-       收到查询的替身必须和正常那一遍相同：内核没有转去问国内 / 系统 DNS。
-  6. 国内 DNS 与路由的全集一致性（2026-10-06，tools/dns_route_consistency.py）：把“名字会交给国内 DNS”的集合整个扫一遍，
-     看路由有没有把其中哪个交给代理组；不一致的主机和抽出来的一批主机再交给官方内核核对。
+       收到查询的替身必须和正常那一遍相同：内核没有转去问国内 / 系统 DNS。只试了“只收不答”这一种失败方式（替身是 UDP 的），
+       连接被重置、证书错误、SERVFAIL 这些没有试，结论不能直接推到真实的 DoH 故障上。
+  6. 国内 DNS 与路由的逐条扫描（2026-10-06，tools/dns_route_consistency.py；r12 时叫“全集一致性”）：把“名字会交给国内 DNS”的集合
+     逐条取代表主机扫一遍，看路由有没有把其中哪个交给代理组；不一致的主机和抽出来的一批主机再交给官方内核核对。
   7. 把同一批主机在各个集合里的成员关系，连同上面几步的结果，记成快照（--write-snapshot → tests/data/real_sets.json）。
      sing-box 两个版本的官方记录分开存（1.14 的在 official.singbox，1.12 的在 official.singbox112）。
      tests/test_real_data.py 用这份快照离线重跑全部用例，并核对“模拟器 = 官方内核的记录 = 人工写的期望”。
@@ -94,7 +95,7 @@ DEFAULT_FOREIGN_IP = "203.0.113.77"       # 文档用保留地址（TEST-NET-3�
 DIRECT_STANDIN = "直连替身"
 NONE = "none"                             # 拨号 / 连接用例的结果：没有任何一个 DNS 替身收到关于这个名字的查询
 SILENT_HOLD = 14.0                        # “境外 DNS 只收不答”那一遍，每个连接保持这么多秒：mihomo 的 DNS 超时是 5 秒，sing-box 是 10 秒
-SAMPLE_SIZE = 200                         # 全集一致性：除了不一致的主机，另外抽多少个一致的主机交给官方内核核对
+SAMPLE_SIZE = 200                         # 逐条扫描：除了不一致的主机，另外抽多少个一致的主机交给官方内核核对
 SB_SRS = {"geosite-category-ads-all": "geosite-category-ads-all.srs", "geosite-cn": "geosite-cn.srs",
           "geosite-geolocation-!cn": "geosite-geolocation-!cn.srs", "geoip-cn": "geoip-cn.srs"}
 
@@ -180,13 +181,15 @@ class DnsStub(threading.Thread):
 
 
 def dns_query(port: int, host: str, qtype: int):
-    """向本机端口发一次查询，返回应答里的 A 记录地址列表（没应答返回 None）。"""
+    """向本机端口发一次查询，返回应答里的 A / AAAA 记录地址列表（没应答返回 None）。"""
     got = dns_exchange(port, host, qtype)
     return None if got is None else got[1]
 
 
 def dns_exchange(port: int, host: str, qtype: int):
-    """向本机端口发一次查询，返回 (应答码, 应答里的 A 记录地址列表)；没应答返回 None。"""
+    """向本机端口发一次查询，返回 (应答码, 应答里的 A / AAAA 记录地址列表, 应答里的记录总数)；没应答返回 None。
+    记录总数把别的类型（HTTPS、TXT、CNAME……）也算进去：“空应答”要看它是不是 0，不能只看地址列表
+    （2026-10-07 以前只读 A 记录，应答里只有 AAAA 或别的记录时会被当成空应答，见 reply_kind）。"""
     q = struct.pack("!HHHHHH", 0x2468, 0x0100, 1, 0, 0, 0)
     q += b"".join(bytes([len(p)]) + p.encode("ascii") for p in host.split(".")) + b"\x00" + struct.pack("!HH", qtype, 1)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -212,10 +215,31 @@ def dns_exchange(port: int, host: str, qtype: int):
             i += 10
             if rtype == 1:
                 ips.append(socket.inet_ntoa(data[i:i + 4]))
+            elif rtype == 28:
+                ips.append(socket.inet_ntop(socket.AF_INET6, data[i:i + 16]))
             i += rlen
-        return rcode, ips
-    except (IndexError, struct.error):
-        return -1, []
+        return rcode, ips, count
+    except (IndexError, struct.error, ValueError):
+        return -1, [], 0
+
+
+def reply_kind(reply, fake_net) -> str:
+    """内核自己回答的一次查询（没有任何替身收到它）算哪一种：no-reply（没有应答）、fake-ip（地址全在假地址段里）、
+    empty（应答码正常、一条记录都没有）、rcode-N（别的应答码）、answer:地址（有 A / AAAA 记录、不是假地址）、
+    records:N（有 N 条记录、都不是地址，例如 HTTPS 记录）。
+    2026-10-07 处理 GPT 对 r12 的审核时发现：以前 dns_exchange 只读 A 记录，这里按“没有 A 记录”判 empty，
+    所以 AAAA 查询拿到地址、HTTPS 查询拿到记录时也会被记成 empty。r12 的快照里没有 AAAA 类型的用例，文档里“AAAA 为空”
+    那句话没有用这个工具实际看过；2026-10-07 修了这里、加了一条 AAAA 用例（tests/cases.yaml 的 mihomo_dns）。"""
+    if reply is None:
+        return "no-reply"
+    rcode, ips, count = reply
+    if ips and all(ipaddress.ip_address(x) in fake_net for x in ips):
+        return "fake-ip"
+    if rcode == 0 and count == 0:
+        return "empty"
+    if rcode:
+        return f"rcode-{rcode}"
+    return "answer:" + ",".join(ips) if ips else f"records:{count}"
 
 
 def connect_once(port: int, target: str, wait: float = 6.0, hold: float = 0.0) -> None:
@@ -561,7 +585,7 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
     """mihomo 里名字交给哪一类 DNS 解析（2026-10-05 审核 r10 的 R10-F01）。返回 (拨号 {用例的键: 结果}, 查询 {(主机, 类型): 结果})。
     结果是 system（系统 DNS）、domestic（国内 DNS）、foreign（境外 DNS）之一——收到这个名字的查询的是哪一类的替身；
     一个都没有收到时，拨号 / 连接用例记 none；查询用例看内核自己回了什么：fake-ip（给了假地址）、empty（回了一个
-    没有记录的正常应答）、no-reply（5 秒内没有应答）、rcode-N（别的应答码）。
+    没有记录的正常应答）、no-reply（5 秒内没有应答）、rcode-N（别的应答码），以及 answer:地址、records:N（见 reply_kind）。
     silent：这几类的替身只收不答；hold：每个连接保持多少秒不断开（见 connect_once）。两个一起用，
     看“这一类 DNS 不应答时，内核会不会转去问别的”（2026-10-06）。
 
@@ -686,17 +710,11 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
             asked = asked_by(name)
             out[rd.dial_key(c)] = asked[0] if len(asked) == 1 else ("+".join(asked) if asked else NONE)
         for c, name in zip(dns_cases, dns_names):
-            asked, reply = asked_by(name), answers.get(name)
+            asked = asked_by(name)
             if asked:
                 where = asked[0] if len(asked) == 1 else "+".join(asked)
-            elif reply is None:
-                where = "no-reply"
-            elif reply[1] and all(ipaddress.ip_address(x) in fake_net for x in reply[1]):
-                where = "fake-ip"
-            elif reply[0] == 0 and not reply[1]:
-                where = "empty"
             else:
-                where = f"rcode-{reply[0]}" if reply[0] else "answer:" + ",".join(reply[1])
+                where = reply_kind(answers.get(name), fake_net)
             dns_out[(c["host"], c["type"])] = where
         return out, dns_out
     finally:
@@ -808,7 +826,7 @@ def build_membership(a, model, files, hosts, ips):
 
 
 # ---------------------------------------------------------------------------
-# 国内 DNS 与路由的全集一致性
+# 国内 DNS 与路由的逐条扫描
 # ---------------------------------------------------------------------------
 
 def _official_selection(rec: dict) -> list:
@@ -819,7 +837,7 @@ def _official_selection(rec: dict) -> list:
 
 
 def check_consistency(a, model, files, loaded, dns_map) -> tuple:
-    """全集一致性（说明见 tools/dns_route_consistency.py）。返回 (记进快照的记录, 不一致的说明)。
+    """逐条扫描（说明见 tools/dns_route_consistency.py）。返回 (记进快照的记录, 不一致的说明)。
     “不一致的说明”指的是核对本身出了问题（模拟器和官方内核对不上等）；扫出来的“名字交给国内 DNS、连接走代理组”的主机
     不算在这里——它们记在记录的 mismatch 里，是不是都属于已知类别由 tests/test_real_data.py 判断。"""
     failures, out = [], {}
@@ -856,7 +874,7 @@ def check_consistency(a, model, files, loaded, dns_map) -> tuple:
           + ("路由结果与模拟器相同；TXT 查询都由国内 DNS 的替身收到" if not bad else f"{len(bad)} 处对不上"))
     for x in bad[:20]:
         print("        " + x)
-    failures += [f"mihomo 全集一致性：{x}" for x in bad]
+    failures += [f"mihomo 逐条扫描：{x}" for x in bad]
     out["mihomo"] = _consistency_record(rec, len(sel))
 
     # ---- sing-box ----
@@ -880,7 +898,7 @@ def check_consistency(a, model, files, loaded, dns_map) -> tuple:
               + ("路由结果、A 与 HTTPS 查询的去向都与模拟器相同" if not bad else f"{len(bad)} 处对不上"))
         for x in bad[:20]:
             print("        " + x)
-        failures += [f"sing-box {variant} 全集一致性：{x}" for x in bad]
+        failures += [f"sing-box {variant} 逐条扫描：{x}" for x in bad]
         out[key] = _consistency_record(rec, len(sel))
         if key == "singbox":
             # 自检：把 DNS 规则里“走代理组的产品域名”那一层拿掉再扫。不一致的应该多出一大批——说明这项核对看得见它要防的错误
@@ -893,7 +911,7 @@ def check_consistency(a, model, files, loaded, dns_map) -> tuple:
                   + ("——这一层仍然需要，这项核对看得见它要防的错误" if ok else "——没有明显变化：这项核对没有起作用，或者上游数据变了"))
             out[key]["without_product_dns_rules"] = n
             if not ok:
-                failures.append("sing-box 全集一致性：自检没有看到差别")
+                failures.append("sing-box 逐条扫描：自检没有看到差别")
     return out, failures
 
 
@@ -1145,8 +1163,8 @@ def main(argv=None) -> int:
     # ---- 自检：把更正拿掉再跑一遍 ----
     upstream_state = self_check(a, files, dns_map)
 
-    # ---- 国内 DNS 与路由的全集一致性（mihomo、sing-box）----
-    print("国内 DNS 与路由的全集一致性（名字会交给国内 DNS 的主机，路由有没有把它交给代理组；说明见 tools/dns_route_consistency.py）：")
+    # ---- 国内 DNS 与路由的逐条扫描（mihomo、sing-box）----
+    print("国内 DNS 与路由的逐条扫描（名字会交给国内 DNS 的集合，逐条取代表主机，看路由有没有把它交给代理组；说明见 tools/dns_route_consistency.py）：")
     consistency, bad = check_consistency(a, model, files, loaded, dns_map)
     failures += bad
 
@@ -1194,8 +1212,8 @@ def main(argv=None) -> int:
                          "singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析："
                          "sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 "
                          "resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，"
-                         "核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；"
-                         "fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果："
+                         "核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么："
+                         "fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果："
                          "…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 "
                          "direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。"
                          "这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。"
@@ -1205,7 +1223,7 @@ def main(argv=None) -> int:
                          "2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，"
                          "连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身"
                          "改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；"
-                         "consistency 是国内 DNS 与路由的全集一致性（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，"
+                         "consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，"
                          "to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、"
                          "可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），"
                          "official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的"

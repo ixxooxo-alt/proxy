@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 98 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 100 个，可以分两批同时跑）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -82,7 +82,7 @@ def drop_service(sid):
 
 
 def drop_loon_domain_list(s):
-    return re.sub(r'    - \{url: "[^"\n]*AdvertisingLite_Domain\.list",\n(?:       .*\n)*?       source: [^\n]*\}\n', "", s, 1)
+    return re.sub(r'    - \{url: "[^"\n]*AdvertisingLite_Domain\.list",\n(?:       .*\n)*?       source: [^\n]*\}\n', "", s, count=1)
 
 
 def add_whole_ms_rule(s):
@@ -105,19 +105,19 @@ def append_case_without_snapshot(s):
 cases = [
     ("M1 Apple AI 服务挪到 Apple 之后（书写位置）", [("source/services/bigtech.yaml", move_apple_ai_after_apple)], "书写顺序"),
     ("M2 国内常用网站也写进 Loon / QX", [("source/services/misc.yaml", lambda s: s.replace("    clients: [mihomo, singbox]\n", "", 1))], "ad.12306.cn"),
-    ("M3 删掉一条 Apple AI 规则（smoot.apple.com）", [("source/services/bigtech.yaml", lambda s: re.sub(r"      - \{suffix: smoot\.apple\.com,[^\n]*\n", "", s, 1))], "不增不减"),
+    ("M3 删掉一条 Apple AI 规则（smoot.apple.com）", [("source/services/bigtech.yaml", lambda s: re.sub(r"      - \{suffix: smoot\.apple\.com,[^\n]*\n", "", s, count=1))], "不增不减"),
     ("M4 从 Apple 组删掉 apple-dns.net", [("source/services/bigtech.yaml", lambda s: s.replace("      - {suffix: apple-dns.net, ev: dlc}\n", "", 1))], "apple-dns.net"),
     ("M5 Apple AI 默认改成日本", [("source/groups.yaml", lambda s: s.replace("{name: Apple AI,  category: AI, default: 美国", "{name: Apple AI,  category: AI, default: 日本", 1))], "Apple AI"),
     ("M6 恢复关键词规则 siri", [("source/services/bigtech.yaml", lambda s: s.replace("      - {suffix: siri.com, ev: dlc,", "      - {keyword: siri, ev: apple-ai-req, note: x}\n      - {suffix: siri.com, ev: dlc,", 1))], None),
     ("M7 sora.com 放回 OpenAI", [("source/services/ai.yaml", lambda s: s.replace("    rules:\n", "    rules:\n      - {suffix: sora.com, ev: maintainer, note: x}\n", 1))], "sora.com"),
-    ("M8 Grok 组去掉 spacex.ai 登录域", [("source/services/ai.yaml", lambda s: re.sub(r"      - \{suffix: spacex\.ai,[^\n]*\n", "", s, 1))], "accounts.spacex.ai"),
+    ("M8 Grok 组去掉 spacex.ai 登录域", [("source/services/ai.yaml", lambda s: re.sub(r"      - \{suffix: spacex\.ai,[^\n]*\n", "", s, count=1))], "accounts.spacex.ai"),
     ("M9 azure.com 放回 Microsoft", [("source/services/bigtech.yaml", lambda s: s.replace("  - id: microsoft\n", "  - id: microsoft\n", 1).replace("      - {suffix: microsoft.com,", "      - {suffix: azure.com, ev: dlc}\n      - {suffix: microsoft.com,", 1))], None),
     ("M10 byteoversea.com 放回 TikTok", [("source/services/streaming.yaml", lambda s: s.replace("      - {suffix: tiktok.com,", "      - {suffix: byteoversea.com, ev: dlc}\n      - {suffix: tiktok.com,", 1))], "byteoversea"),
     # ---- 2026-09-30 审核修复（Astra r5）----
     ("M11 mihomo 去掉局域网后缀的系统 DNS（F04）", [("generator/emit_mihomo.py", lambda s: s.replace(
         '                ",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"],\n', "", 1))], "nameserver"),
     ("M12 graph.instagram.com 放回自有拦截（F05）", [("source/adblock.yaml", lambda s: re.sub(
-        r"  - \{suffix: graph\.instagram\.com, ev: meta-ig-api,[^\n]*\n", "", s, 1).replace(
+        r"  - \{suffix: graph\.instagram\.com, ev: meta-ig-api,[^\n]*\n", "", s, count=1).replace(
         "local_tracking:\n", "local_tracking:\n  - {suffix: graph.instagram.com, ev: dlc, note: x}\n", 1))], "graph.instagram.com"),
     ("M13 HTTP 出站又写 network 字段（F01）", [("generator/nodes.py", lambda s: s.replace(
         'NETWORK_FIELD = {"shadowsocks",', 'NETWORK_FIELD = {"http", "shadowsocks",', 1))], "network"),
@@ -156,7 +156,7 @@ cases = [
     ("M26 英文代码不再要求前后不挨字母", [("generator/regions.py", lambda s: s.replace(
         'branches.append(r"(?<![A-Za-z])" + _trie(latin, True) + r"(?![A-Za-z])")', 'branches.append(_trie(latin, True))', 1))], "RUS"),
     ("M27 不再处理中转词", [("source/regions.yaml", lambda s: re.sub(
-        r"  transit_after: \[[^\]]*\]", "  transit_after: []", s, 1))], "中转"),
+        r"  transit_after: \[[^\]]*\]", "  transit_after: []", s, count=1))], "中转"),
     ("M28 国旗不按成对对齐", [("generator/regions.py", lambda s: s.replace(
         'return f"(?!(?!{_RI}))" + self.before + f"(?<!{_RI})" + self.run_after + f"(?:{_RI}{_RI})*"',
         'return f"(?!(?!{_RI}))" + self.before + self.run_after', 1))], "🇨🇳🇺🇸"),
@@ -328,7 +328,7 @@ cases = [
         '    rules.append({"action": "resolve", "server": "dns-foreign"})', '    rules.append({"action": "resolve", "server": "dns-cn"})', 1))], "重新运行"),
     ("M93 “境外 DNS 不应答”那一遍不再包含没被接住的域名（那一遍等于什么也没证明）", [("tools/real_data.py", lambda s: s.replace(
         'SILENT_KINDS = ("proxied", "unlisted")', 'SILENT_KINDS = ("proxied",)', 1))], "重新运行"),
-    ("M94 全集一致性：把 sing-box 那一类已知的不一致从清单里拿掉（扫出来的主机没有归属）", [("tests/cases.yaml", lambda s: s.replace(
+    ("M94 逐条扫描：把 sing-box 那一类已知的不一致从清单里拿掉（扫出来的主机没有归属）", [("tests/cases.yaml", lambda s: s.replace(
         "    - {kind: real_ip, why:", "    - {kind: something_else, why:", 1))], "已知类别"),
     ("M95 去掉 Apple Push 的规则（推送又跟着 Apple 组）", [("source/services/bigtech.yaml", drop_service("apple_push"))], "Apple Push"),
     ("M96 Apple Push 的默认出口改成国外默认（需求是默认直连，需要时手动切）", [("source/groups.yaml", lambda s: s.replace(
@@ -338,6 +338,12 @@ cases = [
         '"Apple Music／TV", "Apple Push", "Bahamut"', '"Apple Music／TV", "Bahamut"', 1))], "没有图标"),
     ("M98 上游的 Loon 广告集合里有一条 IP 规则不带 no-resolve（改的是快照里的记录：Loon 严格版会为它在本机解析）",
      [("tests/data/real_sets.json", lambda s: s.replace('"ip_resolving": 0', '"ip_resolving": 1', 1))], "no-resolve"),
+    ("M99 sing-box：境外 DNS（dns-foreign）不再经“国外默认”发出（从本机直接连境外 DoH）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '"server": host_of(dns["foreign_doh"][0]), "detour": "国外默认"}', '"server": host_of(dns["foreign_doh"][0])}', 1))],
+     "经国外默认发出"),
+    ("M100 核对工具又只读 A 记录、按“没有 A 记录”判空应答（AAAA 拿到地址、HTTPS 拿到记录也记成 empty）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "            elif rtype == 28:\n                ips.append(socket.inet_ntop(socket.AF_INET6, data[i:i + 16]))\n", "", 1).replace(
+        "    if rcode == 0 and count == 0:\n", "    if rcode == 0 and not ips:\n", 1))], "不是空应答"),
 ]
 
 

@@ -1,5 +1,6 @@
 """局域网名字的解析路径：四端都把局域网后缀交给系统 / 本地 DNS，而不是公共 DoH（审核 F04）；
 sing-box 拨号时的解析也一样（审核 r9 的 F02）；mihomo 节点自己的服务器地址也一样（审核 r10 的 R10-F01）；
+没被任何域名规则接住的域名只问境外 DNS（GPT 审核 r12 的第 10 点）；
 以及 mihomo 订阅上的健康检查间隔与组一致（审核 3.4）。"""
 import json
 import unittest
@@ -179,6 +180,50 @@ class LanDns(unittest.TestCase):
                          [f"*.{s} = server:system" for s in self.lan])
         qx = parsed("quantumultx")["sections"]["dns"]
         self.assertEqual([x for x in qx if x.endswith("/system")], [f"server=/*.{s}/system" for s in self.lan])
+
+    def test_mihomo_unmatched_names_ask_only_the_foreign_doh(self):
+        """GPT 审核 r12 的第 10 点（交接时也列为下一版要补的）：没被任何域名规则接住的域名只问境外 DNS——把设计约束直接写成断言。
+        以前这一条只靠官方内核的记录：把默认的 DNS 换成国内的（变异 M91），离线测试只报“官方内核的记录过期”，
+        要重跑 tools/check_real_routes.py 才看得到具体错在哪。mihomo 上这类域名的查询（设备发来的地址以外的类型、
+        为判断最后的 GEOIP,CN 而做的解析）都交给 nameserver，所以：
+          1. nameserver 就是统一源里的境外 DoH（source/project.yaml 的 dns.foreign_doh）；
+          2. respect-rules 开着：这些 DoH 连接按规则走，落到国外默认，从代理出去；
+          3. 没有 fallback：境外查询失败时不安排别的服务器（mihomo v1.19.31 dns/resolver.go 的 ipExchange：没有 fallback 时直接返回）。
+        官方内核的实际去向仍由 tools/check_real_routes.py 核对、记进快照。"""
+        m, _ = model_and_plan()
+        for client in ("mihomo-profile", "mihomo-core"):
+            dns = parsed(client)["dns"]
+            self.assertEqual(dns["nameserver"], list(m.dns["foreign_doh"]), f"{client}：默认的 nameserver 必须是境外 DoH")
+            self.assertTrue(dns["respect-rules"], f"{client}：境外 DoH 的连接要按规则走（经代理）")
+            for key in ("fallback", "fallback-filter"):
+                self.assertNotIn(key, dns, f"{client}：境外查询不安排 {key}")
+
+    def test_singbox_unmatched_names_ask_only_dns_foreign(self):
+        """同上，sing-box 这一边（变异 M92、M99）。没被域名规则接住的域名，路由里靠一条不带匹配条件的 resolve 动作解析，
+        再按解析出的 IP 判断是不是国内；设备发来的地址以外的查询类型落到 DNS 的 final。所以：
+          1. 不带匹配条件的 resolve 正好一条，用 dns-foreign；它排在国内 / 国外域名集合之后、国内 IP 那条之前；
+          2. 局域网专用的那条 resolve（带 domain_suffix）用 dns-local——它不在这条约束里，不能要求成 dns-foreign；
+          3. dns-foreign 是统一源里的境外 DoH，经“国外默认”发出（detour），DNS 的 final 也是它。"""
+        m, _ = model_and_plan()
+        foreign_host = m.dns["foreign_doh"][0].split("://", 1)[1].split("/", 1)[0]
+        for client in ("singbox-1.14", "singbox-1.12"):
+            c = parsed(client)
+            rules = c["route"]["rules"]
+            resolves = [(i, r) for i, r in enumerate(rules) if r.get("action") == "resolve"]
+            generic = [(i, r) for i, r in resolves if set(r) == {"action", "server"}]
+            self.assertEqual(len(generic), 1, f"{client}：不带匹配条件的 resolve 应该正好一条")
+            i, r = generic[0]
+            self.assertEqual(r["server"], "dns-foreign", f"{client}：没被域名规则接住的域名只能交给境外 DNS 解析")
+            at = {x["rule_set"]: k for k, x in enumerate(rules) if "rule_set" in x and "outbound" in x}
+            self.assertLess(max(at["geosite-cn"], at["geosite-geolocation-!cn"]), i, f"{client}：先按域名集合判断，接不住的才解析")
+            self.assertLess(i, at["geoip-cn"], f"{client}：解析完再判断是不是国内 IP")
+            self.assertEqual([x["server"] for _, x in resolves if set(x) != {"action", "server"}], [emit_singbox.LOCAL_DNS_TAG],
+                             f"{client}：带匹配条件的 resolve 只有局域网那一条，用系统 DNS")
+            servers = {s["tag"]: s for s in c["dns"]["servers"]}
+            fs = servers["dns-foreign"]
+            self.assertEqual((fs["type"], fs["server"], fs.get("detour")), ("https", foreign_host, "国外默认"),
+                             f"{client}：dns-foreign 必须是境外 DoH，并且经国外默认发出")
+            self.assertEqual(c["dns"]["final"], "dns-foreign", client)
 
     def test_mihomo_provider_health_check_matches_groups(self):
         for client in ("mihomo-profile", "mihomo-core"):
