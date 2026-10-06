@@ -1,0 +1,9 @@
+bm7 清单条数 111277 （后缀 111009 精确 268 ）
+自有清单条数 6154 （后缀 6142 精确 12 ）
+QX 严格版本地域名规则：后缀 749 精确 131 关键词 0
+自有清单接得住 5753 5.2%
+自有清单接不住、但本地规则先接走 78
+两边都接不住（Loon 严格版直连、QX 严格版走代理） 105446 94.8%
+接不住的按结尾分： [('com', 87603), ('net', 7546), ('org', 2144), ('cc', 1532), ('beer', 655), ('vip', 493), ('xyz', 395), ('me', 340), ('xin', 260), ('tv', 253), ('work', 239), ('tech', 227)]
+常见网站自有清单接得住的： 30 / 30 接不住： []
+接不住的随机 30 条： ['njgulan.com', 'alexinea.com', 'wansongpu.com', 'guopika.com', 'gxbyrcb.com', 'opposales.com', 'dawurencai.com', 'zhshw.com', 'rufengda.com', 'esc.show', 'pocketcloud.vip', 't7rt5.com', 'power86.com', 'xiaohuochai.site', 'queniutz.com', 'yrwy.com', 'yuhucoldchain.com', '4000278400.com', 'beiren.cc', '123795.com', 'everknight.net', 'bjglxf.com', 'aiyy.org', 'yibiao-sh.com', 'fytz.net', 'maxfinesthair.com', 'sfygroup.com', 'laixuexi.cc', 'inrice.zone', 'duocaish.com']
