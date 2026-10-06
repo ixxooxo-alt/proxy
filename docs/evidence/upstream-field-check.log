@@ -1,7 +1,7 @@
-运行时间（UTC）：2026-10-06 13:07:04
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:20:08
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
-命令：python3 tools/verify_with_upstream_source.py --mihomo-src /home/claude/vendor-src/mihomo --singbox-src /home/claude/vendor-src/sing-box
+命令：python3 tools/verify_with_upstream_source.py --mihomo-src /root/proxy-vendor/src/mihomo --singbox-src /root/proxy-vendor/src/sing-box
 
 检查了 4531 个字段 / 取值
 全部字段都能在上游源码的结构体标签中找到。

@@ -1,7 +1,7 @@
-运行时间（UTC）：2026-10-06 13:07:09
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:20:13
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
-命令：python3 tools/update_cn_list.py --dlc /home/claude/vendor-src/domain-list-community --check
+命令：python3 tools/update_cn_list.py --dlc /root/proxy-vendor/src/domain-list-community --check
 
 source/data/cn-domains.txt 与按固定快照重新生成的逐字节相同：后缀 6142 条、精确域名 12 条（快照 c1c2cf0d，2026-09-22）
 source/data/LICENSE-domain-list-community.txt 与上游的 LICENSE 相同

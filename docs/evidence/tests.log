@@ -1,5 +1,5 @@
-运行时间（UTC）：2026-10-06 13:01:09
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:12:26
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
 命令：python3 -m unittest discover -s tests -v
 
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 12 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpweijwhx1/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpg5d97h52/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -52,8 +52,8 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpohdrc8zk/report.md
-报告已写入 /tmp/tmpohdrc8zk/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpb5cx2ksv/report.md
+报告已写入 /tmp/tmpb5cx2ksv/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时八份配置（标准版六份、严格版两份）都逐字节相同， ... ok
@@ -86,8 +86,12 @@ test_mihomo_node_servers_in_the_lan_use_system_dns (test_dns_lan.LanDns.test_mih
 审核 r10 的 R10-F01：mihomo 解析节点自己的服务器地址用 proxy-server-nameserver，它的例外另写在 ... ok
 test_mihomo_provider_health_check_matches_groups (test_dns_lan.LanDns.test_mihomo_provider_health_check_matches_groups) ... ok
 test_mihomo_sends_lan_suffixes_to_system_dns_first (test_dns_lan.LanDns.test_mihomo_sends_lan_suffixes_to_system_dns_first) ... ok
+test_mihomo_unmatched_names_ask_only_the_foreign_doh (test_dns_lan.LanDns.test_mihomo_unmatched_names_ask_only_the_foreign_doh)
+GPT 审核 r12 的第 10 点（交接时也列为下一版要补的）：没被任何域名规则接住的域名只问境外 DNS——把设计约束直接写成断言。 ... ok
 test_singbox_dial_time_resolution_of_lan_names (test_dns_lan.LanDns.test_singbox_dial_time_resolution_of_lan_names)
 审核 r9 的 F02：sing-box 拨号时解析名字不经过 dns.rules，用的是出站自己的 domain_resolver，没有就用 ... ok
+test_singbox_unmatched_names_ask_only_dns_foreign (test_dns_lan.LanDns.test_singbox_unmatched_names_ask_only_dns_foreign)
+同上，sing-box 这一边（变异 M92、M99）。没被域名规则接住的域名，路由里靠一条不带匹配条件的 resolve 动作解析， ... ok
 test_singbox_uses_local_dns_for_lan_suffixes (test_dns_lan.LanDns.test_singbox_uses_local_dns_for_lan_suffixes) ... ok
 test_what_counts_as_a_lan_name (test_dns_lan.LanDns.test_what_counts_as_a_lan_name) ... ok
 test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending (test_icons.Icons.test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending)
@@ -102,7 +106,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 12 个公开产物到 /tmp/tmpcpga0zyt（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 12 个公开产物到 /tmp/tmpefz7r60a（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -110,8 +114,8 @@ test_git_really_ignores_them (test_local_and_private.GitIgnore.test_git_really_i
 test_private_paths_are_listed (test_local_and_private.GitIgnore.test_private_paths_are_listed) ... ok
 test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_local_rules_route) ... ok
 test_pinned_paypal_and_verified_netflix (test_local_and_private.LocalOverrides.test_pinned_paypal_and_verified_netflix) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 12 个公开产物到 ../../../tmp/tmpmrl3la1w（订阅为占位符）
-私密产物已写入 ../../../tmp/tmpmrl3la1w/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 12 个公开产物到 ../../../tmp/tmp93u4y8xh（订阅为占位符）
+私密产物已写入 ../../../tmp/tmp93u4y8xh/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -142,6 +146,7 @@ test_dns_cases_match_recorded_official_core (test_real_data.MihomoDial.test_dns_
 期望在 cases.yaml 的 mihomo_dns（人工写的）：局域网后缀下的名字交给系统 DNS；普通域名给假地址、不向上游查询。 ... ok
 test_each_setting_only_governs_its_own_path (test_real_data.MihomoDial.test_each_setting_only_governs_its_own_path)
 快照里另有三组自检的记录，各从 DNS 段里去掉一样东西再跑同一批用例： ... ok
+test_each_kind_of_reply_is_told_apart (test_real_data.ProbeReplyParsing.test_each_kind_of_reply_is_told_apart) ... ok
 test_real_only_cases_come_from_upstream_data (test_real_data.RealOnlyCases.test_real_only_cases_come_from_upstream_data)
 cases.yaml 的 real_only 要名副其实。现在两条是同一件事：blackmatrix7 的 AdvertisingLite 收了“要真实地址的名单”里的 ... ok
 test_dial_digest_sees_what_the_routing_digest_cannot (test_real_data.RealRoutes.test_dial_digest_sees_what_the_routing_digest_cannot)
@@ -376,7 +381,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 244 tests in 96.692s
+Ran 247 tests in 159.851s
 
 OK
 退出码：0

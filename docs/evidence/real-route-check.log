@@ -1,17 +1,17 @@
-运行时间（UTC）：2026-10-06 13:03:01
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:15:31
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
-命令：python3 tools/check_real_routes.py --mihomo /home/claude/vendor-bin/mihomo-linux-amd64-v1.19.31 --singbox /home/claude/vendor-bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /home/claude/vendor-bin/geodata --srs-dir /home/claude/vendor-bin/srs --bm7 /home/claude/vendor-src/bm7 --singbox-112 /home/claude/vendor-bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /home/claude/vendor-src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
+命令：python3 tools/check_real_routes.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata --srs-dir /root/proxy-vendor/srs --bm7 /root/proxy-vendor/src/bm7 --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /root/proxy-vendor/src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
 
-统一源 2026.10.06-1；用例与排除项共 280 条，不同的目标 260 个；DNS 去向用例 sing-box 22 条、mihomo 11 条，拨号解析用例 sing-box 12 条、mihomo 12 条
+统一源 2026.10.06-1；用例与排除项共 280 条，不同的目标 260 个；DNS 去向用例 sing-box 22 条、mihomo 12 条，拨号解析用例 sing-box 12 条、mihomo 12 条
 数据文件：
-  [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载）
-  [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载）
-  [mihomo] geoip.dat：SHA-256 391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd（16515432 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载）
-  [singbox] geosite-category-ads-all.srs：SHA-256 a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324（8244 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出）
-  [singbox] geosite-cn.srs：SHA-256 fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c（56145 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出）
-  [singbox] geosite-geolocation-!cn.srs：SHA-256 30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6（168020 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出）
-  [singbox] geoip-cn.srs：SHA-256 ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc（34185 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出）
+  [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
+  [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
+  [mihomo] geoip.dat：SHA-256 391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd（16515432 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
+  [singbox] geosite-category-ads-all.srs：SHA-256 a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324（8244 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出）
+  [singbox] geosite-cn.srs：SHA-256 fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c（56145 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出）
+  [singbox] geosite-geolocation-!cn.srs：SHA-256 30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6（168020 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出）
+  [singbox] geoip-cn.srs：SHA-256 ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc（34185 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出）
   [loon] AdvertisingLite.list：SHA-256 613a96d2485716a9bdb663844d947267cd6c344d6d7461ad3b579c3c4f5aea41（12884 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
   [loon] AdvertisingLite_Domain.list：SHA-256 90fc37c6affc550aa62f8449ee69fae42113f70a66906cf2a6cfafd8b76c2bde（595785 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
   [loon] ChinaMax_Domain.list：SHA-256 838a06dfbe6d3fca9d8ad373a04ba5e15939c94e674b1d4b95b34632ac4974bf（1522827 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
@@ -30,7 +30,7 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
   [符合] 路由 260 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国内直连（GeoSite(cn)）；按需求本该去 国外默认，差异来自上游集合的内容，决定不更正（见 docs/06）
   拨号核对原样保留的部分（规则、DNS、嗅探和几个开关），两份 mihomo 配置完全相同，只跑一份
-  [符合] DNS 去向 11 条（设备发来的查询交给哪一类 DNS。system 是系统 DNS 的替身，domestic 国内，foreign 境外；fake-ip 是直接给假地址，empty 是直接回空应答，都不向上游查询）：官方内核与人工期望一致
+  [符合] DNS 去向 12 条（设备发来的查询交给哪一类 DNS。system 是系统 DNS 的替身，domestic 国内，foreign 境外；fake-ip 是直接给假地址，empty 是直接回空应答，都不向上游查询）：官方内核与人工期望一致
       printer.lan A → system
       nas.home.arpa A → system
       www.taobao.com A → fake-ip
@@ -41,6 +41,7 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
       never-listed-query.net A → fake-ip
       never-listed-txt.net TXT → foreign
       www.qq.com TXT → domestic
+      google.cn AAAA → empty
       qwen.ai TXT → domestic（已知限制的现状，见 docs/06）
   [符合] 连接时的解析 12 条（节点服务器的名字、域名形式的直连目标、走代理组的域名、没被域名规则接住的域名，各交给哪一类 DNS；none = 三类替身都没有收到关于它的查询）：官方内核与人工期望一致
       node gateway.lan → system
@@ -58,7 +59,7 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
       自检：去掉 proxy-server-nameserver-policy 后，node gateway.lan → domestic、node proxy.home.arpa → domestic、node homeproxy → domestic——只有它管的这几条变了，这一处仍然需要
       自检：去掉 direct-nameserver-follow-policy 后，direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
       自检：去掉 nameserver-policy 里局域网后缀那一条后，printer.lan A → domestic、nas.home.arpa A → domestic、direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
-  [符合] 境外 DNS 不应答（境外替身只收不答，每个连接保持 14 秒）：连接 6 条、查询 11 条，收到查询的替身与正常那一遍完全相同；其中 4 条只有境外替身收到——没有转去问国内 / 系统 DNS
+  [符合] 境外 DNS 不应答（境外替身只收不答，每个连接保持 14 秒）：连接 6 条、查询 12 条，收到查询的替身与正常那一遍完全相同；其中 4 条只有境外替身收到——没有转去问国内 / 系统 DNS
 singbox-1.14：sing-box version 1.14.1，配置 sing-box/sing-box-1.14.json
   [符合] 路由 260 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国外默认（没有规则命中（route.final））；这一端没有差异
@@ -102,7 +103,7 @@ singbox-1.12：sing-box version 1.12.0，配置 sing-box/sing-box-1.12.json
   sing-box：去掉 Qwen 的显式规则后 chat.qwen.ai → 国内直连（rule_set=geosite-cn）——更正仍然需要
   sing-box：去掉 DNS 上的产品规则后，chat.qwen.ai 的 A 查询交给 dns-cn——产品规则仍然需要
   sing-box：去掉 DNS 上的产品规则后，music.apple.com 的 A 查询交给 dns-cn——产品规则仍然需要
-国内 DNS 与路由的全集一致性（名字会交给国内 DNS 的主机，路由有没有把它交给代理组；说明见 tools/dns_route_consistency.py）：
+国内 DNS 与路由的逐条扫描（名字会交给国内 DNS 的集合，逐条取代表主机，看路由有没有把它交给代理组；说明见 tools/dns_route_consistency.py）：
   mihomo：扫了 224266 个代表主机（集合条目 222689 个、规则的值 1577 个；集合规模 {'cn': 111224, 'private': 131}；正则 1 条、关键词 0 条取不出代表主机，没有扫）
       名字会交给国内 DNS 的 222733 个：路由是国内直连 / 直连 / 拦截的 222359 个；归默认直连、可以切换的组的 10 个；走代理组的 364 个
       走代理组：来自 geosite:cn、路由交给 Bilibili 港澳台 的 1 个，例如 upos-hz-mirrorakam.akamaized.net

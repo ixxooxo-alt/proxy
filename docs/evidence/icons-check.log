@@ -1,7 +1,7 @@
-运行时间（UTC）：2026-10-06 13:07:04
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:20:09
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
-命令：python3 tools/check_icons.py --icon-repo /home/claude/vendor-src/icon
+命令：python3 tools/check_icons.py --icon-repo /root/proxy-vendor/src/icon
 
 统一源 2026.10.06-1；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
 图标仓库检出目录的提交：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06 14:12:36 +0800）

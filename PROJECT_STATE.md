@@ -10,7 +10,7 @@
 | T2 统一模型：地区、模式、业务组、专用入口、规则、例外、DNS | 已验证 | `source/`、`generator/model.py`、`tests/test_source.py` |
 | T3 规则数据与逐条证据 | 已完成；社区来源已按固定快照核对 | `docs/04-规则清单与证据.md`、`docs/evidence/上游规则对照.md` |
 | T4 四个生成后端 + 平台变体（r12 起 Loon / Quantumult X 各多一份严格版，见 T20） | 已验证（模拟器 + 上游字段核对 + mihomo / sing-box 官方程序检查） | `dist/`、`docs/evidence/*.log`、`docs/evidence/official-check.log` |
-| T5 测试：路由、结构、例外一致性、安全边界、节点转换（含负向输入）、跨平台、证据记录、连接记录分析、对照报告迁入、生成流程（回滚、写盘前检查、manifest、个人覆盖隔离）、检查脚本退出码、局域网 DNS、节点按名称分地区、真实上游数据下的路由与 DNS、版本对比工具、sing-box 拨号解析、策略组图标、Git 忽略私密文件、mihomo 节点服务器的解析策略与拨号记录的摘要、Loon / Quantumult X 严格版、“走代理的域名不交给国内 DNS”的三项固定核对与逐条扫描、这两条的静态断言、核对工具对 DNS 应答的判断 | 已验证（⟦tests_n⟧ 项；变异检查：⟦mut_n⟧ 类全部被发现） | `docs/evidence/tests.log`、`tools/check_mutations.py` |
+| T5 测试：路由、结构、例外一致性、安全边界、节点转换（含负向输入）、跨平台、证据记录、连接记录分析、对照报告迁入、生成流程（回滚、写盘前检查、manifest、个人覆盖隔离）、检查脚本退出码、局域网 DNS、节点按名称分地区、真实上游数据下的路由与 DNS、版本对比工具、sing-box 拨号解析、策略组图标、Git 忽略私密文件、mihomo 节点服务器的解析策略与拨号记录的摘要、Loon / Quantumult X 严格版、“走代理的域名不交给国内 DNS”的三项固定核对与逐条扫描、这两条的静态断言、核对工具对 DNS 应答的判断 | 已验证（247 项；变异检查：100 类全部被发现） | `docs/evidence/tests.log`、`tools/check_mutations.py` |
 | T6 导入 / 更新 / 诊断 / 回滚说明 | 已完成 | `docs/01-导入、更新、诊断与回滚.md` |
 | T7 第 1 轮外部审核意见核实与处理 | 已完成（2 项修复、2 项规避、2 项待真机） | `docs/08-外部审核记录.md` |
 | T8 按上游快照核对社区来源规则（审核建议 3） | 已完成：更正 19 条证据、升级 49 条维护者知识、补充 137 条上游支持的功能域名、上游广告条目四端一致 | `docs/08`“第 1 轮建议 3 的执行”、`docs/evidence/upstream-evidence-check.log` |
@@ -42,7 +42,7 @@
 | 请审核方复核这一轮的修改 | 待进行 | 范围可以只限改动的部分；改动清单与建议攻击的点见 `00-审核说明.md` |
 | Mac 上开着 Clash Verge Rev 的虚拟网卡时，用名字访问局域网设备、局域网里的节点 | 待验证（r13 读源码推断出来的） | 按源码，这时 App 把系统 DNS 改成了 114.114.114.114，内核的“系统 DNS”也就是它，`nas.lan` 这类名字解析不到。没有 Mac 可以试；`docs/09` 第 1 节“局域网”一行。配置里改不了，遇到了再商量办法（`docs/06`“2026-10-07（r13）”一节） |
 | 用真实订阅的节点名核对分组 | 待用户提供 | 样本是归纳的常见写法和独立来源的国家 / 城市名，不是任何一家机场的真实节点名。r10 把只写“地名 + 中转”“国旗 + 中转”的节点从自动类的组里拿掉了，用户的机场如果大多这样命名，自动组会少很多（`docs/06` 待决事项第 12 项）；反过来，规则不认识的中转说法（`经由`、`跳板`、`Entry` 等）会被当成落地放进自动组（`docs/06` 最后一节）。两头都要看真实的节点名才知道有多少。用户说以后多订阅几家再把节点列表截图发来；届时用 `tools/check_node_names.py` 核对，再补词表或 `local.yaml` |
-| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58；之后几轮改动较多，需要再跑一次 244 项。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
+| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58；之后几轮改动较多，需要再跑一次 247 项。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
 | 带真实订阅的私密配置过官方检查 | 待验证 | 公开配置和样例节点已通过 mihomo / sing-box 官方检查；真实订阅只在你的电脑上，需要你本机运行一次 |
 | 十个平台真机验收（优先：QX 策略名、Loon 手动优先组成员） | 待验证 | 没有设备、订阅与账号；操作步骤见 `docs/09-真机验收操作清单.md`，记录表见 `docs/05-验收记录.md` |
 | 21 条维护者知识规则的实测 | 待验证 | 两个上游快照里都没有，需要真机抓包或实测命中（清单见 `docs/evidence/上游规则对照.md`） |
@@ -62,7 +62,7 @@
 4. 在 Loon / Quantumult X 上导入本版配置（保留旧配置；可以先导入、再在 App 里换订阅，见 `docs/01`），按 `docs/09` 第 1 节检查：有没有报错；82 个策略组是不是都在、图标有没有出来；地区组里的节点对不对；“自动”组是不是“手动”组的一部分；Loon 的两条广告订阅是否都加载成功（看条数，再试 `app-measurement.com`）；Quantumult X 的“自动”“负载均衡”组里有没有节点。结果发回来。
 5. 想用严格版：第 2 步做完以后，按 `docs/09` 第 1b 节的 13 步走一遍，哪一步不对先切回标准版，把现象发回来。
 6. 把订阅里的节点名交给 `python3 tools/check_node_names.py`（或把节点列表截图 / 文本发回来），按报告在 `source/local.yaml` 的 `node_names` 里补或指定，常见写法并入 `source/regions.yaml`。
-7. 在 Windows 上运行 `python -m unittest discover -s tests`，确认 ⟦tests_n⟧ 项通过。
+7. 在 Windows 上运行 `python -m unittest discover -s tests`，确认 247 项通过。
 8. 填订阅后运行 `mihomo -t -d . -f dist/private/mihomo-core.yaml`（SFA 用户再跑 `sing-box check -c dist/private/sing-box-1.14.json`），记录结果。
 9. 按 `docs/09-真机验收操作清单.md` 做其余真机验收：Loon 的“香港·手动优先”成员列表、QX 带 `/`、`+` 的策略名；电脑上的分流结果用 `tools/check_connections.py` 分析。
 10. 回复 `docs/06` 的待决事项（20 项；第 15–20 项是 r12 新列的，还没有答复），按结果修改 `source/` 并重新生成。

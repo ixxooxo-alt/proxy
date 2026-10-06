@@ -1,7 +1,7 @@
-运行时间（UTC）：2026-10-06 13:07:06
-Python：Python 3.11.17，PyYAML：6.0.1
+运行时间（UTC）：2026-10-06 19:20:11
+Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
-命令：python3 tools/check_upstream_evidence.py --dlc /home/claude/vendor-src/domain-list-community --bm7 /home/claude/vendor-src/bm7
+命令：python3 tools/check_upstream_evidence.py --dlc /root/proxy-vendor/src/domain-list-community --bm7 /root/proxy-vendor/src/bm7
 
 dlc 快照：c1c2cf0d252871e8739747714df06e8d2671f72f（2026-09-22T19:29:39+08:00）
 bm7 快照：51d2e1dd8429a91be575157d6f8ed051c93559f8（2026-09-21T21:38:01+00:00）

@@ -50,6 +50,12 @@ for t in ("test_mihomo_unmatched_names_ask_only_the_foreign_doh", "test_singbox_
           "test_each_kind_of_reply_is_told_apart"):
     assert re.search(rf"^{t} \(.*\) \.\.\.", tests, re.M) or f"{t} (" in tests, t
 assert "DeprecationWarning" not in tests
+# 各测试文件的项数从日志里数（第一次写这个脚本时把 test_real_data 写成了 r12 的 35 项，核对时发现，改成从日志里数）
+per_file = {}
+for mod, _cls, _name in set(re.findall(r"\((test_\w+)\.(\w+)\.(\w+)\)", tests)):
+    per_file[mod] = per_file.get(mod, 0) + 1
+assert sum(per_file.values()) == int(N_TESTS), per_file
+assert (per_file["test_real_data"], per_file["test_strict"], per_file["test_dns_lan"]) == (36, 30, 11), per_file
 
 icu = read(f"{ev}/icu-check.log")
 assert "13 条（宽 7 条、严 6 条）× 2283 个节点名（其中 625 个有手写的期望）" in icu
@@ -246,7 +252,7 @@ for p, needles in (("README.md", ["tests-247%20passing", "247 automated tests", 
                    ("00-审核说明.md", ["244 → 247 项", "98 → 100 类", "11 → 12 条", "本轮（r13，统一源 2026.10.06-1）", "注入 100 类错误", "都在 2026-10-06（UTC）"]),
                    ("docs/05-验收记录.md", ["247 项全部通过", "100 类错误", "2026.10.06-1（r13", "Python 3.13.16，PyYAML 6.0.1", "2283 个假节点",
                                             "860 个 120 / 400 个字符", "4,531 个字段", "260 个目标", "只定稿这一次", state,
-                                            "`tests/test_real_data.py`，35 项", "`tests/test_strict.py`，30 项", "google.cn` AAAA → 空应答"]),
+                                            f"`tests/test_real_data.py`，{per_file['test_real_data']} 项", f"`tests/test_strict.py`，{per_file['test_strict']} 项", "google.cn` AAAA → 空应答"]),
                    ("docs/02-语法依据与能力矩阵.md", ["宽的 13.0–15.7 KB，严的 11.8–15.1 KB", "`tests/test_regions.py` 65 项", "v1.19.20", "12 条 DNS 去向",
                                                     "## Loon / Quantumult X 严格版用到的写法（2026-10-06）", "ExampleRule.lsr"]),
                    ("docs/03-DNS决策表.md", ["## 走代理的域名不交给国内 DNS：三项固定核对与逐条扫描（2026-10-06；2026-10-07 修订）",
@@ -269,12 +275,13 @@ for p, needles in (("README.md", ["tests-247%20passing", "247 automated tests", 
         assert n in s, (p, n)
 # 旧的说法不应再作为现状出现（历史记录里的除外，逐个看过）
 HIST = ["docs/00-需求原文.md", "docs/08-外部审核记录.md"]
-stale = {"244 项全部通过": [], "注入 98 类": [], "tests-244": [], "自动测试 244 项": [], "244 automated": [], "98 类全部被发现": ["docs/08-外部审核记录.md"],
+stale = {"244 项全部通过": [], "注入 98 类": [], "tests-244": [], "自动测试 244 项": [], "244 automated": [], "再跑一次 244 项": [], "98 类全部被发现": ["docs/08-外部审核记录.md"],
          "mihomo 11 条": ["docs/08-外部审核记录.md"], "查询 11 条": [], "11 条 DNS 去向": [],
          "（系统 DNS，即路由器": ["docs/08-外部审核记录.md"], "系统 DNS（路由器 / 公司内网的 DNS）": [], "写在配置文件里不起作用，只能在这里开": [],
          "境外 DNS 连不上时，内核没有转去问": ["docs/08-外部审核记录.md"], "只能在 App 里开**": [],
          "对应统一源 2026.10.06-1（r12）": [], "这一版（r12）是 `2026.10.06-1`": [],
-         "统一源 2026.10.06-1（r12）　生成器": [], "没有逐行比过": []}
+         "统一源 2026.10.06-1（r12）　生成器": [],
+         "没有逐行比过": ["docs/08-外部审核记录.md"]}     # docs/08 第 8 轮第 6 点引用这句旧话，说明它被换掉了（核对时看过）
 for p in files:
     s = read(p)
     for k, allowed in stale.items():
