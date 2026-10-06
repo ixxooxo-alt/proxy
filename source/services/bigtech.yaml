@@ -1,0 +1,395 @@
+# 大厂通用规则。更具体的产品（Google AI、YouTube、Copilot、Apple Music/TV、Prime Video…）
+# 由生成器按“更具体的规则先匹配”自动排在这些通用后缀之前，不靠手工调顺序。
+
+services:
+  # ---------- Apple AI（需求补充 2026-09-29）----------
+  # 照搬 Cursor 版 18 条（对照报告“Apple AI”一节，副本在 docs/evidence/cursor-对照报告.md），匹配类型不改；
+  # 唯一改动是关键词 siri 换成具体主机名（见最后三条）。
+  # 本服务写在 apple 之前：生成器保持服务顺序，并让更具体的规则先于更宽的规则，所以四端产物里这 20 条全部写在
+  # Apple 组第一条（apple.com）之前。tests/test_routing.py::test_apple_ai_before_apple 同时检查书写位置和逐条命中。
+  - id: apple_ai
+    group: Apple AI
+    title: Apple 智能、Siri、iCloud 专用代理
+    upstream: {dlc: [apple-intelligence, icloudprivaterelay, apple], bm7: [iCloudPrivateRelay, Siri]}
+    rules:
+      - {domain: guzzoni.apple.com, ev: apple-ent-net, note: Siri 与听写}
+      - {domain: mask-api.fe.apple-dns.net, ev: bm7-snap, note: iCloud 专用代理}
+      - {domain: mask-api.icloud.com, ev: apple-ent-net, note: iCloud 专用代理}
+      - {domain: mask-t.apple-dns.net, ev: bm7-snap, note: iCloud 专用代理}
+      - {domain: mask.apple-dns.net, ev: bm7-snap, note: iCloud 专用代理}
+      - {suffix: apple-relay.apple.com, ev: apple-ent-net, note: Apple Intelligence 扩展（官方列的是这台主机，基线写成后缀）}
+      - {suffix: apple-relay.cloudflare.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
+      - {suffix: apple-relay.fastly-edge.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
+      - {suffix: apple-relay.mask.apple-dns.net, ev: apple-ai-req, note: 上游 dlc apple-intelligence 只有同名精确主机}
+      - {suffix: apps.mzstatic.com, ev: apple-ai-req, note: App Store 图标与截图等资源，会随本组走所选地区}
+      - {suffix: cp4.cloudflare.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
+      - {suffix: gateway.icloud.com, ev: apple-ent-net, note: 官方写的用途是 CloudKit 内容（含 XProtect 更新、语音控制资源），不专属 AI；按基线保留}
+      - {suffix: gspe1-ssl.ls.apple.com, ev: apple-ai-req, note: 上游 dlc apple-intelligence 有同名精确主机，注明影响 eSIM 地区判断、中国版 Apple 地图等}
+      - {suffix: ls.apple.com, ev: apple-ai-req, note: Apple 地图与定位服务的全部子域，会随本组走所选地区}
+      - {suffix: mask-h2.icloud.com, ev: apple-ent-net, note: iCloud 专用代理}
+      - {suffix: mask.icloud.com, ev: apple-ent-net, note: iCloud 专用代理}
+      - {suffix: smoot.apple.com, ev: apple-ent-net, note: 搜索服务（Siri、Spotlight、查询、Safari 等），官方写作 *.smoot.apple.com}
+      # 下面三条替代原来的关键词规则 siri（它会误匹配 siriusxm.com 等无关网站）
+      - {suffix: siri.apple.com, ev: apple-ai-req, note: 替代关键词 siri；上游 dlc apple 列表有 probe / seed / seed-sequoia / seed-swallow.siri.apple.com 四台}
+      - {suffix: siri.com, ev: dlc, note: 替代关键词 siri；Apple 持有的 Siri 域名}
+      - {suffix: applesiri.cn, ev: dlc, note: 替代关键词 siri；上游标为 @cn（国内有服务），按原关键词的覆盖范围收入}
+    notes: >
+      关键词 siri 原本还能覆盖“名字里带 siri、但不在 siri.apple.com 之下”的 Apple 主机。两个上游快照和 Apple 官方文档里
+      目前没有这样的主机；以后如果出现，只能靠关键词或新增具体主机名覆盖，届时单独补。
+      ls.apple.com、apps.mzstatic.com、gateway.icloud.com 不只服务 Apple 智能：Apple 地图 / 定位、App Store 资源、
+      CloudKit 内容也会跟着本组走美国等所选地区。
+
+  - id: apple_media
+    group: Apple Music/TV
+    title: Apple Music、Apple TV
+    upstream: {dlc: [apple-music, apple-tvplus, itunes]}
+    rules:
+      - {suffix: music.apple.com, ev: dlc}
+      - {suffix: tv.apple.com, ev: dlc}
+      - {domain: aod.itunes.apple.com, ev: dlc, note: Apple Music 音频流}
+      - {domain: aod-ssl.itunes.apple.com, ev: dlc}
+      - {domain: audio-ssl.itunes.apple.com, ev: dlc}
+      - {domain: hls.itunes.apple.com, ev: dlc}
+      - {domain: hls-svod.itunes.apple.com, ev: dlc, note: Apple TV 视频流}
+      - {domain: hls-amt.itunes.apple.com, ev: dlc, note: Apple TV+ 视频流}
+      - {domain: play-edge.itunes.apple.com, ev: dlc}
+      - {domain: np-edge.itunes.apple.com, ev: dlc}
+      - {domain: uts-api.itunes.apple.com, ev: dlc}
+
+  - id: apple
+    group: Apple
+    title: Apple 通用（App Store、iCloud、系统服务）
+    upstream: {dlc: [apple, apple-dev, icloud, itunes], bm7: [Apple]}
+    rules:
+      - {suffix: apple.com, ev: dlc}
+      - {suffix: apple.com.cn, ev: dlc}
+      - {suffix: apple.co, ev: dlc}
+      - {suffix: apple.news, ev: dlc}
+      - {suffix: apple-cloudkit.com, ev: dlc}
+      - {suffix: apple-dns.net, ev: dlc}
+      - {suffix: apple-mapkit.com, ev: dlc}
+      - {suffix: aaplimg.com, ev: dlc}
+      - {suffix: cdn-apple.com, ev: dlc}
+      - {suffix: icloud.com, ev: dlc}
+      - {suffix: icloud.com.cn, ev: dlc}
+      - {suffix: icloud-content.com, ev: dlc}
+      - {suffix: me.com, ev: dlc}
+      - {suffix: mzstatic.com, ev: dlc}
+      - {suffix: itunes.com, ev: dlc}
+      - {suffix: appstore.com, ev: bm7-snap}
+
+  - id: google
+    group: Google
+    title: Google 通用（含共享登录、令牌、静态资源）
+    upstream: {dlc: [google, android, blogspot]}
+    rules:
+      - {suffix: google.com, ev: google-supported-domains}
+      - {suffix: googleapis.com, ev: dlc, nature: shared, note: 共享接口根域，只归 Google 通用，不归任何 AI}
+      - {suffix: gstatic.com, ev: dlc, nature: shared}
+      - {suffix: googleusercontent.com, ev: dlc, nature: shared}
+      - {suffix: ggpht.com, ev: maintainer, note: 上游把整个 ggpht.com 归 youtube；它也承载 Google Play、Blogger 等图片，本项目只把 yt3.ggpht.com 归 YouTube}
+      - {suffix: gvt1.com, ev: dlc}
+      - {suffix: gvt2.com, ev: dlc}
+      - {suffix: googlesource.com, ev: dlc}
+      - {suffix: google.dev, ev: dlc}
+      - {suffix: withgoogle.com, ev: dlc}
+      - {suffix: goo.gl, ev: dlc}
+      - {suffix: g.co, ev: dlc}
+      - {suffix: android.com, ev: dlc}
+      - {suffix: chrome.com, ev: dlc}
+      - {suffix: chromium.org, ev: dlc}
+      - {suffix: gmail.com, ev: dlc}
+      - {suffix: googlemail.com, ev: dlc}
+      - {suffix: blogger.com, ev: dlc}
+      - {suffix: blogspot.com, ev: dlc}
+      - {suffix: recaptcha.net, ev: maintainer, note: 上游 google 列表只收 recaptcha.net 与 www.recaptcha.net 两个精确主机；本项目按整个后缀归 Google}
+      - {suffix: google.com.hk, ev: google-supported-domains}
+      - {suffix: google.com.tw, ev: google-supported-domains}
+      - {suffix: google.co.jp, ev: google-supported-domains}
+      - {suffix: google.co.kr, ev: google-supported-domains}
+      - {suffix: google.com.sg, ev: google-supported-domains}
+      - {suffix: google.co.uk, ev: google-supported-domains}
+      # 以下 180 个是 Google 官方搜索域名列表（supported_domains）里其余的国家域名，从 Cursor 版迁入，2026-09-29 逐条复核一致
+      - {suffix: google.ad, ev: google-supported-domains}
+      - {suffix: google.ae, ev: google-supported-domains}
+      - {suffix: google.al, ev: google-supported-domains}
+      - {suffix: google.am, ev: google-supported-domains}
+      - {suffix: google.as, ev: google-supported-domains}
+      - {suffix: google.at, ev: google-supported-domains}
+      - {suffix: google.az, ev: google-supported-domains}
+      - {suffix: google.ba, ev: google-supported-domains}
+      - {suffix: google.be, ev: google-supported-domains}
+      - {suffix: google.bf, ev: google-supported-domains}
+      - {suffix: google.bg, ev: google-supported-domains}
+      - {suffix: google.bi, ev: google-supported-domains}
+      - {suffix: google.bj, ev: google-supported-domains}
+      - {suffix: google.bs, ev: google-supported-domains}
+      - {suffix: google.bt, ev: google-supported-domains}
+      - {suffix: google.by, ev: google-supported-domains}
+      - {suffix: google.ca, ev: google-supported-domains}
+      - {suffix: google.cat, ev: google-supported-domains}
+      - {suffix: google.cd, ev: google-supported-domains}
+      - {suffix: google.cf, ev: google-supported-domains}
+      - {suffix: google.cg, ev: google-supported-domains}
+      - {suffix: google.ch, ev: google-supported-domains}
+      - {suffix: google.ci, ev: google-supported-domains}
+      - {suffix: google.cl, ev: google-supported-domains}
+      - {suffix: google.cm, ev: google-supported-domains}
+      - {suffix: google.cn, ev: google-supported-domains}
+      - {suffix: google.co.ao, ev: google-supported-domains}
+      - {suffix: google.co.bw, ev: google-supported-domains}
+      - {suffix: google.co.ck, ev: google-supported-domains}
+      - {suffix: google.co.cr, ev: google-supported-domains}
+      - {suffix: google.co.id, ev: google-supported-domains}
+      - {suffix: google.co.il, ev: google-supported-domains}
+      - {suffix: google.co.in, ev: google-supported-domains}
+      - {suffix: google.co.ke, ev: google-supported-domains}
+      - {suffix: google.co.ls, ev: google-supported-domains}
+      - {suffix: google.co.ma, ev: google-supported-domains}
+      - {suffix: google.co.mz, ev: google-supported-domains}
+      - {suffix: google.co.nz, ev: google-supported-domains}
+      - {suffix: google.co.th, ev: google-supported-domains}
+      - {suffix: google.co.tz, ev: google-supported-domains}
+      - {suffix: google.co.ug, ev: google-supported-domains}
+      - {suffix: google.co.uz, ev: google-supported-domains}
+      - {suffix: google.co.ve, ev: google-supported-domains}
+      - {suffix: google.co.vi, ev: google-supported-domains}
+      - {suffix: google.co.za, ev: google-supported-domains}
+      - {suffix: google.co.zm, ev: google-supported-domains}
+      - {suffix: google.co.zw, ev: google-supported-domains}
+      - {suffix: google.com.af, ev: google-supported-domains}
+      - {suffix: google.com.ag, ev: google-supported-domains}
+      - {suffix: google.com.ar, ev: google-supported-domains}
+      - {suffix: google.com.au, ev: google-supported-domains}
+      - {suffix: google.com.bd, ev: google-supported-domains}
+      - {suffix: google.com.bh, ev: google-supported-domains}
+      - {suffix: google.com.bn, ev: google-supported-domains}
+      - {suffix: google.com.bo, ev: google-supported-domains}
+      - {suffix: google.com.br, ev: google-supported-domains}
+      - {suffix: google.com.bz, ev: google-supported-domains}
+      - {suffix: google.com.co, ev: google-supported-domains}
+      - {suffix: google.com.cu, ev: google-supported-domains}
+      - {suffix: google.com.cy, ev: google-supported-domains}
+      - {suffix: google.com.do, ev: google-supported-domains}
+      - {suffix: google.com.ec, ev: google-supported-domains}
+      - {suffix: google.com.eg, ev: google-supported-domains}
+      - {suffix: google.com.et, ev: google-supported-domains}
+      - {suffix: google.com.fj, ev: google-supported-domains}
+      - {suffix: google.com.gh, ev: google-supported-domains}
+      - {suffix: google.com.gi, ev: google-supported-domains}
+      - {suffix: google.com.gt, ev: google-supported-domains}
+      - {suffix: google.com.jm, ev: google-supported-domains}
+      - {suffix: google.com.kh, ev: google-supported-domains}
+      - {suffix: google.com.kw, ev: google-supported-domains}
+      - {suffix: google.com.lb, ev: google-supported-domains}
+      - {suffix: google.com.ly, ev: google-supported-domains}
+      - {suffix: google.com.mm, ev: google-supported-domains}
+      - {suffix: google.com.mt, ev: google-supported-domains}
+      - {suffix: google.com.mx, ev: google-supported-domains}
+      - {suffix: google.com.my, ev: google-supported-domains}
+      - {suffix: google.com.na, ev: google-supported-domains}
+      - {suffix: google.com.ng, ev: google-supported-domains}
+      - {suffix: google.com.ni, ev: google-supported-domains}
+      - {suffix: google.com.np, ev: google-supported-domains}
+      - {suffix: google.com.om, ev: google-supported-domains}
+      - {suffix: google.com.pa, ev: google-supported-domains}
+      - {suffix: google.com.pe, ev: google-supported-domains}
+      - {suffix: google.com.pg, ev: google-supported-domains}
+      - {suffix: google.com.ph, ev: google-supported-domains}
+      - {suffix: google.com.pk, ev: google-supported-domains}
+      - {suffix: google.com.pr, ev: google-supported-domains}
+      - {suffix: google.com.py, ev: google-supported-domains}
+      - {suffix: google.com.qa, ev: google-supported-domains}
+      - {suffix: google.com.sa, ev: google-supported-domains}
+      - {suffix: google.com.sb, ev: google-supported-domains}
+      - {suffix: google.com.sl, ev: google-supported-domains}
+      - {suffix: google.com.sv, ev: google-supported-domains}
+      - {suffix: google.com.tj, ev: google-supported-domains}
+      - {suffix: google.com.tr, ev: google-supported-domains}
+      - {suffix: google.com.ua, ev: google-supported-domains}
+      - {suffix: google.com.uy, ev: google-supported-domains}
+      - {suffix: google.com.vc, ev: google-supported-domains}
+      - {suffix: google.com.vn, ev: google-supported-domains}
+      - {suffix: google.cv, ev: google-supported-domains}
+      - {suffix: google.cz, ev: google-supported-domains}
+      - {suffix: google.de, ev: google-supported-domains}
+      - {suffix: google.dj, ev: google-supported-domains}
+      - {suffix: google.dk, ev: google-supported-domains}
+      - {suffix: google.dm, ev: google-supported-domains}
+      - {suffix: google.dz, ev: google-supported-domains}
+      - {suffix: google.ee, ev: google-supported-domains}
+      - {suffix: google.es, ev: google-supported-domains}
+      - {suffix: google.fi, ev: google-supported-domains}
+      - {suffix: google.fm, ev: google-supported-domains}
+      - {suffix: google.fr, ev: google-supported-domains}
+      - {suffix: google.ga, ev: google-supported-domains}
+      - {suffix: google.ge, ev: google-supported-domains}
+      - {suffix: google.gg, ev: google-supported-domains}
+      - {suffix: google.gl, ev: google-supported-domains}
+      - {suffix: google.gm, ev: google-supported-domains}
+      - {suffix: google.gr, ev: google-supported-domains}
+      - {suffix: google.gy, ev: google-supported-domains}
+      - {suffix: google.hn, ev: google-supported-domains}
+      - {suffix: google.hr, ev: google-supported-domains}
+      - {suffix: google.ht, ev: google-supported-domains}
+      - {suffix: google.hu, ev: google-supported-domains}
+      - {suffix: google.ie, ev: google-supported-domains}
+      - {suffix: google.im, ev: google-supported-domains}
+      - {suffix: google.iq, ev: google-supported-domains}
+      - {suffix: google.is, ev: google-supported-domains}
+      - {suffix: google.it, ev: google-supported-domains}
+      - {suffix: google.je, ev: google-supported-domains}
+      - {suffix: google.jo, ev: google-supported-domains}
+      - {suffix: google.kg, ev: google-supported-domains}
+      - {suffix: google.ki, ev: google-supported-domains}
+      - {suffix: google.kz, ev: google-supported-domains}
+      - {suffix: google.la, ev: google-supported-domains}
+      - {suffix: google.li, ev: google-supported-domains}
+      - {suffix: google.lk, ev: google-supported-domains}
+      - {suffix: google.lt, ev: google-supported-domains}
+      - {suffix: google.lu, ev: google-supported-domains}
+      - {suffix: google.lv, ev: google-supported-domains}
+      - {suffix: google.md, ev: google-supported-domains}
+      - {suffix: google.me, ev: google-supported-domains}
+      - {suffix: google.mg, ev: google-supported-domains}
+      - {suffix: google.mk, ev: google-supported-domains}
+      - {suffix: google.ml, ev: google-supported-domains}
+      - {suffix: google.mn, ev: google-supported-domains}
+      - {suffix: google.mu, ev: google-supported-domains}
+      - {suffix: google.mv, ev: google-supported-domains}
+      - {suffix: google.mw, ev: google-supported-domains}
+      - {suffix: google.ne, ev: google-supported-domains}
+      - {suffix: google.nl, ev: google-supported-domains}
+      - {suffix: google.no, ev: google-supported-domains}
+      - {suffix: google.nr, ev: google-supported-domains}
+      - {suffix: google.nu, ev: google-supported-domains}
+      - {suffix: google.pl, ev: google-supported-domains}
+      - {suffix: google.pn, ev: google-supported-domains}
+      - {suffix: google.ps, ev: google-supported-domains}
+      - {suffix: google.pt, ev: google-supported-domains}
+      - {suffix: google.ro, ev: google-supported-domains}
+      - {suffix: google.rs, ev: google-supported-domains}
+      - {suffix: google.ru, ev: google-supported-domains}
+      - {suffix: google.rw, ev: google-supported-domains}
+      - {suffix: google.sc, ev: google-supported-domains}
+      - {suffix: google.se, ev: google-supported-domains}
+      - {suffix: google.sh, ev: google-supported-domains}
+      - {suffix: google.si, ev: google-supported-domains}
+      - {suffix: google.sk, ev: google-supported-domains}
+      - {suffix: google.sm, ev: google-supported-domains}
+      - {suffix: google.sn, ev: google-supported-domains}
+      - {suffix: google.so, ev: google-supported-domains}
+      - {suffix: google.sr, ev: google-supported-domains}
+      - {suffix: google.st, ev: google-supported-domains}
+      - {suffix: google.td, ev: google-supported-domains}
+      - {suffix: google.tg, ev: google-supported-domains}
+      - {suffix: google.tl, ev: google-supported-domains}
+      - {suffix: google.tm, ev: google-supported-domains}
+      - {suffix: google.tn, ev: google-supported-domains}
+      - {suffix: google.to, ev: google-supported-domains}
+      - {suffix: google.tt, ev: google-supported-domains}
+      - {suffix: google.vu, ev: google-supported-domains}
+      - {suffix: google.ws, ev: google-supported-domains}
+    shared_excluded:
+      - {host: "appspot.com / firebaseapp.com / web.app", ev: maintainer, why: Google 托管的第三方应用，共享云，不收}
+
+  - id: microsoft
+    group: Microsoft
+    title: Microsoft 通用（登录、Office、OneDrive、Bing）
+    upstream: {dlc: [microsoft, msn, bing, onedrive, xbox, microsoft-dev]}
+    rules:
+      - {suffix: microsoft.com, ev: dlc}
+      - {suffix: microsoftonline.com, ev: dlc}
+      - {suffix: microsoftonline-p.com, ev: dlc}
+      - {suffix: msauth.net, ev: dlc}
+      - {suffix: msftauth.net, ev: dlc}
+      - {suffix: live.com, ev: dlc}
+      - {suffix: live.net, ev: dlc}
+      - {suffix: msn.com, ev: dlc}
+      - {suffix: bing.com, ev: dlc}
+      - {suffix: bing.net, ev: dlc}
+      - {suffix: office.com, ev: dlc}
+      - {suffix: office.net, ev: dlc}
+      - {suffix: office365.com, ev: dlc}
+      - {suffix: microsoft365.com, ev: dlc}
+      - {suffix: cloud.microsoft, ev: dlc, note: 微软新云服务根域（上游 microsoft 列表收录了品牌顶级域 .microsoft）}
+      - {suffix: outlook.com, ev: dlc}
+      - {suffix: onedrive.com, ev: dlc}
+      - {suffix: 1drv.com, ev: dlc}
+      - {suffix: 1drv.ms, ev: dlc}
+      - {suffix: sharepoint.com, ev: dlc, note: OneDrive 商业版等}
+      - {suffix: skype.com, ev: dlc}
+      - {suffix: xbox.com, ev: dlc}
+      - {suffix: xboxlive.com, ev: dlc}
+      - {suffix: windows.com, ev: dlc}
+      - {suffix: visualstudio.com, ev: dlc}
+      - {suffix: vsassets.io, ev: dlc}
+      - {suffix: aka.ms, ev: dlc}
+      - {suffix: gfx.ms, ev: dlc}
+      - {suffix: sfx.ms, ev: dlc}
+      # 以下 31 条是 Cursor 版“M365 官方端点”清单里本项目原有规则没覆盖的部分（其余 37 条已被上面的规则覆盖），2026-09-29 逐条在官方端点 Web 服务里确认存在
+      - {domain: autologon.microsoftazuread-sso.com, ev: m365-endpoints}
+      - {domain: clientconfig.microsoftonline-p.net, ev: m365-endpoints}
+      - {domain: join.secure.skypeassets.com, ev: m365-endpoints}
+      - {domain: partnerservices.getmicrosoftkey.com, ev: m365-endpoints}
+      - {domain: sway.com, ev: m365-endpoints}
+      - {domain: www.sway.com, ev: m365-endpoints}
+      - {suffix: aadrm.com, ev: m365-endpoints}
+      - {suffix: acompli.net, ev: m365-endpoints}
+      - {suffix: assets-yammer.com, ev: m365-endpoints}
+      - {suffix: lync.com, ev: m365-endpoints}
+      - {suffix: microsoftusercontent.com, ev: m365-endpoints}
+      - {suffix: msauthimages.net, ev: m365-endpoints}
+      - {suffix: msftauthimages.net, ev: m365-endpoints}
+      - {suffix: msftidentity.com, ev: m365-endpoints}
+      - {suffix: msidentity.com, ev: m365-endpoints}
+      - {suffix: msocdn.com, ev: m365-endpoints}
+      - {suffix: mx.microsoft, ev: m365-endpoints}
+      - {suffix: o365weve.com, ev: m365-endpoints}
+      - {suffix: onenote.com, ev: m365-endpoints}
+      - {suffix: onmicrosoft.com, ev: m365-endpoints}
+      - {suffix: outlookmobile.com, ev: m365-endpoints}
+      - {suffix: phonefactor.net, ev: m365-endpoints}
+      - {suffix: portal.cloudappsecurity.com, ev: m365-endpoints}
+      - {suffix: powerapps.com, ev: m365-endpoints}
+      - {suffix: powerautomate.com, ev: m365-endpoints}
+      - {suffix: sharepointonline.com, ev: m365-endpoints}
+      - {suffix: static.microsoft, ev: m365-endpoints}
+      - {suffix: svc.ms, ev: m365-endpoints}
+      - {suffix: usercontent.microsoft, ev: m365-endpoints}
+      - {suffix: yammer.com, ev: m365-endpoints}
+      - {suffix: yammerusercontent.com, ev: m365-endpoints}
+    shared_excluded:
+      - {host: "windows.net（*.blob.core.windows.net 等）/ azurewebsites.net / azureedge.net", ev: maintainer, why: Azure 共享云，所有客户共用，不收}
+      - {host: azure.com, ev: maintainer, why: 含客户自有的云主机（*.cloudapp.azure.com、*.database.azure.com 等），属于共享云，2026-09-29 移出 Microsoft；Azure 门户等走国外默认}
+
+  - id: github
+    group: GitHub
+    title: GitHub
+    upstream: {dlc: [github]}
+    rules:
+      - {suffix: github.com, ev: dlc}
+      - {suffix: githubusercontent.com, ev: dlc, note: 含 raw / objects（Releases 下载）；Copilot 专属主机更具体，先匹配}
+      - {suffix: githubassets.com, ev: dlc}
+      - {suffix: githubapp.com, ev: dlc}
+      - {suffix: github.dev, ev: dlc}
+      - {suffix: github.blog, ev: dlc}
+      - {suffix: githubstatus.com, ev: dlc}
+      - {suffix: ghcr.io, ev: dlc, note: GitHub 容器仓库，属 GitHub 专属}
+      - {domain: github-cloud.s3.amazonaws.com, ev: github-runner-net, note: Git LFS 存储；只收这一个存储桶，不收 amazonaws.com（2026-09-30 审核 D02）}
+    shared_excluded:
+      - {host: github.io, ev: maintainer, why: GitHub Pages 托管第三方站点，共享托管根域，不收（落入国外默认）}
+
+  - id: amazon
+    group: 国外默认
+    title: Amazon 通用（购物）——需求规定归国外默认
+    upstream: {dlc: [amazon]}
+    rules:
+      - {suffix: amazon.com, ev: dlc}
+      - {suffix: amazon.co.jp, ev: dlc}
+      - {suffix: amazon.co.uk, ev: dlc}
+      - {suffix: media-amazon.com, ev: dlc}
+      - {suffix: ssl-images-amazon.com, ev: dlc}
+      - {suffix: images-amazon.com, ev: dlc}
+    shared_excluded:
+      - {host: "amazonaws.com / cloudfront.net", ev: maintainer, why: AWS 共享云，不收}

@@ -1,0 +1,132 @@
+# 去广告：底层分别维护（广告 / 跟踪统计 / HTTPDNS / 误杀例外 / 复写脚本 MITM）
+#
+# 匹配阶段（语义）：局域网例外 → 误杀例外（按业务目标放行）→ 广告与跟踪拦截 → 产品规则 → …
+# 各端差异（生成器自动处理，详见 docs/06-已知限制.md）：
+#   mihomo / sing-box：严格按书写顺序，可以完全按上面的语义排列。
+#   Loon：本地规则 > 插件规则 > 订阅规则；Quantumult X：本地 > 远程。
+#         远程广告集合排在本地产品规则之后，所以“位于产品根域下的广告主机”只有列在下面 local_ads /
+#         local_tracking 里的那部分能被拦截。
+
+remote_lists:
+  mihomo:
+    - {kind: geosite, value: category-ads-all, source: "MetaCubeX meta-rules-dat geosite.dat（源自 domain-list-community）"}
+  singbox:
+    - {kind: rule_set, tag: geosite-category-ads-all,
+       url: "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+       source: "SagerNet sing-geosite（源自 domain-list-community）"}
+  loon:
+    - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list",
+       tag: 广告拦截-AdvertisingLite, ev: bm7,
+       source: "blackmatrix7 AdvertisingLite（2026-09-23 抓取文件头：38,068 条，更新于 2025-12-08）"}
+  quantumultx:
+    - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list",
+       tag: 广告拦截-AdvertisingLite, ev: bm7,
+       source: "blackmatrix7 AdvertisingLite（2026-09-23 抓取文件头：38,066 条，更新于 2025-12-08）"}
+
+# 自有拦截条目：主要用于“位于产品根域下的广告 / 跟踪主机”，保证 Loon / QX 也能先于产品规则拦截。
+# ev: dlc 的条目来自固定快照里 category-ads-all 展开后、落在本项目产品规则范围内的全部条目
+# （tools/check_upstream_evidence.py 会检查“一条都不漏”：每条要么在这里，要么在下面的误杀例外里）。
+# 上游写法是 domain:（含子域）的用 suffix，full:（精确）的用 domain，与 mihomo / sing-box 的拦截范围一致。
+local_ads:
+  - {suffix: adservice.google.com, ev: dlc, note: Google 广告服务}
+  - {suffix: googleadapis.l.google.com, ev: dlc, note: Google 广告接口}
+  - {suffix: pagead.l.google.com, ev: dlc, note: Google 广告}
+  - {suffix: partnerad.l.google.com, ev: dlc, note: Google 广告}
+  - {suffix: mobileads.google.com, ev: dlc, note: Google 移动广告}
+  - {suffix: mail-ads.google.com, ev: dlc, note: Gmail 广告}
+  - {suffix: fcmatch.google.com, ev: dlc, note: Google 广告 Cookie 匹配}
+  - {suffix: marketingplatform.google.com, ev: dlc, note: Google Marketing Platform（广告主后台）}
+  - {suffix: ads.youtube.com, ev: dlc, note: YouTube 广告}
+  - {suffix: advertising.apple.com, ev: dlc, note: Apple 广告（广告主后台）}
+  - {suffix: api-adservices.apple.com, ev: dlc, note: Apple AdServices 归因接口}
+  - {suffix: iad.apple.com, ev: dlc, note: Apple iAd}
+  - {suffix: iadsdk.apple.com, ev: dlc, note: Apple iAd SDK}
+  - {suffix: ad.games.dmm.com, ev: dlc, note: DMM 游戏广告}
+  - {domain: adstudio-assets.scdn.co, ev: dlc, note: Spotify 广告素材}
+  - {domain: an.facebook.com, ev: maintainer, note: Meta Audience Network}
+  # 以下 41 条是 Cursor 版的独立广告网络（其 ads-reject.list），2026-09-29 迁入：15 条在 dlc category-ads-all 快照里同值出现，
+  # 17 条只在 blackmatrix7 AdvertisingLite 快照里，9 条两边都没有（证据 cursor-import，单独列在 docs/06）
+  - {suffix: adcolony.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: adform.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: adnxs.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: adotmob.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adsafeprotected.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adsrvr.org, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: adtechus.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: advertising.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: alimama.com, ev: cursor-import, note: 阿里妈妈广告（淘宝联盟推广链接可能受影响）}
+  - {suffix: amazon-adsystem.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: casalemedia.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: chartboost.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: criteo.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: doubleclick.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: doubleclick.net, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: doubleverify.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: everesttech.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: flashtalking.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: googleadservices.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: googlesyndication.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: googletagservices.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: inmobi.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: inner-active.mobi, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: ironsrc.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: media.net, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: moatads.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: openx.net, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: outbrain.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: pubmatic.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: quantserve.com, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: rubiconproject.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: scorecardresearch.com, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: smaato.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: smartadserver.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: taboola.com, ev: dlc, note: 广告 / 跟踪网络}
+  - {suffix: tanx.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: tapjoy.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+  - {suffix: teads.tv, ev: cursor-import, note: 广告 / 跟踪网络}
+  - {suffix: umeng.com, ev: cursor-import, note: 友盟统计（也提供推送、一键登录，拦截可能影响部分国内 App 的这些功能）}
+  - {suffix: umengcloud.com, ev: cursor-import, note: 友盟（同上）}
+  - {suffix: vungle.com, ev: bm7-snap, note: 广告 / 跟踪网络}
+local_tracking:
+  - {suffix: pixel.facebook.com, ev: dlc, note: Meta 像素}
+  - {suffix: analytics.facebook.com, ev: dlc, note: Meta 统计}
+  - {suffix: graph-fallback.instagram.com, ev: dlc, note: Instagram 统计上报（上游标为 @ads）；graph.instagram.com 是官方 API 主机，已改为误杀例外}
+  - {suffix: graph.whatsapp.com, ev: dlc, note: WhatsApp 统计上报（上游标为 @ads）}
+  - {suffix: graph.whatsapp.net, ev: dlc, note: 同上}
+  - {suffix: analytics-alv.google.com, ev: dlc, note: Google 统计}
+  - {domain: analytics.google.com, ev: dlc, note: Google Analytics（上游只拦精确主机；会连带挡住 GA 后台网页，需要时加误杀例外）}
+  - {suffix: browser.events.data.msn.com, ev: dlc, note: Edge / MSN 遥测}
+  - {domain: adeventtracker.spotify.com, ev: dlc, note: Spotify 广告事件}
+  - {domain: bloodhound.spotify.com, ev: dlc, note: Spotify 统计}
+  - {domain: copilot-telemetry-service.githubusercontent.com, ev: dlc, note: Copilot 遥测服务（官方放行清单未列）}
+  - {suffix: analytics.tiktok.com, ev: dlc, note: TikTok 像素}
+  - {domain: bat.bing.com, ev: maintainer, note: Microsoft 广告转化跟踪}
+  - {domain: px.ads.linkedin.com, ev: maintainer, note: LinkedIn 转化跟踪}
+
+# HTTPDNS：不等于广告。是否拦截取决于实际用途、应用能否回退到系统 DNS、拦截后是否可用。
+# 目前没有经过验证的条目，默认不启用。
+httpdns:
+  enabled: false
+  entries: []
+
+# 误杀例外：在所有客户端里排在广告拦截之前，按“没有广告规则时本应去的业务目标”放行。
+#   target 省略：由生成器按产品规则推导（例如 s.youtube.com → YouTube）
+#   target 显式：该主机不属于任何产品规则时必须写明（例如共享的第三方服务 → 国外默认）
+# 禁止所有例外统一 DIRECT。
+exceptions:
+  - {suffix: ct.sendgrid.net, target: 国外默认, ev: openai-net, why: 注册 / 验证邮件里的链接跳转；OpenAI 官方放行清单列出}
+  - {suffix: app.link, target: 国外默认, ev: maintainer, why: Branch 深度链接，多个应用的登录 / 魔法链接依赖}
+  - {domain: m.stripe.network, target: 国外默认, ev: maintainer, why: Stripe 结账风控信号，拦截会导致支付失败}
+  - {domain: m.stripe.com, target: 国外默认, ev: maintainer, why: 同上}
+  - {domain: challenges.cloudflare.com, target: 国外默认, ev: openai-net, why: Cloudflare 人机验证}
+  - {suffix: hcaptcha.com, target: 国外默认, ev: maintainer, why: 人机验证}
+  - {domain: s.youtube.com, ev: maintainer, why: YouTube 播放统计；部分广告集合会拦截，影响观看记录}
+  - {domain: copilot-telemetry.githubusercontent.com, ev: ghcopilot-net, why: Copilot 客户端遥测；GitHub 官方放行清单列出，上游广告集合（@ads）会拦截}
+  - {suffix: collector.github.com, ev: ghcopilot-net, why: GitHub 分析遥测；Copilot 官方放行清单列出（collector.github.com/*），上游广告集合（@ads）会拦截}
+  - {suffix: graph.instagram.com, ev: meta-ig-api, why: Instagram 官方 API 主机（发消息、发内容等都走它），不只是统计上报；上游广告集合（@ads）会拦截（2026-09-30 审核 F05）}
+
+# 复写 / 脚本 / MITM：本版本不内置。
+# - 需要设备上生成并信任证书，本项目不预装、不共享、不写入任何证书或私钥。
+# - 第三方脚本未审计。可在 Loon 的 [Plugin]、QX 的 [rewrite_remote] 自行添加（例如可莉的去广告插件）。
+# - mihomo / sing-box 没有等效的复写脚本能力，不宣称完整复制可莉的去广告效果。
+rewrite_mitm: none

@@ -1,0 +1,24 @@
+运行时间（UTC）：2026-10-05 06:07:44
+Python：Python 3.11.17，PyYAML：6.0.1
+统一源摘要：8548a038b895c914ce67ad66c155b5531a0ff34cab809bc9e1514474e074aed7
+命令：python3 tools/check_upstream_evidence.py --dlc /home/claude/vendor-src/domain-list-community --bm7 /home/claude/vendor-src/bm7
+
+dlc 快照：c1c2cf0d252871e8739747714df06e8d2671f72f（2026-09-22T19:29:39+08:00）
+bm7 快照：51d2e1dd8429a91be575157d6f8ed051c93559f8（2026-09-21T21:38:01+00:00）
+核对域名规则 851 条，社区来源 554 条；产品规则下的上游广告条目 30 条；更宽的广告条目 0 条
+按证据与结果：apple-ai-req/covered 5，apple-ent-net/absent 2，apple-ent-net/covered 2，apple-ent-net/narrower 2，apple-ent-net/same 4，bm7-snap/same 27，claude-desktop-net/absent 1，claude-desktop-net/same 1，claude-net/same 6，cursor-net/absent 2，cursor-net/same 3，cursor-signin/absent 2，dlc/covered 9，dlc/same 518，gca-net/same 2，gemini-api/narrower 1，gemini-api/same 1，gh-agent-allowlist/absent 7，gh-agent-allowlist/covered 3，gh-agent-allowlist/same 2，ghcopilot-net/absent 2，ghcopilot-net/same 3，github-runner-net/same 1，google-supported-domains/same 187，m365-endpoints/absent 15，m365-endpoints/covered 6，m365-endpoints/same 10，maintainer/absent 19，maintainer/covered-aggregate 1，maintainer/narrower 1，openai-net/absent 1，openai-net/same 5
+归属差异：`copilot.cloud.microsoft`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
+归属差异：`copilot.com`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
+归属差异：`copilot.microsoft.com`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
+归属差异：`ggpht.com`：本项目归 Google（google）；上游列表 `youtube` 对应本项目的 youtube
+归属差异：`iqiyi.com`：本项目归 国内直连（cn_common）；上游列表 `iqiyi` 对应本项目的 iqiyi_intl
+归属差异：`ixigua.com`：本项目归 国内直连（cn_common）；上游列表 `bytedance` 对应本项目的 tiktok
+归属差异：`meta.ai`：本项目归 其他 AI（meta_ai）；上游列表 `meta` 对应本项目的 meta_social
+归属差异：`msftconnecttest.com`：本项目归 DIRECT（connectivity_check）；上游列表 `microsoft` 对应本项目的 microsoft
+归属差异：`msftncsi.com`：本项目归 DIRECT（connectivity_check）；上游列表 `microsoft` 对应本项目的 microsoft
+归属差异：`qpic.cn`：本项目归 国内直连（cn_common）；上游列表 `tencent` 对应本项目的 wetv
+归属差异：`qq.com`：本项目归 国内直连（cn_common）；上游列表 `tencent` 对应本项目的 wetv
+归属差异：`toutiao.com`：本项目归 国内直连（cn_common）；上游列表 `bytedance` 对应本项目的 tiktok
+归属差异：`windowsupdate.com`：本项目归 国内直连（vendor_cn_cdn）；上游列表 `microsoft` 对应本项目的 microsoft
+检查通过
+退出码：0

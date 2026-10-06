@@ -1,0 +1,220 @@
+# AI 服务归属。按“本机实际连接目标”分流：
+#   本机连 Cursor 后端 → Cursor；本机直连 OpenAI API → OpenAI；本机直连 Anthropic API → Claude。
+#   服务器端再调用模型厂商的连接不经过本机规则，不因 Cursor 使用某模型就把该厂商 API 收进 Cursor。
+# 共享的登录、令牌、资源（googleapis.com、googleusercontent.com、gstatic.com 等）不归单一 AI。
+#
+# upstream：该服务在固定快照里对应的上游列表（dlc = domain-list-community，bm7 = blackmatrix7）。
+#   ev: dlc / bm7-snap 的规则必须能在这些列表里找到；核对记录见 docs/evidence/upstream-snapshot.json。
+
+services:
+  - id: openai
+    group: OpenAI
+    title: ChatGPT、OpenAI API、Codex（Sora 已停服，见 shared_excluded）
+    upstream: {dlc: [openai]}
+    rules:
+      - {suffix: openai.com, ev: openai-net}
+      - {suffix: chatgpt.com, ev: openai-net, note: 含 ws.chatgpt.com 会话推送与 Codex 流式}
+      - {suffix: oaistatic.com, ev: openai-net}
+      - {suffix: oaiusercontent.com, ev: openai-net}
+      - {suffix: oaistatsig.com, ev: openai-net}
+      - {domain: cdn.openaimerge.com, ev: openai-net}
+      - {suffix: chat.com, ev: dlc, note: OpenAI 持有，跳转到 ChatGPT}
+      - {suffix: chatgpt.livekit.cloud, ev: dlc, note: ChatGPT 语音（LiveKit 上的 ChatGPT 专属主机）}
+    shared_excluded:
+      - {host: "*.ct.sendgrid.net", ev: openai-net, why: 邮件链接跟踪，第三方共享服务（验证邮件会用到，见广告例外）}
+      - {host: "*.intercom.io / *.intercomcdn.com", ev: openai-net, why: 客服组件，多家公司共用}
+      - {host: js.stripe.com, ev: openai-net, why: 支付组件，多家公司共用}
+      - {host: "*.workos.com / images.workoscdn.com / workos.imgix.net", ev: openai-net, why: 第三方登录服务，Cursor 等也在用}
+      - {host: challenges.cloudflare.com, ev: openai-net, why: Cloudflare 人机验证，全网共用}
+      - {host: humb.apple.com, ev: openai-net, why: Apple 服务}
+      - {host: "*.ingest.sentry.io / rum.browser-intake-datadoghq.com", ev: openai-net, why: 第三方遥测}
+      - {host: "UDP 3478 + chatgpt-voice.json IP 段", ev: openai-net, why: 语音模式需要的 IP 段未收录，需按官方 JSON 核实后再加}
+      - {host: sora.com, ev: openai-sora-eol, why: Sora 网页与 App 已于 2026-04-26 停服、API 于 2026-09-24 停服，规则已删除；导出页 sora.chatgpt.com 已被 chatgpt.com 覆盖}
+      - {host: "host.livekit.cloud / turn.livekit.cloud", ev: dlc, why: 上游 openai 列表收录，但这是 LiveKit 所有客户共用的设施，不归 OpenAI（落入国外默认）}
+      - {host: "openai 官网静态资源（*.azureedge.net / *.blob.core.windows.net / *.azurefd.net / openaicom.imgix.net 上的专属主机）", ev: dlc, why: 上游收录；只影响官网图片等静态资源，不影响地区判断，未收录（落入国外默认）}
+
+  - id: claude
+    group: Claude
+    title: Claude 网页 / 应用、Anthropic API、Claude Code
+    upstream: {dlc: [anthropic]}
+    rules:
+      - {suffix: anthropic.com, ev: claude-net, note: api / mcp-proxy / assets-proxy 等}
+      - {suffix: claude.ai, ev: claude-net, note: 含 downloads.claude.ai}
+      - {suffix: claude.com, ev: claude-net, note: 含 platform.claude.com、code.claude.com}
+      - {suffix: claudeusercontent.com, ev: claude-net, note: 含 bridge / *.frame 等}
+      - {suffix: claudemcpclient.com, ev: dlc, note: 上游 anthropic 列表收录（MCP 相关）}
+      - {suffix: claudemcpcontent.com, ev: claude-desktop-net, note: 桌面版官方网络要求列出 *.claudemcpcontent.com}
+      - {suffix: claude.app, ev: claude-desktop-net, note: 桌面版官方网络要求列出 claude.app 与 *.claude.app（从 Cursor 版迁入）}
+      - {suffix: clau.de, ev: dlc, note: 短链接}
+    shared_excluded:
+      - {host: storage.googleapis.com, ev: claude-net, why: Google Cloud Storage，共享云存储 → Google}
+      - {host: registry.npmjs.org, ev: claude-net, why: 通用开发依赖 → 开发下载}
+      - {host: "github.com / raw.githubusercontent.com", ev: claude-net, why: GitHub 专属 → GitHub}
+      - {host: formulae.brew.sh, ev: claude-net, why: Homebrew → 开发下载}
+      - {host: "*-review.googlesource.com", ev: claude-net, why: Google 代码托管 → Google}
+      - {host: "http-intake.logs.us5.datadoghq.com / browser-intake-us5-datadoghq.com", ev: claude-net, why: 第三方遥测，可选}
+      - {host: "fonts.googleapis.com / fonts.gstatic.com / cdnjs / jsdelivr / unpkg", ev: claude-net, why: 公共 CDN，全网共用}
+      - {host: servd-anthropic-website.b-cdn.net, ev: dlc, why: 上游收录；官网静态资源，位于共享 CDN，未收录（落入国外默认）}
+
+  # ---------- Grok 组：Cursor 与 Grok / xAI（2026-09-30 用户决定合并）----------
+  # Cursor 从 2026-09-30 起用 xAI 账号登录，登录链路横跨 x.ai、spacex.ai、grok.com、grokusercontent.com、grokipedia.com，
+  # 放在同一组里，改地区时登录不会被拆到不同出口。xai 服务定义在下面“其他 AI”一段之后，组同样是 Grok。
+  - id: cursor
+    group: Grok
+    title: Cursor 编辑器、Agent、CLI、索引、更新
+    upstream: {dlc: [cursor]}
+    rules:
+      - {suffix: cursor.sh, ev: cursor-net, note: api2/api3/api4/api5、repo42、认证等}
+      - {suffix: cursor-cdn.com, ev: cursor-net}
+      - {suffix: cursorapi.com, ev: cursor-net, note: 扩展市场}
+      - {suffix: cursor.com, ev: dlc, note: 官方网络文档只列了其中的 downloads.cursor.com（客户端更新）；整段后缀依据上游 dlc cursor 列表，子域都属于 Cursor（官网、控制台、登录跳转、文档）}
+      - {domain: anysphere-binaries.s3.us-east-1.amazonaws.com, ev: cursor-net, note: 专属存储桶；不收整个 amazonaws.com}
+      - {suffix: spacex.ai, ev: cursor-signin, note: 9 月 30 日起的登录地址 accounts.spacex.ai 及相关认证主机；Cursor 登录文档建议整段放行 *.spacex.ai}
+    shared_excluded:
+      - {host: "*.cursorvm.com", ev: cursor-net, why: Grok Bot 托管计算机，归“远程控制”组（见 remote_control）}
+
+  - id: remote_control
+    group: 远程控制
+    title: Grok Bot 托管计算机（Cursor）
+    rules:
+      - {suffix: cursorvm.com, ev: cursor-net, note: "官方：*.cursorvm.com 与 *.*.cursorvm.com 都需要；后缀规则覆盖任意层级子域"}
+    notes: >
+      Grok Bot 托管计算机按需求第八节单独归“远程控制”，不并入 Grok 组；官方文档表明它使用 Cursor 的 *.cursorvm.com。
+      控制入口可以走本组，但远程执行机自己访问模型厂商的连接发生在执行机上，本机规则无法控制。
+      直连可用性未实测，默认不设 DIRECT。
+
+  - id: google_ai
+    group: Google AI
+    title: Gemini、AI Studio、Antigravity、Gemini CLI / Code Assist、NotebookLM、Jules、Labs、DeepMind
+    upstream: {dlc: [google-deepmind]}
+    rules:
+      - {domain: gemini.google.com, ev: dlc}
+      - {suffix: gemini.google, ev: dlc, note: Gemini 官方介绍站}
+      - {suffix: gemini.gstatic.com, ev: dlc, note: Gemini 静态资源；gstatic.com 其余归 Google}
+      - {suffix: geller-pa.googleapis.com, ev: dlc, note: 上游归入 Generative Language API 段}
+      - {suffix: proactivebackend-pa.googleapis.com, ev: dlc, note: 上游归入 Generative Language API 段}
+      - {suffix: robinfrontend-pa.googleapis.com, ev: dlc, note: 上游归入 Generative Language API 段}
+      - {domain: aistudio.google.com, ev: dlc}
+      - {suffix: ai.studio, ev: dlc, note: AI Studio 短域名}
+      - {suffix: generativeai.google, ev: dlc}
+      - {domain: alkalimakersuite-pa.clients6.google.com, ev: dlc, note: AI Studio 后端}
+      - {domain: alkalicore-pa.clients6.google.com, ev: dlc, note: AI Studio 后端}
+      - {domain: webchannel-alkalimakersuite-pa.clients6.google.com, ev: dlc, note: AI Studio 后端}
+      - {domain: makersuite.google.com, ev: dlc}
+      - {domain: bard.google.com, ev: dlc, note: 旧入口}
+      - {suffix: ai.google.dev, ev: gemini-api, note: Gemini API 文档站}
+      - {domain: generativelanguage.googleapis.com, ev: gemini-api, note: Gemini API 端点}
+      - {domain: cloudaicompanion.googleapis.com, ev: gca-net, note: Gemini Code Assist 主接口}
+      - {domain: cloudcode-pa.googleapis.com, ev: gca-net, note: Code Assist IDE 接口；Gemini CLI / Antigravity 亦使用（社区观察，待实测）}
+      - {domain: daily-cloudcode-pa.googleapis.com, ev: dlc, note: 上游归入 Gemini Code Assist 段；官方清单未列（2026-09-23 复核）}
+      - {suffix: aicode.googleapis.com, ev: dlc, note: Android Studio Gemini}
+      - {suffix: aida.googleapis.com, ev: dlc, note: Android Studio Gemini}
+      - {suffix: antigravity.google, ev: dlc, note: Antigravity 官网与下载}
+      - {domain: antigravity-pa.googleapis.com, ev: dlc, note: Antigravity}
+      - {domain: antigravity.googleapis.com, ev: dlc, note: Antigravity}
+      - {suffix: antigravity-unleash.goog, ev: dlc, note: Antigravity}
+      - {domain: notebooklm.google.com, ev: dlc}
+      - {suffix: notebooklm.google, ev: dlc}
+      - {domain: notebooklm-pa.googleapis.com, ev: dlc}
+      - {domain: notebooklm.googleapis.com, ev: dlc}
+      - {suffix: notebook.google, ev: dlc}
+      - {suffix: notebook.google.com, ev: dlc}
+      - {suffix: jules.google, ev: dlc, note: Jules}
+      - {suffix: jules.google.com, ev: dlc}
+      - {suffix: labs.google, ev: dlc, note: Google Labs AI 实验产品}
+      - {suffix: labs.google.com, ev: dlc}
+      - {suffix: aisandbox-pa.googleapis.com, ev: dlc, note: Google Labs}
+      - {suffix: flow.google, ev: dlc, note: Flow}
+      - {suffix: flow.google.com, ev: dlc}
+      - {suffix: opal.google, ev: dlc, note: Opal}
+      - {suffix: opal.google.com, ev: dlc}
+      - {suffix: stitch.withgoogle.com, ev: dlc, note: Stitch；withgoogle.com 其余归 Google}
+      - {suffix: deepmind.com, ev: dlc}
+      - {suffix: deepmind.google, ev: dlc}
+    shared_excluded:
+      - {host: "oauth2.googleapis.com / accounts.google.com", ev: gca-net, why: Google 共享登录与令牌 → Google}
+      - {host: "serviceusage / cloudresourcemanager / people / apihub.googleapis.com", ev: gca-net, why: 共享 Google Cloud 接口 → Google}
+      - {host: "firebaselogging-pa / feedback-pa.googleapis.com", ev: gca-net, why: 共享遥测与反馈 → Google}
+      - {host: "lh3 / lh5.googleusercontent.com", ev: gca-net, why: 用户头像，共享 → Google}
+
+  - id: github_copilot
+    group: Copilot
+    title: GitHub Copilot
+    upstream: {dlc: [github-copilot]}
+    rules:
+      - {suffix: githubcopilot.com, ev: ghcopilot-net, note: 含 individual / business / enterprise 计划接口}
+      - {domain: copilot-proxy.githubusercontent.com, ev: ghcopilot-net}
+      - {domain: origin-tracker.githubusercontent.com, ev: ghcopilot-net}
+      - {domain: copilot-telemetry.githubusercontent.com, ev: ghcopilot-net, note: 官方放行清单列出；上游广告集合会拦截，已加入误杀例外}
+      - {domain: copilot-reports.github.com, ev: ghcopilot-net}
+      - {domain: copilot-workspace.githubnext.com, ev: dlc}
+      - {domain: copilotprodattachments.blob.core.windows.net, ev: dlc, note: 专属存储主机；不收整个 windows.net}
+    shared_excluded:
+      - {host: "github.com/login/*、github.com/copilot/*", ev: ghcopilot-net, why: 与 GitHub 共用主机，只能按路径区分，统一归 GitHub}
+      - {host: "api.github.com/copilot_internal/*", ev: ghcopilot-net, why: 与 GitHub API 共用主机，统一归 GitHub}
+      - {host: collector.github.com, ev: ghcopilot-net, why: GitHub 通用分析遥测 → GitHub；官方放行清单列出，已加入误杀例外}
+      - {host: default.exp-tas.com, ev: ghcopilot-net, why: 微软实验分配服务，VS Code 等共用 → 国外默认}
+      - {host: "copilot-reports-*.b01.azurefd.net / usagereports*.blob.core.windows.net", ev: ghcopilot-net, why: 用量报表下载的备用地址，只有通配形式、位于共享云，不收}
+      - {host: copilot-telemetry-service.githubusercontent.com, ev: dlc, why: 上游标为 @ads，官方放行清单未列，按跟踪统计拦截（见 adblock.yaml）}
+
+  - id: microsoft_copilot
+    group: Copilot
+    title: Microsoft Copilot
+    upstream: {dlc: [category-ai-!cn]}
+    rules:
+      - {suffix: copilot.microsoft.com, ev: dlc}
+      - {suffix: copilot.cloud.microsoft, ev: dlc}
+      - {suffix: copilot.com, ev: dlc}
+      - {domain: sydney.bing.com, ev: maintainer, note: Copilot 对话后端；上游只把 bing.com 整体归 Bing}
+
+  # ---------- 其他 AI：每个产品单独维护 ----------
+  - {id: perplexity, group: 其他 AI, title: Perplexity, upstream: {dlc: [perplexity]},
+     rules: [{suffix: perplexity.ai, ev: dlc}, {suffix: pplx.ai, ev: dlc}, {suffix: perplexity.com, ev: dlc},
+             {domain: ppl-ai-file-upload.s3.amazonaws.com, ev: dlc, note: 文件上传专属存储桶},
+             {domain: pplx-res.cloudinary.com, ev: dlc, note: 专属资源主机}]}
+  - {id: poe, group: 其他 AI, title: Poe, upstream: {dlc: [poe]}, rules: [{suffix: poe.com, ev: dlc}, {suffix: poecdn.net, ev: dlc}]}
+  - id: xai
+    group: Grok
+    title: Grok / xAI（含 xAI 统一登录，Cursor 也用它登录）
+    upstream: {dlc: [xai]}
+    rules:
+      - {suffix: x.ai, ev: dlc, note: 含 accounts.x.ai、auth.x.ai（Cursor 登录文档列出的登录主机）}
+      - {suffix: grok.com, ev: dlc, note: 含 auth.grok.com（Cursor 登录文档列出）}
+      - {suffix: grokipedia.com, ev: dlc, note: 含 auth.grokipedia.com（Cursor 登录文档列出；Grokipedia 与 Grok 共用账号）}
+      - {suffix: grokusercontent.com, ev: cursor-signin, note: Grok 用户生成内容；含 auth.grokusercontent.com（Cursor 登录文档列出）}
+    notes: >
+      X 应用内的 Grok 与 x.com 共用主机（按路径区分），无法按域名拆分，统一归 X。
+      上游 xai 列表另有 grok.x.com：它在 X 的域名下，按“剩余集合不得抢走独立服务流量”的约束仍归 X。
+  - {id: mistral, group: 其他 AI, title: Mistral, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: mistral.ai, ev: dlc}]}
+  - {id: character_ai, group: 其他 AI, title: Character.AI, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: character.ai, ev: maintainer}]}
+  - {id: midjourney, group: 其他 AI, title: Midjourney, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: midjourney.com, ev: dlc}]}
+  - {id: openrouter, group: 其他 AI, title: OpenRouter, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: openrouter.ai, ev: dlc}]}
+  - {id: groq, group: 其他 AI, title: Groq（推理云，非 xAI 的 Grok）, upstream: {dlc: [groq]}, rules: [{suffix: groq.com, ev: dlc}]}
+  - {id: huggingface, group: 其他 AI, title: Hugging Face, upstream: {dlc: [huggingface]},
+     rules: [{suffix: huggingface.co, ev: dlc}, {suffix: hf.co, ev: dlc}, {suffix: hf.space, ev: dlc, note: Spaces 应用}]}
+  - {id: meta_ai, group: 其他 AI, title: Meta AI（与 Meta 社交分开）, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: meta.ai, ev: dlc}]}
+  - {id: elevenlabs, group: 其他 AI, title: ElevenLabs, upstream: {dlc: [elevenlabs]}, rules: [{suffix: elevenlabs.io, ev: dlc}, {suffix: elevenlabs.com, ev: dlc}]}
+  - {id: suno, group: 其他 AI, title: Suno, upstream: {dlc: ['category-ai-!cn']}, rules: [{suffix: suno.com, ev: maintainer}, {suffix: suno.ai, ev: maintainer}]}
+
+  # ---------- 国内版 AI：按服务实际版本归国内直连（不凭品牌或 .cn 后缀） ----------
+  - id: cn_ai
+    group: 国内直连
+    title: 国内 AI 服务（国内版）
+    upstream: {dlc: [category-ai-cn, deepseek, doubao]}
+    rules:
+      - {suffix: deepseek.com, ev: dlc, note: DeepSeek 网页与 API}
+      - {suffix: doubao.com, ev: dlc, note: 豆包}
+      - {domain: tongyi.aliyun.com, ev: dlc, note: 通义}
+      - {domain: qianwen.aliyun.com, ev: dlc, note: 通义千问旧入口}
+      - {domain: yuanbao.tencent.com, ev: dlc, note: 腾讯元宝}
+      - {domain: yiyan.baidu.com, ev: dlc, note: 文心一言}
+      - {suffix: moonshot.cn, ev: dlc, note: Kimi 国内版与 API}
+      - {suffix: kimi.com, ev: dlc, note: Kimi 主站；国内外共用，待实测}
+      - {suffix: chatglm.cn, ev: dlc, note: 智谱清言}
+      - {suffix: bigmodel.cn, ev: dlc, note: 智谱开放平台}
+      - {suffix: zhipuai.cn, ev: dlc}
+    notes: >
+      上游 category-ai-cn 还收录了很多国内 AI 服务，本项目未逐一收录：它们解析到国内 IP，
+      会被 geosite:cn / GEOIP,CN 兜底直连，结果相同。
+    shared_excluded:
+      - {host: "qwen.ai / chat.qwen.ai", ev: maintainer, why: 通义千问国际版，部署在境外，不按品牌归国内；上游 category-ai-cn 收录了 qwen.ai，本项目不采纳（落入国外默认）}

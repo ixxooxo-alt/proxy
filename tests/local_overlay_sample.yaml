@@ -1,0 +1,37 @@
+# 测试用的“本地补充”样例（全部虚构，不对应任何机场或真实节点）。
+# 用途：source/local.yaml 里写了 node_names（补充词、直接指定某个节点的地区）时，写进私密配置的正则和公开版不一样：
+# 多了补充的词，还多了“整个名字完全相同”的分支（名字里的逗号、引号、等号、反引号、空格都写成 \xHH）。
+# 这份样例让这条路径也经过三处检查：tests/test_regions.py（Python）、tools/check_icu.py（ICU）、
+# tools/check_official.py（mihomo 官方内核实际分组）。
+node_names:
+  extra_words:
+    us: {words: [圣路易], latin: [STL]}
+    other: {latin: [Foo Land]}
+  assign:
+    - {name: "Premium 01", region: jp}
+    - {name: '怪名字, "带" 符号=`1`', region: us}
+    - {name: "测试 节点", region: none}
+    - {name: "日本 99", region: other}
+    - {name: "🇺🇸 Los Angeles | 02 (x1.5) [IPLC]", region: hk}
+
+# 期望值按上面的补充人工写出
+expect:
+  - {name: "Premium 01", groups: [jp]}              # 指定
+  - {name: "premium 01", groups: [jp]}              # 指定的名字不分大小写
+  - {name: "Premium 012", groups: [other]}          # 必须整个名字相同，多一个字符就不算
+  - {name: "A Premium 01", groups: [other]}
+  - {name: '怪名字, "带" 符号=`1`', groups: [us]}     # 名字里有逗号、引号、等号、反引号
+  - {name: "测试 节点", groups: []}                  # none：不进任何组
+  - {name: "测试  节点", groups: [other]}            # 两个空格，不是指定的那个名字
+  - {name: "日本 99", groups: [other]}               # 指定压过名字里的词
+  - {name: "日本 98", groups: [jp]}
+  - {name: "🇺🇸 Los Angeles | 02 (x1.5) [IPLC]", groups: [hk]}     # 指定压过国旗；名字里的 | ( ) [ ] . 都按字面算
+  - {name: "🇺🇸 Los Angeles | 02 (x1.5) [IEPL]", groups: [us]}
+  - {name: "🇺🇸 Los Angeles | 02 (x105) [IPLC]", groups: [us]}     # “.”不能当成“任意字符”
+  - {name: "STL 01", groups: [us]}                   # 补充的英文代码
+  - {name: "STLX 01", groups: [other]}               # 英文词前后不能紧挨字母
+  - {name: "圣路易 02", groups: [us]}                # 补充的中文词
+  - {name: "香港 Foo_Land", groups: [other]}         # 补充到“其他国家”的词：香港让位
+  - {name: "Foo Land 日本 01", groups: [other]}      # 其他国家的词压过地区词
+  - {name: "香港 01", groups: [hk]}                  # 没受影响的
+  - {name: "剩余流量：1G", groups: []}

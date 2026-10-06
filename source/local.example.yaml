@@ -1,0 +1,34 @@
+# 用户本地覆盖示例：复制为 source/local.yaml 后生效（local.yaml 不应分享或提交）。
+# 这里的内容与统一源默认值分离，更新统一源时不会被覆盖；生成器同样会校验它。
+
+# 固定节点 / 已验证解锁节点（与你的订阅相关，属于个人数据）
+special_entries:
+  paypal_fixed:
+    pinned_node_name: ""            # 例：填入订阅里某个美国节点的完整名称
+  netflix_entry:
+    verified_node_regex: ""         # 例：'^(日本 03|日本 05)$'，只填实测解锁的同国节点
+    verified_region: ""             # 例：jp
+    verified_at: ""                 # 例：2026-09-30
+
+# 节点名称分地区的本地补充（某家机场特有的写法；只进 dist/private/，不进公开产物）
+# 先运行 python3 tools/check_node_names.py 节点名.txt，看哪些节点没认出来或分错了，再在这里补。
+node_names:
+  # 给某个地区补关键词。地区 id：hk jp kr tw sg us；其他国家补到 other
+  #   words 按原样出现就算（中文等）；latin 是英文词 / 代码，前后不能紧挨英文字母
+  extra_words:
+    us: {words: [], latin: []}          # 例：{words: [圣路易], latin: [STL]}
+  # 个别节点直接指定地区（写完整节点名称，不分大小写）；region 还可以写 other（其他地区）或 none（不进任何组）
+  assign: []                            # 例：- {name: "Premium 01", region: jp}
+
+# 额外规则（例如公司内网、自建服务）
+extra_services:
+  - id: my_company
+    group: DIRECT
+    title: 公司内网
+    rules:
+      - {suffix: corp.example.com, ev: my-note}
+
+evidence:
+  my-note:
+    kind: maintainer
+    note: 本人确认的公司内网域名

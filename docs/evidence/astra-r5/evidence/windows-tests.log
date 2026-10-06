@@ -1,0 +1,80 @@
+test_classification (test_check_connections.ConnectionLogTool.test_classification) ... ok
+test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
+用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
+test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... ok
+test_adopted_removals_are_gone (test_cursor_report.CursorReport.test_adopted_removals_are_gone) ... ok
+test_every_difference_has_a_disposition (test_cursor_report.CursorReport.test_every_difference_has_a_disposition) ... ok
+test_requested_migrations_route_to_the_same_group (test_cursor_report.CursorReport.test_requested_migrations_route_to_the_same_group)
+2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。 ... ok
+test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... ok
+test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
+模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
+test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_local_rules_route) ... ok
+test_pinned_paypal_and_verified_netflix (test_local_and_private.LocalOverrides.test_pinned_paypal_and_verified_netflix) ... ok
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... ok
+test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
+test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
+test_supported_protocols (test_nodes.NodeConversion.test_supported_protocols) ... ok
+test_tls_never_relaxed (test_nodes.NodeConversion.test_tls_never_relaxed) ... ok
+test_unsupported_reported_not_silently_changed (test_nodes.NodeConversion.test_unsupported_reported_not_silently_changed) ... ok
+test_ad_exceptions_same_exit_with_and_without_ads (test_routing.RoutingCases.test_ad_exceptions_same_exit_with_and_without_ads) ... ok
+test_all_cases_all_clients (test_routing.RoutingCases.test_all_cases_all_clients) ... ok
+test_apple_ai_before_apple (test_routing.RoutingCases.test_apple_ai_before_apple)
+Apple AI 的全部地址在四端都先命中 Apple AI；普通苹果地址仍命中 Apple；不再有关键词规则误伤 siriusxm.com。 ... ok
+test_apple_ai_matches_cursor_baseline (test_routing.RoutingCases.test_apple_ai_matches_cursor_baseline)
+与对照报告明细（docs/evidence/cursor-对照明细.csv）里 Cursor 版的 18 条逐条相同，唯一差别是关键词 siri 换成三条后缀。 ... ok
+test_every_product_rule_wins_for_its_own_hosts (test_routing.RoutingCases.test_every_product_rule_wins_for_its_own_hosts)
+对每条产品规则取代表主机（精确域名本身；后缀本身与一个子域）， ... ok
+test_service_ip_rules_do_not_trigger_resolution (test_routing.RoutingCases.test_service_ip_rules_do_not_trigger_resolution)
+服务专属 IP 规则只匹配直接 IP 连接：域名连接解析到 Telegram 段也不应被它截走（no-resolve 语义）。 ... ok
+test_clients_must_be_known_families (test_source.SourceValidation.test_clients_must_be_known_families) ... ok
+test_community_evidence_needs_upstream_mapping (test_source.SourceValidation.test_community_evidence_needs_upstream_mapping) ... ok
+test_current_source_is_valid (test_source.SourceValidation.test_current_source_is_valid) ... ok
+test_duplicate_rule_rejected (test_source.SourceValidation.test_duplicate_rule_rejected) ... ok
+test_exception_target_conflict_rejected (test_source.SourceValidation.test_exception_target_conflict_rejected) ... ok
+test_google_shared_root_not_for_ai (test_source.SourceValidation.test_google_shared_root_not_for_ai) ... ok
+test_group_member_must_be_region_or_entry (test_source.SourceValidation.test_group_member_must_be_region_or_entry) ... ok
+test_keyword_rule_needs_justification (test_source.SourceValidation.test_keyword_rule_needs_justification) ... ok
+test_paypal_must_not_follow_foreign_default (test_source.SourceValidation.test_paypal_must_not_follow_foreign_default) ... ok
+test_residual_group_cannot_steal_independent_service (test_source.SourceValidation.test_residual_group_cannot_steal_independent_service) ... ok
+test_shared_cloud_root_rejected (test_source.SourceValidation.test_shared_cloud_root_rejected) ... ok
+test_unknown_evidence_rejected (test_source.SourceValidation.test_unknown_evidence_rejected) ... ok
+test_unmatched_exception_needs_target (test_source.SourceValidation.test_unmatched_exception_needs_target) ... ok
+test_client_restricted_services_recorded (test_source.UpstreamEvidenceRecord.test_client_restricted_services_recorded)
+不写进 Loon / QX 的服务，记录里要有“写进去会遮挡多少远程广告条目”的核对结果（不写进去的理由可复核）。 ... ok
+test_every_community_rule_is_backed (test_source.UpstreamEvidenceRecord.test_every_community_rule_is_backed) ... ok
+test_snapshots_match_evidence_registry (test_source.UpstreamEvidenceRecord.test_snapshots_match_evidence_registry) ... ok
+test_upstream_ads_under_products_are_handled (test_source.UpstreamEvidenceRecord.test_upstream_ads_under_products_are_handled)
+category-ads-all 落在产品规则内的条目，四端都必须一致处理（自有拦截或误杀例外）。 ... ok
+test_business_groups_present (test_structure.Structure.test_business_groups_present) ... ok
+test_defaults (test_structure.Structure.test_defaults) ... ok
+test_deterministic (test_structure.Structure.test_deterministic) ... ok
+test_dist_matches_source (test_structure.Structure.test_dist_matches_source) ... ok
+test_final_is_foreign_default (test_structure.Structure.test_final_is_foreign_default) ... ok
+test_line_formats (test_structure.Structure.test_line_formats) ... ok
+test_manual_first_semantics (test_structure.Structure.test_manual_first_semantics)
+手动优先·自动兜底 = 故障转移组，成员依次为 手动、自动（同地区）。 ... ok
+test_mihomo_flavors_and_control_plane (test_structure.Structure.test_mihomo_flavors_and_control_plane) ... ok
+test_no_group_cycles (test_structure.Structure.test_no_group_cycles) ... ok
+test_no_secrets_in_public_outputs (test_structure.Structure.test_no_secrets_in_public_outputs) ... ok
+test_no_silent_direct_in_node_groups (test_structure.Structure.test_no_silent_direct_in_node_groups) ... ok
+test_node_name_screening (test_structure.Structure.test_node_name_screening) ... ok
+test_parse (test_structure.Structure.test_parse) ... ok
+test_paypal (test_structure.Structure.test_paypal) ... ok
+test_references_resolve (test_structure.Structure.test_references_resolve) ... ok
+test_region_entries (test_structure.Structure.test_region_entries) ... ok
+test_review_followups (test_structure.Structure.test_review_followups)
+外部审核后的修正：Loon 不写无用的局域网共享端口；sing-box 不返回 AAAA 时不配 IPv6 假地址段。 ... ok
+test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
+
+----------------------------------------------------------------------
+Ran 58 tests in 18.515s
+
+OK
+报告已写入 C:\Users\ADMINI~1\AppData\Local\Temp\tmp873uyk50\report.md
+报告已写入 C:\Users\ADMINI~1\AppData\Local\Temp\tmp873uyk50\report.md
+已生成 7 个公开产物到 C:\Users\ADMINI~1\AppData\Local\Temp\tmpkcyytznp（订阅为占位符）
+已生成 7 个公开产物到 C:\Users\ADMINI~1\AppData\Local\Temp\tmpns5hidfi（订阅为占位符）
+私密产物已写入 C:\Users\ADMINI~1\AppData\Local\Temp\tmpns5hidfi\private（含订阅 / 节点凭据，请勿分享）

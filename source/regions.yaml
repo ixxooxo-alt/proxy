@@ -1,0 +1,162 @@
+# 统一源：按节点名称把订阅节点分到地区
+# 各客户端的地区筛选正则都由这份词表拼出来（generator/regions.py），不手写正则。
+# 名称只是初筛，不证明实际出口；实测出口记录见 docs/05-验收记录.md。
+#
+# 判断顺序（详细说明与依据见 docs/02-语法依据与能力矩阵.md“节点名称分地区”）：
+#   0. 信息节点（剩余流量、到期时间、官网等）不进任何组。
+#   1. 名字里有国旗：按国旗归属。六个地区和 neutral_flags 以外的国旗都算“其他国家” → 其他地区。
+#   2. 没有国旗：看文字。处在“中转 / 入口”位置的词先不算：紧跟 transit_after 里的词、
+#      前面是 transit_before 里的词、或后面还有箭头。
+#        - 还剩下某个地区的词 → 归这个地区；同时有其他国家的词 → 其他地区。
+#        - 一个都不剩，但名字里只提到一个地区（例如“日本中转 01”）→ 仍归这个地区。
+#   3. 让位（yields）：香港在节点名里多半是中转，名字里同时出现别的地区时归别的地区。
+#   4. 两个不让位的地区同时出现、说不清落地（例如“日本-美国 01”）→ 两个地区都进，
+#      tools/check_node_names.py 会单独列出。
+#   5. 以上都没有归属的非信息节点 → 其他地区。
+#
+# 词表写法：
+#   flags    国旗，写 ISO 3166-1 两位字母（生成器换成对应的国旗表情）。其他国家的国旗不用列：
+#            凡是不属于六个地区、也不在 neutral_flags 里的国旗，都按“其他国家”处理
+#   words    按原样出现就算（中文、韩文等；不要放纯英文，纯英文放 latin）
+#   latin    英文词与代码：不分大小写；前后不能紧挨英文字母（所以 US 不会命中 RUS、AUS、Plus）；
+#            词里的空格可以是空格、下划线、连字符，也可以没有（Los Angeles / Los_Angeles / LosAngeles）
+#   patterns 需要附加条件的词，直接写正则片段（只用各端都支持的写法；不得含英文逗号、双引号、反引号、等号、空格）
+# 不收单个字的简称（日、美、韩、台、新）：“新”常用来标新节点，“日”“台”“美”出现在很多无关的词里；
+# 只有“港”例外（深港、沪港这类专线简称太常见，而且香港遇到别的地区会让位）。
+# 某家机场特有的写法不要加在这里，写进 source/local.yaml 的 node_names（只进私密产物）。
+
+rules:
+  info:
+    words: [剩余, 剩餘, 到期, 过期, 過期, 官网, 官網, 网址, 網址, 网站, 網站, 套餐, 重置, 客服, 发布页, 發布頁,
+            公告, 邮箱, 郵箱, 群组, 群組, 交流群, 电报群, 電報群, TG群, QQ群, "群：", "群:", 频道, 頻道,
+            总流量, 總流量, 已用, "流量：", "流量:", 防失联, 防失聯, 订阅, 訂閱, 工单, 工單, 过滤掉, 過濾掉]
+    # 依据：常见机场面板在订阅里插入的提示行。V2Board、Xboard 的 ClientController::setSubscribeInfoToServers
+    # 写出“剩余流量：…”“距离下次重置剩余：… 天”“套餐到期：…”，Xboard 另有“过滤掉 N 条线路”（2026-10-02 读取源码）。
+    # 不用单独的“流量”“官方”“群”：会误删“香港 03 大流量”“开曼群岛 01”这类真节点
+    latin: [Expire, Traffic, Remaining, Reset]          # 只要求前面不紧挨英文字母（Expires / Expired 也算）
+  # 紧跟在地名后面、说明这个地名不是落地的词。“日本解锁”说的是能看日本内容，不是落地日本；
+  # 单独的“转”管“港转美”“日本转美国”“香港 转发”这类写法（“中转”以“中”开头，所以两个都要列）
+  transit_after: [中转, 中轉, 中继, 中繼, 转, 轉, 入口, 解锁, 解鎖, relay, transit]
+  transit_before: [via, 经, 經, 解锁, 解鎖]
+  arrows: ["→", "->", "=>", "⇒", "➜", "➡", "➔", "⟶"]
+  # 不当作地区依据的国旗：CN 被不少机场用来标台湾、香港节点；EU、UN 不是国家
+  neutral_flags: [CN, EU, UN]
+
+regions:
+  - id: hk
+    name: 香港
+    yields: true
+    flags: [HK]
+    words: [香港, 港, 九龙, 九龍, 新界, 沙田, 荃湾, 荃灣, 葵涌, 将军澳, 將軍澳, 观塘, 觀塘, 柴湾, 柴灣]
+    # “港”已经覆盖深港、沪港、广港、莞港、中港这些专线简称
+    latin: [HK, HKG, Hong Kong, Kowloon,
+            HKT, HKBN, HGC, PCCW, WTT, CMHK]             # 本地运营商
+
+  - id: jp
+    name: 日本
+    flags: [JP]
+    words: [日本, 东京, 東京, 大阪, 名古屋, 福冈, 福岡, 横滨, 橫濱, 横浜, 埼玉, 千叶, 千葉, 京都, 札幌, 川崎,
+            神户, 神戶, 仙台, 冲绳, 沖繩, 广岛, 廣島,
+            # 专线简称（国内城市或香港 + 日）
+            沪日, 滬日, 深日, 广日, 廣日, 莞日, 杭日, 苏日, 蘇日, 厦日, 廈日, 泉日, 川日, 京日, 港日]
+    latin: [JP, JPN, Japan, Tokyo, Osaka, Nagoya, Fukuoka, Yokohama, Saitama, Chiba, Kyoto, Sapporo, Kawasaki,
+            Kobe, Sendai, Okinawa, Hiroshima,
+            NRT, HND, KIX, TYO, OSA]                     # 机场 / 城市代码
+
+  - id: kr
+    name: 韩国
+    flags: [KR]
+    words: [韩国, 韓國, 南韩, 南韓, 首尔, 首爾, 春川, 釜山, 仁川, 한국, 서울,
+            沪韩, 滬韓, 深韩, 深韓, 广韩, 廣韓, 港韩, 港韓]            # 专线简称
+    latin: [KR, KOR, Korea, Seoul, Chuncheon, Busan, Incheon, ICN]
+    # “North Korea”在其他国家的词表里：名字里同时有其他国家的词时归其他地区，所以它不会进韩国
+
+  - id: tw
+    name: 台湾
+    flags: [TW]
+    words: [台湾, 台灣, 臺灣, 台北, 臺北, 新北, 臺中, 台南, 臺南, 高雄, 桃园, 桃園, 彰化, 新竹, 基隆, 嘉义, 嘉義,
+            中华电信, 中華電信,
+            沪台, 滬台, 深台, 广台, 廣台, 厦台, 廈台, 闽台, 閩台]      # 专线简称。不收“港台”：它也常指港台解锁，仍按香港算
+    latin: [TW, TWN, Taiwan, Taipei, Taichung, Tainan, Kaohsiung, Taoyuan, Changhua, Hsinchu, Keelung, Chiayi,
+            HiNet, Seednet, TPE]
+    patterns:
+      - '台中(?![转轉继繼])'                              # “多平台中转”不是台中
+
+  - id: sg
+    name: 新加坡
+    flags: [SG]
+    words: [新加坡, 狮城, 獅城, 星加坡, 坡县, 坡縣,
+            沪新, 滬新, 深新, 广新, 廣新]                          # 专线简称。不收“港新”：“香港新增”“香港新界”太常见，仍按香港算
+    latin: [SG, SGP, Singapore,
+            SIN]                                         # 机场代码
+
+  - id: us
+    name: 美国
+    flags: [US, UM]                                      # UM 的国旗与美国相同，有的机场混用
+    words: [美国, 美國, 美西, 美东, 美東,
+            # 城市与州（简体 / 繁体）
+            洛杉矶, 洛杉磯, 圣何塞, 聖何塞, 圣荷西, 聖荷西, 硅谷, 矽谷, 西雅图, 西雅圖, 达拉斯, 達拉斯, 芝加哥,
+            纽约, 紐約, 凤凰城, 鳳凰城, 阿什本, 弗吉尼亚, 弗吉尼亞, 維吉尼亞, 迈阿密, 邁阿密, 亚特兰大, 亞特蘭大,
+            丹佛, 拉斯维加斯, 拉斯維加斯, 旧金山, 舊金山, 三藩市, 费利蒙, 費利蒙, 弗里蒙特, 佛利蒙, 波特兰, 波特蘭,
+            休斯顿, 休斯頓, 休士頓, 盐湖城, 鹽湖城, 堪萨斯, 堪薩斯, 俄勒冈, 俄勒岡, 加州, 德州, 新泽西, 新澤西,
+            纽泽西, 紐澤西, 夏威夷, 檀香山, 阿拉斯加, 安克雷奇, 波士顿, 波士頓, 圣克拉拉, 聖克拉拉, 华盛顿, 華盛頓,
+            费城, 費城, 水牛城, 布法罗, 俄亥俄, 哥伦布, 哥倫布, 伊利诺伊, 伊利諾, 底特律, 印第安纳波利斯, 路易斯维尔,
+            明尼阿波利斯, 圣路易斯, 聖路易斯, 匹兹堡, 匹茲堡, 克利夫兰, 克里夫蘭, 辛辛那提, 奥马哈, 奧馬哈,
+            萨克拉门托, 奥斯汀, 奧斯汀, 圣安东尼奥, 聖安東尼奧, 坦帕, 奥兰多, 奧蘭多, 夏洛特, 纳什维尔, 納什維爾,
+            得梅因, 爱荷华, 愛荷華, 艾奥瓦, 犹他, 猶他, 内华达, 內華達, 亚利桑那, 亞利桑那, 佛罗里达, 佛羅里達,
+            圣迭戈, 希尔斯伯勒, 雷斯顿, 桑尼维尔, 帕洛阿尔托, 山景城,
+            加利福尼亚, 加利福尼亞, 德克萨斯, 得克萨斯, 德克薩斯, 休斯敦, 菲尼克斯, 纽瓦克,
+            沪美, 滬美, 深美, 广美, 廣美, 港美]                    # 专线简称
+    # 没收的同名地：奥克兰（也指新西兰 Auckland）、圣地亚哥（也指智利 Santiago）、Vancouver、Birmingham、
+    # Richmond、Petersburg、Georgia（也是国家）、LA / SEA（也指老挝、东南亚）
+    latin: [US, USA, United States, America, American,
+            Los Angeles, San Jose, Silicon Valley, Santa Clara, Fremont, Sunnyvale, Palo Alto, Mountain View,
+            San Francisco, San Diego, Sacramento, Seattle, Portland, Hillsboro, Las Vegas, Phoenix, Salt Lake,
+            Denver, Dallas, Houston, Austin, San Antonio, Kansas City, Chicago, Saint Louis, St Louis, St. Louis,
+            Minneapolis, Omaha, Des Moines, Council Bluffs, Detroit, Indianapolis, Louisville, Columbus, Cleveland,
+            Cincinnati, Pittsburgh, Buffalo, New York, NYC, Newark, Secaucus, Piscataway, New Jersey, Boston,
+            Philadelphia, Washington, Ashburn, Reston, Sterling, Virginia, Atlanta, Charlotte, Nashville, Miami,
+            Tampa, Orlando, Honolulu, Anchorage,
+            California, Oregon, Texas, Nevada, Arizona, Utah, Iowa, Ohio, Illinois, Florida, Hawaii, Alaska,
+            LAX, SJC, SFO, PDX, PHX, SLC, DFW, IAH, ORD, JFK, EWR, IAD, ATL]     # 机场代码
+    # South / Latin / North / Central America 在其他国家的词表里，所以它们不会进美国
+
+other_region:
+  id: other
+  name: 其他地区
+  # 不属于以上六个地区、也不是信息节点的节点；默认纯手动，不提供跨国自动模式
+
+# 其他国家：只用来判断“这个节点落地在别的国家”，它们都归“其他地区”，不单独建组
+other_countries:
+  words: [英国, 英國, 伦敦, 倫敦, 曼彻斯特, 德国, 德國, 法兰克福, 法蘭克福, 柏林, 法国, 法國, 巴黎, 马赛,
+          荷兰, 荷蘭, 阿姆斯特丹, 俄罗斯, 俄羅斯, 莫斯科, 圣彼得堡, 伯力, 印度, 孟买, 孟買, 新德里, 班加罗尔,
+          澳大利亚, 澳大利亞, 澳洲, 悉尼, 雪梨, 墨尔本, 墨爾本, 加拿大, 多伦多, 多倫多, 温哥华, 溫哥華, 蒙特利尔,
+          土耳其, 伊斯坦布尔, 伊斯坦堡, 阿根廷, 巴西, 圣保罗, 聖保羅, 马来西亚, 馬來西亞, 吉隆坡, 泰国, 泰國, 曼谷,
+          越南, 胡志明, 河内, 河內, 菲律宾, 菲律賓, 马尼拉, 馬尼拉, 印尼, 雅加达, 雅加達, 澳门, 澳門,
+          新西兰, 新西蘭, 纽西兰, 紐西蘭, 奥克兰, 奧克蘭, 阿联酋, 阿聯酋, 迪拜, 杜拜, 阿布扎比, 以色列,
+          乌克兰, 烏克蘭, 基辅, 意大利, 義大利, 米兰, 米蘭, 罗马, 羅馬, 西班牙, 马德里, 巴塞罗那, 瑞士, 苏黎世, 蘇黎世,
+          瑞典, 斯德哥尔摩, 波兰, 波蘭, 华沙, 爱尔兰, 愛爾蘭, 都柏林, 芬兰, 芬蘭, 赫尔辛基, 挪威, 奥斯陆, 丹麦, 丹麥,
+          哥本哈根, 奥地利, 奧地利, 维也纳, 維也納, 比利时, 比利時, 布鲁塞尔, 葡萄牙, 里斯本, 希腊, 希臘, 雅典,
+          捷克, 布拉格, 匈牙利, 布达佩斯, 保加利亚, 保加利亞, 塞尔维亚, 克罗地亚, 斯洛伐克, 斯洛文尼亚, 立陶宛,
+          拉脱维亚, 爱沙尼亚, 白俄罗斯, 摩尔多瓦, 卢森堡, 盧森堡, 冰岛, 冰島, 马耳他, 塞浦路斯, 哈萨克, 哈薩克,
+          乌兹别克, 吉尔吉斯, 蒙古, 柬埔寨, 金边, 老挝, 寮國, 缅甸, 緬甸, 孟加拉, 巴基斯坦, 尼泊尔, 斯里兰卡,
+          沙特, 卡塔尔, 卡達, 科威特, 巴林, 阿曼, 约旦, 黎巴嫩, 伊朗, 伊拉克, 埃及, 开罗, 南非, 约翰内斯堡,
+          尼日利亚, 肯尼亚, 摩洛哥, 墨西哥, 智利, 秘鲁, 哥伦比亚, 哥倫比亞, 委内瑞拉, 乌拉圭, 巴拿马, 哥斯达黎加,
+          毛里求斯, 马尔代夫, 朝鲜, 朝鮮, 南美, 拉美, 欧洲, 歐洲, 非洲, 中东, 中東,
+          回国, 回國]                                    # “回国”节点落地在中国大陆
+  latin: [UK, UAE, United Kingdom, Britain, England, London, Manchester, Germany, Frankfurt, Berlin, France, Paris,
+          Marseille, Netherlands, Holland, Amsterdam, Russia, Moscow, India, Mumbai, Delhi, Bangalore, Australia,
+          Sydney, Melbourne, Canada, Toronto, Vancouver, Montreal, Turkey, Turkiye, Istanbul, Argentina,
+          Buenos Aires, Brazil, Sao Paulo, Malaysia, Kuala Lumpur, Thailand, Bangkok, Vietnam, Viet Nam, Hanoi,
+          Ho Chi Minh, Philippines, Manila, Indonesia, Jakarta, Macau, Macao, New Zealand, Auckland, Dubai,
+          Abu Dhabi, Israel, Ukraine, Kyiv, Italy, Milan, Rome, Spain, Madrid, Barcelona, Switzerland, Zurich,
+          Sweden, Stockholm, Poland, Warsaw, Ireland, Dublin, Finland, Helsinki, Norway, Oslo, Denmark, Copenhagen,
+          Austria, Vienna, Belgium, Brussels, Portugal, Lisbon, Greece, Athens, Czech, Czechia, Prague, Romania,
+          Bucharest, Hungary, Budapest, Bulgaria, Sofia, Serbia, Croatia, Slovakia, Slovenia, Lithuania, Latvia,
+          Estonia, Belarus, Moldova, Luxembourg, Iceland, Malta, Cyprus, Kazakhstan, Uzbekistan, Kyrgyzstan,
+          Mongolia, Cambodia, Laos, Myanmar, Bangladesh, Pakistan, Nepal, Sri Lanka, Saudi, Qatar, Kuwait, Bahrain,
+          Oman, Jordan, Lebanon, Iran, Iraq, Egypt, Cairo, South Africa, Johannesburg, Nigeria, Kenya, Morocco,
+          Mexico, Chile, Peru, Colombia, Venezuela, Uruguay, Panama, Costa Rica, Mauritius, Maldives,
+          North Korea, South America, Latin America, North America, Central America, Europe, Africa, Middle East]
+  # 不收两位 / 三位国家代码：只写代码的节点（DE-01、TUR 02）本来就进“其他地区”；
+  # 收了反而会和协议、线路缩写相撞（TR、ESP、ARE……），把“香港 TR 01”这类节点挤出香港组

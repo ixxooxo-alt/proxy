@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "4e511e103557339dca19fe9401af227358bd39f9fcc91c4369ba20737c77c39a",
+  "original_files_checked": 67,
+  "changed_original_files": [],
+  "filename_encoding_note": [
+    {
+      "name": "proxy-rules/00-审核说明.md",
+      "utf8_flag": false
+    },
+    {
+      "name": "proxy-rules/docs/08-外部审核记录.md",
+      "utf8_flag": false
+    }
+  ]
+}

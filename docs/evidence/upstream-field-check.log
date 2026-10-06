@@ -1,0 +1,8 @@
+运行时间（UTC）：2026-10-05 06:07:44
+Python：Python 3.11.17，PyYAML：6.0.1
+统一源摘要：8548a038b895c914ce67ad66c155b5531a0ff34cab809bc9e1514474e074aed7
+命令：python3 tools/verify_with_upstream_source.py --mihomo-src /home/claude/vendor-src/mihomo --singbox-src /home/claude/vendor-src/sing-box
+
+检查了 4273 个字段 / 取值
+全部字段都能在上游源码的结构体标签中找到。
+退出码：0

@@ -1,0 +1,68 @@
+{
+  "checked_at": "2026-09-29T18:14:38.862270+08:00",
+  "environment": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.12.13",
+    "pyyaml": "6.0.3"
+  },
+  "checks": [
+    {
+      "name": "build.py --check",
+      "exit_code": 0
+    },
+    {
+      "name": "unittest discover -s tests -v",
+      "tests": 58,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "check_cursor_report.py",
+      "exit_code": 0
+    },
+    {
+      "name": "check_mutations.py",
+      "detected": 10,
+      "total": 10,
+      "exit_code": 0
+    },
+    {
+      "name": "mihomo v1.19.31 core -t",
+      "exit_code": 0
+    },
+    {
+      "name": "mihomo v1.19.31 profile -t",
+      "exit_code": 0
+    },
+    {
+      "name": "sing-box v1.14.1 check 1.14.json",
+      "exit_code": 0
+    },
+    {
+      "name": "sing-box v1.14.1 check 1.12.json",
+      "exit_code": 0
+    },
+    {
+      "name": "sing-box v1.12.0 check 1.12.json",
+      "exit_code": 0
+    }
+  ],
+  "official_downloads": [
+    {
+      "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.31/mihomo-windows-amd64-compatible-v1.19.31.zip",
+      "sha256": "93d14e9a13b49b2f2d256202d02cc8d14a7c4695edf084cae0f941986bc9c218"
+    },
+    {
+      "url": "https://github.com/SagerNet/sing-box/releases/download/v1.14.1/sing-box-1.14.1-windows-amd64.zip",
+      "sha256": "5197f16d492d93202dc623622149a6ed040f8eca263128f91d603f2b901baa89"
+    },
+    {
+      "url": "https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-windows-amd64.zip",
+      "sha256": "49a5b90b390974a87b4660308446dfd9630f60ac655f76383abbd5f0994b09b3"
+    }
+  ],
+  "runtime_devices_verified": false,
+  "original_project_files_changed": false,
+  "confirmed_findings": 12,
+  "scope": "Static review, existing tests, isolated negative probes and official check mode only; no active proxy configuration changed."
+}

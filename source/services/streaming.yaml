@@ -1,0 +1,376 @@
+# 流媒体服务归属。共享 CDN（akamaized.net、cloudfront.net 等）只收专属主机名，不收整个根域。
+# upstream：固定快照里对应的上游列表（见 ai.yaml 文件头说明）。
+# 上游列表里的防御性注册域名、公司官网 / 招聘 / 投资者站点、CNAME 目标（*.edgesuite.net 等，客户端不会直接请求）
+# 不收录；只收客户端实际会连接的接口、播放与 CDN 主机，且以地区敏感的服务为主。
+
+services:
+  - id: youtube
+    group: YouTube
+    title: YouTube
+    upstream: {dlc: [youtube]}
+    rules:
+      - {suffix: youtube.com, ev: dlc}
+      - {suffix: youtu.be, ev: dlc}
+      - {suffix: yt.be, ev: dlc}
+      - {suffix: ytimg.com, ev: dlc}
+      - {suffix: googlevideo.com, ev: dlc, note: 视频流}
+      - {suffix: youtube-nocookie.com, ev: dlc}
+      - {suffix: youtubekids.com, ev: dlc}
+      - {domain: youtubei.googleapis.com, ev: dlc, note: 应用接口，必须在 Google 通用规则之前}
+      - {domain: youtube.googleapis.com, ev: dlc}
+      - {suffix: youtubeembeddedplayer.googleapis.com, ev: dlc, note: 嵌入式播放器接口}
+      - {domain: yt3.ggpht.com, ev: dlc, note: 频道头像；ggpht.com 其余归 Google}
+      - {domain: yt3.googleusercontent.com, ev: dlc, note: 频道头像与横幅；googleusercontent.com 其余归 Google}
+    shared_excluded:
+      - {host: ggpht.com, ev: dlc, why: 上游把整个 ggpht.com 归 youtube；它也承载 Google Play、Blogger 等图片，本项目只把 yt3.ggpht.com 归 YouTube，其余归 Google}
+      - {host: "youtube-ui.l.google.com / wide-youtube.l.google.com", ev: dlc, why: CNAME 目标，客户端不直接请求}
+
+  - id: netflix
+    group: Netflix
+    title: Netflix
+    upstream: {dlc: [netflix]}
+    rules:
+      - {suffix: netflix.com, ev: dlc}
+      - {suffix: netflix.net, ev: dlc}
+      - {suffix: nflxext.com, ev: dlc}
+      - {suffix: nflximg.com, ev: dlc}
+      - {suffix: nflximg.net, ev: dlc}
+      - {suffix: nflxso.net, ev: dlc}
+      - {suffix: nflxvideo.net, ev: dlc}
+      - {suffix: nflxsearch.net, ev: dlc, note: 搜索}
+      - {suffix: fast.com, ev: dlc, note: Netflix 测速站}
+      - {suffix: netflixdnstest0.com, ev: dlc, note: 客户端 DNS 检测域名（上游列出 0–10 共 11 个）}
+      - {suffix: netflixdnstest1.com, ev: dlc}
+      - {suffix: netflixdnstest2.com, ev: dlc}
+      - {suffix: netflixdnstest3.com, ev: dlc}
+      - {suffix: netflixdnstest4.com, ev: dlc}
+      - {suffix: netflixdnstest5.com, ev: dlc}
+      - {suffix: netflixdnstest6.com, ev: dlc}
+      - {suffix: netflixdnstest7.com, ev: dlc}
+      - {suffix: netflixdnstest8.com, ev: dlc}
+      - {suffix: netflixdnstest9.com, ev: dlc}
+      - {suffix: netflixdnstest10.com, ev: dlc}
+    notes: Netflix Open Connect IP 段本版本未收录（netflix-oc），直接 IP 连接会落入国外默认。
+
+  - id: disney_plus
+    group: Disney+
+    title: Disney+
+    upstream: {dlc: [disney, bamtech]}
+    rules:
+      - {suffix: disneyplus.com, ev: dlc}
+      - {suffix: disney-plus.net, ev: dlc}
+      - {suffix: dssott.com, ev: dlc}
+      - {suffix: bamgrid.com, ev: dlc}
+      - {suffix: disneystreaming.com, ev: dlc}
+      - {suffix: registerdisney.go.com, ev: dlc, note: Disney 账号登录；不收整个 go.com}
+    notes: bamgrid.com 下的 hulu.playback.edge.bamgrid.com 是 Hulu 的播放接口，按“更具体优先”归 Hulu US。
+
+  - id: max
+    group: Max
+    title: HBO Max（原 Max）
+    upstream: {dlc: [hbo]}
+    rules:
+      - {suffix: max.com, ev: dlc}
+      - {suffix: hbomax.com, ev: dlc}
+      - {suffix: hbomaxcdn.com, ev: dlc}
+      - {suffix: hbo.com, ev: dlc}
+      - {suffix: hbogo.com, ev: dlc}
+
+  - id: prime_video
+    group: Prime Video
+    title: Prime Video
+    upstream: {dlc: [primevideo], bm7: [PrimeVideo, GlobalMedia]}
+    rules:
+      - {suffix: primevideo.com, ev: dlc}
+      - {suffix: aiv-cdn.net, ev: dlc}
+      - {suffix: aiv-delivery.net, ev: bm7-snap}
+      - {suffix: amazonvideo.com, ev: dlc}
+      - {suffix: pv-cdn.net, ev: bm7-snap}
+      - {domain: atv-ps.amazon.com, ev: bm7-snap, note: 播放接口，必须在 Amazon 通用规则之前}
+      - {suffix: atv-ps-eu.amazon.com, ev: bm7-snap, note: 欧洲区播放接口}
+      - {suffix: atv-ps-eu.amazon.co.uk, ev: bm7-snap, note: 欧洲区播放接口}
+      - {suffix: atv-ps-fe.amazon.com, ev: bm7-snap, note: 远东区播放接口}
+      - {suffix: atv-ps-fe.amazon.co.jp, ev: bm7-snap, note: 远东区播放接口}
+      - {domain: msh.amazon.co.uk, ev: dlc}
+      - {suffix: prod.service.minerva.devices.a2z.com, ev: dlc}
+      - {domain: d1v5ir2lpwr8os.cloudfront.net, ev: dlc, note: 专属 CloudFront 主机；不收整个 cloudfront.net}
+      - {domain: d22qjgkvxw22r6.cloudfront.net, ev: dlc}
+      - {domain: d25xi40x97liuc.cloudfront.net, ev: dlc}
+      - {domain: d27xxe7juh1us6.cloudfront.net, ev: dlc}
+      - {domain: dmqdd6hw24ucf.cloudfront.net, ev: dlc}
+      - {domain: avodmp4s3ww-a.akamaihd.net, ev: bm7-snap, note: 专属 Akamai 主机}
+    shared_excluded:
+      - {host: media-amazon.com, ev: maintainer, why: 与 Amazon 购物共用的图片域名 → Amazon 通用（国外默认）}
+      - {host: "images-na / images-eu / images-fe.ssl-images-amazon.com", ev: dlc, why: 上游 primevideo 列表收录，但与 Amazon 购物共用 → Amazon 通用（国外默认）}
+      - {host: static.siege-amazon.com, ev: dlc, why: 上游收录；用途未核实，可能与 Amazon 购物页面共用，未收录（落入国外默认）}
+      - {host: "www.amazon.com / fls-na.amazon.com", ev: bm7-snap, why: bm7 PrimeVideo 收录，但属于 Amazon 购物 / 通用日志 → Amazon 通用}
+
+  - id: hulu_us
+    group: Hulu US
+    title: Hulu（美国）
+    upstream: {dlc: [hulu]}
+    rules:
+      - {suffix: hulu.com, ev: dlc}
+      - {suffix: hulustream.com, ev: dlc}
+      - {suffix: huluim.com, ev: dlc}
+      - {domain: hulu.playback.edge.bamgrid.com, ev: dlc, note: 播放接口，位于 Disney 的 bamgrid.com 下，必须在 Disney+ 规则之前}
+
+  - id: hulu_jp
+    group: Hulu Japan
+    title: Hulu（日本）
+    upstream: {dlc: [hulu], bm7: [HuluJP, GlobalMedia]}
+    rules:
+      - {suffix: hulu.jp, ev: dlc}
+      - {suffix: happyon.jp, ev: bm7-snap}
+      - {suffix: hjholdings.jp, ev: bm7-snap}
+      - {suffix: prod.hjholdings.tv, ev: bm7-snap, note: 原来写的是整个 hjholdings.tv，上游只有 prod 子域，已收窄}
+      - {suffix: streaks.jp, ev: bm7-snap, note: STREAKS 视频平台；可能也被其他日本服务使用，统一归 Hulu Japan（同为日本出口）}
+    shared_excluded:
+      - {host: yb.uncn.jp, ev: bm7-snap, why: bm7 HuluJP 收录，用途未核实，未收录}
+
+  - id: abema
+    group: Abema
+    title: ABEMA
+    upstream: {dlc: [abema]}
+    rules:
+      - {suffix: abema.tv, ev: dlc}
+      - {suffix: abema.io, ev: dlc}
+      - {suffix: abema-tv.com, ev: dlc}
+      - {suffix: hayabusa.io, ev: dlc}
+      - {domain: abematv.akamaized.net, ev: dlc}
+      - {domain: linear-abematv.akamaized.net, ev: dlc}
+      - {domain: ds-linear-abematv.akamaized.net, ev: dlc}
+      - {domain: vod-abematv.akamaized.net, ev: dlc}
+      - {domain: ds-vod-abematv.akamaized.net, ev: dlc}
+    shared_excluded:
+      - {host: "ameba.jp / ameblo.jp / winticket.jp 等", ev: dlc, why: 上游 abema 列表按公司（CyberAgent）收录了 Ameba 博客等其他产品，不属于 ABEMA 视频，未收录}
+
+  - id: dmm
+    group: DMM
+    title: DMM
+    upstream: {dlc: [dmm, dmm-porn]}
+    rules:
+      - {suffix: dmm.com, ev: dlc}
+      - {suffix: dmm.co.jp, ev: dlc}
+      - {suffix: dmm-extension.com, ev: dlc}
+      - {suffix: dmmapis.com, ev: dlc, note: 接口}
+
+  # ---------- 日本影音（不含 Hulu Japan / Abema / DMM） ----------
+  - id: niconico
+    group: 日本影音
+    title: niconico
+    upstream: {dlc: [niconico]}
+    rules:
+      - {suffix: nicovideo.jp, ev: dlc}
+      - {suffix: nimg.jp, ev: dlc}
+      - {suffix: dmc.nico, ev: dlc}
+      - {suffix: niconico.com, ev: dlc}
+      - {suffix: nicochannel.jp, ev: dlc, note: ニコニコチャンネルプラス}
+      - {suffix: nicoseiga.jp, ev: dlc}
+      - {suffix: nicomanga.jp, ev: dlc}
+      - {suffix: nicodic.jp, ev: dlc}
+      - {suffix: nico.ms, ev: dlc, note: 短链接}
+      - {suffix: simg.jp, ev: dlc}
+  - {id: tver, group: 日本影音, title: TVer, upstream: {dlc: [tver]}, rules: [{suffix: tver.jp, ev: dlc}]}
+  - {id: unext, group: 日本影音, title: U-NEXT, upstream: {dlc: [unext]}, rules: [{suffix: unext.jp, ev: dlc}, {suffix: nxtv.jp, ev: dlc}]}
+  - id: radiko
+    group: 日本影音
+    title: radiko
+    upstream: {dlc: [radiko]}
+    rules:
+      - {suffix: radiko.jp, ev: dlc}
+      - {suffix: radiko-cf.com, ev: dlc, note: 上游注明为 radiko 官方访问与播放域名}
+      - {suffix: smartstream.ne.jp, ev: dlc, note: 同上}
+  - {id: telasa, group: 日本影音, title: TELASA, rules: [{suffix: telasa.jp, ev: maintainer, note: 两个上游快照都未收录；官方站点域名，播放域名未核实}]}
+  - {id: fod, group: 日本影音, title: FOD, rules: [{suffix: fod.fujitv.co.jp, ev: maintainer, note: 同上}]}
+  - {id: wowow, group: 日本影音, title: WOWOW, rules: [{suffix: wowow.co.jp, ev: maintainer, note: 同上}]}
+  - {id: lemino, group: 日本影音, title: Lemino, rules: [{suffix: lemino.docomo.ne.jp, ev: maintainer, note: 同上}]}
+
+  - id: spotify
+    group: Spotify
+    title: Spotify
+    upstream: {dlc: [spotify]}
+    rules:
+      - {suffix: spotify.com, ev: dlc}
+      - {suffix: scdn.co, ev: dlc}
+      - {suffix: spotifycdn.com, ev: dlc}
+      - {suffix: spotifycdn.net, ev: dlc}
+      - {suffix: pscdn.co, ev: dlc}
+      - {suffix: spoti.fi, ev: dlc}
+      - {suffix: spotify.link, ev: dlc, note: 分享短链；Spotify 官方 oEmbed 文档也列出（2026-09-30 审核 D03）}
+      - {domain: audio-ak-spotify-com.akamaized.net, ev: dlc}
+      - {domain: audio4-ak-spotify-com.akamaized.net, ev: dlc}
+      - {domain: heads-ak-spotify-com.akamaized.net, ev: dlc}
+      - {domain: heads4-ak-spotify-com.akamaized.net, ev: dlc}
+
+  - id: tiktok
+    group: TikTok
+    title: TikTok（国际版；抖音归国内）
+    upstream: {dlc: [tiktok, bytedance], bm7: [TikTok]}
+    rules:
+      - {suffix: tiktok.com, ev: dlc}
+      - {suffix: tiktokv.com, ev: dlc}
+      - {suffix: tiktokv.us, ev: dlc}
+      - {suffix: tiktokv.eu, ev: dlc}
+      - {suffix: tiktokw.us, ev: dlc}
+      - {suffix: tiktokw.eu, ev: dlc}
+      - {suffix: tiktokd.net, ev: dlc}
+      - {suffix: tiktokd.org, ev: dlc}
+      - {suffix: tik-tokapi.com, ev: dlc}
+      - {suffix: tiktok-row.net, ev: dlc}
+      - {suffix: ttoverseaus.net, ev: dlc}
+      - {suffix: tiktokcdn.com, ev: dlc}
+      - {suffix: tiktokcdn-us.com, ev: dlc}
+      - {suffix: tiktokcdn-eu.com, ev: dlc}
+      - {suffix: tiktokeu-cdn.com, ev: dlc}
+      - {suffix: tiktokrow-cdn.com, ev: dlc}
+      - {suffix: ttcdn-us.com, ev: dlc}
+      - {suffix: ttlivecdn.com, ev: dlc}
+      - {domain: p16-tiktokcdn-com.akamaized.net, ev: dlc}
+      - {suffix: tiktok-minis.com, ev: dlc}
+      - {suffix: tiktokminis.us, ev: dlc}
+      - {suffix: tiktokglobalshopv.com, ev: dlc}
+      - {suffix: bytedapm.com, ev: dlc, note: 性能监控}
+      - {suffix: ibytedtos.com, ev: dlc}
+      - {suffix: ibyteimg.com, ev: dlc}
+      - {suffix: ipstatp.com, ev: bm7-snap}
+      - {suffix: sgpstatp.com, ev: bm7-snap}
+      - {suffix: isnssdk.com, ev: bm7-snap, note: 海外版接口（国内的 snssdk.com 不收）}
+      - {suffix: byteintlapi.com, ev: bm7-snap}
+      - {suffix: bytegecko-i18n.com, ev: bm7-snap}
+      - {suffix: ttwebview.com, ev: bm7-snap}
+      - {domain: lf16-effectcdn.byteeffecttos-g.com, ev: bm7-snap}
+      - {suffix: muscdn.com, ev: dlc}
+      - {suffix: musical.ly, ev: dlc}
+      - {suffix: ttwstatic.com, ev: dlc}
+    shared_excluded:
+      - {host: snssdk.com, ev: bm7-snap, why: bm7 TikTok 收录，但抖音、今日头条等国内应用共用，不归 TikTok}
+      - {host: "byteoversea.com / byteoversea.net / byteglb.com", ev: dlc, why: 字节海外多个产品（CapCut、Lark 等）共用的根域，不归 TikTok，落入国外默认（2026-09-29 按对照意见移出）}
+      - {host: "capcut.com / marscode.com / trae.ai / tiktokmusic.app", ev: bm7-snap, why: 字节其他产品，不归 TikTok}
+      - {host: "roovza.*.appsflyersdk.com", ev: dlc, why: 上游收录；AppsFlyer 第三方归因统计，不归 TikTok}
+      - {host: "*.edgesuite.net / *.edgekey.net / tiktokcdn.com.akamaized.net 等", ev: dlc, why: CNAME 目标，客户端不直接请求}
+
+  - id: twitch
+    group: Twitch
+    title: Twitch
+    upstream: {dlc: [twitch]}
+    rules:
+      - {suffix: twitch.tv, ev: dlc}
+      - {suffix: ttvnw.net, ev: dlc}
+      - {suffix: jtvnw.net, ev: dlc}
+      - {suffix: twitchcdn.net, ev: dlc}
+      - {suffix: twitchsvc.net, ev: dlc}
+      - {suffix: ext-twitch.tv, ev: dlc}
+    shared_excluded:
+      - {host: live-video.net, ev: dlc, why: 上游 twitch 列表收录，但它是 Amazon IVS 的共享播放域名（其他直播平台也用），不整体收录}
+      - {host: "26 个 *.cloudfront.net 专属主机", ev: dlc, why: 上游收录；静态资源，Twitch 不按地区限制，未收录（落入国外默认）}
+
+  - id: bilibili_hmt
+    group: Bilibili 港澳台
+    title: 哔哩哔哩 港澳台解锁
+    upstream: {dlc: [bilibili-cdn]}
+    rules:
+      - {domain: api.bilibili.com, ev: maintainer, note: 与大陆使用共用主机}
+      - {domain: app.bilibili.com, ev: maintainer, note: 与大陆使用共用主机}
+      - {domain: bangumi.bilibili.com, ev: maintainer}
+      - {domain: upos-hz-mirrorakam.akamaized.net, ev: dlc, note: 港澳台视频流（上游标为 @!cn）}
+    notes: >
+      港澳台限定内容靠接口所在出口 IP 判断地区，接口主机与大陆正常使用共用，无法按域名拆分。
+      统一归属：api/app 主机默认走台湾——这会让大陆 B 站的接口请求也从台湾出去，
+      并可能看不到“仅限大陆”的内容。不需要港澳台内容时，把本组手动切到 DIRECT 即可。
+
+  - id: bilibili_cn
+    group: 国内直连
+    title: 哔哩哔哩 通用（大陆）
+    upstream: {dlc: [bilibili, bilibili-cdn]}
+    rules:
+      - {suffix: bilibili.com, ev: dlc}
+      - {suffix: bilivideo.com, ev: dlc}
+      - {suffix: bilivideo.cn, ev: dlc}
+      - {suffix: hdslb.com, ev: dlc}
+      - {suffix: biliapi.net, ev: dlc}
+      - {suffix: biliapi.com, ev: dlc}
+      - {suffix: b23.tv, ev: dlc}
+
+  - id: bahamut
+    group: Bahamut
+    title: 巴哈姆特 动画疯
+    upstream: {dlc: [bahamut]}
+    rules:
+      - {suffix: gamer.com.tw, ev: dlc}
+      - {suffix: bahamut.com.tw, ev: dlc}
+      - {domain: bahamut.akamaized.net, ev: dlc}
+      - {domain: gamer-cds.cdn.hinet.net, ev: dlc}
+      - {domain: gamer2-cds.cdn.hinet.net, ev: dlc}
+
+  # ---------- 其他流媒体（不含上面已独立的服务） ----------
+  - id: dazn
+    group: 其他流媒体
+    title: DAZN
+    upstream: {dlc: [dazn]}
+    rules:
+      - {suffix: dazn.com, ev: dlc}
+      - {suffix: dazn-api.com, ev: dlc}
+      - {suffix: dazndn.com, ev: dlc}
+      - {suffix: daznfeeds.com, ev: dlc}
+      - {suffix: daznplayer.com, ev: dlc}
+      - {suffix: daznservices.com, ev: dlc}
+  - {id: vimeo, group: 其他流媒体, title: Vimeo, upstream: {dlc: [vimeo]}, rules: [{suffix: vimeo.com, ev: dlc}, {suffix: vimeocdn.com, ev: dlc}]}
+  - {id: soundcloud, group: 其他流媒体, title: SoundCloud, upstream: {dlc: [soundcloud]}, rules: [{suffix: soundcloud.com, ev: dlc}, {suffix: sndcdn.com, ev: dlc}]}
+  - {id: deezer, group: 其他流媒体, title: Deezer, upstream: {dlc: [deezer]}, rules: [{suffix: deezer.com, ev: dlc}, {suffix: dzcdn.net, ev: dlc}]}
+  - {id: tidal, group: 其他流媒体, title: TIDAL, upstream: {dlc: [tidal]}, rules: [{suffix: tidal.com, ev: dlc}]}
+  - {id: pandora, group: 其他流媒体, title: Pandora, upstream: {bm7: [Pandora, GlobalMedia]}, rules: [{suffix: pandora.com, ev: bm7-snap}, {suffix: p-cdn.us, ev: bm7-snap}]}
+  - {id: crunchyroll, group: 其他流媒体, title: Crunchyroll, upstream: {dlc: [anime]}, rules: [{suffix: crunchyroll.com, ev: dlc}]}
+  - {id: paramount, group: 其他流媒体, title: Paramount+, upstream: {dlc: [cbs]}, rules: [{suffix: paramountplus.com, ev: dlc}]}
+  - {id: peacock, group: 其他流媒体, title: Peacock, upstream: {dlc: [nbcuniversal]}, rules: [{suffix: peacocktv.com, ev: dlc}]}
+  - {id: pluto, group: 其他流媒体, title: Pluto TV, upstream: {dlc: [plutotv]}, rules: [{suffix: pluto.tv, ev: dlc}, {suffix: plutotv.net, ev: dlc}]}
+  - {id: tubi, group: 其他流媒体, title: Tubi, upstream: {dlc: [tubi]},
+     rules: [{suffix: tubi.tv, ev: dlc}, {suffix: tubitv.com, ev: dlc}, {suffix: tubi.io, ev: dlc}, {suffix: tubi.video, ev: dlc}]}
+  - id: viu
+    group: 其他流媒体
+    title: Viu / ViuTV
+    upstream: {dlc: [viu]}
+    rules:
+      - {suffix: viu.com, ev: dlc}
+      - {suffix: viu.tv, ev: dlc}
+      - {domain: api.viu.now.com, ev: dlc}
+      - {domain: dfp6rglgjqszk.cloudfront.net, ev: dlc, note: 专属 CloudFront 主机}
+      - {domain: d1k2us671qcoau.cloudfront.net, ev: dlc}
+      - {domain: d2anahhhmp1ffz.cloudfront.net, ev: dlc}
+  - {id: mytvsuper, group: 其他流媒体, title: myTV SUPER, upstream: {dlc: [mytvsuper]}, rules: [{suffix: mytvsuper.com, ev: dlc}]}
+  - id: kktv
+    group: 其他流媒体
+    title: KKTV
+    upstream: {dlc: [kktv]}
+    rules:
+      - {suffix: kktv.me, ev: dlc}
+      - {suffix: kktv.com.tw, ev: dlc}
+      - {domain: theater-kktv.cdn.hinet.net, ev: dlc}
+  - id: litv
+    group: 其他流媒体
+    title: LiTV
+    upstream: {dlc: [litv]}
+    rules:
+      - {suffix: litv.tv, ev: dlc}
+      - {suffix: ofiii.com, ev: dlc}
+      - {suffix: litvfreepc.akamaized.net, ev: dlc}
+      - {domain: ntdfreemobile-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdfreepc-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdfreetv-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdfreevcpc-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdofifreemobile-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdofifreepc-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdofifreetv-tgc.cdn.hinet.net, ev: dlc}
+      - {domain: ntdofifreevcpc-tgc.cdn.hinet.net, ev: dlc}
+  - {id: catchplay, group: 其他流媒体, title: CATCHPLAY+, upstream: {dlc: [catchplay]}, rules: [{suffix: catchplay.com, ev: dlc}, {suffix: tra-ww000-cp.akamaized.net, ev: dlc}]}
+  - {id: iqiyi_intl, group: 其他流媒体, title: iQIYI 国际版（大陆爱奇艺不在此）, upstream: {dlc: [iqiyi]}, rules: [{suffix: iq.com, ev: dlc}]}
+  - {id: wetv, group: 其他流媒体, title: WeTV, upstream: {dlc: [tencent]}, rules: [{suffix: wetv.vip, ev: dlc}]}
+  - {id: viki, group: 其他流媒体, title: Rakuten Viki, upstream: {dlc: [rakuten]}, rules: [{suffix: viki.com, ev: dlc}]}
+  - id: bstation
+    group: 其他流媒体
+    title: Bilibili 国际版（Bstation，不是港澳台解锁）
+    upstream: {dlc: [bilibili], bm7: [BiliBiliIntl, GlobalMedia]}
+    rules:
+      - {suffix: bilibili.tv, ev: dlc}
+      - {suffix: biliintl.com, ev: dlc}
+      - {suffix: bstarstatic.com, ev: bm7-snap}

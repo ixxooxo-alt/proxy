@@ -1,0 +1,1022 @@
+分流,规则类型,规则值,本仓库有,另一版有,判断,理由,来源
+OpenAI,完整域名,cdn.openaimerge.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,chat.com,否,是,该收,OpenAI 持有并跳转到 ChatGPT 的第一方域名，不是通用聊天词；官方防火墙文 9247338 的最小集没写它，但应归 OpenAI 而不是国外默认。,公开报道（chat.com 售予 OpenAI 并跳转 ChatGPT）+ v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/openai 主域段
+OpenAI,域名后缀,chatgpt.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,chatgpt.livekit.cloud,否,是,该收,ChatGPT 语音在 LiveKit 上的专属主机；不要连带收 host.livekit.cloud / turn.livekit.cloud（全客户共用）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/openai「Advanced Voice」段；另一版已把共用 LiveKit 排除
+OpenAI,域名后缀,oaistatic.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,oaistatsig.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,oaiusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,openai.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+OpenAI,域名后缀,sora.com,否,是,不该收,Sora 网页/App 已于 2026-04-26 停服，API 于 2026-09-24 停服；导出页是 sora.chatgpt.com，已被 chatgpt.com 后缀覆盖。,https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation （2026-09-29 检索）
+Claude,域名后缀,anthropic.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Claude,域名后缀,clau.de,否,是,不确定,只出现在上游 anthropic 列表，2026-09-29 的 CLI 与 Desktop 允许表都没有这条短链。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/anthropic；对照 https://code.claude.com/docs/en/network-config 与 desktop 页
+Claude,域名后缀,claude.ai,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Claude,域名后缀,claude.app,是,否,该收,当日 Desktop 网络要求仍列出 claude.app 与 *.claude.app；CLI 表未列，但 Desktop 流量需要。另一版缺这条。,https://code.claude.com/docs/en/desktop 的 Network access requirements（2026-09-29 抓取）
+Claude,域名后缀,claude.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Claude,域名后缀,claudemcpclient.com,否,是,不确定,上游 anthropic 列表有，官方 Desktop 页只写了 *.claudemcpcontent.com，没有 claudemcpclient.com。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/anthropic；https://code.claude.com/docs/en/desktop （2026-09-29）
+Claude,域名后缀,claudemcpcontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Claude,域名后缀,claudeusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Cursor,完整域名,anysphere-binaries.s3.us-east-1.amazonaws.com,否,是,该收,官方颗粒列表写明该存储桶用于更新和扩展下载。只收这一台精确主机，不要收 amazonaws.com。本仓库把它排除后，会落到共享基础设施的 amazonaws.com，出口仍是国外默认，但不会跟着 Cursor 组切换。,https://cursor.com/docs/enterprise/network-configuration （2026-09-29）
+Cursor,完整域名,downloads.cursor.com,是,否,该收,官方颗粒列表写明该主机用于客户端更新；推荐模式没有 *.cursor.com，不应改成整段后缀。另一版用 cursor.com 后缀盖住了它。,https://cursor.com/docs/enterprise/network-configuration （2026-09-29 抓取）
+Cursor,域名后缀,cursor-cdn.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Cursor,域名后缀,cursor.com,否,是,不该收,官方推荐模式是 *.cursor.sh、*.cursor-cdn.com、*.cursorapi.com、*.cursorvm.com，颗粒列表只有 downloads.cursor.com，没有 *.cursor.com。整段后缀会吞掉未列出的子域。,https://cursor.com/docs/enterprise/network-configuration （2026-09-29）；v2fly data/cursor 有 cursor.com，但官方防火墙更窄
+Cursor,域名后缀,cursor.sh,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Cursor,域名后缀,cursorapi.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Cursor,域名后缀,cursorvm.com,是,否,不该收,同一条后缀该留，但不应放在 Cursor 组。官方写明 *.cursorvm.com 与 *.*.cursorvm.com 是 Grok Bot 托管计算机，应归远程控制，避免和编辑器开关绑在一起。,https://cursor.com/docs/enterprise/network-configuration （2026-09-29）；另一版已放在远程控制
+Google AI,完整域名,aistudio.google.com,否,是,不该收,本仓库已有同名域名后缀，精确主机是其子集合，再写一条不增加命中。,本仓库 google-ai.list；Workspace 主机表见 rules/google-ai/AUDIT.md
+Google AI,完整域名,alkalicore-pa.clients6.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,alkalimakersuite-pa.clients6.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,antigravity-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,antigravity.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,bard.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,cloudaicompanion.googleapis.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google AI,完整域名,cloudcode-pa.googleapis.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google AI,完整域名,daily-cloudcode-pa.googleapis.com,否,是,不该收,另一版自己注明 2026-09-23 复核时不在 Gemini Code Assist 官方清单内。,另一版 source/services/ai.yaml 注释；对照 https://cloud.google.com/gemini/docs/discover/set-up-gemini
+Google AI,完整域名,gemini.google.com,否,是,不该收,本仓库已有同名域名后缀，精确主机是其子集合，再写一条不增加命中。,本仓库 google-ai.list；Workspace 主机表见 rules/google-ai/AUDIT.md
+Google AI,完整域名,generativelanguage.googleapis.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google AI,完整域名,makersuite.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,notebooklm-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,notebooklm.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,notebooklm.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,完整域名,webchannel-alkalimakersuite-pa.clients6.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,ai.google.dev,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,ai.studio,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,aicode.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,aida.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,aisandbox-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,aistudio.google.com,是,否,该收,本仓库按 Workspace / Gemini API / Code Assist / Antigravity 文档收的最小集，后缀或精确主机都没有放宽到 googleapis.com。另一版缺 gemini.google.com 与 aistudio.google.com 的后缀（只写了精确主机）。,rules/google-ai/AUDIT.md（2026-09-15 官方页 HTTP 200）
+Google AI,域名后缀,antigravity-unleash.goog,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,antigravity.google,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google AI,域名后缀,deepmind.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,deepmind.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,flow.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,flow.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,geller-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,gemini.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,gemini.google.com,是,否,该收,本仓库按 Workspace / Gemini API / Code Assist / Antigravity 文档收的最小集，后缀或精确主机都没有放宽到 googleapis.com。另一版缺 gemini.google.com 与 aistudio.google.com 的后缀（只写了精确主机）。,rules/google-ai/AUDIT.md（2026-09-15 官方页 HTTP 200）
+Google AI,域名后缀,gemini.gstatic.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,generativeai.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,jules.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,jules.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,labs.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,labs.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,notebook.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,notebook.google.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google AI,域名后缀,notebooklm.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,opal.google,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,opal.google.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,proactivebackend-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,robinfrontend-pa.googleapis.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Google AI,域名后缀,stitch.withgoogle.com,否,是,不确定,上游把这些主机归在 Generative Language / AI Studio / Labs / DeepMind 段，本次没有在 Gemini API、Workspace 或 Code Assist 官方允许表里逐条复核到。不建议整段并入，也不建议当成已证伪删掉。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 upstream google-deepmind / gemini-api）；本仓库 AUDIT 明确不收整段 googleapis.com / gstatic.com
+Copilot,完整域名,copilot-proxy.githubusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,完整域名,copilot-reports.github.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,完整域名,copilot-telemetry.githubusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,完整域名,copilot-workspace.githubnext.com,否,是,不确定,只在上游 github-copilot 列表，不在 2026-09-29 抓到的 GitHub Copilot allowlist 正文里。存储桶位于共享云，即使以后收也只能精确主机。,https://docs.github.com/en/copilot/reference/copilot-allowlist-reference （2026-09-29 抓取 markdown）；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Copilot,完整域名,copilot.cloud.microsoft,是,否,该收,Microsoft Learn 把 copilot.cloud.microsoft 写成入口主机。精确域名不会吞掉整个 cloud.microsoft（那条在 Microsoft 组）。另一版写成后缀，能多盖子域。,https://learn.microsoft.com/en-us/microsoft-365/copilot/microsoft-365-copilot-requirements （2026-09-29 检索）
+Copilot,完整域名,copilotprodattachments.blob.core.windows.net,否,是,不确定,只在上游 github-copilot 列表，不在 2026-09-29 抓到的 GitHub Copilot allowlist 正文里。存储桶位于共享云，即使以后收也只能精确主机。,https://docs.github.com/en/copilot/reference/copilot-allowlist-reference （2026-09-29 抓取 markdown）；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Copilot,完整域名,origin-tracker.githubusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,完整域名,sydney.bing.com,否,是,不确定,历史对话后端，另一版标明是维护者知识，上游只把 bing.com 整体归 Bing。不要为了它收整段 bing.com。,另一版 ai.yaml note=maintainer；本仓库 AUDIT 拒绝 DOMAIN-SUFFIX bing.com
+Copilot,域名后缀,copilot.ai,是,否,不确定,本仓库 2026-09-15 审计把它记为个人档入口；本次检索的 M365 网络要求主文强调的是 copilot.cloud.microsoft，没有再次看到 copilot.ai。,rules/copilot/AUDIT.md；本次未在 Learn 网络要求正文复核到
+Copilot,域名后缀,copilot.cloud.microsoft,否,是,该收,比精确主机更盖子域，又比 *.cloud.microsoft 窄，能把 Copilot 从 Microsoft 组拆开。官方点名的是这台主机及其所属通配，不是 bing.com。,https://learn.microsoft.com/en-us/microsoft-365/copilot/microsoft-365-copilot-requirements （2026-09-29 检索）
+Copilot,域名后缀,copilot.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,域名后缀,copilot.microsoft.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Copilot,域名后缀,githubcopilot.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+其他 AI,完整域名,ppl-ai-file-upload.s3.amazonaws.com,否,是,不该收,共享 S3 / Cloudinary 上的桶。精确主机仍是别人的云，本仓库约定这种依赖不进产品组，交给国外默认。,本仓库 other-ai AUDIT 不收共享云；另一版 note 也承认是专属桶
+其他 AI,完整域名,pplx-res.cloudinary.com,否,是,不该收,共享 S3 / Cloudinary 上的桶。精确主机仍是别人的云，本仓库约定这种依赖不进产品组，交给国外默认。,本仓库 other-ai AUDIT 不收共享云；另一版 note 也承认是专属桶
+其他 AI,域名后缀,character.ai,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,elevenlabs.com,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,elevenlabs.io,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,grok.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+其他 AI,域名后缀,grokipedia.com,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,groq.com,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,hf.co,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,hf.space,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,huggingface.co,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,meta.ai,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,midjourney.com,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,mistral.ai,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,openrouter.ai,否,是,该收,境外 AI 产品自己的品牌域名，应进其他 AI（默认日本），不要进国内直连，也不要和已独立的 OpenAI/Claude/Cursor 混。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc，category-ai-!cn 或产品列表）
+其他 AI,域名后缀,perplexity.ai,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+其他 AI,域名后缀,perplexity.com,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,poe.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+其他 AI,域名后缀,poecdn.net,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,pplx.ai,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,suno.ai,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,suno.com,否,是,不确定,上游或维护者有记录，但没有本次打开的官方防火墙表。pplx.ai 被本仓库审计明确排除过；character.ai / Suno 另一版标的是维护者知识。,rules/other-ai/AUDIT.md；另一版 ai.yaml 的 ev 字段
+其他 AI,域名后缀,x.ai,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple AI,完整域名,guzzoni.apple.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,完整域名,mask-api.fe.apple-dns.net,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,完整域名,mask-api.icloud.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,完整域名,mask-t.apple-dns.net,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,完整域名,mask.apple-dns.net,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,关键词,siri,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 关键词 siri 很宽，但基线冻结，不得改窄。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,apple-relay.apple.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,apple-relay.cloudflare.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有任何规则能盖住这几条中继主机。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,apple-relay.fastly-edge.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有任何规则能盖住这几条中继主机。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,apple-relay.mask.apple-dns.net,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,apps.mzstatic.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版 mzstatic.com 整段归默认 DIRECT 的 Apple 组，会把这条吞成直连。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,cp4.cloudflare.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有任何规则能盖住这几条中继主机。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,gateway.icloud.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,gspe1-ssl.ls.apple.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,ls.apple.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,mask-h2.icloud.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,mask.icloud.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+Apple AI,域名后缀,smoot.apple.com,是,否,该收,冻结的 18 条必须原样保留，匹配类型不能改。 另一版没有 Apple AI 组，多数主机会被 apple.com / icloud.com / apple-dns.net 的 Apple 组（默认 DIRECT）吞掉。,rules/apple-ai/APPLE_AI_18.list；docs/APPLE_AI_18.md；基线不得删除或改写
+YouTube,完整域名,m.youtube.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,restrict.youtube.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,restrictmoderate.youtube.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,s.youtube.com,否,是,该收,播放统计主机。放在广告拦截之前，避免远程广告集合把它 REJECT 掉后观看记录异常。本仓库目前没有这条，也没有 category-ads-all。,另一版 adblock.yaml 误杀例外
+YouTube,完整域名,s.ytimg.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,www.youtube-nocookie.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,www.youtube.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,www.youtubeeducation.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,youtu.be,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,youtube.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,youtube.googleapis.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+YouTube,完整域名,youtubeeducation.com,是,否,该收,本仓库按官方 YouTube 限制主机收的精确域名，没有放宽成后缀，所以 music.youtube.com 这类子域目前盖不住。另一版的 youtube.com 后缀能盖住其中多条，但精确条在后缀落地前应保留。,rules/youtube/AUDIT.md 引用 https://support.google.com/a/answer/6214622 （2026-09-16）
+YouTube,完整域名,youtubei.googleapis.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+YouTube,完整域名,yt3.ggpht.com,否,是,该收,频道头像/横幅的精确主机。整段 ggpht.com / googleusercontent.com 仍应留在共享基础设施，不要为了头像把根域改挂到 YouTube。,另一版 youtube 注释；本仓库这两条根在共享基础设施
+YouTube,完整域名,yt3.googleusercontent.com,否,是,该收,频道头像/横幅的精确主机。整段 ggpht.com / googleusercontent.com 仍应留在共享基础设施，不要为了头像把根域改挂到 YouTube。,另一版 youtube 注释；本仓库这两条根在共享基础设施
+YouTube,域名后缀,googlevideo.com,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+YouTube,域名后缀,youtu.be,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+YouTube,域名后缀,youtube-nocookie.com,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+YouTube,域名后缀,youtube.com,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+YouTube,域名后缀,youtubeembeddedplayer.googleapis.com,否,是,该收,嵌入播放器接口在 googleapis.com 下面，必须写得比共享根更具体，并排在共享基础设施之前。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 shared-infra 已有 googleapis.com 后缀
+YouTube,域名后缀,youtubekids.com,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+YouTube,域名后缀,yt.be,否,是,不确定,上游有这条短域，本次没有在 Google 官方 YouTube 主机表里看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+YouTube,域名后缀,ytimg.com,否,是,该收,YouTube 第一方站点、短链、嵌入、图片和视频流域名。本仓库只有少量精确主机，子域会漏到国外默认。googlevideo.com 不要拿去归 Google 通用组。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/youtube（另一版 ev=dlc）；本仓库 YouTube 包注释
+Netflix,域名后缀,fast.com,否,是,该收,Netflix 的测速站，和正片域名分开。放进 Netflix 组会跟着解锁入口走，这是合理的。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/netflix（另一版 ev=dlc）
+Netflix,域名后缀,netflix.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,netflix.net,否,是,不确定,不在 2026-09-16 抓到的 Open Connect mobiledeliverydomains.txt 里，本仓库因此不收；上游列表有。,rules/netflix/netflix.list 注释；https://openconnect.netflix.com/mobiledeliverydomains.txt
+Netflix,域名后缀,netflixdnstest0.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest1.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest10.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest2.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest3.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest4.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest5.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest6.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest7.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest8.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,netflixdnstest9.com,否,是,不确定,上游列出 0–10 共 11 个客户端 DNS 探测域，不是 Open Connect 投递域。是否必须跟解锁入口走，没有官方文件证明。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；另一版 note
+Netflix,域名后缀,nflxext.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,nflximg.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,nflximg.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,nflxsearch.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,nflxso.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Netflix,域名后缀,nflxvideo.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Disney+,域名后缀,bamgrid.com,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Disney+,域名后缀,disney-plus.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Disney+,域名后缀,disneyplus.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Disney+,域名后缀,disneystreaming.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Disney+,域名后缀,dssott.com,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Disney+,域名后缀,registerdisney.go.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Max,域名后缀,hbo.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Max,域名后缀,hbogo.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Max,域名后缀,hbomax.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Max,域名后缀,hbomaxcdn.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Max,域名后缀,max.com,否,是,不确定,服务曾用 max.com，但这个后缀极宽，且 2025 年后品牌回到 HBO Max。本次没有打开官方主机表确认它仍独占。,另一版 groups.yaml 注「2025 年改回 HBO Max」；ev=dlc
+Prime Video,完整域名,atv-ps.amazon.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,完整域名,avodmp4s3ww-a.akamaihd.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,d1v5ir2lpwr8os.cloudfront.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,d22qjgkvxw22r6.cloudfront.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,d25xi40x97liuc.cloudfront.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,d27xxe7juh1us6.cloudfront.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,dmqdd6hw24ucf.cloudfront.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,完整域名,msh.amazon.co.uk,否,是,不确定,上游或 blackmatrix7 快照里有，看起来像 Prime 播放或设备服务，但本次没有 Amazon 官方主机表。a2z.com 是亚马逊基础设施域，收成后缀要谨慎。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,域名后缀,aiv-cdn.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Prime Video,域名后缀,aiv-delivery.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,域名后缀,amazonvideo.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Prime Video,域名后缀,atv-ps-eu.amazon.co.uk,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,域名后缀,atv-ps-eu.amazon.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,域名后缀,atv-ps-fe.amazon.co.jp,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,域名后缀,atv-ps-fe.amazon.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Prime Video,域名后缀,primevideo.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Prime Video,域名后缀,prod.service.minerva.devices.a2z.com,否,是,不确定,上游或 blackmatrix7 快照里有，看起来像 Prime 播放或设备服务，但本次没有 Amazon 官方主机表。a2z.com 是亚马逊基础设施域，收成后缀要谨慎。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Prime Video,域名后缀,pv-cdn.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+Hulu US,完整域名,hulu.playback.edge.bamgrid.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。 这条比 amazon.com / bamgrid.com / go.com 更具体，必须排在更宽的规则前面。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Hulu US,域名后缀,hulu.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Hulu US,域名后缀,huluim.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Hulu US,域名后缀,hulustream.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Hulu Japan,域名后缀,happyon.jp,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Hulu Japan,域名后缀,hjholdings.jp,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Hulu Japan,域名后缀,hulu.jp,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Hulu Japan,域名后缀,prod.hjholdings.tv,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Hulu Japan,域名后缀,streaks.jp,否,是,不确定,另一版写明 STREAKS 可能被其他日本服务共用，只是因为同走日本出口才归进 Hulu Japan。,另一版 streaming.yaml 注释
+Abema,完整域名,abematv.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Abema,完整域名,ds-linear-abematv.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Abema,完整域名,ds-vod-abematv.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Abema,完整域名,linear-abematv.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Abema,完整域名,vod-abematv.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Abema,域名后缀,abema-tv.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Abema,域名后缀,abema.io,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Abema,域名后缀,abema.tv,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Abema,域名后缀,hayabusa.io,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+DMM,域名后缀,dmm-extension.com,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+DMM,域名后缀,dmm.co.jp,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+DMM,域名后缀,dmm.com,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+DMM,域名后缀,dmmapis.com,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+日本影音,域名后缀,dmc.nico,否,是,不确定,niconico 家族域名，上游有，本次没有逐条打开官网。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,fod.fujitv.co.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=maintainer
+日本影音,域名后缀,lemino.docomo.ne.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=maintainer
+日本影音,域名后缀,nico.ms,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nicochannel.jp,否,是,不确定,niconico 家族域名，上游有，本次没有逐条打开官网。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nicodic.jp,否,是,不确定,niconico 家族域名，上游有，本次没有逐条打开官网。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nicomanga.jp,否,是,不确定,niconico 家族域名，上游有，本次没有逐条打开官网。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,niconico.com,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nicoseiga.jp,否,是,不确定,niconico 家族域名，上游有，本次没有逐条打开官网。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nicovideo.jp,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,nimg.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=dlc
+日本影音,域名后缀,nxtv.jp,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,radiko-cf.com,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=dlc
+日本影音,域名后缀,radiko.jp,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,simg.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=dlc
+日本影音,域名后缀,smartstream.ne.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=dlc
+日本影音,域名后缀,telasa.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=maintainer
+日本影音,域名后缀,tver.jp,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,unext.jp,否,是,该收,日区影音产品自己的站点或短链，应进日本影音（默认日本），本仓库这组没有域名。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+日本影音,域名后缀,wowow.co.jp,否,是,不确定,维护者知识，或图片/播放子域没有在本次打开的官方页上核对。,另一版 streaming.yaml ev=maintainer
+Spotify,完整域名,audio-ak-spotify-com.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Spotify,完整域名,audio4-ak-spotify-com.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Spotify,完整域名,heads-ak-spotify-com.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Spotify,完整域名,heads4-ak-spotify-com.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Spotify,域名后缀,pscdn.co,否,是,不确定,社区把它们当 Spotify CDN，本仓库审计明确不收整段，怕不是 Spotify 独占。,rules/spotify/spotify.list 注释；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Spotify,域名后缀,scdn.co,否,是,不确定,社区把它们当 Spotify CDN，本仓库审计明确不收整段，怕不是 Spotify 独占。,rules/spotify/spotify.list 注释；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Spotify,域名后缀,spoti.fi,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Spotify,域名后缀,spotify.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Spotify,域名后缀,spotifycdn.com,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Spotify,域名后缀,spotifycdn.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,完整域名,lf16-effectcdn.byteeffecttos-g.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,完整域名,p16-tiktokcdn-com.akamaized.net,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,bytedapm.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,bytegecko-i18n.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,byteglb.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,byteintlapi.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,byteoversea.com,否,是,不该收,字节海外共用根，不是 TikTok 独占。本仓库审计明确不收，收了会把其他字节海外产品卷进 TikTok 组。,rules/tiktok 注释；另一版 note「字节海外共用」
+TikTok,域名后缀,byteoversea.net,否,是,不该收,字节海外共用根，不是 TikTok 独占。本仓库审计明确不收，收了会把其他字节海外产品卷进 TikTok 组。,rules/tiktok 注释；另一版 note「字节海外共用」
+TikTok,域名后缀,ibytedtos.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,ibyteimg.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,ipstatp.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,isnssdk.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,muscdn.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,musical.ly,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,sgpstatp.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,tik-tokapi.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,tiktok-minis.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktok-row.net,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktok.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+TikTok,域名后缀,tiktokcdn-eu.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokcdn-us.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokcdn.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+TikTok,域名后缀,tiktokd.net,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokd.org,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokeu-cdn.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokglobalshopv.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokminis.us,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokrow-cdn.com,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokv.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+TikTok,域名后缀,tiktokv.eu,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokv.us,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokw.eu,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,tiktokw.us,否,是,该收,国际版 TikTok 或已并入 TikTok 的 musical.ly 域名。不要收 douyin.com（本仓库国内直连已有）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+TikTok,域名后缀,ttcdn-us.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,ttlivecdn.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,ttoverseaus.net,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+TikTok,域名后缀,ttwebview.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=bm7-snap
+TikTok,域名后缀,ttwstatic.com,否,是,不确定,字节海外监控、统计或 CDN 根，上游有，但是否只服务 TikTok 没有官方表。,另一版 tiktok 规则 ev=dlc
+Twitch,域名后缀,ext-twitch.tv,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Twitch,域名后缀,jtvnw.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Twitch,域名后缀,ttvnw.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Twitch,域名后缀,twitch.tv,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Twitch,域名后缀,twitchcdn.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Twitch,域名后缀,twitchsvc.net,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Bilibili 港澳台,完整域名,api.bilibili.com,否,是,不该收,和大陆客户端共用主机。排在 bilibili.com 国内直连前面会把大陆 API 送去台湾。另一版自己也写了「与大陆使用共用主机」。,另一版 streaming.yaml note=maintainer
+Bilibili 港澳台,完整域名,app.bilibili.com,否,是,不该收,和大陆客户端共用主机。排在 bilibili.com 国内直连前面会把大陆 API 送去台湾。另一版自己也写了「与大陆使用共用主机」。,另一版 streaming.yaml note=maintainer
+Bilibili 港澳台,完整域名,bangumi.bilibili.com,否,是,不该收,和大陆客户端共用主机。排在 bilibili.com 国内直连前面会把大陆 API 送去台湾。另一版自己也写了「与大陆使用共用主机」。,另一版 streaming.yaml note=maintainer
+Bilibili 港澳台,完整域名,upos-hz-mirrorakam.akamaized.net,否,是,不确定,上游标 @!cn 的 Akamai 镜像，是否只服务港澳台没有官方文件。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Bahamut,完整域名,bahamut.akamaized.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Bahamut,完整域名,gamer-cds.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Bahamut,完整域名,gamer2-cds.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子或上游有、官方主机表本次没核对的播放域名。可以以后按精确主机收，不要收 cloudfront.net / akamaihd.net 整段。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） / blackmatrix7 固定快照 51d2e1dd（另一版 evidence.yaml，2026-09-21）
+Bahamut,域名后缀,bahamut.com.tw,否,是,该收,产品自己的站点或播放域，本仓库对应包是空的（没有官方主机快照就不发明域名）。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Bahamut,域名后缀,gamer.com.tw,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+其他流媒体,完整域名,api.viu.now.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,完整域名,d1k2us671qcoau.cloudfront.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,d2anahhhmp1ffz.cloudfront.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,dfp6rglgjqszk.cloudfront.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdfreemobile-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdfreepc-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdfreetv-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdfreevcpc-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdofifreemobile-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdofifreepc-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdofifreetv-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,ntdofifreevcpc-tgc.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,完整域名,theater-kktv.cdn.hinet.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,域名后缀,bilibili.tv,否,是,该收,哔哩哔哩国际站，不是大陆 bilibili.com。本仓库 DNS 已把 bilibili.tv 当作港澳台解析覆盖，但流量包仍是空的。应归 Bilibili 港澳台，不要丢在其他流媒体。,https://www.bilibili.tv/ （本仓库 policy/dns.yaml 已记录 HTTP 200）；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,域名后缀,biliintl.com,否,是,该收,哔哩哔哩国际站，不是大陆 bilibili.com。本仓库 DNS 已把 bilibili.tv 当作港澳台解析覆盖，但流量包仍是空的。应归 Bilibili 港澳台，不要丢在其他流媒体。,https://www.bilibili.tv/ （本仓库 policy/dns.yaml 已记录 HTTP 200）；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,域名后缀,bstarstatic.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+其他流媒体,域名后缀,catchplay.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,crunchyroll.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,dazn-api.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,dazn.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,dazndn.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,daznfeeds.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,daznplayer.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,daznservices.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,deezer.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,dzcdn.net,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,iq.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,kktv.com.tw,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,kktv.me,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,litv.tv,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,litvfreepc.akamaized.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,域名后缀,mytvsuper.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,ofiii.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,p-cdn.us,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+其他流媒体,域名后缀,pandora.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=bm7-snap）
+其他流媒体,域名后缀,paramountplus.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,peacocktv.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,pluto.tv,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,plutotv.net,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,sndcdn.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,soundcloud.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,tidal.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,tra-ww000-cp.akamaized.net,否,是,不确定,共享 CDN 上的叶子，上游有，本次没有官方主机表。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+其他流媒体,域名后缀,tubi.io,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,tubi.tv,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,tubi.video,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,tubitv.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,viki.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,vimeo.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,vimeocdn.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,viu.com,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,viu.tv,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+其他流媒体,域名后缀,wetv.vip,否,是,该收,独立流媒体自己的品牌域名。本仓库「其他流媒体」组存在但没有规则，这些会掉进国外默认，开关不起作用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）（另一版 ev=dlc）
+Telegram,域名后缀,cdn-telegram.org,否,是,不确定,上游有。 本次没有在 core.telegram.org 的现行说明里逐条核对。,rules/telegram/telegram.list；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Telegram,域名后缀,fragment.com,否,是,不确定,更接近 TON/Fragment，不一定是聊天流量。 本次没有在 core.telegram.org 的现行说明里逐条核对。,rules/telegram/telegram.list；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Telegram,域名后缀,t.me,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,域名后缀,tdesktop.com,否,是,该收,Telegram 图床与桌面端站点，第一方，本仓库最小集只有 telegram.org 和 t.me。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/telegram
+Telegram,域名后缀,telegra.ph,否,是,该收,Telegram 图床与桌面端站点，第一方，本仓库最小集只有 telegram.org 和 t.me。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/telegram
+Telegram,域名后缀,telegram-cdn.org,否,是,不确定,上游有。 本次没有在 core.telegram.org 的现行说明里逐条核对。,rules/telegram/telegram.list；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Telegram,域名后缀,telegram.me,否,是,不确定,本仓库 2026-09-16 对照 FAQ 时正文没有 telegram.me。 本次没有在 core.telegram.org 的现行说明里逐条核对。,rules/telegram/telegram.list；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Telegram,域名后缀,telegram.org,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,域名后缀,telesco.pe,否,是,不确定,上游有。 本次没有在 core.telegram.org 的现行说明里逐条核对。,rules/telegram/telegram.list；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Telegram,IPv4 段,149.154.160.0/20,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,185.76.151.0/24,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.105.192.0/23,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.12.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.16.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.20.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.4.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.56.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv4 段,91.108.8.0/22,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv6 段,2001:67c:4e8::/48,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv6 段,2001:b28:f23c::/48,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv6 段,2001:b28:f23d::/48,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv6 段,2001:b28:f23f::/48,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Telegram,IPv6 段,2a0a:f280::/32,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+X,域名后缀,periscope.tv,否,是,不该收,本仓库审计把 Periscope / pscp 标为已停产品，不再收。,rules/x/x.list 注释（2026-09-16）
+X,域名后缀,pscp.tv,否,是,不该收,本仓库审计把 Periscope / pscp 标为已停产品，不再收。,rules/x/x.list 注释（2026-09-16）
+X,域名后缀,t.co,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+X,域名后缀,tweetdeck.com,否,是,不确定,旧 TweetDeck / Twitter 短域，上游有，本次没有官方主机表证明仍在用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+X,域名后缀,twimg.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+X,域名后缀,twitter.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+X,域名后缀,twttr.com,否,是,不确定,旧 TweetDeck / Twitter 短域，上游有，本次没有官方主机表证明仍在用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+X,域名后缀,x.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,cdninstagram.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,facebook.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,facebook.net,否,是,该收,Meta 社交的 SDK、图片 CDN 或短链。fbcdn.net 本仓库审计曾不收，功能上会掉进国外默认，但域名本身是 Meta 的。不要收成广告。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,fb.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,fb.me,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,fbcdn.net,否,是,该收,Meta 社交的 SDK、图片 CDN 或短链。fbcdn.net 本仓库审计曾不收，功能上会掉进国外默认，但域名本身是 Meta 的。不要收成广告。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,fbsbx.com,否,是,该收,Meta 社交的 SDK、图片 CDN 或短链。fbcdn.net 本仓库审计曾不收，功能上会掉进国外默认，但域名本身是 Meta 的。不要收成广告。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,ig.me,否,是,该收,Meta 社交的 SDK、图片 CDN 或短链。fbcdn.net 本仓库审计曾不收，功能上会掉进国外默认，但域名本身是 Meta 的。不要收成广告。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,instagr.am,是,否,该收,Instagram 短链，另一版没有。,rules/meta-social 审计
+Meta 社交,域名后缀,instagram.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,m.me,否,是,该收,Meta 社交的 SDK、图片 CDN 或短链。fbcdn.net 本仓库审计曾不收，功能上会掉进国外默认，但域名本身是 Meta 的。不要收成广告。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,messenger.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,meta.com,否,是,不确定,公司站或 Quest/Oculus，不一定该跟 Facebook/Instagram 同一个开关。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,oculus.com,否,是,不确定,公司站或 Quest/Oculus，不一定该跟 Facebook/Instagram 同一个开关。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,oculuscdn.com,否,是,不确定,公司站或 Quest/Oculus，不一定该跟 Facebook/Instagram 同一个开关。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Meta 社交,域名后缀,threads.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Meta 社交,域名后缀,threads.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+WhatsApp,域名后缀,wa.me,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+WhatsApp,域名后缀,whatsapp.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+WhatsApp,域名后缀,whatsapp.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LINE,完整域名,line.naver.jp,否,是,该收,LINE 短链、历史域名或公司域名。本仓库只收了 line.me 和三套 CDN。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+LINE,域名后缀,lin.ee,否,是,该收,LINE 短链、历史域名或公司域名。本仓库只收了 line.me 和三套 CDN。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+LINE,域名后缀,line-apps.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LINE,域名后缀,line-cdn.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LINE,域名后缀,line-scdn.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LINE,域名后缀,line.me,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LINE,域名后缀,linecorp.com,否,是,该收,LINE 短链、历史域名或公司域名。本仓库只收了 line.me 和三套 CDN。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,dis.gd,否,是,不确定,上游 Discord 列表里的短链或状态页，本次没有在开发者文档里逐条看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,discord.co,否,是,不确定,上游 Discord 列表里的短链或状态页，本次没有在开发者文档里逐条看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,discord.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Discord,域名后缀,discord.dev,否,是,不确定,上游 Discord 列表里的短链或状态页，本次没有在开发者文档里逐条看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,discord.gg,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Discord,域名后缀,discord.media,否,是,不确定,上游 Discord 列表里的短链或状态页，本次没有在开发者文档里逐条看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,discordapp.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Discord,域名后缀,discordapp.net,否,是,该收,比本仓库的 media.discordapp.net 更宽，能盖住媒体子域，仍然是 Discord 品牌域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,discordstatus.com,否,是,不确定,上游 Discord 列表里的短链或状态页，本次没有在开发者文档里逐条看到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Discord,域名后缀,media.discordapp.net,是,否,该收,官方 Activities CSP 写了 media.discordapp.net。另一版用更宽的 discordapp.net 后缀盖住它。,rules/discord/discord.list 引用 docs.discord.com CSP（2026-09-16）
+Reddit,域名后缀,redd.it,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Reddit,域名后缀,reddit.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Reddit,域名后缀,redditinc.com,是,否,该收,Reddit 公司域名，本仓库有，另一版没有。,rules/reddit 审计
+Reddit,域名后缀,redditmail.com,否,是,不确定,可能是邮件域名，也可能是跟踪。上游有，本次没核对。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Reddit,域名后缀,redditmedia.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Reddit,域名后缀,redditstatic.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LinkedIn,域名后缀,licdn.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LinkedIn,域名后缀,linkedin.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+LinkedIn,域名后缀,lnkd.in,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple,完整域名,metrics.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,完整域名,pong.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,完整域名,probe.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,完整域名,setup.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,完整域名,statici.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,完整域名,ws-ee-maidsvc.icloud.com,是,否,该收,iCloud 探测/设置类精确主机，来自企业网络主机交叉。另一版用 icloud.com 后缀盖住它们，但那条后缀默认 DIRECT，且会在没有 Apple AI 前置时吞掉智能相关主机。,rules/apple/AUDIT.md 引用 Apple TN https://support.apple.com/en-us/101555
+Apple,域名后缀,aaplimg.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,apple-cloudkit.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,apple-dns.net,否,是,不该收,会匹配 mask.apple-dns.net 等 Apple AI 主机。另一版没有 Apple AI 组，这些流量会进默认 DIRECT 的 Apple 组。本仓库不应在 Apple AI 18 条之前加入这条后缀。,对照 APPLE_AI_18.list 的 mask*.apple-dns.net；另一版 apple 服务
+Apple,域名后缀,apple-mapkit.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,apple.co,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,apple.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple,域名后缀,apple.com.cn,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。 Apple 组默认 DIRECT，中国站效果接近直连。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,apple.news,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,appstore.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,cdn-apple.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple,域名后缀,icloud-content.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple,域名后缀,icloud.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。 必须排在 Apple AI 18 条之后。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,icloud.com.cn,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。 Apple 组默认 DIRECT，中国站效果接近直连。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,itunes.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,me.com,否,是,该收,Apple 第一方服务域。本仓库 Apple 包只有 apple.com、cdn-apple.com、icloud-content.com、mzstatic.com 和 6 条 iCloud 精确主机。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；Apple 组默认 DIRECT
+Apple,域名后缀,mzstatic.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Apple Music/TV,完整域名,aod-ssl.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,aod.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,audio-ssl.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,hls-amt.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,hls-svod.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,hls.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,np-edge.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,play-edge.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,完整域名,uts-api.itunes.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,域名后缀,music.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Apple Music/TV,域名后缀,tv.apple.com,否,是,该收,Apple Music / TV 的站点或itunes 流媒体主机，用来单独选区。两边这组默认都是 DIRECT。必须写在 apple.com 后缀之前，否则会被 Apple 通用组先吃掉。本仓库有组无规则。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Google,域名后缀,android.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,blogger.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,blogspot.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,chrome.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,chromium.org,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,g.co,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,ggpht.com,否,是,不该收,这些是共享根。本仓库放在共享基础设施并绑国外默认，产品精确主机（Gemini API、YouTube 接口）排在前面。挂到 Google 组会让用户把 Google 改成直连时，把 API 和头像 CDN 一起改掉。,rules/shared-infra/shared-infra.list；另一版 ai.yaml 也写明 googleapis.com 不归任何单一 AI
+Google,域名后缀,gmail.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,goo.gl,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,google.ad,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ae,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.al,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.am,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.as,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.at,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.az,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ba,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.be,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bf,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bi,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bj,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bs,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.bt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.by,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ca,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cat,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cd,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cf,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ch,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ci,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cn,是,否,不确定,它在 Google 官方 supported_domains 的 187 条里，域名该不该存在没有疑问；但中国站放进默认走国外代理的 Google 组，是否合适取决于可用性，本次没有实测。,https://www.google.com/supported_domains （2026-09-29 抓取，与本仓库 187 条完全一致）
+Google,域名后缀,google.co.ao,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.bw,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.ck,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.cr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.id,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.il,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.in,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.jp,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.co.ke,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.kr,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.co.ls,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.ma,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.mz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.nz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.th,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.tz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.ug,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.uk,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.co.uz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.ve,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.vi,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.za,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.zm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.co.zw,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.com.af,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ag,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ar,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.au,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.bd,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.bh,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.bn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.bo,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.br,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.bz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.co,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.cu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.cy,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.do,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ec,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.eg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.et,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.fj,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.gh,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.gi,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.gt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.hk,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.com.jm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.kh,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.kw,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.lb,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ly,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.mm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.mt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.mx,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.my,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.na,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ng,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ni,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.np,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.om,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.pa,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.pe,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.pg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.ph,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.pk,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.pr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.py,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.qa,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.sa,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.sb,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.sg,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.com.sl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.sv,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.tj,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.tr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.tw,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Google,域名后缀,google.com.ua,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.uy,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.vc,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.com.vn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cv,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.cz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.de,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.dev,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,google.dj,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.dk,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.dm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.dz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ee,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.es,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.fi,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.fm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.fr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ga,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ge,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.gg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.gl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.gm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.gr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.gy,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.hn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.hr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ht,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.hu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ie,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.im,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.iq,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.is,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.it,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.je,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.jo,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.kg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ki,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.kz,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.la,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.li,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.lk,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.lt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.lu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.lv,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.md,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.me,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mk,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ml,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mv,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.mw,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ne,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.nl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.no,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.nr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.nu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.pl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.pn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ps,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.pt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ro,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.rs,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ru,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.rw,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sc,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.se,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sh,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.si,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sk,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.so,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.sr,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.st,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.td,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.tg,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.tl,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.tm,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.tn,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.to,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.tt,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.vu,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,google.ws,是,否,该收,与 Google 官方 supported_domains 完全一致的搜索国家域（2026-09-29 抓取 187 条，一条不差）。另一版只显式写了 7 个常用后缀，其余靠 GEOSITE。,https://www.google.com/supported_domains （2026-09-29）
+Google,域名后缀,googleapis.com,否,是,不该收,这些是共享根。本仓库放在共享基础设施并绑国外默认，产品精确主机（Gemini API、YouTube 接口）排在前面。挂到 Google 组会让用户把 Google 改成直连时，把 API 和头像 CDN 一起改掉。,rules/shared-infra/shared-infra.list；另一版 ai.yaml 也写明 googleapis.com 不归任何单一 AI
+Google,域名后缀,googlemail.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,googlesource.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,googleusercontent.com,否,是,不该收,这些是共享根。本仓库放在共享基础设施并绑国外默认，产品精确主机（Gemini API、YouTube 接口）排在前面。挂到 Google 组会让用户把 Google 改成直连时，把 API 和头像 CDN 一起改掉。,rules/shared-infra/shared-infra.list；另一版 ai.yaml 也写明 googleapis.com 不归任何单一 AI
+Google,域名后缀,gstatic.com,否,是,不该收,这些是共享根。本仓库放在共享基础设施并绑国外默认，产品精确主机（Gemini API、YouTube 接口）排在前面。挂到 Google 组会让用户把 Google 改成直连时，把 API 和头像 CDN 一起改掉。,rules/shared-infra/shared-infra.list；另一版 ai.yaml 也写明 googleapis.com 不归任何单一 AI
+Google,域名后缀,gvt1.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,gvt2.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Google,域名后缀,recaptcha.net,否,是,不该收,另一版写明上游只有 recaptcha.net 与 www.recaptcha.net 两个精确主机，收成后缀是放宽。,另一版 bigtech.yaml note
+Google,域名后缀,withgoogle.com,否,是,该收,Google 第一方产品域，不是搜索国家域。本仓库 187 条全是 google.* 国家后缀，这些会掉进 MATCH/国外默认，Google 组开关管不到。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/google（另一版 ev=dlc）
+Microsoft,完整域名,account.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,adl.windows.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,admin.onedrive.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,aka.ms,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,apis.live.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,auth.gfx.ms,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,autologon.microsoftazuread-sso.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,c.bing.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,c.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,clientconfig.microsoftonline-p.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,g.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,join.secure.skypeassets.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,login.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,mem.gfx.ms,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,office.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,officespeech.platform.bing.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,oneclient.sfx.ms,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,partnerservices.getmicrosoftkey.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,signup.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,storage.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,sway.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,www.bing.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,www.microsoft365.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,www.onedrive.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,完整域名,www.sway.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,1drv.com,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,1drv.ms,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,aadrm.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,acompli.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,activity.windows.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,aka.ms,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,appex-rf.msn.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,appex.bing.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,assets-yammer.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,azure.com,否,是,不该收,azure.com 本仓库在共享基础设施；bing.com 整段会吞掉搜索，Copilot 只能靠更具体的 sydney.bing.com 抢先。官方 Copilot 文档要求的是 M365 与 copilot.cloud.microsoft，不是整段 Bing。,本仓库 shared-infra；rules/copilot/AUDIT.md；Microsoft Learn Copilot 网络要求
+Microsoft,域名后缀,bing.com,否,是,不该收,azure.com 本仓库在共享基础设施；bing.com 整段会吞掉搜索，Copilot 只能靠更具体的 sydney.bing.com 抢先。官方 Copilot 文档要求的是 M365 与 copilot.cloud.microsoft，不是整段 Bing。,本仓库 shared-infra；rules/copilot/AUDIT.md；Microsoft Learn Copilot 网络要求
+Microsoft,域名后缀,bing.net,否,是,不该收,azure.com 本仓库在共享基础设施；bing.com 整段会吞掉搜索，Copilot 只能靠更具体的 sydney.bing.com 抢先。官方 Copilot 文档要求的是 M365 与 copilot.cloud.microsoft，不是整段 Bing。,本仓库 shared-infra；rules/copilot/AUDIT.md；Microsoft Learn Copilot 网络要求
+Microsoft,域名后缀,cloud.microsoft,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,gfx.ms,否,是,不该收,过宽。本仓库已有 login.live.com、oneclient.sfx.ms 等 endpoints 精确主机，整段 live.com / *.ms 短域会卷进未审计子域。,rules/microsoft/microsoft.list；另一版后缀
+Microsoft,域名后缀,hip.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,live.com,否,是,不该收,过宽。本仓库已有 login.live.com、oneclient.sfx.ms 等 endpoints 精确主机，整段 live.com / *.ms 短域会卷进未审计子域。,rules/microsoft/microsoft.list；另一版后缀
+Microsoft,域名后缀,live.net,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,lync.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,microsoft.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,microsoft365.com,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,microsoftonline-p.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,microsoftonline.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,microsoftusercontent.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,msauth.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,msauthimages.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,msftauth.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,msftauthimages.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,msftidentity.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,msidentity.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,msn.com,否,是,不确定,微软消费/门户域名，上游有。本仓库 Microsoft 组以 M365 端点为主，要不要把 Xbox 和 MSN 放进同一个开关，没有产品决定。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,msocdn.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,mx.microsoft,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,o365weve.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,office.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,office.net,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,office365.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,officeapps.live.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,onedrive.com,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,onenote.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,onmicrosoft.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,outlook.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,outlookmobile.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,phonefactor.net,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,portal.cloudappsecurity.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,powerapps.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,powerautomate.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,sfx.ms,否,是,不该收,过宽。本仓库已有 login.live.com、oneclient.sfx.ms 等 endpoints 精确主机，整段 live.com / *.ms 短域会卷进未审计子域。,rules/microsoft/microsoft.list；另一版后缀
+Microsoft,域名后缀,sharepoint.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,sharepointonline.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,skype.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+Microsoft,域名后缀,static.microsoft,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,svc.ms,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,usercontent.microsoft,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,visualstudio.com,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,vsassets.io,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,windows.com,否,是,该收,微软第一方产品域（OneDrive、短链、Visual Studio、Windows）。本仓库有的只是其中部分精确主机。aka.ms 本仓库是精确域名，后缀更能盖住子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,wns.windows.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,xbox.com,否,是,不确定,微软消费/门户域名，上游有。本仓库 Microsoft 组以 M365 端点为主，要不要把 Xbox 和 MSN 放进同一个开关，没有产品决定。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,xboxlive.com,否,是,不确定,微软消费/门户域名，上游有。本仓库 Microsoft 组以 M365 端点为主，要不要把 Xbox 和 MSN 放进同一个开关，没有产品决定。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+Microsoft,域名后缀,yammer.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+Microsoft,域名后缀,yammerusercontent.com,是,否,该收,M365 worldwide endpoints 与社区列表交叉后的 HIGH 集。精确主机没有放宽成 live.com / bing.com。另一版缺这些时，一部分会被它的更宽后缀盖住，一部分会漏。,rules/microsoft/AUDIT.md 引用 https://endpoints.office.com/endpoints/worldwide
+GitHub,域名后缀,collector.github.com,否,是,不该收,GitHub 官方 Copilot 允许表有这台遥测主机，但本仓库 github.com 后缀已经把它归到 GitHub。单独再写一条只有在引入会拦截它的广告集合时才需要，作为误杀例外而不是新分流。,https://docs.github.com/en/copilot/reference/copilot-allowlist-reference （2026-09-29）
+GitHub,域名后缀,ghcr.io,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+GitHub,域名后缀,github.blog,否,是,该收,GitHub 第一方博客、OAuth 应用域和状态页，2026-09-29 的 v2fly github 列表里有。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/github
+GitHub,域名后缀,github.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+GitHub,域名后缀,github.dev,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+GitHub,域名后缀,github.io,是,否,该收,GitHub /meta 的 domains.website 包含 *.github.io。另一版没写，GitHub Pages 会掉进国外默认。,rules/github/github.list 引用 https://api.github.com/meta （2026-09-16）；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/github 亦有 github.io
+GitHub,域名后缀,githubapp.com,否,是,该收,GitHub 第一方博客、OAuth 应用域和状态页，2026-09-29 的 v2fly github 列表里有。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/github
+GitHub,域名后缀,githubassets.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+GitHub,域名后缀,githubstatus.com,否,是,该收,GitHub 第一方博客、OAuth 应用域和状态页，2026-09-29 的 v2fly github 列表里有。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/github
+GitHub,域名后缀,githubusercontent.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+PayPal,域名后缀,paypal.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+PayPal,域名后缀,paypal.me,否,是,该收,PayPal.me 收款短链，第一方域名。不要连带收 v2fly paypal 列表里的 paypa1.com 这类钓鱼相似域名，另一版也没有收那些。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） data/paypal 中的 paypal.me；对照本仓库只收 paypal.com / paypalobjects.com
+PayPal,域名后缀,paypalobjects.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+广告拦截,完整域名,adeventtracker.spotify.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,adstudio-assets.scdn.co,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,an.facebook.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,analytics.google.com,否,是,不确定,上游标了广告/统计，但 graph.* 也可能是客户端接口，analytics.google.com 会挡住 GA 后台。另一版自己也写了会连带误伤。,另一版 adblock.yaml note；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all
+广告拦截,完整域名,bat.bing.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,bloodhound.spotify.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,copilot-telemetry-service.githubusercontent.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,完整域名,px.ads.linkedin.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,ad.games.dmm.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,adcolony.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,adform.net,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,adnxs.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,adotmob.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,ads.youtube.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,adsafeprotected.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,adservice.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,adsrvr.org,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,adtechus.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,advertising.apple.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,advertising.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,alimama.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,amazon-adsystem.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,analytics-alv.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,analytics.facebook.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,analytics.tiktok.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,api-adservices.apple.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,browser.events.data.msn.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,casalemedia.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,chartboost.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,criteo.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,doubleclick.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,doubleclick.net,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,doubleverify.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,everesttech.net,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,fcmatch.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,flashtalking.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,googleadapis.l.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,googleadservices.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,googlesyndication.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,googletagservices.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,graph-fallback.instagram.com,否,是,不确定,上游标了广告/统计，但 graph.* 也可能是客户端接口，analytics.google.com 会挡住 GA 后台。另一版自己也写了会连带误伤。,另一版 adblock.yaml note；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all
+广告拦截,域名后缀,graph.instagram.com,否,是,不确定,上游标了广告/统计，但 graph.* 也可能是客户端接口，analytics.google.com 会挡住 GA 后台。另一版自己也写了会连带误伤。,另一版 adblock.yaml note；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all
+广告拦截,域名后缀,graph.whatsapp.com,否,是,不确定,上游标了广告/统计，但 graph.* 也可能是客户端接口，analytics.google.com 会挡住 GA 后台。另一版自己也写了会连带误伤。,另一版 adblock.yaml note；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all
+广告拦截,域名后缀,graph.whatsapp.net,否,是,不确定,上游标了广告/统计，但 graph.* 也可能是客户端接口，analytics.google.com 会挡住 GA 后台。另一版自己也写了会连带误伤。,另一版 adblock.yaml note；v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all
+广告拦截,域名后缀,iad.apple.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,iadsdk.apple.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,inmobi.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,inner-active.mobi,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,ironsrc.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,mail-ads.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,marketingplatform.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,media.net,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,moatads.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,mobileads.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,openx.net,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,outbrain.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,pagead.l.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,partnerad.l.google.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,pixel.facebook.com,否,是,该收,落在产品根域下的广告或跟踪主机，必须写在该产品规则之前，否则 YouTube/Google/Apple 后缀会把它们放行。本仓库广告列表没有这些子域。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ads-all 展开（另一版 ev=dlc）或维护者注
+广告拦截,域名后缀,pubmatic.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,quantserve.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,rubiconproject.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,scorecardresearch.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,smaato.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,smartadserver.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,taboola.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,tanx.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,tapjoy.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,teads.tv,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,umeng.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,umengcloud.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名后缀,vungle.com,是,否,该收,独立广告网络后缀，写在所有产品规则之前。另一版不写这些显式条，改走远程 category-ads-all / AdvertisingLite，两边集合不重合，不代表这些域名不该拦截。,rules/ads-reject/ads-reject.list 头注释（ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads）
+广告拦截,域名集合,category-ads-all,否,是,不该收,不要把整份 geosite 抄进本仓库生成器。本仓库 DNS/规则政策写明不发 geosite（空工作目录没有 geo 库，且上游含关键词规则）。另一版在 mihomo/sing-box 用它做远程集合是另一套设计。,policy/dns.yaml；另一版 adblock.yaml remote_lists
+国内直连,完整域名,qianwen.aliyun.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,完整域名,tongyi.aliyun.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,完整域名,yiyan.baidu.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,完整域名,yuanbao.tencent.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,10010.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,12306.cn,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,126.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,163.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,1688.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,360.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,36kr.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,4399.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,58.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,abchina.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,alipay.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,alipayobjects.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,aliyun.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,aliyundrive.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,amap.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,autonavi.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,b23.tv,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+国内直连,域名后缀,baidu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,bankcomm.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,bdstatic.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,bigmodel.cn,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,biliapi.com,否,是,该收,哔哩哔哩大陆接口和视频 CDN，不是 bilibili.com 的子域，本仓库只收了 bilibili.com / b23.tv，这些会漏走代理。不要和港澳台解锁主机混用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+国内直连,域名后缀,biliapi.net,否,是,该收,哔哩哔哩大陆接口和视频 CDN，不是 bilibili.com 的子域，本仓库只收了 bilibili.com / b23.tv，这些会漏走代理。不要和港澳台解锁主机混用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+国内直连,域名后缀,bilibili.com,是,是,一致,两边同类型、同值、同一分流。,本仓库规则源与另一版 source
+国内直连,域名后缀,biligame.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,bilivideo.cn,否,是,该收,哔哩哔哩大陆接口和视频 CDN，不是 bilibili.com 的子域，本仓库只收了 bilibili.com / b23.tv，这些会漏走代理。不要和港澳台解锁主机混用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+国内直连,域名后缀,bilivideo.com,否,是,该收,哔哩哔哩大陆接口和视频 CDN，不是 bilibili.com 的子域，本仓库只收了 bilibili.com / b23.tv，这些会漏走代理。不要和港澳台解锁主机混用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+国内直连,域名后缀,ccb.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,cctv.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,chatglm.cn,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,chinaunicom.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,cmbchina.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,csdn.net,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,ctrip.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,deepseek.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,delivery.mp.microsoft.com,否,是,不确定,微软更新/分发，国内常有 CDN，但是否应脱离 Microsoft 组直接 DIRECT，本次没有实测。,另一版 misc.yaml ev=maintainer
+国内直连,域名后缀,dianping.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,dingtalk.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,douban.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,doubao.com,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,douyin.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,eastmoney.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,ele.me,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,gitee.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,hao123.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,hdslb.com,否,是,该收,哔哩哔哩大陆接口和视频 CDN，不是 bilibili.com 的子域，本仓库只收了 bilibili.com / b23.tv，这些会漏走代理。不要和港澳台解锁主机混用。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）
+国内直连,域名后缀,hupu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,ifeng.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,iqiyi.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,ixigua.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,jd.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,kimi.com,否,是,不确定,另一版写明国内外共用，待实测。moonshot.cn 可以直连，kimi.com 不要凭品牌直接归国内。,另一版 ai.yaml note
+国内直连,域名后缀,kuaishou.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,meituan.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,mgtv.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,mihoyo.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,moonshot.cn,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,域名后缀,netease.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,pinduoduo.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,qpic.cn,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,qq.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,sina.cn,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,sina.com.cn,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,smzdm.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,so.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,sogou.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,sohu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,suning.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,taobao.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,tmall.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,toutiao.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,unionpay.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,vip.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,weibo.cn,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,weibo.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,windowsupdate.com,否,是,不确定,微软更新/分发，国内常有 CDN，但是否应脱离 Microsoft 组直接 DIRECT，本次没有实测。,另一版 misc.yaml ev=maintainer
+国内直连,域名后缀,xiaohongshu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,xiaojukeji.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,xinhuanet.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,xueqiu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,yangkeduo.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,youdao.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,youku.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,zhihu.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,zhimg.com,是,否,该收,"审计过的国内产品后缀，每条有候选源、DNS 和公开站点。另一版几乎不写这些显式条，改靠 GEOSITE,cn。本仓库没有 geosite 时，这些条是国内直连唯一的命中来源，必须留。",rules/domestic-direct/AUDIT.md（2026-09-16）
+国内直连,域名后缀,zhipuai.cn,否,是,该收,国内版 AI，应直连，不能放进其他 AI。这是基线：其他 AI 不含豆包、DeepSeek、通义、文心、Kimi 国内版、智谱。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） category-ai-cn / deepseek / doubao（另一版 upstream）；本仓库 other-ai AUDIT 明确留给国内直连
+国内直连,地理 IP,CN,否,是,不该收,本仓库写明国内 IP 段没有可靠到能编进规则的源，不用 GEOIP 冒充。另一版把它当兜底。,policy/domestic_direct.yaml
+国内直连,域名集合,cn,否,是,不该收,本仓库明确不用 geosite:cn 代替审计过的后缀，也不把整份国内域名表抄进来。,policy/dns.yaml；policy/domestic_direct.yaml
+共享基础设施,域名后缀,akamai.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,akamaihd.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,akamaized.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,amazonaws.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,azure.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,azure.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,azureedge.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,cloudfront.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,edgesuite.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,ggpht.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,googleapis.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,googleusercontent.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,gstatic.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,msecnd.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,windows.net,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+共享基础设施,域名后缀,windowsazure.com,是,否,该收,共享 CDN/云根，绑国外默认，不单开可见组。产品精确主机在前。另一版没有这一层，把 googleapis.com 等挂进 Google/Microsoft，或干脆不写、靠国外默认兜底。整段 amazonaws.com、cloudfront.net、akamai.net 很宽，但是本仓库有意为之，不能改挂到某个业务组。,rules/shared-infra/shared-infra.list；policy/shared_infra.yaml
+开发下载,完整域名,production.cloudflare.docker.com,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,完整域名,proxy.golang.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,完整域名,repo.maven.apache.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,完整域名,sum.golang.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,anaconda.com,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,anaconda.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,brew.sh,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,bun.sh,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,cocoapods.org,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,crates.io,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,deno.land,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,docker.com,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,docker.io,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,gcr.io,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,go.dev,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,gradle.org,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,jsr.io,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,k8s.io,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,maven.org,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,nodejs.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,npmjs.com,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,npmjs.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,nuget.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,packagist.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,pkg.dev,否,是,不确定,另一版标了维护者知识，或域名过宽（例如整段 docker.com、pkg.dev）。两个上游快照未收录的不要直接并。,另一版 misc.yaml note
+开发下载,域名后缀,pub.dev,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,pypi.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,python.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,pythonhosted.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,quay.io,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,rubygems.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,rust-lang.org,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,rustup.rs,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+开发下载,域名后缀,yarnpkg.com,否,是,该收,通用开发依赖，应进开发下载而不是 Claude/Cursor。Claude 官方网络表把 registry.npmjs.org 和 formulae.brew.sh 列进放行清单，但它们不是 Claude 产品。本仓库开发下载组还没有规则。,https://code.claude.com/docs/en/network-config （2026-09-29）列出 npm 与 brew；其余见 v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） 与 GitHub Copilot cloud agent 允许表中的包仓库
+远程控制,域名后缀,cursorvm.com,否,是,该收,官方要求放行 *.cursorvm.com 与嵌套 *.*.cursorvm.com，后缀能覆盖两层。本仓库把同一条写在 Cursor 组，归远程控制更合适，默认仍是日本（国外默认的默认地区）。,https://cursor.com/docs/enterprise/network-configuration （2026-09-29）
+国外默认,完整域名,challenges.cloudflare.com,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,完整域名,m.stripe.com,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,完整域名,m.stripe.network,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,域名后缀,amazon.co.jp,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名后缀,amazon.co.uk,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名后缀,amazon.com,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名后缀,app.link,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,域名后缀,ct.sendgrid.net,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,域名后缀,hcaptcha.com,否,是,该收,人机验证、支付风控或邮件跳转，应放行到国外默认，不能 REJECT，也不能收进 OpenAI。只有在广告规则会误伤它们时才需要写在广告之前。,另一版 adblock.yaml exceptions；OpenAI 官方放行列出 ct.sendgrid.net 与 challenges.cloudflare.com（本仓库 AUDIT 有意不收进 OpenAI）
+国外默认,域名后缀,images-amazon.com,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名后缀,media-amazon.com,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名后缀,ssl-images-amazon.com,否,是,该收,亚马逊购物站归国外默认，不单开组。Prime 的更具体规则必须排在前面。本仓库 Prime 包仍是空的，所以现在加 amazon.com 不会误伤 Prime，但以后补 Prime 时顺序不能反。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22）；本仓库 catalog：Prime 须在 Amazon 之前，本轮无 Amazon 组
+国外默认,域名集合,geolocation-!cn,否,是,不该收,本仓库未命中规则用 MATCH/FINAL 到国外默认，不需要再加 geolocation-!cn。该集合含宽规则，且本仓库不发 geosite。,policy/foreign_default.yaml；policy/dns.yaml
+系统联网检测,完整域名,captive.apple.com,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+系统联网检测,完整域名,connect.rom.miui.com,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+系统联网检测,完整域名,connectivitycheck.platform.hicloud.com,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+系统联网检测,完整域名,wifi.vivo.com.cn,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+系统联网检测,域名后缀,msftconnecttest.com,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+系统联网检测,域名后缀,msftncsi.com,否,是,该收,系统联网检测应固定直连，和节点健康检查不是同一种流量。本仓库 DNS 意图提到部分主机，但路由规则没有发出这些条。,v2fly/domain-list-community master（2026-09-29 抽查）及另一版快照 c1c2cf0（2026-09-22） connectivity-check；另一版 misc.yaml
+局域网/保留地址,域名后缀,home.arpa,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,域名后缀,lan,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,域名后缀,local,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,域名后缀,localdomain,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,域名后缀,localhost,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,0.0.0.0/8,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,10.0.0.0/8,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,100.64.0.0/10,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,127.0.0.0/8,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,169.254.0.0/16,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,172.16.0.0/12,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,192.168.0.0/16,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,224.0.0.0/4,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv4 段,255.255.255.255/32,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv6 段,::1/128,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv6 段,fc00::/7,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv6 段,fe80::/10,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted
+局域网/保留地址,IPv6 段,ff00::/8,否,是,该收,标准局域网和保留地址，应固定 DIRECT。本仓库 policy 写明尚未发出 skip-proxy / bypass-tun。,另一版 project.yaml lan；本仓库 policy/dns.yaml lan_intranet=not_emitted

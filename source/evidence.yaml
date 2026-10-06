@@ -1,0 +1,126 @@
+# 证据登记：每条规则都引用这里的一个 id。
+# kind:
+#   official          官方文档，本次（checked 日期）实际查阅
+#   official-unfetched 官方来源，但本次环境无法重新抓取，内容来自维护者既有知识，需复核
+#   community         社区规则集中的条目。带 snapshot 的，表示已按固定提交逐条核对：
+#                     规则值必须出现在该服务 upstream 字段所列的上游列表里（同值，或被非汇总列表中的上级域名覆盖），
+#                     核对记录见 docs/evidence/upstream-snapshot.json，由 tools/check_upstream_evidence.py 生成，
+#                     tests/test_source.py 检查记录与统一源一致。
+#   maintainer        维护者知识，未找到官方清单或上游条目，需实测或复核
+#   requirement       需求指定：用户要求原样保留的条目（例如 Apple AI 基线），收录理由是需求本身；
+#                     能找到官方或上游依据的条目仍按更强的证据登记，这一类只用于找不到依据的
+#   imported          从另一版（Cursor 版）导入、按用户要求迁入，但本项目在官方文档和两个上游快照里都没找到同值条目
+# 注意：官方“网络放行清单”不等于产品归属表；清单中的第三方共享服务在 services/*.yaml 的 shared_excluded 里单独记录。
+# 上游规则集只是证据来源之一：不按出现次数投票，也不直接求并集；是否收录、归哪个组由本项目决定并写明理由。
+
+evidence:
+  openai-net:
+    kind: official
+    url: https://help.openai.com/en/articles/9247338-network-recommendations-for-chatgpt-errors-on-web-and-apps
+    checked: 2026-09-23
+    note: ChatGPT 网页与应用的放行清单（含 *.openai.com、*.chatgpt.com、*.oaistatic.com、*.oaiusercontent.com、*.oaistatsig.com 及若干第三方）
+  claude-net:
+    kind: official
+    url: https://code.claude.com/docs/en/network-config
+    checked: 2026-09-23
+    note: Claude Code 网络要求（api.anthropic.com、claude.ai、claude.com、platform.claude.com、*.claudeusercontent.com 等及第三方依赖）
+  cursor-net:
+    kind: official
+    url: https://cursor.com/docs/enterprise/network-configuration
+    checked: 2026-09-29
+    note: "*.cursor.sh、*.cursor-cdn.com、*.cursorapi.com、downloads.cursor.com、anysphere-binaries S3；*.cursorvm.com 与 *.*.cursorvm.com 为 Grok Bot 托管计算机所需；9 月 30 日起的登录主机见 cursor-signin（2026-09-29 复核）"
+  cursor-signin:
+    kind: official
+    url: https://cursor.com/help/troubleshooting/sign-in-domains
+    checked: 2026-09-30
+    note: "9 月 30 日起登录改用 accounts.spacex.ai、accounts.x.ai（authenticator.cursor.sh 作为回退保留到 10 月 30 日）；最少需要放行 accounts.x.ai、accounts.spacex.ai、auth.x.ai、auth.grok.com、auth.grokusercontent.com、auth.grokipedia.com；建议整段放行 *.spacex.ai、*.x.ai、*.grok.com、*.grokusercontent.com、*.grokipedia.com"
+  meta-ig-api:
+    kind: official
+    url: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/messaging-api/
+    checked: 2026-09-30
+    note: Instagram API with Instagram Login 的发消息接口，示例请求为 POST https://graph.instagram.com/v25.0/<IG_ID>/messages
+  claude-desktop-net:
+    kind: official
+    url: https://code.claude.com/docs/en/desktop
+    checked: 2026-09-29
+    note: Claude 桌面版网络要求（Network access requirements）：anthropic.com、claude.ai、claude.com、claude.app 及其子域、*.claudeusercontent.com、*.claudemcpcontent.com
+  apple-ent-net:
+    kind: official
+    url: https://support.apple.com/en-us/101555
+    checked: 2026-09-29
+    note: Apple“在企业网络中使用 Apple 产品”。“Apple Intelligence, Siri, and Search”一节：guzzoni.apple.com（Siri 与听写）、*.smoot.apple.com（搜索服务）、apple-relay.apple.com（Apple Intelligence 扩展）、apple-relay.cloudflare.com / apple-relay.fastly-edge.com / cp4.cloudflare.com（Private Cloud Compute）；iCloud 一节：mask.icloud.com / mask-h2.icloud.com / mask-api.icloud.com（iCloud 专用代理）、gateway.icloud.com（CloudKit 内容，含 XProtect 更新与语音控制资源）
+  apple-ai-req:
+    kind: requirement
+    note: 需求补充（2026-09-29）：Apple AI 组照搬 Cursor 版 18 条规则（Cursor 版的 rules/apple-ai/APPLE_AI_18.list，“基线不得删除或改写”；逐条见对照明细副本 docs/evidence/cursor-对照明细.csv），关键词 siri 改为具体主机名；本登记只用于官方文档和上游快照里都没有同值依据的条目
+  google-supported-domains:
+    kind: official
+    url: https://www.google.com/supported_domains
+    checked: 2026-09-29
+    note: Google 官方搜索域名列表，共 187 个，与 Cursor 版逐条一致
+  m365-endpoints:
+    kind: official
+    url: https://endpoints.office.com/endpoints/worldwide
+    checked: 2026-09-29
+    note: Microsoft 365 全球端点 Web 服务；Cursor 版“M365 端点”清单中本项目原有规则没覆盖的条目，逐条在返回结果的 urls 里确认存在
+  openai-sora-eol:
+    kind: official
+    url: https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation
+    checked: 2026-09-29
+    note: Sora 网页与 App 已于 2026-04-26 停止服务，API 于 2026-09-24 停止；导出页在 sora.chatgpt.com/sunset（已被 chatgpt.com 规则覆盖）
+  cursor-import:
+    kind: imported
+    note: 从 Cursor 版导入（其 ads-reject.list 注明来源为 ACL4SSR BanAD、Loyalsoldier reject、v2fly category-ads），但在两个固定快照（dlc category-ads-all、blackmatrix7 AdvertisingLite）里都没有同值条目；按用户要求迁入，未独立核实
+  gca-net:
+    kind: official
+    url: https://docs.cloud.google.com/gemini/docs/codeassist/set-up-gemini
+    checked: 2026-09-23
+    note: Gemini Code Assist 放行清单（cloudaicompanion.googleapis.com 主接口、cloudcode-pa.googleapis.com IDE 接口，其余为共享 Google 服务）；daily-cloudcode-pa.googleapis.com 不在清单内（同日复核）
+  ghcopilot-net:
+    kind: official
+    url: https://docs.github.com/en/copilot/reference/allowlist-reference
+    checked: 2026-09-23
+    note: GitHub Copilot 放行清单（*.githubcopilot.com、copilot-proxy / origin-tracker.githubusercontent.com、copilot-reports.github.com；遥测 copilot-telemetry.githubusercontent.com/telemetry 与 collector.github.com/* 也在清单内，同日复核）
+  gh-agent-allowlist:
+    kind: official
+    url: https://docs.github.com/en/copilot/reference/copilot-allowlist-reference
+    checked: 2026-09-30
+    note: Copilot 云端 Agent 推荐放行清单的“编程语言与包管理器 / 基础设施与工具”部分，列出各语言生态的下载入口；这里只作为用途依据，这些主机归开发下载，不归 Copilot
+  github-runner-net:
+    kind: official
+    url: https://docs.github.com/en/actions/reference/runners/self-hosted-runners
+    checked: 2026-09-30
+    note: 自托管 Runner 网络要求，“Needed for Git Large File Storage”下列出 github-cloud.githubusercontent.com 与 github-cloud.s3.amazonaws.com
+  gemini-api:
+    kind: official-unfetched
+    url: https://ai.google.dev/
+    note: Gemini API 端点 generativelanguage.googleapis.com、文档站 ai.google.dev
+  telegram-cidr:
+    kind: official-unfetched
+    url: https://core.telegram.org/resources/cidr.txt
+    note: Telegram 官方公布的 IP 段；本次环境抓取未获授权，按既有知识录入，发布前需对照官方文件复核
+  netflix-oc:
+    kind: official-unfetched
+    url: https://openconnect.netflix.com/
+    note: Netflix Open Connect；本版本未收录 Netflix IP 段（需按官方与实测核实后再加）
+  dlc:
+    kind: community
+    url: https://github.com/v2fly/domain-list-community
+    snapshot: c1c2cf0d252871e8739747714df06e8d2671f72f
+    snapshot_date: 2026-09-22
+    checked: 2026-09-23
+    note: domain-list-community 固定快照中、该服务 upstream.dlc 所列列表里的条目
+  bm7-snap:
+    kind: community
+    url: https://github.com/blackmatrix7/ios_rule_script
+    snapshot: 51d2e1dd8429a91be575157d6f8ed051c93559f8
+    snapshot_date: 2026-09-21
+    checked: 2026-09-23
+    note: blackmatrix7 规则集固定快照（rule/Clash/<列表名>/<列表名>.list）中、该服务 upstream.bm7 所列列表里的条目；用于 dlc 快照里没有的条目
+  bm7:
+    kind: community
+    url: https://github.com/blackmatrix7/ios_rule_script
+    checked: 2026-09-23
+    note: 仅用于 Loon / Quantumult X 的远程广告集合（AdvertisingLite，由客户端直接从上游更新，内容不固定）；本次抓取了文件头确认存在与规模
+  maintainer:
+    kind: maintainer
+    note: 维护者知识，未找到官方清单，两个上游快照的映射列表里也没有；需实测命中与功能后才能视为已验证

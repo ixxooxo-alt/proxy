@@ -1,0 +1,8 @@
+本轮工具返回结果整理（官方检查通过时没有输出文本）
+日期：2026-09-29 Asia/Taipei
+官方程序：sing-box 1.12.0
+命令：sing-box check -c review-extracted-r5/proxy-rules/dist/sing-box/sing-box-1.12.json
+stdout: (empty)
+stderr: (empty)
+exit_code: 0
+范围：公开模板检查；无真实节点运行测试。

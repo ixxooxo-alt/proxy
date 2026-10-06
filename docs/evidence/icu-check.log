@@ -1,0 +1,19 @@
+运行时间（UTC）：2026-10-05 06:07:37
+Python：Python 3.11.17，PyYAML：6.0.1
+统一源摘要：8548a038b895c914ce67ad66c155b5531a0ff34cab809bc9e1514474e074aed7
+命令：python3 tools/check_icu.py --public --verbose
+
+ICU 库：libicui18n.so.74（符号后缀 _74）
+统一源 2026.10.02-1；7 条筛选正则 × 2158 个节点名（其中 498 个有手写的期望）
+  hk：正则 9375 字节，ICU 平均 7 微秒 / 次
+  jp：正则 10875 字节，ICU 平均 11 微秒 / 次
+  kr：正则 10549 字节，ICU 平均 11 微秒 / 次
+  tw：正则 10738 字节，ICU 平均 12 微秒 / 次
+  sg：正则 10434 字节，ICU 平均 11 微秒 / 次
+  us：正则 12837 字节，ICU 平均 12 微秒 / 次
+  other：正则 8934 字节，ICU 平均 10 微秒 / 次
+ICU 与 Python 的匹配结果：完全一致
+ICU 的分组与手写期望：完全一致
+ICU 平均每次匹配 10 微秒（含调用开销；本机 CPU，手机会慢几倍）。按 300 个节点估算：Loon 22 毫秒，Quantumult X（每个模式组各一条，约 26 条）82 毫秒
+带本地补充样例（tests/local_overlay_sample.yaml）的正则 × 2176 个节点名：ICU 与 Python 完全一致；19 个手写期望全部符合
+退出码：0
