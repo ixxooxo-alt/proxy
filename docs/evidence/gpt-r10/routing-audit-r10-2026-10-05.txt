@@ -1,0 +1,172 @@
+分流配置 r10 独立审核报告
+审核日期：2026-10-05
+审核对象：proxy-rules-review-2026.10.05-r10.zip
+统一源：2026.10.05-1；生成器：1.4.0
+压缩包 SHA-256：2408d733ee88eb690c32774b89ff855a3f0fb6542f5411ea448f35e2c59a66e0
+
+结论
+
+框架可以继续使用，图标接入没有发现地址、编码或生成字段错误。r9 的两条意见已在对应代码中修正；其中分组修正已在本轮用官方 mihomo 实际复核，sing-box 修正通过语法与源码核对，本轮运行验证仍受环境权限限制。
+
+本轮新确认 1 项条件性逻辑遗漏：mihomo 的代理节点地址如果是 gateway.lan 之类的内网名字，仍会绕过普通 nameserver-policy，交给公共 DNS。此问题原先就存在，不是图标引入的，也不表示公网订阅节点普遍不可用。
+
+没有发现本轮覆盖范围内的 mihomo / sing-box 配置存在解析错误。Loon / Quantumult X 没有真机导入结果，不能把自制解析器、ICU 检查和图片下载成功写成四端完整验收。
+
+本次为审核：原包中的源代码、规则、测试和成品配置均未修改；审核结束前逐文件与压缩包核对，相同。
+
+一、确认问题：mihomo 内网节点域名缺少专用 DNS 策略
+
+编号：R10-F01
+程度：中等，条件性节点不可用／内部名称外发。
+证据：官方文档、目标版本源码、mihomo v1.19.31 实际拨号对照，三者一致。
+
+位置：
+  generator/emit_mihomo.py：第 210 行设置 proxy-server-nameserver；第 216–220 行只设置普通 nameserver-policy 和 direct-nameserver-follow-policy。
+  dist/mihomo/mihomo-core.yaml、dist/mihomo/mihomo-profile.yaml：dns 段。
+  docs/03-DNS决策表.md：第 9 行“代理节点自身域名”目前只说明国内 DoH，未说明内网节点例外缺失。
+
+触发：
+  订阅中有一个代理节点，server 为 gateway.lan、proxy.home.arpa 等只有本地 DNS 认识的名字，且没有 hosts 映射等独立覆盖。
+
+原因：
+  proxy-server-nameserver 非空时，节点服务器的解析使用单独的 resolver。
+  普通 nameserver-policy 中的“+.lan 等 → system”不会自动成为节点解析策略；direct-nameserver-follow-policy 只涉及直连出口。
+  mihomo 为此提供独立字段 proxy-server-nameserver-policy。
+
+源码依据（v1.19.31）：
+  dns/resolver.go：第 607–614 行，ProxyResolver.main 来自 config.ProxyServer，policy 来自 config.ProxyServerPolicy，而不是普通 config.Policy。
+  config/config.go：第 245–246 行登记两个节点 DNS 字段；第 1449–1457 行独立解析并检查其依赖关系。
+
+本轮实际复现：
+  在生成配置的 DNS 结构上，把公共／本地／境外解析器的地址分别换成本机 UDP DNS 替身；保留真正的 SOCKS 节点拨号。
+  节点服务器取 gateway.lan，测试目标取 dial-probe.invalid。DNS 一律返回 127.0.0.1，节点端口为本机关闭端口，不连接外网。
+  原配置结构：gateway.lan 的查询只到“国内 DNS”替身，本地替身没有收到查询。
+  只增加 proxy-server-nameserver-policy 后：gateway.lan 的查询只到“本地 DNS”替身，国内替身没有收到查询。
+  拨号最终被本机端口拒绝是测试设计；验证的是节点名称交给谁解析，不是代理服务器连通性。
+
+建议局部修改：
+  在 mihomo 的 dns 段增加下列字段，由现有 lan.domain_suffix 自动生成键：
+
+    proxy-server-nameserver-policy:
+      '+.lan,+.local,+.localdomain,+.home.arpa,+.localhost': [system]
+
+  保留原来的 proxy-server-nameserver，公网节点继续用国内 DNS。
+  不要清空 proxy-server-nameserver：当前 respect-rules: true 依赖它，清空会引入另一项配置错误。
+  同步补一条内网节点解析的针对性验证和 DNS 决策表说明即可，不需要重写 DNS 层。
+  这段建议只覆盖现有局域网后缀；不带点的节点名、公司私有后缀应按实际需求另行明确，不假定这一个字段已经处理所有内网命名。
+
+依据：
+  https://wiki.metacubex.one/en/config/dns/#proxy-server-nameserver
+  https://wiki.metacubex.one/en/config/dns/#proxy-server-nameserver-policy
+  https://raw.githubusercontent.com/MetaCubeX/mihomo/v1.19.31/dns/resolver.go
+  https://raw.githubusercontent.com/MetaCubeX/mihomo/v1.19.31/config/config.go
+  本轮复现记录：review-r10/evidence/mihomo-dial.log
+
+二、r9 两项修复的复核
+
+1. r9-F01：唯一地名仅出现在解锁／中转位置，却进入自动组
+
+  修复成立。generator/regions.py 的 text_s 已改为要求 only（有效落地词），删除“只提到一个地区就算”的捷径；Classifier 的 unplaced 分支不再填写 auto。
+
+  本轮独立构造 367 个名字，先写期望，再比较逐步分类器、宽严正则及 mihomo 实际分组，全部一致。包括六个地区的中文名／国旗、8 种连接符、中转／入口／relay、解锁、via／经，以及正常节点对照。
+
+  代表结果：
+    IEPL 01 Unlock US       → 美国手动；不进自动类组。
+    日本中转 01             → 日本手动；不进自动类组。
+    🇯🇵中转 01              → 日本手动；不进自动类组。
+    经香港 01               → 香港手动；不进自动类组。
+    港日中转 01             → 日本手动；不进自动类组。
+    🇭🇰🇯🇵中转 01           → 香港、日本手动；不进自动类组。
+    香港 01 | 🇺🇸解锁       → 香港手动及自动类组。
+    日本-转-美国-01         → 美国手动及自动类组。
+
+  对“是否严过头”的判断：沿用“没有明确落地依据就只供手选”的决定是合理的。“香港中转”在人读起来可能是香港出口，但字样本身没有消除歧义；不建议为了让自动组变满而全局放宽。已确认某机场命名含义的节点，可以用已有 local.yaml 指定归属。
+  “香港 01 中转”“香港 | 中转 | 01”仍进入自动、“🇭🇰 香港中转”仍按独立国旗进入自动，是项目已公开的词法边界，不能视为出口地理位置已被验证。
+  known_auto_limits 中的 7 种、宣传语国旗和解锁段落边界仍是已知限制，本轮不重复报错，也不声称穷尽所有机场命名。
+
+2. r9-F02：sing-box 节点／域名形式直连目标的局域网解析
+
+  代码修复方向正确：
+    generator/emit_singbox.py 第 201–206 行：符合局域网名字条件的节点指定 domain_resolver: dns-local。
+    第 218–226 行：sniff、hijack-dns 后，对局域网后缀先执行 resolve，再进入原来的直连规则。
+    全局 default_domain_resolver 保持 dns-cn。
+
+  对新增 resolve 是否影响原本已经是 IP 的 TUN 连接：目标版本 route/route.go 的 actionResolve 先检查 metadata.Destination.IsDomain()，IP 目标不会重新解析；这与代码注释一致。对域名目标，它设置解析后的地址，再继续后面的路由规则。
+  不带点的节点名交给本地解析器是合理的默认选择；公司自定义后缀仍须登记。访问目标 http://nas/ 是另一项已经记录的限制，不能因为节点服务器支持单标签名字，就宣称访问目标也已支持。
+
+  本轮官方 check 通过；包内两个版本分别记录的拨号核对及去掉修复的对照，方法具有针对性。
+  但本轮独立运行 sing-box v1.14.1 时仍报 create netlink socket: operation not permitted，v1.12.0 同样在启动服务时报 operation not permitted。因此，本报告没有把包内日志当成本轮成功运行结果。
+  mixed 入站＋本机 DNS 替身可以验证公共拨号解析代码选择了哪个 DNS tag；不能证明 SFA 的 Android 平台 DNS、VPN 接管、mDNS 或用户路由器的真实返回值都正确。
+
+  源码与文档：
+    https://raw.githubusercontent.com/SagerNet/sing-box/v1.14.1/route/route.go （actionResolve）
+    https://sing-box.sagernet.org/configuration/route/rule_action/#resolve
+    https://sing-box.sagernet.org/configuration/shared/dial/#domain_resolver
+
+三、新增图标的审核
+
+结果：没有发现图标映射、文件地址或图片文件错误。
+
+1. Loon、Quantumult X、mihomo 两个变体均有 81 个策略组图标，组名与图片名对应，没有重复引用同一张图的情况。
+2. Apple Music/TV 的半角斜杠正确映射为文件名中的全角斜杠；空格、加号、间隔号及汉字均按 UTF-8 百分号编码，地址没有额外的逗号、空格或引号破坏配置行。
+3. 本轮读取图标仓库 main 的树，提交仍为 2d43eae18d1be7987b620e53e39b49968fa51b83，与 icons.yaml 登记相同。
+4. 独立下载仓库列出的全部 84 张 256px 图片，均成功；不仅检查 PNG 文件头，还完整解码图片。配置使用的 81 张全部为 256×256 RGBA PNG，合计 6,952,443 字节。下载文件的 Git blob 摘要均与该提交目录树一致。
+5. 生成配置中的 81 个地址与仓库 icon-urls.json 的 url_256px 逐项相同。其余 DIRECT、REJECT、无可用节点三张未用于策略组，符合登记。
+6. 关掉图标的已有测试通过：四份带图标产物除图标字段外不变，sing-box 两份不受影响。
+
+字段依据与验证程度：
+  mihomo：GroupCommonOption 有 icon 字段，带图标的两份完整配置通过 v1.19.31 -t。界面如何显示仍取决于前端。
+  Quantumult X：官方 sample.conf 明确示例 server-tag-regex 后接 img-url；当前参数顺序有官方示例依据，未发现必须调换顺序的理由。
+  Loon：本轮获取的官方 example2.lcf 有 img-url 参数，但示例值为 network.system。远程 HTTPS 图片、各组类型及空格写法的实际接受情况仍缺真机验证；不能因为没有更详尽的官方示例，就直接判为错误。
+  sing-box：正确地没有写入不支持的图标字段。
+
+本轮下载成功不代表用户网络一定能访问 raw.githubusercontent.com，也不证明客户端已显示或刷新缓存。256px/512px 的选择属于显示与体积取舍，当前 256px 没有发现技术错误。
+
+依据：
+  https://raw.githubusercontent.com/crossutility/Quantumult-X/master/sample.conf （第 101、105 行）
+  https://raw.githubusercontent.com/Loon0x00/LoonExampleConfig/master/example2.lcf （第 114 行）
+  https://raw.githubusercontent.com/MetaCubeX/mihomo/v1.19.31/adapter/outboundgroup/parser.go
+  https://github.com/ixxooxo-alt/icon
+
+四、快照与验证方法的判断（建议，不作为当前分流故障）
+
+把 sing-box 1.14、1.12 的官方记录分开，修正是有效的；新增拨号验证保留真实节点／DIRECT 出站，也补到了上一轮拒绝替身覆盖不到的路径。
+
+tools/real_data.py 第 346–355 行的 routing_digest 只摘要 rules/route 和 dns：
+  用于核对“规则把目标交给哪个组标签”，不包含组成员和图标是合理的，因为该路由探针把组都替换成拒绝出口。
+  用于证明“实际拨号 DNS 行为仍与记录相同”则不够。出站级 domain_resolver、detour 等也能改变拨号行为；本轮直接把 DIRECT.domain_resolver 改为 dns-foreign，routing_digest 仍不变。
+  目前 test_dns_lan.py 另有节点 resolver 结构断言，所以不能据此说现有修复完全没有保护。建议只收窄摘要的说明范围；如果将来要用摘要保证拨号快照新鲜度，应针对带测试节点的拨号配置另记相关字段，而非把整个配置含图标都塞进同一摘要。
+
+16,000 字节是项目自己的正则测试上限，不是已经确认的 Loon／Quantumult X 官方限制。超过它会触发项目测试，不代表客户端必定拒绝；低于它也不保证客户端能接受。
+
+五、本轮实际完成的验证
+
+1. build.py --check：通过，成品与统一源、manifest 一致。
+2. unittest：188 项全部通过，耗时 88.696 秒。负向测试中的故意报错不等于检查失败。
+3. mihomo v1.19.31 -t：core、profile 两份完整配置通过，均带图标。
+4. sing-box v1.14.1 check：1.14、1.12 模板以及带样例节点的 1.14 配置通过；v1.12.0 check：1.12 模板与带样例节点的 1.12 配置通过。未知 HTTP network 字段的负向自检正确失败。
+5. mihomo 实际分组：原有 2283 个名字、本地覆盖样例 2306 个名字通过；本轮独立 367 个边界名字也全部符合预先写出的期望。
+6. mihomo 实际路由选择：265 条核对项、245 个不同目标全部符合当前期望。该项复用 r9 审核于 2026-10-04 下载的真实 geodata，并使用本机 DNS／拒绝出口替身；没有把它写成 2026-10-05 最新上游全网验证。
+7. mihomo 内网节点拨号：复现 R10-F01，并验证增加节点 DNS 策略后查询归属改变。
+8. 图标：81 个引用正确，84 张仓库图片全部下载与解码成功，文件内容与登记提交一致。
+9. 原包文件完整性：逐文件与上传压缩包相同。
+
+复用的官方程序：上一轮已从官方 Releases 下载并核对发布摘要，本轮没有重新下载同版本二进制。
+  mihomo v1.19.31
+  sing-box v1.14.1
+  sing-box v1.12.0
+
+没有完成的验证：
+  sing-box 本轮实际运行（环境权限阻止启动）；Loon / Quantumult X 真机导入；Clash Verge Rev / CMFA 图标显示；SFA 平台 DNS 与 TUN 实测；真实订阅节点出口、业务连通与故障恢复。
+  本轮没有重新逐条在线考证全部业务域名用途；source/services、广告源、业务组及路由顺序的统一源与 r9 相同，重点复核本次变更及现有关键路径。
+
+本轮审核中间记录（相对于审核工作目录，不是上传包原文件）：
+  review-r10/evidence/build-check.log
+  review-r10/evidence/unit-tests.log
+  review-r10/evidence/official-check.log
+  review-r10/evidence/independent-names.log
+  review-r10/evidence/mihomo-dial.log
+  review-r10/evidence/singbox-dial.log
+  review-r10/evidence/mihomo-routes.json
+  review-r10/evidence/icons-online.json
+  review-r10/evidence/independent_probes.py

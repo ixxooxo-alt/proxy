@@ -3,6 +3,7 @@
 
 公开模板里没有节点，所以只检查模板发现不了节点转换的问题（审核 F01 / F02）；这里另用 tests/node_samples.yaml
 里的虚构节点生成一份 sing-box 配置交给官方程序检查。另做一次自检：故意写坏一个出站，确认检查确实会失败。
+mihomo 也有两条自检：把 proxy-server-nameserver 清空（分别只留 respect-rules、只留节点的解析策略），内核必须拒绝加载。
 
 节点按名称分地区（2026-10-02）：`mihomo -t` 只检查配置能不能解析，看不出筛选正则把节点分到了哪里。所以另外
 启动一次 mihomo：把公开配置里的订阅换成一个本地文件订阅（type: file），里面是一批名字来自 tests/ 的假节点
@@ -245,6 +246,20 @@ def main(argv=None):
             with open(p, "w", encoding="utf-8") as f:
                 f.write(files[rel])
             check(f"mihomo -t {rel}", [a.mihomo, "-t", "-d", home, "-f", p])
+        # 自检（2026-10-05 审核 r10）：mihomo 对 proxy-server-nameserver（解析节点服务器地址的 DNS）有两个要求——
+        # 打开 respect-rules 时、写了 proxy-server-nameserver-policy 时，它都不能为空。生成器的写盘前检查
+        # （generator/verify.py 的 check_mihomo）照这两条拦；这里各单独触发一条，确认官方内核确实拒绝加载。
+        for label, edit in (
+                ("清空 proxy-server-nameserver，只留 respect-rules（节点的解析策略已去掉）",
+                 lambda d: (d.__setitem__("proxy-server-nameserver", []), d.pop("proxy-server-nameserver-policy"))),
+                ("清空 proxy-server-nameserver，只留节点的解析策略（respect-rules 已关闭）",
+                 lambda d: (d.__setitem__("proxy-server-nameserver", []), d.__setitem__("respect-rules", False)))):
+            conf = yaml.safe_load(files["mihomo/mihomo-core.yaml"])
+            edit(conf["dns"])
+            p = os.path.join(tmp, "broken-dns.yaml")
+            with open(p, "w", encoding="utf-8") as f:
+                yaml.safe_dump(conf, f, allow_unicode=True, sort_keys=False, width=100000)
+            check(f"自检：mihomo -t，{label}", [a.mihomo, "-t", "-d", home, "-f", p], expect_ok=False)
 
         # sing-box：公开模板 + 带样例节点的私密配置
         jobs = [(a.singbox, "sing-box-1.14.json", files["sing-box/sing-box-1.14.json"]),

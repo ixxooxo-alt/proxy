@@ -12,14 +12,14 @@
 |---|---|---|
 | iPhone / iPad / Mac：Loon | `dist/loon/loon.conf` | 把 `[Remote Proxy]` 里的占位链接换成你的订阅 |
 | iPhone / iPad / Mac：Quantumult X | `dist/quantumultx/quantumultx.conf` | 把 `[server_remote]` 里的占位链接换成你的订阅 |
-| Windows / macOS：Clash Verge Rev | `dist/mihomo/mihomo-profile.yaml` | 把 `proxy-providers` 的 `url` 换成你的订阅 |
+| Windows / macOS：Clash Verge Rev | `dist/mihomo/mihomo-profile.yaml` | 把 `proxy-providers` 的 `url` 换成你的订阅；确认 App 的“DNS 覆写”是关着的（见下面“验证状态”最后一段） |
 | Android：Clash Meta for Android | `dist/mihomo/mihomo-profile.yaml` | 同上 |
 | Linux / 路由器：mihomo 内核直接运行 | `dist/mihomo/mihomo-core.yaml` | 同上；含本机端口与控制面，TUN 默认关闭 |
 | Android：SFA（sing-box） | 需要在本机生成（见下） | sing-box 不支持订阅，节点必须写进配置 |
 
 占位链接是 `https://REPLACE-ME.invalid/请替换为你的订阅链接`，不替换就无法使用。Loon、Quantumult X、Clash Verge Rev 也可以先导入、再在 App 里把订阅换掉（做法见 `docs/01`“导入前”）。订阅链接属于私密信息，不要写回 `source/`，也不要把替换后的文件发给别人。
 
-**这是哪一版**：每份配置开头的注释里写着“统一源版本”，`dist/manifest.json` 里也有。这份说明对应 `2026.10.05-1`（r10）。如果你是在 GitHub 仓库 `ixxooxo-alt/proxy` 里看到它的，先核对那里的 `dist/manifest.json` 是不是这个版本——仓库由仓库主人更新，旧版的配置不含之后各轮的修正。
+**这是哪一版**：每份配置开头的注释里写着“统一源版本”，`dist/manifest.json` 里也有。这份说明对应 `2026.10.05-2`（r11）。如果你是在 GitHub 仓库 `ixxooxo-alt/proxy` 里看到它的，先核对那里的 `dist/manifest.json` 是不是这个版本——仓库的 `main` 在每一版交付之后才更新，旧版的配置不含之后各轮的修正。
 
 **策略组图标**（2026-10-05 起）：Loon、Quantumult X、Clash 系客户端的 81 个策略组各带一个图标地址，指向图标仓库 `https://github.com/ixxooxo-alt/icon` 里和策略组同名的图（256px）；sing-box 没有图标字段。图标只影响显示，不影响分流；图片不在本工程里。三个客户端里显示不显示还没有在真机上看过，Loon 的写法依据最弱——导入后策略组少了或报错时，把 `source/icons.yaml` 的 `enabled` 改成 `false` 重新生成，得到不带图标的同一份配置（`docs/01`“策略组图标”）。
 
@@ -103,12 +103,14 @@ README.md               英文说明；README.zh-CN.md 是这份中文说明
 
 ## 验证状态
 
-自动测试 188 项全部通过。官方程序 mihomo v1.19.31（`-t`）、sing-box v1.14.1 与 v1.12.0（`check`）检查了全部公开配置和一份带样例节点的 sing-box 配置，都通过；另用两者的源码核对了产物中的全部字段名。559 条社区来源规则已按 domain-list-community 与 blackmatrix7 的固定快照逐条核对（`docs/evidence/上游规则对照.md`）。经过 5 轮外部审核（第 2 轮是与 Cursor 版的逐条对照，第 3 轮是 Astra 的独立审核，第 4、5 轮是 GPT 的独立审核），意见与处理见 `docs/08-外部审核记录.md`。
+自动测试 197 项全部通过。官方程序 mihomo v1.19.31（`-t`）、sing-box v1.14.1 与 v1.12.0（`check`）检查了全部公开配置和一份带样例节点的 sing-box 配置，都通过；另用两者的源码核对了产物中的全部字段名。559 条社区来源规则已按 domain-list-community 与 blackmatrix7 的固定快照逐条核对（`docs/evidence/上游规则对照.md`）。经过 6 轮外部审核（第 2 轮是与 Cursor 版的逐条对照，第 3 轮是 Astra 的独立审核，第 4、5、6 轮是 GPT 的独立审核），意见与处理见 `docs/08-外部审核记录.md`。
 
-用真实上游数据核对过路由（2026-10-04）：规则原样、出口全部换成拒绝、只监听本机，把 245 个目标交给官方 mihomo v1.19.31、sing-box v1.14.1 与 v1.12.0 实际判断，结果与人工写的期望一致（其中一条是上面说的 `.ms`：期望写的就是“mihomo 上走国内直连”这个已知行为）；sing-box 另核对了 21 条 DNS 去向和 7 条拨号解析（节点服务器的名字、域名形式的直连目标交给哪个 DNS 服务器；2026-10-05）。这只对核对那一天的上游数据成立（文件的 SHA-256 记在 `tests/data/real_sets.json`），上游每天在变。Loon / Quantumult X 没有能在电脑上运行的官方内核，这两端只有自制模拟器的结果。
+用真实上游数据核对过路由（2026-10-04）：规则原样、出口全部换成拒绝、只监听本机，把 245 个目标交给官方 mihomo v1.19.31、sing-box v1.14.1 与 v1.12.0 实际判断，结果与人工写的期望一致（其中一条是上面说的 `.ms`：期望写的就是“mihomo 上走国内直连”这个已知行为）；sing-box 另核对了 21 条 DNS 去向和 7 条拨号解析（节点服务器的名字、域名形式的直连目标交给哪个 DNS 服务器；2026-10-05）；mihomo 另核对了 7 条拨号解析和 4 条 DNS 去向（局域网里的名字在设备查询、直连出口、节点连接自己的服务器这三条路上各交给谁；2026-10-05，r11）。这只对核对那一天的上游数据成立（文件的 SHA-256 记在 `tests/data/real_sets.json`），上游每天在变。Loon / Quantumult X 没有能在电脑上运行的官方内核，这两端只有自制模拟器的结果。
 
 节点按名称分地区（2026-10-02 改为由词表生成，2026-10-04、2026-10-05 按审核意见改过，2026-10-05 交付前我自己又查了一遍、补了四处）：625 个人工写期望的节点名、CLDR 的 249 个国家 / 地区名和时区库的城市名，在 Python、ICU 正则引擎（Linux 上的 ICU 74）和 mihomo 官方内核（实际启动、从本地文件订阅取 2283 个假节点分组）上结果一致；手动组和自动类的组用的两条筛选都核对了。这些都不是真实订阅；你的订阅里每个节点的去向用 `tools/check_node_names.py` 看。
 
-验证过的内核版本只有上面三个；Clash Verge Rev、Clash Meta for Android、SFA 内置的内核版本没有核对。这一版的检查是 2026-10-05 在重建后的工作环境里（Python 3.11.17）重新跑的，核对用的上游数据也是当天的，细节见 `docs/05`“已验证的事实”开头。
+验证过的内核版本只有上面三个；Clash Verge Rev、Clash Meta for Android、SFA 内置的内核版本没有核对。这一版的检查是 2026-10-06（UTC）在 r10 时重建的工作环境里（Python 3.11.17）跑的，核对用的上游数据是 2026-10-05 下载的，细节见 `docs/05`“已验证的事实”开头。
+
+Clash 系客户端有两件事要自己确认（r11 查到的，都没有在 App 里验证过，说明和链接在 `docs/06`“2026-10-05 审核（GPT r10）”一节）：① 配置文件里的 `dns:` 段要真的被用上。Clash Verge Rev 有一个“DNS 覆写”开关，打开时 App 自己的 DNS 设置会盖掉配置文件里的，本项目的 DNS 设计就不起作用；请让它关着，并在 App 里看一眼实际交给内核的配置。② r11 加的“局域网里的节点由系统 DNS 解析”要 mihomo 内核 v1.19.20 或更新，旧内核会忽略这个字段（配置照常能用）。
 
 Loon 和 Quantumult X 没有命令行检查工具，**没有**在任何真机上导入或实测。这一版的地区筛选正则比 r7 更长（每条 12–16 KB，每个地区两条；配置文件 Loon 约 240 KB、Quantumult X 约 403 KB），每个策略组的行尾多了图标地址，Loon 还多订阅了一个格式未经官方文档确认的广告列表文件；这两个 App 上能否正常导入、分组是否正确还不知道，请先按 `docs/09-真机验收操作清单.md` 第 1 节检查，保留旧配置以便切回。逐项记录见 `docs/05-验收记录.md`；上真机怎么测、怎么判断，见 `docs/09`（也可以交给能访问你电脑的 AI 按第 6 节读取 Clash 的连接记录）。

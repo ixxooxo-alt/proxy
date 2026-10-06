@@ -82,6 +82,18 @@ def check_mihomo(text: str) -> List[str]:
     loop = _cycles(groups)
     if loop:
         problems.append("组循环引用：" + " → ".join(loop))
+    # DNS 段里 mihomo 自己会拒绝加载的两种写法（v1.19.31 config/config.go 的 parseDNS）：这里先拦住，不用等到拿官方内核去试。
+    # 都和 proxy-server-nameserver（解析节点服务器地址的 DNS）有关：respect-rules 和节点专用的解析策略都要求它不为空
+    dns = c.get("dns") or {}
+    if not dns.get("proxy-server-nameserver"):
+        if dns.get("respect-rules"):
+            problems.append("dns.respect-rules 打开时 dns.proxy-server-nameserver 不能为空（mihomo 会拒绝加载）")
+        if dns.get("proxy-server-nameserver-policy"):
+            problems.append("写了 dns.proxy-server-nameserver-policy 时 dns.proxy-server-nameserver 不能为空（mihomo 会拒绝加载）")
+    for key in ("nameserver-policy", "proxy-server-nameserver-policy"):
+        for pattern, servers in (dns.get(key) or {}).items():
+            if not servers:
+                problems.append(f"dns.{key} 的 {pattern} 没有写 DNS 服务器")
     return problems
 
 

@@ -312,13 +312,15 @@ def collect_probes(model) -> List[dict]:
     return out
 
 
-def dns_cases() -> List[dict]:
-    return _load("tests/cases.yaml")["singbox_dns"]
+def dns_cases(family: str = "singbox") -> List[dict]:
+    """DNS 查询去向的用例：sing-box 的在 singbox_dns，mihomo 的在 mihomo_dns（只有和局域网名字有关的几条）。"""
+    return _load("tests/cases.yaml")[f"{family}_dns"]
 
 
-def dial_cases() -> List[dict]:
-    """sing-box 拨号时的解析用例（节点服务器的名字、域名形式的直连目标各交给哪个 DNS 服务器）。"""
-    return _load("tests/cases.yaml")["singbox_dial"]
+def dial_cases(family: str = "singbox") -> List[dict]:
+    """拨号时的解析用例（节点服务器的名字、域名形式的直连目标各交给哪个 DNS）：sing-box 的在 singbox_dial，
+    mihomo 的在 mihomo_dial。"""
+    return _load("tests/cases.yaml")[f"{family}_dial"]
 
 
 def dial_key(case: dict) -> str:
@@ -343,9 +345,87 @@ def all_ips(model) -> List[str]:
     return sorted(ips)
 
 
+# ---------------------------------------------------------------------------
+# 拨号核对用的配置：节点服务器的名字、域名形式的直连目标，拨号时交给哪个 DNS
+# ---------------------------------------------------------------------------
+
+DIAL_NODE_NAME = "拨号核对节点"
+# 拨号核对怎么用生成的 mihomo 配置：这几个顶层字段原样保留……
+MIHOMO_DIAL_KEPT = ("mode", "ipv6", "unified-delay", "tcp-concurrent", "geodata-mode", "dns", "sniffer", "rules")
+# ……这几个由核对工具自己另写或者去掉（只开本机的一个端口、不开 TUN 和控制面、不下载订阅和数据文件、策略组换成固定出口）
+MIHOMO_DIAL_REPLACED = ("mixed-port", "allow-lan", "bind-address", "external-controller", "log-level", "find-process-mode",
+                        "profile", "geo-auto-update", "geo-update-interval", "geox-url", "tun", "proxy-providers", "proxy-groups")
+# sing-box：日志、入站、缓存文件由核对工具另写或者去掉；http_clients 只管远程规则集怎么下载（核对时规则集换成本地文件）
+SINGBOX_DIAL_REPLACED = ("log", "inbounds", "experimental", "http_clients")
+SINGBOX_DIAL_KEPT = ("dns", "route", "outbounds")
+SINGBOX_GROUP_TYPES = ("selector", "urltest")
+
+
+def dial_proxies(cases: List[dict], port: int) -> List[dict]:
+    """拨号核对用的节点（Clash 的写法）：每个 kind: node 的用例一个 SOCKS 节点，服务器地址取自用例，端口由调用方给
+    （核对时是本机一个没人监听的端口）。"""
+    return [{"name": f"{DIAL_NODE_NAME} {i + 1}", "type": "socks5", "server": c["server"], "port": port}
+            for i, c in enumerate(c for c in cases if c["kind"] == "node")]
+
+
+def _only_known_keys(conf: dict, kept, replaced, what: str) -> None:
+    unknown = sorted(set(conf) - set(kept) - set(replaced))
+    if unknown:
+        raise ValueError(f"{what}多了顶层字段 {unknown}：拨号核对不知道该原样保留它还是另写。"
+                         "先在 tools/real_data.py 里把它归到“原样保留”或“核对工具另写”的名单里")
+
+
+def mihomo_dial_base(text: str) -> dict:
+    """拨号核对从生成的 mihomo 配置里原样拿来用的那部分：规则、DNS、嗅探和几个开关（MIHOMO_DIAL_KEPT）。
+    生成的配置里出现了两份名单之外的顶层字段时报错——新加的字段可能影响拨号（比如 hosts），要先决定核对时怎么对待它。"""
+    conf = yaml.safe_load(text)
+    _only_known_keys(conf, MIHOMO_DIAL_KEPT, MIHOMO_DIAL_REPLACED, "生成的 mihomo 配置")
+    return {k: conf[k] for k in MIHOMO_DIAL_KEPT if k in conf}
+
+
+def singbox_dial_base(model, plan, variant: str, cases: List[dict], port: int = 1) -> Tuple[dict, Dict[str, str]]:
+    """拨号核对用的 sing-box 配置：生成器带着核对用的节点（dial_proxies）生成的那一份，还没有换上本机替身。
+    返回 (配置, {节点的服务器地址: 出站标签})。公开模板里没有节点，节点上的 domain_resolver 只有这样生成才看得到。"""
+    from generator import emit_singbox, nodes as nodeconv      # 用到时才引入：读数据文件的那些函数不需要生成器
+    proxies = dial_proxies(cases, port)
+    conv, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(model))
+    if len(conv) != len(proxies):
+        raise RuntimeError("拨号核对用的节点没能全部转换：" + "；".join(report))
+    conf = json.loads(emit_singbox.build(model, plan, variant, nodes=conv, renamed=renamed))
+    _only_known_keys(conf, SINGBOX_DIAL_KEPT, SINGBOX_DIAL_REPLACED, f"生成的 sing-box {variant} 配置")
+    wanted = {p["server"] for p in proxies}
+    tag_of = {o["server"]: o["tag"] for o in conf["outbounds"] if o.get("server") in wanted}
+    return conf, tag_of
+
+
+def dial_digest(family: str, base: dict) -> str:
+    """拨号核对那份配置里“会影响拨号时名字交给谁解析”的部分的 SHA-256（2026-10-05 审核 r10 的建议）。
+
+    routing_digest 只算规则段和 DNS 段，用来确认“规则把目标交给哪个组”的记录没有过期是够的；拨号时的解析还取决于
+    出站自己的设置（sing-box 的 domain_resolver、detour 等），那些不在规则段和 DNS 段里。所以拨号记录另记这一个摘要：
+      mihomo   mihomo_dial_base 返回的全部内容（规则、DNS、嗅探和几个开关）；
+      sing-box dns、route 两段，加上策略组以外的全部出站（直连出站、核对用的节点，连同各自的 domain_resolver）。
+               节点的端口每次核对都不一样，不算在内。
+    策略组的成员与图标、注释、版本号不在里面：改了它们不必重新跑官方内核。"""
+    if family == "mihomo":
+        part = base
+    else:
+        outbounds = []
+        for o in base["outbounds"]:
+            if o.get("type") in SINGBOX_GROUP_TYPES:
+                continue
+            o = dict(o)
+            o.pop("server_port", None)
+            outbounds.append(o)
+        part = {"dns": base["dns"], "route": base["route"], "outbounds": outbounds}
+    return hashlib.sha256(json.dumps(part, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+
+
 def routing_digest(output_rel: str, text: str) -> str:
     """一份产物里“决定连接和查询交给谁”的部分的 SHA-256：mihomo 取 rules 与 dns 两段；sing-box 取 route 与 dns 两段。
-    注释、版本号、策略组的成员与图标这些不影响判断的内容不算在内——改了它们不必重新跑官方内核，改了规则或 DNS 才要。"""
+    注释、版本号、策略组的成员与图标这些不影响判断的内容不算在内——改了它们不必重新跑官方内核，改了规则或 DNS 才要。
+    它管的是“规则把目标交给哪个组、DNS 查询交给哪个服务器”的记录；拨号时名字交给谁解析的记录另有 dial_digest
+    （出站自己的设置不在规则段和 DNS 段里，这个摘要看不到）。"""
     if output_rel.startswith("mihomo/"):
         c = yaml.safe_load(text)
         part = {"rules": c.get("rules"), "dns": c.get("dns")}

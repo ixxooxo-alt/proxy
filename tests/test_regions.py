@@ -416,6 +416,9 @@ class Portability(unittest.TestCase):
             re.compile(rx)
 
     def test_size_is_bounded(self):
+        """16,000 字节是本项目自己定的上限，用来防止正则不知不觉越长越大（词表每加一批词都会变长）。
+        它不是 Loon / Quantumult X 公布的限制：这两个 App 能接受多长的正则没有官方说法，也没有在真机上试过。
+        超过它只是这项测试失败，不代表 App 一定拒绝；低于它也不保证 App 接受（2026-10-05 审核 r10 提醒要说清楚）。"""
         for gid, rx in self.all_regexes():
             self.assertLess(len(rx.encode("utf-8")), 16000, f"{gid} 的正则过长，Quantumult X 每个模式组都要写一遍")
 

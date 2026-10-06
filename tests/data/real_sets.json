@@ -1,5 +1,5 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。sing-box 的 dial 是拨号时名字交给哪个 DNS 服务器，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核；每份记录里的 routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，测试用它确认记录对应的就是现在生成的配置。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
@@ -2684,7 +2684,68 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "0208aad0ab0dab2ec2ff6f291fc12952ab57296b8aaeca88c5c8f24ebdeb929f",
+   "config_sha256": "8bbd3b352fc4661138b682a1de32e8527946fd31ae469941e804e5e4afe587bc",
+   "dial": {
+    "direct nas.lan": "system",
+    "direct www.baidu.com": "domestic",
+    "node gateway.lan": "system",
+    "node homeproxy": "system",
+    "node lan.example.com": "domestic",
+    "node node.example.com": "domestic",
+    "node proxy.home.arpa": "system"
+   },
+   "dial_sha256": "a23d31ab059248cb8310749516cd3ee00c1c08a5166630042573be7337097c31",
+   "dial_without_follow_policy": {
+    "direct nas.lan": "domestic",
+    "direct www.baidu.com": "domestic",
+    "node gateway.lan": "system",
+    "node homeproxy": "system",
+    "node lan.example.com": "domestic",
+    "node node.example.com": "domestic",
+    "node proxy.home.arpa": "system"
+   },
+   "dial_without_lan_policy": {
+    "direct nas.lan": "domestic",
+    "direct www.baidu.com": "domestic",
+    "node gateway.lan": "system",
+    "node homeproxy": "system",
+    "node lan.example.com": "domestic",
+    "node node.example.com": "domestic",
+    "node proxy.home.arpa": "system"
+   },
+   "dial_without_node_policy": {
+    "direct nas.lan": "system",
+    "direct www.baidu.com": "domestic",
+    "node gateway.lan": "domestic",
+    "node homeproxy": "domestic",
+    "node lan.example.com": "domestic",
+    "node node.example.com": "domestic",
+    "node proxy.home.arpa": "domestic"
+   },
+   "dns": {
+    "nas.home.arpa A": "system",
+    "printer A": "domestic",
+    "printer.lan A": "system",
+    "www.taobao.com A": "fake-ip"
+   },
+   "dns_without_follow_policy": {
+    "nas.home.arpa A": "system",
+    "printer A": "domestic",
+    "printer.lan A": "system",
+    "www.taobao.com A": "fake-ip"
+   },
+   "dns_without_lan_policy": {
+    "nas.home.arpa A": "domestic",
+    "printer A": "domestic",
+    "printer.lan A": "domestic",
+    "www.taobao.com A": "fake-ip"
+   },
+   "dns_without_node_policy": {
+    "nas.home.arpa A": "system",
+    "printer A": "domestic",
+    "printer.lan A": "system",
+    "www.taobao.com A": "fake-ip"
+   },
    "routes": {
     "1.2.4.8": [
      "GeoIP(cn)",
@@ -3667,7 +3728,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "8ff13365f581e712d8caaaaac696258aa200d032fcddd0543905d6ecbd8adb50",
+   "routing_sha256": "ec451a096d3431fb1e2286bfdc1445b43bf2bf26bb07b0b01248bce500de306a",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
@@ -3682,6 +3743,7 @@
     "node node.example.com": "dns-cn",
     "node proxy.home.arpa": "dns-local"
    },
+   "dial_sha256": "009dfc4b74effc013ffc36c48759b76a66e78e9075718150f3d400fd11468d90",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -4711,6 +4773,7 @@
     "node node.example.com": "dns-cn",
     "node proxy.home.arpa": "dns-local"
    },
+   "dial_sha256": "7d3d7b6abf232be94c3c089c1e79ac184bc34717a6ddaf36083f1aca9d5a13c4",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5772,7 +5835,7 @@
    "geoip-cn": 8045
   }
  },
- "source_version": "2026.10.05-1",
+ "source_version": "2026.10.05-2",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {

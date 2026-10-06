@@ -289,7 +289,7 @@ singbox_dns:
 # 不看 dns.rules。期望按设计人工写出：局域网里的名字交给系统 DNS（dns-local），公网名字照旧交给国内 DNS（dns-cn）。
 #   kind: node    一个节点，服务器地址是 server；expect 是“连这个节点时，server 这个名字交给哪个 DNS 服务器解析”
 #   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连之前，这个名字交给哪个 DNS 服务器解析”
-# tests/test_structure.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
+# tests/test_dns_lan.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
 # （拨号过程保留，DNS 换成本机替身、所有名字都答 127.0.0.1，所以不会连到本机以外），结果记在快照里。
 singbox_dial:
   - {kind: node, server: gateway.lan, expect: dns-local, why: 节点的服务器是局域网后缀下的名字（审核方的例子）}
@@ -299,6 +299,36 @@ singbox_dial:
   - {kind: node, server: lan.example.com, expect: dns-cn, why: "只是名字里有 lan，不是局域网后缀"}
   - {kind: direct, host: nas.lan, expect: dns-local, why: 域名形式的局域网目标：直连之前先用系统 DNS 解析}
   - {kind: direct, host: www.baidu.com, expect: dns-cn, why: 国内直连的公网域名：直连出站用默认解析器}
+
+# mihomo 的 DNS 查询去向：设备上的程序发来的查询（TUN 接管的查询走这条）交给哪一类 DNS。只核对和局域网名字有关的几条——
+# 2026-10-05 处理审核 r10 的 R10-F01 时自查加的：局域网后缀 → 系统 DNS 这一条（2026-09-30 审核 F04）以前只有静态检查，没有用官方内核跑过。
+# expect：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS；fake-ip = 直接给假地址，不向任何上游查询。
+# 期望是人工写的；tools/check_real_routes.py 用官方内核实际查询（三类 DNS 各换成一个本机替身），结果记在快照里。
+# 标了 limit 的是已知限制的现状（docs/06），记在这里是为了让文档里的说法有据可查：哪天改了或者上游数据变了，这里会提示。
+mihomo_dns:
+  - {host: printer.lan, type: A, expect: system, why: "局域网后缀：nameserver-policy 的第一条"}
+  - {host: nas.home.arpa, type: A, expect: system, why: 两级的局域网后缀}
+  - {host: www.taobao.com, type: A, expect: fake-ip, why: "对照：普通域名直接给假地址，不向上游查询"}
+  - {host: printer, type: A, expect: domestic, limit: true,
+     why: "已知限制：不带点的名字。上游的 private 集合里有一条匹配“字母开头的单个标签”的正则，查询落到 geosite:cn,private 那条策略，交给国内的公共 DNS（它不认识这个名字）"}
+
+# mihomo 拨号时的解析（2026-10-05 审核 r10 的 R10-F01）。mihomo 里“内核自己要连一个域名形式的地址”有两条路，各用各的解析器：
+#   节点连接自己的服务器 → proxy-server-nameserver，它的例外写在 proxy-server-nameserver-policy 里，不看 nameserver-policy；
+#   直连出口连接域名形式的目标 → direct-nameserver；开了 direct-nameserver-follow-policy 时先看 nameserver-policy。
+# 期望按设计人工写出，写的是“交给哪一类 DNS”：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS。
+# 用例和上面 sing-box 的是同一批名字，两个内核对同一个名字的归类应该相同（dns-local 对 system，dns-cn 对 domestic），测试会核对。
+#   kind: node    一个节点，服务器地址是 server；expect 是“连这个节点时，server 这个名字交给哪一类 DNS 解析”
+#   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连时，这个名字交给哪一类 DNS 解析”
+# tests/test_dns_lan.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
+# （拨号过程保留；系统、国内、境外三类 DNS 各换成一个本机替身，所有名字都答 127.0.0.1，所以不会连到本机以外），结果记在快照里。
+mihomo_dial:
+  - {kind: node, server: gateway.lan, expect: system, why: 节点的服务器是局域网后缀下的名字（审核方的例子）}
+  - {kind: node, server: proxy.home.arpa, expect: system, why: 审核方的另一个例子}
+  - {kind: node, server: homeproxy, expect: system, why: "不带点的主机名也只有局域网里的 DNS 认识（策略里单独的一个 *）"}
+  - {kind: node, server: node.example.com, expect: domestic, why: 公网域名的节点照旧由国内 DNS 解析（有意的设计）}
+  - {kind: node, server: lan.example.com, expect: domestic, why: "只是名字里有 lan，不是局域网后缀"}
+  - {kind: direct, host: nas.lan, expect: system, why: "域名形式的局域网目标：直连出口的解析跟随 nameserver-policy（2026-09-30 审核 F04 的修正）"}
+  - {kind: direct, host: www.baidu.com, expect: domestic, why: 国内直连的公网域名：国内 DNS}
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:

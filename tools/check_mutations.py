@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 70 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 75 个，可以分两批同时跑）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -273,6 +273,19 @@ cases = [
         '_GAP = r"[\\s_-]"', '_GAP = r"\\s"', 1))], "via-HK-01"),
     ("M70 单个字的“港”在更长的词里又单独算（“经香港 01”“港日中转 01”又进香港的自动组）", [("source/regions.yaml", lambda s: s.replace(
         "      - '(?<!香)港(?![日韩韓美])'\n", "      - '港'\n", 1))], "经香港 01"),
+    # ---- 2026-10-05 GPT 审核 r10（R10-F01 与对摘要的建议）----
+    ("M71 mihomo：去掉节点服务器的解析策略（审核 r10 R10-F01：服务器是 gateway.lan 的节点又去问国内的公共 DNS）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '            "proxy-server-nameserver-policy": node_server_dns_policy(p["lan"]["domain_suffix"]),\n', "", 1))], "proxy-server-nameserver-policy"),
+    ("M72 mihomo：节点服务器的解析策略里去掉不带点的名字（服务器是 homeproxy 的节点，两个内核的做法又不一样）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '        DOTLESS_NAME: ["system"],\n', "", 1))], "homeproxy"),
+    ("M73 mihomo：清空 proxy-server-nameserver（respect-rules 和节点的解析策略都要求它不为空，内核会拒绝加载）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '            "proxy-server-nameserver": list(dns["domestic_doh"]),\n', '            "proxy-server-nameserver": [],\n', 1))], "不能为空"),
+    ("M74 sing-box：直连出站指定用境外 DNS 解析（审核 r10 举的例子：规则段与 DNS 段的摘要看不到这个改动）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    outbounds.append({"type": "direct", "tag": DIRECT_TAG})\n',
+        '    outbounds.append({"type": "direct", "tag": DIRECT_TAG, "domain_resolver": "dns-foreign"})\n', 1))], "拨号核对用的配置变了"),
+    ("M75 拨号记录的摘要又只算规则段和 DNS 段（出站改了、拨号记录过期也不提示）", [("tools/real_data.py", lambda s: s.replace(
+        '        part = {"dns": base["dns"], "route": base["route"], "outbounds": outbounds}\n',
+        '        part = {"dns": base["dns"], "route": base["route"]}\n', 1))], "dial_digest"),
 ]
 
 

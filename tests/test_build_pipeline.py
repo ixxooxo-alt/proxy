@@ -262,6 +262,31 @@ class Verifier(unittest.TestCase):
         self.assertNotIn("节点丙", text)
         self.assertEqual(text.count("resolve 动作"), 1, "指向存在的服务器、或者没写服务器的 resolve 不算问题")
 
+    def test_detects_mihomo_dns_settings_the_core_would_refuse(self):
+        """审核 r10 的 R10-F01 之后用到 proxy-server-nameserver-policy。mihomo 对它和 respect-rules 都有同一个要求：
+        proxy-server-nameserver 不能为空，否则拒绝加载（v1.19.31 config/config.go 的 parseDNS；用官方内核试过，三种写法都被拒绝）。
+        写盘前就拦住。当前生成的配置两项都开着、服务器不为空，所以没有问题。"""
+        def problems(dns):
+            return "\n".join(verify.check_mihomo(yaml.safe_dump({"dns": dns, "proxy-groups": [], "rules": []}, allow_unicode=True)))
+
+        servers = ["https://223.5.5.5/dns-query"]
+        policy = {"+.lan": ["system"], "*": ["system"]}
+        self.assertEqual(problems({"respect-rules": True, "proxy-server-nameserver": servers,
+                                   "proxy-server-nameserver-policy": policy}), "")
+        self.assertIn("respect-rules 打开时 dns.proxy-server-nameserver 不能为空",
+                      problems({"respect-rules": True, "proxy-server-nameserver": []}))
+        self.assertIn("写了 dns.proxy-server-nameserver-policy 时 dns.proxy-server-nameserver 不能为空",
+                      problems({"proxy-server-nameserver-policy": policy}))
+        both = problems({"respect-rules": True, "proxy-server-nameserver-policy": policy})
+        self.assertEqual(both.count("不能为空"), 2)
+        self.assertEqual(problems({"respect-rules": False}), "", "两项都没开时，不写 proxy-server-nameserver 不算问题")
+        self.assertIn("dns.proxy-server-nameserver-policy 的 * 没有写 DNS 服务器",
+                      problems({"proxy-server-nameserver": servers, "proxy-server-nameserver-policy": {"*": []}}))
+        for client in ("mihomo/mihomo-core.yaml", "mihomo/mihomo-profile.yaml"):
+            dns = yaml.safe_load(outputs()[client])["dns"]
+            self.assertTrue(dns["respect-rules"] and dns["proxy-server-nameserver"] and dns["proxy-server-nameserver-policy"], client)
+            self.assertEqual(verify.check_mihomo(outputs()[client]), [], client)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
 # 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
-# 统一源版本 2026.10.05-1；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
+# 统一源版本 2026.10.05-2；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
 # 产物类型：mihomo 内核直接运行（含端口、控制面、TUN 开关）
 # ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。
 
@@ -42,6 +42,9 @@ dns:
   respect-rules: true
   default-nameserver: [223.5.5.5, 119.29.29.29]
   proxy-server-nameserver: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+  proxy-server-nameserver-policy:
+    +.lan,+.local,+.localdomain,+.home.arpa,+.localhost: [system]
+    '*': [system]
   direct-nameserver: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
   nameserver: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query']
   nameserver-policy:

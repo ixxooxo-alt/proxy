@@ -16,10 +16,16 @@
      “节点连接自己的服务器 / 直连出站连接域名形式的目标时，名字交给哪个 DNS 服务器解析”这条路。这一步另起一次内核：
      配置里带几个节点（服务器地址取自 tests/cases.yaml 的 singbox_dial），直连出站保持原样，拨号是真的；
      DNS 替身不管问什么都答 127.0.0.1，节点端口是本机一个没人监听的端口，所以每次拨号都是连本机被拒绝，不会连到外面。
-  4. 把同一批主机在各个集合里的成员关系，连同上面几步的结果，记成快照（--write-snapshot → tests/data/real_sets.json）。
+  4. mihomo 里名字交给哪一类 DNS 解析（2026-10-05 审核 r10 的 R10-F01）：第 1 步把出口都换成了 REJECT、也没有节点，
+     同样碰不到拨号。这一步另起一次内核：规则、DNS 段的结构原样；系统 DNS、国内 DNS、境外 DNS 三类服务器各换成一个本机替身
+     （都答 127.0.0.1）；加几个节点（服务器地址取自 tests/cases.yaml 的 mihomo_dial，端口是本机一个没人监听的端口），直连保持直连。
+     看的是：节点服务器的名字、域名形式的直连目标（mihomo_dial），以及设备发来的 DNS 查询（mihomo_dns，只有和局域网名字
+     有关的几条），各是哪一类替身收到的。再把三处有关的设置各去掉一处重跑，确认每一处只管它自己那条路。
+  5. 把同一批主机在各个集合里的成员关系，连同上面几步的结果，记成快照（--write-snapshot → tests/data/real_sets.json）。
      sing-box 两个版本的官方记录分开存（1.14 的在 official.singbox，1.12 的在 official.singbox112）。
      tests/test_real_data.py 用这份快照离线重跑全部用例，并核对“模拟器 = 官方内核的记录 = 人工写的期望”。
-全程不联网：出口都是 REJECT / block，DNS 查询只到本机替身；解析结果用 tests/fixtures.yaml 里假定的（没列出的按境外 IP 算）。
+全程不联网：路由核对的出口都是 REJECT / block，拨号核对的每次拨号都落在 127.0.0.1；DNS 查询只到本机替身。
+路由核对的解析结果用 tests/fixtures.yaml 里假定的（没列出的按境外 IP 算）。
 不开 TUN、不设系统代理、不读也不改正在使用的代理配置。
 
 Loon / Quantumult X 没有可以在电脑上运行的官方内核，这里只把它们订阅的远程广告集合（blackmatrix7 的固定快照）
@@ -67,7 +73,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build as builder  # noqa: E402
 import emulate  # noqa: E402  （tests/emulate.py：自制模拟器，这里拿它和官方内核的结果对比）
 import real_data as rd  # noqa: E402
-from generator import emit_singbox, nodes as nodeconv  # noqa: E402
+from generator import emit_singbox  # noqa: E402
 from generator.model import build_plan, load  # noqa: E402
 from generator.util import safe_stdout, sha256_text  # noqa: E402
 
@@ -86,6 +92,19 @@ def free_port(kind=socket.SOCK_STREAM) -> int:
     with socket.socket(socket.AF_INET, kind) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
+
+
+def free_port_tcp_udp() -> int:
+    """TCP 和 UDP 上都空着的一个端口（mihomo 的 dns.listen 两种都监听）。"""
+    for _ in range(50):
+        port = free_port()
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.bind(("127.0.0.1", port))
+            return port
+        except OSError:
+            continue
+    raise RuntimeError("找不到 TCP、UDP 都空着的本机端口")
 
 
 def hostport(target: str) -> str:
@@ -398,13 +417,8 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
     这项核对对它要防的错误是敏感的。"""
     node_cases = [c for c in cases if c["kind"] == "node"]
     closed = free_port()                                   # 取到就放掉：没人监听，连上去立刻被拒绝
-    proxies = [{"name": f"拨号核对节点 {i + 1}", "type": "socks5", "server": c["server"], "port": closed}
-               for i, c in enumerate(node_cases)]
-    conv, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(model))
-    if len(conv) != len(proxies):
-        raise RuntimeError("拨号核对用的节点没能全部转换：" + "；".join(report))
-    conf = json.loads(emit_singbox.build(model, plan, variant, nodes=conv, renamed=renamed))
-    tag_of = {o["server"]: o["tag"] for o in conf["outbounds"] if o.get("type") == "socks"}
+    # 配置由 real_data.singbox_dial_base 生成：测试里核对“拨号记录对应现在的配置”时用的是同一个函数
+    conf, tag_of = rd.singbox_dial_base(model, plan, variant, cases, closed)
     if strip_fix:
         for o in conf["outbounds"]:
             o.pop("domain_resolver", None)
@@ -463,6 +477,160 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
         for st in stubs.values():
             st.close()
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+MIHOMO_DNS_SERVER_LISTS = ("default-nameserver", "proxy-server-nameserver", "direct-nameserver", "nameserver", "fallback")
+MIHOMO_DNS_POLICIES = ("nameserver-policy", "proxy-server-nameserver-policy")
+MIHOMO_DNS_OTHER = ("enable", "ipv6", "enhanced-mode", "fake-ip-range", "fake-ip-filter-mode", "fake-ip-filter", "respect-rules",
+                    "direct-nameserver-follow-policy")
+
+
+def _drop_lan_policy(dns: dict) -> None:
+    policy = dns["nameserver-policy"]
+    first = next(iter(policy))
+    if policy[first] != ["system"]:
+        raise KeyError("nameserver-policy 的第一条不是“局域网后缀 → system”")
+    del policy[first]
+
+
+# 自检时从 DNS 段里去掉的东西：名字 → (说明, 怎么去掉)
+MIHOMO_DIAL_WITHOUT = {
+    "node-policy": ("proxy-server-nameserver-policy", lambda dns: dns.pop("proxy-server-nameserver-policy")),
+    "follow-policy": ("direct-nameserver-follow-policy", lambda dns: dns.pop("direct-nameserver-follow-policy")),
+    "lan-policy": ("nameserver-policy 里局域网后缀那一条", _drop_lan_policy),
+}
+
+
+def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, cases: list, dns_cases: list = (),
+                      without: str = None):
+    """mihomo 里名字交给哪一类 DNS 解析（2026-10-05 审核 r10 的 R10-F01）。返回 (拨号 {用例的键: 结果}, 查询 {(主机, 类型): 结果})。
+    结果是 system（系统 DNS）、domestic（国内 DNS）、foreign（境外 DNS）之一——收到这个名字的查询的是哪一类的替身；
+    查询用例另有 fake-ip：内核直接给了假地址，没有向任何替身查询。
+
+    mihomo 内核里有三个互不相干的解析器，这里各走一遍：
+      节点连接自己的服务器（cases 里 kind: node）     proxy-server-nameserver，例外写在 proxy-server-nameserver-policy 里；
+      直连出口连接域名形式的目标（kind: direct）       direct-nameserver，开了 direct-nameserver-follow-policy 时先看 nameserver-policy；
+      设备上的程序发来的 DNS 查询（dns_cases）          nameserver 和 nameserver-policy。
+    mihomo_probe 把出口都换成了 REJECT、没有节点，前两条路碰不到；第三条路以前只有 sing-box 那边核对过。做法：
+      - 生成的配置里，规则、DNS、嗅探和几个开关原样保留（real_data.mihomo_dial_base）；
+      - DNS 段里出现的每个服务器按它在统一源里属于哪一类，换成那一类的本机替身：system → 系统 DNS 的替身，
+        国内的 DoH / 明文地址 → 国内替身，境外 DoH → 境外替身。哪个字段、哪条策略用哪一类，结构没有动；
+        替身不管问什么都答 127.0.0.1，所以每次拨号都落在本机，不会有连接离开这台机器；
+      - 加几个 SOCKS 节点（服务器地址取自用例，端口是本机一个没人监听的端口），每个节点配一条只给它用的规则；
+        策略组换成固定出口：原来默认直连的仍然直连，其余的拒绝；
+      - 节点用例：发一次 CONNECT 让内核去连这个节点；直连用例：直接 CONNECT 那个主机；
+        查询用例：向内核在本机临时开的 DNS 端口（dns.listen）发一次查询。
+    without 用来自检，从 DNS 段里去掉一样东西再跑（MIHOMO_DIAL_WITHOUT）。
+    没有验证的：system 这个写法在真实系统上向谁查询（这里换成了替身）、真实节点的连通、TUN 接管下的表现。"""
+    names = [(c["server"] if c["kind"] == "node" else c["host"]).lower().rstrip(".") for c in cases]
+    dns_names = [c["host"].lower().rstrip(".") for c in dns_cases]
+    if len(set(names + dns_names)) != len(names) + len(dns_names):
+        raise RuntimeError("拨号用例、查询用例里有重复的名字，分不清查询是哪一条用例引起的")
+    orig = yaml.safe_load(config_text)
+    conf = rd.mihomo_dial_base(config_text)
+    dns = conf["dns"]
+    unknown = sorted(set(dns) - set(MIHOMO_DNS_SERVER_LISTS) - set(MIHOMO_DNS_POLICIES) - set(MIHOMO_DNS_OTHER))
+    if unknown:
+        raise RuntimeError(f"生成的 mihomo 配置的 dns 段多了字段 {unknown}：拨号核对不知道它里面有没有 DNS 服务器要换成替身")
+    if without:
+        what, drop = MIHOMO_DIAL_WITHOUT[without]
+        try:
+            drop(dns)
+        except KeyError as e:
+            raise RuntimeError(f"自检要去掉 {what}，但生成的配置里没有它（{e}）")
+    fake_net = ipaddress.ip_network(dns["fake-ip-range"], strict=False)
+    kind_of = {"system": "system"}
+    for srv in list(model.dns["domestic_doh"]) + list(model.dns["domestic_plain"]):
+        kind_of[srv] = "domestic"
+    for srv in model.dns["foreign_doh"]:
+        kind_of[srv] = "foreign"
+    stubs = {k: DnsStub(k, _Loopback()) for k in ("system", "domestic", "foreign")}
+    home = tempfile.mkdtemp(prefix="dial-mihomo-")
+    try:
+        def stand_in(servers) -> list:
+            out = []
+            for srv in [servers] if isinstance(servers, str) else list(servers):
+                if srv not in kind_of:
+                    raise RuntimeError(f"dns 段里的服务器 {srv} 不在统一源的三类 DNS 里，拨号核对不知道该换成哪个替身")
+                addr = f"127.0.0.1:{stubs[kind_of[srv]].port}"
+                if addr not in out:
+                    out.append(addr)
+            return out
+
+        for key in MIHOMO_DNS_SERVER_LISTS:
+            if key in dns:
+                dns[key] = stand_in(dns[key])
+        for key in MIHOMO_DNS_POLICIES:
+            if key in dns:
+                dns[key] = {pattern: stand_in(servers) for pattern, servers in dns[key].items()}
+        for st in stubs.values():
+            st.start()
+        closed = free_port()                               # 取到就放掉：没人监听，连上去立刻被拒绝
+        proxies = rd.dial_proxies(cases, closed)
+        node_of = {p["server"]: p["name"] for p in proxies}
+        probe_host = {srv: f"dial-probe-{i + 1}.invalid" for i, srv in enumerate(node_of)}
+        port, dns_port = free_port(), free_port_tcp_udp()
+        dns["listen"] = f"127.0.0.1:{dns_port}"            # 只给查询用例用；生成的配置里没有这一项
+        conf.update({
+            "mixed-port": port, "allow-lan": False, "bind-address": "127.0.0.1", "log-level": "debug",
+            "find-process-mode": "off", "geo-auto-update": False, "profile": {"store-selected": False, "store-fake-ip": False},
+            "proxies": proxies,
+            "proxy-groups": [{"name": g["name"], "type": "select",
+                              "proxies": ["DIRECT" if (g.get("proxies") or [None])[0] == "DIRECT" else "REJECT"]}
+                             for g in orig["proxy-groups"]],
+            "rules": [f"DOMAIN,{probe_host[srv]},{node_of[srv]}" for srv in node_of] + list(conf["rules"]),
+        })
+        targets = [probe_host[c["server"]] if c["kind"] == "node" else c["host"] for c in cases]
+        for src, dst in {"geosite.dat": "GeoSite.dat", "geoip.dat": "GeoIP.dat", "geoip.metadb": "geoip.metadb",
+                         "country.mmdb": "Country.mmdb", "GeoLite2-ASN.mmdb": "GeoLite2-ASN.mmdb"}.items():
+            src_path = os.path.join(geodata_dir, src)
+            if os.path.exists(src_path):
+                shutil.copy(src_path, os.path.join(home, dst))
+        cfg = os.path.join(home, "probe.yaml")
+        with open(cfg, "w", encoding="utf-8") as f:
+            yaml.safe_dump(conf, f, allow_unicode=True, sort_keys=False, width=100000)
+        logp = os.path.join(home, "log.txt")
+        with open(logp, "w", encoding="utf-8") as log:
+            proc = subprocess.Popen([binary, "-d", home, "-f", cfg], stdout=log, stderr=subprocess.STDOUT)
+            try:
+                if not wait_port(port, proc):
+                    raise RuntimeError("mihomo 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                if not wait_log(logp, lambda: connect_once(port, CANARY, wait=1.0), f"--> {CANARY}:443 match", proc):
+                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                for t in targets:
+                    connect_once(port, t, wait=4.0)
+                answers = {}
+                for c, name in zip(dns_cases, dns_names):
+                    answers[name] = dns_query(dns_port, c["host"], QTYPE[c["type"]])
+                time.sleep(1.0)
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+
+        def asked_by(name):
+            return [k for k, st in stubs.items() if any(q.lower().rstrip(".") == name for q, _ in st.seen)]
+
+        out, dns_out = {}, {}
+        for c, name in zip(cases, names):
+            asked = asked_by(name)
+            out[rd.dial_key(c)] = asked[0] if len(asked) == 1 else ("+".join(asked) if asked else "没有服务器收到查询")
+        for c, name in zip(dns_cases, dns_names):
+            asked, ips = asked_by(name), answers.get(name)
+            if asked:
+                where = asked[0] if len(asked) == 1 else "+".join(asked)
+            elif ips and all(ipaddress.ip_address(x) in fake_net for x in ips):
+                where = "fake-ip"
+            else:
+                where = "没有应答" if ips is None else "没有服务器收到查询"
+            dns_out[(c["host"], c["type"])] = where
+        return out, dns_out
+    finally:
+        for st in stubs.values():
+            st.close()
+        shutil.rmtree(home, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
@@ -579,11 +747,13 @@ def main(argv=None) -> int:
     probes = rd.collect_probes(model)
     dns_cases = rd.dns_cases()
     dial_cases = rd.dial_cases()
+    mihomo_dial_cases, mihomo_dns_cases = rd.dial_cases("mihomo"), rd.dns_cases("mihomo")
     hosts, ips = rd.all_hosts(model), rd.all_ips(model)
     targets = sorted({p["host"] or p["ip"] for p in probes})
 
     print(f"统一源 {model.project['project']['source_version']}；用例与排除项共 {len(probes)} 条，"
-          f"不同的目标 {len(targets)} 个；sing-box DNS 用例 {len(dns_cases)} 条，拨号解析用例 {len(dial_cases)} 条")
+          f"不同的目标 {len(targets)} 个；DNS 去向用例 sing-box {len(dns_cases)} 条、mihomo {len(mihomo_dns_cases)} 条，"
+          f"拨号解析用例 sing-box {len(dial_cases)} 条、mihomo {len(mihomo_dial_cases)} 条")
     host_rec, ip_rec, sources, oddities, sizes, notes = build_membership(a, model, files, hosts, ips)
     print("数据文件：")
     for family, fs in sources.items():
@@ -629,6 +799,52 @@ def main(argv=None) -> int:
                           "routing_sha256": rd.routing_digest("mihomo/mihomo-core.yaml", files["mihomo/mihomo-core.yaml"]),
                           "routes": {t: list(v) for t, v in got.items() if v}}
     failures += compare("mihomo", "mihomo", probes, got, lambda t: emu("mihomo-core", t))
+    # 名字交给哪一类 DNS 解析：设备发来的查询、直连出口拨号、节点连接自己的服务器，三条路各走一遍
+    # （拨号是真的，三类 DNS 各换成一个本机替身）
+    core_text = files["mihomo/mihomo-core.yaml"]
+    same_dial = rd.mihomo_dial_base(core_text) == rd.mihomo_dial_base(files["mihomo/mihomo-profile.yaml"])
+    print(f"  拨号核对原样保留的部分（规则、DNS、嗅探和几个开关），两份 mihomo 配置{'完全相同，只跑一份' if same_dial else '不同！'}")
+    if not same_dial:
+        failures.append("两份 mihomo 配置里拨号核对要原样保留的部分不同")
+    dial, dns_got = mihomo_dial_probe(a.mihomo, a.geodata_dir, model, core_text, mihomo_dial_cases, mihomo_dns_cases)
+    dns_key = lambda c: f"{c['host']} {c['type']}"  # noqa: E731
+    dns_rec = {dns_key(c): dns_got[(c["host"], c["type"])] for c in mihomo_dns_cases}
+    bad = [f"{k}：期望 {c['expect']}，官方内核 {dns_rec[k]}" for c in mihomo_dns_cases for k in [dns_key(c)] if dns_rec[k] != c["expect"]]
+    print(f"  [{'符合' if not bad else '不符合'}] DNS 去向 {len(mihomo_dns_cases)} 条（设备发来的查询交给哪一类 DNS；只核对和局域网名字有关的几条。"
+          "system 是系统 DNS 的替身，domestic 国内，foreign 境外，fake-ip 是直接给假地址）："
+          + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
+    for c in mihomo_dns_cases:
+        print(f"      {dns_key(c)} → {dns_rec[dns_key(c)]}" + ("（已知限制的现状，见 docs/06）" if c.get("limit") else ""))
+    failures += [f"mihomo DNS：{x}" for x in bad]
+    bad = [f"{rd.dial_key(c)}：期望 {c['expect']}，官方内核 {dial[rd.dial_key(c)]}" for c in mihomo_dial_cases
+           if dial[rd.dial_key(c)] != c["expect"]]
+    print(f"  [{'符合' if not bad else '不符合'}] 拨号解析 {len(mihomo_dial_cases)} 条（节点服务器的名字、域名形式的直连目标交给哪一类 DNS）："
+          + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
+    for c in mihomo_dial_cases:
+        print(f"      {rd.dial_key(c)} → {dial[rd.dial_key(c)]}")
+    failures += [f"mihomo 拨号解析：{x}" for x in bad]
+    mihomo_dial_record = {"dns": dns_rec, "dial": dial, "dial_sha256": rd.dial_digest("mihomo", rd.mihomo_dial_base(core_text))}
+    # 自检：三处设置各拿掉一处再跑。应该只有它管的那几条变回国内 DNS，别的不变——三个解析器各管各的
+    lan_dial = {kind: [rd.dial_key(c) for c in mihomo_dial_cases if c["kind"] == kind and c["expect"] == "system"]
+                for kind in ("node", "direct")}
+    lan_dns = [dns_key(c) for c in mihomo_dns_cases if c["expect"] == "system"]
+    for without, should in (("node-policy", lan_dial["node"]), ("follow-policy", lan_dial["direct"]),
+                            ("lan-policy", lan_dns + lan_dial["direct"])):
+        d2, q2 = mihomo_dial_probe(a.mihomo, a.geodata_dir, model, core_text, mihomo_dial_cases, mihomo_dns_cases, without=without)
+        q2 = {dns_key(c): q2[(c["host"], c["type"])] for c in mihomo_dns_cases}
+        tag = without.replace("-", "_")
+        mihomo_dial_record["dns_without_" + tag], mihomo_dial_record["dial_without_" + tag] = q2, d2
+        before, now = {**q2, **d2}, {**dns_rec, **dial}
+        moved = [k for k in now if before[k] != now[k]]
+        ok = sorted(moved) == sorted(should) and bool(should) and all(before[k] == "domestic" for k in moved)
+        what = MIHOMO_DIAL_WITHOUT[without][0]
+        print(f"      自检：去掉 {what}{' ' if what[-1].isascii() else ''}后，"
+              + ("、".join(f"{k} → {before[k]}" for k in moved) if moved else "结果没有变化")
+              + ("——只有它管的这几条变了，这一处仍然需要" if ok
+                 else f"——应该变回 domestic 的是 {should}，实际不是这样：这项核对没有起作用，或者内核的行为变了"))
+        if not ok:
+            failures.append(f"mihomo 拨号解析：去掉 {MIHOMO_DIAL_WITHOUT[without][0]} 的自检结果不对")
+    official["mihomo"].update(mihomo_dial_record)
 
     # ---- sing-box ----
     runs = [("singbox-1.14", a.singbox, "sing-box/sing-box-1.14.json")]
@@ -676,7 +892,8 @@ def main(argv=None) -> int:
             "routing_sha256": rd.routing_digest(rel, files[rel]),
             "routes": {t: list(v) for t, v in routes.items() if v},
             "dns": {f"{h} {q}": v for (h, q), v in dns_got.items()},
-            "dial": dial, "dial_without_fix": before}
+            "dial": dial, "dial_without_fix": before,
+            "dial_sha256": rd.dial_digest("singbox", rd.singbox_dial_base(model, plan, variant, dial_cases)[0])}
 
     # ---- 自检：把更正拿掉再跑一遍 ----
     upstream_state = self_check(a, files, dns_map)
@@ -711,10 +928,17 @@ def main(argv=None) -> int:
                          "（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；"
                          "Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。"
                          "official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；"
-                         "singbox112（1.12 兼容版配置 + 1.12 内核）。sing-box 的 dial 是拨号时名字交给哪个 DNS 服务器，"
-                         "dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果。"
-                         "这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核；"
-                         "每份记录里的 routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，测试用它确认记录对应的就是现在生成的配置。",
+                         "singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析："
+                         "sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 "
+                         "resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，"
+                         "核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；"
+                         "fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果："
+                         "…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 "
+                         "direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。"
+                         "这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。"
+                         "每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的"
+                         "规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分"
+                         "（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。",
                 "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
                 "source_version": model.project["project"]["source_version"],
                 "assumed_dns": {"note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP",

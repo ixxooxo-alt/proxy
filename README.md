@@ -7,13 +7,13 @@
 A single, auditable split-routing (分流) rule set that generates matching configs for **Loon**, **Quantumult X**, **mihomo / Clash Meta** and **sing-box** from one place. You edit rules once in `source/`; the generator builds every client's config, so the clients never drift apart.
 
 ![clients](https://img.shields.io/badge/clients-Loon%20%7C%20Quantumult%20X%20%7C%20mihomo%20%7C%20sing--box-blue)
-![tests](https://img.shields.io/badge/tests-188%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-197%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%2B-informational)
 ![status](https://img.shields.io/badge/real--device%20testing-not%20yet%20done-orange)
 
 > **Bring your own subscription.** No nodes or subscription links ship with this repo. Every config uses the placeholder `https://REPLACE-ME.invalid/...`, and nothing connects until you replace it with your own subscription.
 
-This README describes source version **2026.10.05-1**. The version is written in the header comment of every generated config and in `dist/manifest.json`; check it before importing. The badges above are static text, not a CI status: the tests were run locally on Linux (Python 3.11) on 2026-10-05.
+This README describes source version **2026.10.05-2**. The version is written in the header comment of every generated config and in `dist/manifest.json`; check it before importing. The badges above are static text, not a CI status: the tests were run locally on Linux (Python 3.11) on 2026-10-06 (UTC).
 
 ---
 
@@ -44,7 +44,7 @@ This README describes source version **2026.10.05-1**. The version is written in
 |---|---|---|
 | iPhone / iPad / Mac: **Loon** (3.0.3+) | `dist/loon/loon.conf` | Replace the placeholder under `[Remote Proxy]` with your subscription |
 | iPhone / iPad / Mac: **Quantumult X** | `dist/quantumultx/quantumultx.conf` | Replace the placeholder under `[server_remote]` |
-| Windows / macOS: **Clash Verge Rev** | `dist/mihomo/mihomo-profile.yaml` | Replace `url` under `proxy-providers` |
+| Windows / macOS: **Clash Verge Rev** | `dist/mihomo/mihomo-profile.yaml` | Replace `url` under `proxy-providers`; keep the app's “DNS override” (DNS 覆写) switch off so the profile's own `dns:` section is used (not verified in the app, see `docs/06`) |
 | Android: **Clash Meta for Android** | `dist/mihomo/mihomo-profile.yaml` | Same as above |
 | Linux / router: **mihomo core** | `dist/mihomo/mihomo-core.yaml` | Same as above (includes local ports and controller; TUN off) |
 | Android: **SFA (sing-box)** | Build locally (see below) | sing-box can't use subscriptions, so nodes must be written into the config |
@@ -112,13 +112,13 @@ Remote lists are fetched by the clients themselves and follow upstream, so the s
 
 ## ✅ Verification status
 
-- 188 automated tests pass. Field names were checked against mihomo v1.19.31 and sing-box v1.14.1 source. 559 community-sourced rules were checked one by one against pinned upstream snapshots.
+- 197 automated tests pass. Field names were checked against mihomo v1.19.31 and sing-box v1.14.1 source. 559 community-sourced rules were checked one by one against pinned upstream snapshots.
 - `mihomo -t` (v1.19.31) and `sing-box check` (v1.14.1 for the 1.14 config, v1.12.0 for the compatible one) pass on the generated configs. Other core versions, including sing-box 1.13 and the cores bundled with Clash Verge Rev, Clash Meta for Android and SFA, were not run.
-- Routing was checked with the official cores and real upstream data files: 245 targets on mihomo v1.19.31 and on both sing-box versions, plus 21 DNS decisions and 7 dial-time resolver cases on sing-box, all matching hand-written expectations. Outbounds were replaced with rejects and nothing left the machine, so this shows which group a connection is handed to, not connectivity. Loon and Quantumult X have no core that runs on a computer; for them there is only an in-house emulator.
+- Routing was checked with the official cores and real upstream data files: 245 targets on mihomo v1.19.31 and on both sing-box versions, plus 21 DNS decisions and 7 dial-time resolver cases on sing-box, and 7 dial-time resolver cases and 4 DNS decisions (LAN names only) on mihomo, all matching hand-written expectations. Outbounds were replaced with rejects and nothing left the machine, so this shows which group a connection is handed to, not connectivity. Loon and Quantumult X have no core that runs on a computer; for them there is only an in-house emulator.
 - Node grouping by name: 625 hand-labelled names give the same result in Python, in ICU (the regex engine the Apple apps are assumed to use) and in the official mihomo core. None of them come from a real subscription.
-- Five external review rounds so far; findings and fixes are in `docs/08-外部审核记录.md`.
+- Six external review rounds so far; findings and fixes are in `docs/08-外部审核记录.md`.
 - **Not yet tested on real devices.** None of the configs has been imported into Loon, Quantumult X, Clash Verge Rev, Clash Meta for Android or SFA and checked in real use. See `docs/05-验收记录.md` and `docs/09-真机验收操作清单.md`.
-- Most important open points (see `docs/06-已知限制与待决事项.md`): whether Loon and Quantumult X accept the long region filters (12–16 KB each) and the icon parameter; whether Quantumult X applies `server-tag-regex` to its auto and balance policies; Loon's second ad-list file uses a format its official docs don't describe; Netflix unlock has no verification record yet; health-check and failover timings are design targets, not measurements.
+- Most important open points (see `docs/06-已知限制与待决事项.md`): whether Clash Verge Rev / Clash Meta for Android pass the profile's `dns:` section to the core unchanged (Clash Verge Rev has a “DNS override” switch whose behaviour changed across recent versions), and which mihomo core they bundle — resolving LAN-hosted proxy servers through the system DNS needs mihomo v1.19.20 or later, older cores ignore that field; whether Loon and Quantumult X accept the long region filters (12–16 KB each) and the icon parameter; whether Quantumult X applies `server-tag-regex` to its auto and balance policies; Loon's second ad-list file uses a format its official docs don't describe; Netflix unlock has no verification record yet; health-check and failover timings are design targets, not measurements.
 
 ## ⚠️ Disclaimer
 

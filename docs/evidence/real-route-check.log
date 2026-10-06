@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-10-05 07:47:09
+运行时间（UTC）：2026-10-06 01:29:31
 Python：Python 3.11.17，PyYAML：6.0.1
-统一源摘要：98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534
+统一源摘要：9e21de7d671fb457f7e59c5dcea2bfb46d39ac3891813df90942b1ea35c4944a
 命令：python3 tools/check_real_routes.py --mihomo /home/claude/vendor-bin/mihomo-linux-amd64-v1.19.31 --singbox /home/claude/vendor-bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /home/claude/vendor-bin/geodata --srs-dir /home/claude/vendor-bin/srs --bm7 /home/claude/vendor-src/bm7 --singbox-112 /home/claude/vendor-bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /home/claude/vendor-src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-05 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
 
-统一源 2026.10.05-1；用例与排除项共 265 条，不同的目标 245 个；sing-box DNS 用例 21 条，拨号解析用例 7 条
+统一源 2026.10.05-2；用例与排除项共 265 条，不同的目标 245 个；DNS 去向用例 sing-box 21 条、mihomo 4 条，拨号解析用例 sing-box 7 条、mihomo 7 条
 数据文件：
   [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载）
   [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-05 下载）
@@ -25,6 +25,23 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
   mihomo-core.yaml 与 mihomo-profile.yaml 的规则段完全相同，只跑一份
   [符合] 路由 245 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国内直连（GeoSite(cn)）；按需求本该去 国外默认，差异来自上游集合的内容，决定不更正（见 docs/06）
+  拨号核对原样保留的部分（规则、DNS、嗅探和几个开关），两份 mihomo 配置完全相同，只跑一份
+  [符合] DNS 去向 4 条（设备发来的查询交给哪一类 DNS；只核对和局域网名字有关的几条。system 是系统 DNS 的替身，domestic 国内，foreign 境外，fake-ip 是直接给假地址）：官方内核与人工期望一致
+      printer.lan A → system
+      nas.home.arpa A → system
+      www.taobao.com A → fake-ip
+      printer A → domestic（已知限制的现状，见 docs/06）
+  [符合] 拨号解析 7 条（节点服务器的名字、域名形式的直连目标交给哪一类 DNS）：官方内核与人工期望一致
+      node gateway.lan → system
+      node proxy.home.arpa → system
+      node homeproxy → system
+      node node.example.com → domestic
+      node lan.example.com → domestic
+      direct nas.lan → system
+      direct www.baidu.com → domestic
+      自检：去掉 proxy-server-nameserver-policy 后，node gateway.lan → domestic、node proxy.home.arpa → domestic、node homeproxy → domestic——只有它管的这几条变了，这一处仍然需要
+      自检：去掉 direct-nameserver-follow-policy 后，direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
+      自检：去掉 nameserver-policy 里局域网后缀那一条后，printer.lan A → domestic、nas.home.arpa A → domestic、direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
 singbox-1.14：sing-box version 1.14.1，配置 sing-box/sing-box-1.14.json
   [符合] 路由 245 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国外默认（没有规则命中（route.final））；这一端没有差异

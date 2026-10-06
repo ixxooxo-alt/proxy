@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-05 07:45:23
+运行时间（UTC）：2026-10-06 01:27:17
 Python：Python 3.11.17，PyYAML：6.0.1
-统一源摘要：98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534
+统一源摘要：9e21de7d671fb457f7e59c5dcea2bfb46d39ac3891813df90942b1ea35c4944a
 命令：python3 -m unittest discover -s tests -v
 
 test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 7 个公开产物到 out（订阅为占位符）
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 7 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp2f6c6b1k/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpbrk_p3qu/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -46,12 +46,14 @@ test_detects_broken_dial_resolver_references (test_build_pipeline.Verifier.test_
 test_detects_broken_references (test_build_pipeline.Verifier.test_detects_broken_references) ... ok
 test_detects_broken_rule_set_and_dns_references (test_build_pipeline.Verifier.test_detects_broken_rule_set_and_dns_references)
 规则集、DNS 服务器的引用也在写盘前检查（DNS 上的产品规则引用内联规则集 product-proxied）。 ... ok
+test_detects_mihomo_dns_settings_the_core_would_refuse (test_build_pipeline.Verifier.test_detects_mihomo_dns_settings_the_core_would_refuse)
+审核 r10 的 R10-F01 之后用到 proxy-server-nameserver-policy。mihomo 对它和 respect-rules 都有同一个要求： ... ok
 test_classification (test_check_connections.ConnectionLogTool.test_classification) ... ok
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp4kmouu27/report.md
-报告已写入 /tmp/tmp4kmouu27/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp5ayqf5y9/report.md
+报告已写入 /tmp/tmp5ayqf5y9/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时六个产物都逐字节相同。 ... ok
@@ -72,7 +74,13 @@ test_adopted_removals_are_gone (test_cursor_report.CursorReport.test_adopted_rem
 test_every_difference_has_a_disposition (test_cursor_report.CursorReport.test_every_difference_has_a_disposition) ... ok
 test_requested_migrations_route_to_the_same_group (test_cursor_report.CursorReport.test_requested_migrations_route_to_the_same_group)
 2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。 ... ok
+test_lan_suffix_list_also_drives_node_server_resolution (test_dns_lan.LanDns.test_lan_suffix_list_also_drives_node_server_resolution)
+公司自己的内网后缀（不在默认那几个里）加进 lan.domain_suffix 之后：mihomo 的两条策略（访问目标的、节点服务器的） ... ok
 test_loon_and_qx_use_system_dns_for_lan_suffixes (test_dns_lan.LanDns.test_loon_and_qx_use_system_dns_for_lan_suffixes) ... ok
+test_mihomo_and_singbox_agree_on_what_a_lan_name_is (test_dns_lan.LanDns.test_mihomo_and_singbox_agree_on_what_a_lan_name_is)
+两个内核的写法不同（mihomo：策略里的通配符；sing-box：生成时用 is_lan_name 判断），对同一个节点服务器名字的 ... ok
+test_mihomo_node_servers_in_the_lan_use_system_dns (test_dns_lan.LanDns.test_mihomo_node_servers_in_the_lan_use_system_dns)
+审核 r10 的 R10-F01：mihomo 解析节点自己的服务器地址用 proxy-server-nameserver，它的例外另写在 ... ok
 test_mihomo_provider_health_check_matches_groups (test_dns_lan.LanDns.test_mihomo_provider_health_check_matches_groups) ... ok
 test_mihomo_sends_lan_suffixes_to_system_dns_first (test_dns_lan.LanDns.test_mihomo_sends_lan_suffixes_to_system_dns_first) ... ok
 test_singbox_dial_time_resolution_of_lan_names (test_dns_lan.LanDns.test_singbox_dial_time_resolution_of_lan_names)
@@ -89,7 +97,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 7 个公开产物到 /tmp/tmpzygee69p（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 7 个公开产物到 /tmp/tmp3npr93ty（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -97,8 +105,8 @@ test_git_really_ignores_them (test_local_and_private.GitIgnore.test_git_really_i
 test_private_paths_are_listed (test_local_and_private.GitIgnore.test_private_paths_are_listed) ... ok
 test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_local_rules_route) ... ok
 test_pinned_paypal_and_verified_netflix (test_local_and_private.LocalOverrides.test_pinned_paypal_and_verified_netflix) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 7 个公开产物到 ../../../tmp/tmp9_h4n8jb（订阅为占位符）
-私密产物已写入 ../../../tmp/tmp9_h4n8jb/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 7 个公开产物到 ../../../tmp/tmpqvuz5w60（订阅为占位符）
+私密产物已写入 ../../../tmp/tmpqvuz5w60/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -112,6 +120,14 @@ test_names_colliding_with_groups_are_renamed_and_still_filtered (test_nodes.Node
 test_obfs_plugin_semantics (test_nodes.NodeConversionNegative.test_obfs_plugin_semantics) ... ok
 test_v2ray_plugin_mux_and_host_semantics (test_nodes.NodeConversionNegative.test_v2ray_plugin_mux_and_host_semantics) ... ok
 test_ws_early_data_and_http_upgrade (test_nodes.NodeConversionNegative.test_ws_early_data_and_http_upgrade) ... ok
+test_dial_resolution_matches_recorded_official_core (test_real_data.MihomoDial.test_dial_resolution_matches_recorded_official_core)
+期望在 cases.yaml 的 mihomo_dial（人工写的）：局域网里的名字交给系统 DNS，公网名字照旧交给国内 DNS。 ... ok
+test_dns_cases_match_recorded_official_core (test_real_data.MihomoDial.test_dns_cases_match_recorded_official_core)
+期望在 cases.yaml 的 mihomo_dns（人工写的）：局域网后缀下的名字交给系统 DNS；普通域名给假地址、不向上游查询。 ... ok
+test_each_setting_only_governs_its_own_path (test_real_data.MihomoDial.test_each_setting_only_governs_its_own_path)
+快照里另有三组自检的记录，各从 DNS 段里去掉一样东西再跑同一批用例： ... ok
+test_dial_digest_sees_what_the_routing_digest_cannot (test_real_data.RealRoutes.test_dial_digest_sees_what_the_routing_digest_cannot)
+审核 r10 举的例子：把 sing-box 直连出站的解析器改成境外 DNS，规则段与 DNS 段的摘要不变。拨号摘要必须变； ... ok
 test_emulator_agrees_with_recorded_official_cores (test_real_data.RealRoutes.test_emulator_agrees_with_recorded_official_cores)
 模拟器（真实成员关系）与官方内核的记录逐个主机相同。不同 = 规则改了但没重新核对，或者模拟器的语义不对。 ... ok
 test_expectations_hold_with_real_sets (test_real_data.RealRoutes.test_expectations_hold_with_real_sets)
@@ -121,6 +137,8 @@ test_followed_upstream_behaviour_is_real_and_uncorrected (test_real_data.RealRou
 test_probe_list_is_substantial (test_real_data.RealRoutes.test_probe_list_is_substantial) ... ok
 test_qwen_is_in_the_real_domestic_sets (test_real_data.RealRoutes.test_qwen_is_in_the_real_domestic_sets)
 这条用例存在的前提：上游的国内域名集合确实收了 qwen.ai（所以必须有显式规则）。 ... ok
+test_recorded_dial_runs_used_the_current_dial_config (test_real_data.RealRoutes.test_recorded_dial_runs_used_the_current_dial_config)
+拨号记录（节点服务器的名字、域名形式的直连目标交给谁解析）对应的也必须是现在的配置。上一项的摘要只算规则段和 ... ok
 test_recorded_official_cores_meet_expectations (test_real_data.RealRoutes.test_recorded_official_cores_meet_expectations) ... ok
 test_recorded_official_runs_used_the_current_rules (test_real_data.RealRoutes.test_recorded_official_runs_used_the_current_rules)
 快照里记着官方内核当时跑的那份配置的“规则段 + DNS 段”的摘要。它必须等于现在生成的配置的同一个摘要： ... ok
@@ -185,7 +203,8 @@ test_long_names_do_not_blow_up (test_regions.Portability.test_long_names_do_not_
 回溯失控：正则写得不好时，匹配时间会随名字长度成倍增长（客户端上表现为刷新节点时卡死）。 ... ok
 test_no_character_with_special_meaning (test_regions.Portability.test_no_character_with_special_meaning) ... ok
 test_only_constructs_every_engine_supports (test_regions.Portability.test_only_constructs_every_engine_supports) ... ok
-test_size_is_bounded (test_regions.Portability.test_size_is_bounded) ... ok
+test_size_is_bounded (test_regions.Portability.test_size_is_bounded)
+16,000 字节是本项目自己定的上限，用来防止正则不知不觉越长越大（词表每加一批词都会变长）。 ... ok
 test_adjacent_flags_are_read_in_pairs (test_regions.Rules.test_adjacent_flags_are_read_in_pairs) ... ok
 test_country_name_beats_foreign_city (test_regions.Rules.test_country_name_beats_foreign_city)
 审核 F05：六个地区的国名和别国的城市词同时出现 → 按国名，但只进手动组；别国的国名仍然压过六个地区的词。 ... ok
@@ -285,7 +304,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 188 tests in 89.764s
+Ran 197 tests in 102.240s
 
 OK
 退出码：0

@@ -1,8 +1,8 @@
 {
-  "generator_version": "1.4.0",
-  "source_version": "2026.10.05-1",
+  "generator_version": "1.4.1",
+  "source_version": "2026.10.05-2",
   "docs_checked": "2026-09-23",
-  "source_sha256": "98f364eefe575e48c460abcdb5f9fe4fe8c67ed73e4264b33f451baa1f39d534",
+  "source_sha256": "9e21de7d671fb457f7e59c5dcea2bfb46d39ac3891813df90942b1ea35c4944a",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
@@ -17,10 +17,10 @@
     }
   },
   "outputs": {
-    "loon/loon.conf": "ec1e3f9684aa43c6dbfea98715344fb46ce3057078220d6f5339db99031f748a",
-    "mihomo/mihomo-core.yaml": "0208aad0ab0dab2ec2ff6f291fc12952ab57296b8aaeca88c5c8f24ebdeb929f",
-    "mihomo/mihomo-profile.yaml": "2751f7cf6b539cbba5e8d477f4df57613fbaca96b0cc4b0421cd5189bde294c3",
-    "quantumultx/quantumultx.conf": "1a6065a13c0a6d2e4f1c3841ae2569a3ed47fb183999e6afb56cb4a769d0f9e7",
+    "loon/loon.conf": "14e958b63c0e168dc0b4cbeb3003e470fcac3dc40c34c1838d02cee95483b159",
+    "mihomo/mihomo-core.yaml": "8bbd3b352fc4661138b682a1de32e8527946fd31ae469941e804e5e4afe587bc",
+    "mihomo/mihomo-profile.yaml": "edb987812c2632419ff95859e744536e1bd214d28cc3203e9af10cf640e3c416",
+    "quantumultx/quantumultx.conf": "c09a062a6d206dc79ed03851da799d3bf0ba730532e9281c993257c7aa720831",
     "sing-box/sing-box-1.12.json": "1883187cf9d48e505a65dba708984d5a0c6227e7d410353484f5d551c826dfde",
     "sing-box/sing-box-1.14.json": "4398f35b5e0c993e12f3d2ef4418364c4003bcac09d7397b98684c2897bf5954"
   },

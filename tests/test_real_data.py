@@ -13,9 +13,13 @@ tests/test_routing.py 里的“国内域名集合”“广告集合”只是 tes
 加了新的用例或排除项、或者改了规则让某个主机的去向变了，都要重新生成快照，否则这里会失败并提示。
 解析结果仍是假定的（fixtures.yaml 的 dns；没列出的按境外 IP 算）：没有命中任何域名规则的主机，真实去向取决于当时解析到的 IP。
 """
+import copy
+import json
 import os
 import sys
 import unittest
+
+import yaml
 
 from helpers import CLIENT_FILES, ROOT, emulate, family, load_yaml, model_and_plan, parsed, route, text
 
@@ -146,7 +150,9 @@ class RealRoutes(unittest.TestCase):
     def test_recorded_official_runs_used_the_current_rules(self):
         """快照里记着官方内核当时跑的那份配置的“规则段 + DNS 段”的摘要。它必须等于现在生成的配置的同一个摘要：
         改了任何一条规则或 DNS 设置而没有重新跑官方内核，这里失败。这样“模拟器的结果 = 官方内核的记录”比的才是同一套规则，
-        不只是碰巧被抽到的那些主机。注释、版本号、图标不算在摘要里（它们不影响交给谁）。"""
+        不只是碰巧被抽到的那些主机。注释、版本号、图标不算在摘要里（它们不影响交给谁）。
+        这个摘要管的是路由和 DNS 去向的记录（规则把目标交给哪个组、查询交给哪个 DNS 服务器）。拨号时名字交给谁解析的记录
+        不归它管——那还取决于出站自己的设置，这两段里没有；拨号记录另有摘要，见下一项（2026-10-05 审核 r10 的建议）。"""
         for client, key in (("mihomo-core", "mihomo"), ("singbox-1.14", "singbox"), ("singbox-1.12", "singbox112")):
             rec = self.snap["official"][key]
             rel = CLIENT_FILES[client]
@@ -156,6 +162,77 @@ class RealRoutes(unittest.TestCase):
         m = self.snap["official"]["mihomo"]["routing_sha256"]
         self.assertEqual(rd.routing_digest(CLIENT_FILES["mihomo-profile"], text("mihomo-profile")), m,
                          "mihomo-profile 与 mihomo-core 的规则段或 DNS 段不同，不能共用一份官方内核记录")
+
+    def test_recorded_dial_runs_used_the_current_dial_config(self):
+        """拨号记录（节点服务器的名字、域名形式的直连目标交给谁解析）对应的也必须是现在的配置。上一项的摘要只算规则段和
+        DNS 段；sing-box 拨号时的解析还取决于出站自己的设置（节点和直连出站的 domain_resolver 等），光看上一项发现不了
+        “出站改了、拨号记录还是旧的”。所以这里把拨号核对用的配置重新生成一遍（生成器带着同一批核对用的节点，和核对工具
+        用的是同一个函数），它的拨号摘要必须等于快照里记的。mihomo 的节点由订阅提供、生成的配置里没有，摘要算的是核对时
+        原样保留的那部分（规则、DNS、嗅探和几个开关）。"""
+        m, plan = model_and_plan()
+        nodes = sum(c["kind"] == "node" for c in CASES["singbox_dial"])
+        for key, variant in (("singbox", "1.14"), ("singbox112", "1.12")):
+            base, tags = rd.singbox_dial_base(m, plan, variant, CASES["singbox_dial"])
+            self.assertEqual(len(tags), nodes, variant)
+            self.assertEqual(rd.dial_digest("singbox", base), self.snap["official"][key].get("dial_sha256"),
+                             f"sing-box {variant} 拨号核对用的配置变了" + HINT)
+        core = rd.mihomo_dial_base(text("mihomo-core"))
+        self.assertEqual(rd.dial_digest("mihomo", core), self.snap["official"]["mihomo"].get("dial_sha256"),
+                         "mihomo 拨号核对用的配置变了" + HINT)
+        self.assertEqual(rd.mihomo_dial_base(text("mihomo-profile")), core,
+                         "mihomo-profile 与 mihomo-core 在拨号核对原样保留的部分不同，不能共用一份拨号记录")
+
+    def test_dial_digest_sees_what_the_routing_digest_cannot(self):
+        """审核 r10 举的例子：把 sing-box 直连出站的解析器改成境外 DNS，规则段与 DNS 段的摘要不变。拨号摘要必须变；
+        节点上的 domain_resolver 被拿掉也必须变。反过来，策略组的成员、核对用节点的端口变了不应该变（改这些不必重跑官方内核）。
+        mihomo：解析节点服务器的那条策略、直连出口跟随策略的开关变了必须变；策略组（成员、图标）和端口不在里面；
+        生成的配置多出一个没有归类的顶层字段（比如 hosts）时直接报错，不悄悄略过。"""
+        m, plan = model_and_plan()
+        rel = CLIENT_FILES["singbox-1.14"]
+        base, _ = rd.singbox_dial_base(m, plan, "1.14", CASES["singbox_dial"])
+        dial0, routing0 = rd.dial_digest("singbox", base), rd.routing_digest(rel, json.dumps(base))
+        self.assertEqual(routing0, rd.routing_digest(rel, text("singbox-1.14")), "带不带节点，规则段与 DNS 段相同")
+
+        def edited(edit):
+            conf = copy.deepcopy(base)
+            edit(conf)
+            return conf
+
+        def direct(conf):
+            return next(o for o in conf["outbounds"] if o["type"] == "direct")
+
+        foreign = edited(lambda c: direct(c).__setitem__("domain_resolver", "dns-foreign"))
+        self.assertEqual(rd.routing_digest(rel, json.dumps(foreign)), routing0, "规则段与 DNS 段的摘要看不到这个改动")
+        self.assertNotEqual(rd.dial_digest("singbox", foreign), dial0)
+        self.assertTrue(any("domain_resolver" in o for o in base["outbounds"]), "核对用的节点里要有带 domain_resolver 的")
+        stripped = edited(lambda c: [o.pop("domain_resolver", None) for o in c["outbounds"]])
+        self.assertEqual(rd.routing_digest(rel, json.dumps(stripped)), routing0)
+        self.assertNotEqual(rd.dial_digest("singbox", stripped), dial0)
+        regrouped = edited(lambda c: next(o for o in c["outbounds"] if o["type"] == "selector")["outbounds"].reverse())
+        self.assertNotEqual(regrouped, base)
+        self.assertEqual(rd.dial_digest("singbox", regrouped), dial0)
+        other_port, _ = rd.singbox_dial_base(m, plan, "1.14", CASES["singbox_dial"], port=45678)
+        self.assertNotEqual(other_port, base)
+        self.assertEqual(rd.dial_digest("singbox", other_port), dial0)
+
+        conf = yaml.safe_load(text("mihomo-core"))
+
+        def mihomo_digest(edit):
+            c = copy.deepcopy(conf)
+            edit(c)
+            return rd.dial_digest("mihomo", rd.mihomo_dial_base(yaml.safe_dump(c, allow_unicode=True, sort_keys=False)))
+
+        m0 = mihomo_digest(lambda c: None)
+        self.assertEqual(m0, rd.dial_digest("mihomo", rd.mihomo_dial_base(text("mihomo-core"))))
+        self.assertNotEqual(mihomo_digest(lambda c: c["dns"].pop("proxy-server-nameserver-policy")), m0)
+        self.assertNotEqual(mihomo_digest(lambda c: c["dns"]["proxy-server-nameserver-policy"].pop("*")), m0)
+        self.assertNotEqual(mihomo_digest(lambda c: c["dns"].pop("direct-nameserver-follow-policy")), m0)
+        self.assertNotEqual(mihomo_digest(lambda c: c["rules"].pop(0)), m0)
+        self.assertEqual(mihomo_digest(lambda c: [g.pop("icon", None) for g in c["proxy-groups"]]), m0)
+        self.assertEqual(mihomo_digest(lambda c: c["proxy-groups"][0]["proxies"].reverse()), m0)
+        self.assertEqual(mihomo_digest(lambda c: c.__setitem__("mixed-port", 1)), m0)
+        with self.assertRaises(ValueError):
+            mihomo_digest(lambda c: c.__setitem__("hosts", {"gateway.lan": "192.0.2.1"}))
 
     def test_qwen_is_in_the_real_domestic_sets(self):
         """这条用例存在的前提：上游的国内域名集合确实收了 qwen.ai（所以必须有显式规则）。
@@ -275,6 +352,65 @@ class SingboxDns(unittest.TestCase):
                     if got != exp:
                         failures.append(f"[{client}] {h}（规则归 {target}）：A → {got}，应为 {exp}")
         self.assertFalse(failures, "\n" + "\n".join(failures[:40]))
+
+
+class MihomoDial(unittest.TestCase):
+    """mihomo 里名字交给哪一类 DNS 解析（2026-10-05 审核 r10 的 R10-F01）：人工写的期望对照快照里官方内核的记录。
+    mihomo 内核有三个互不相干的解析器——设备发来的 DNS 查询、直连出口拨号、节点连接自己的服务器——各有各的设置。"""
+
+    WITHOUT = ("node_policy", "follow_policy", "lan_policy")
+
+    def setUp(self):
+        self.rec = snapshot()["official"]["mihomo"]
+        self.dial = CASES["mihomo_dial"]
+        self.dns = CASES["mihomo_dns"]
+        self.dial_keys = [rd.dial_key(c) for c in self.dial]
+        self.dns_keys = [f"{c['host']} {c['type']}" for c in self.dns]
+
+    def test_dial_resolution_matches_recorded_official_core(self):
+        """期望在 cases.yaml 的 mihomo_dial（人工写的）：局域网里的名字交给系统 DNS，公网名字照旧交给国内 DNS。"""
+        self.assertGreaterEqual(len(self.dial), 6)
+        self.assertTrue(any(c["kind"] == "node" for c in self.dial) and any(c["kind"] == "direct" for c in self.dial))
+        self.assertIn("dial", self.rec, "快照里没有 mihomo 的拨号记录" + HINT)
+        self.assertEqual(sorted(self.rec["dial"]), sorted(self.dial_keys), "快照里的拨号记录和现在的用例不是同一批" + HINT)
+        wrong = [(k, c["expect"], self.rec["dial"][k]) for k, c in zip(self.dial_keys, self.dial) if self.rec["dial"][k] != c["expect"]]
+        self.assertEqual(wrong, [], "（用例, 期望, 官方内核记录）" + HINT)
+
+    def test_dns_cases_match_recorded_official_core(self):
+        """期望在 cases.yaml 的 mihomo_dns（人工写的）：局域网后缀下的名字交给系统 DNS；普通域名给假地址、不向上游查询。
+        标了 limit 的是已知限制的现状（不带点的名字交给了国内的公共 DNS），同样要和记录一致——文档里是照这个写的。"""
+        self.assertGreaterEqual(sum(c["expect"] == "system" for c in self.dns), 2)
+        self.assertTrue(any(c["expect"] == "fake-ip" for c in self.dns), "要有一条对照：普通域名不向上游查询")
+        self.assertIn("dns", self.rec, "快照里没有 mihomo 的 DNS 去向记录" + HINT)
+        self.assertEqual(sorted(self.rec["dns"]), sorted(self.dns_keys), "快照里的 DNS 去向记录和现在的用例不是同一批" + HINT)
+        wrong = [(k, c["expect"], self.rec["dns"][k]) for k, c in zip(self.dns_keys, self.dns) if self.rec["dns"][k] != c["expect"]]
+        self.assertEqual(wrong, [], "（用例, 期望, 官方内核记录）" + HINT)
+        limits = [c for c in self.dns if c.get("limit")]
+        self.assertEqual([(c["host"], c["expect"]) for c in limits], [("printer", "domestic")],
+                         "已知限制的现状变了：docs/03、docs/06 里“不带点的名字”那一条要跟着改")
+        self.assertFalse(set(self.dns_keys) & set(self.dial_keys))
+
+    def test_each_setting_only_governs_its_own_path(self):
+        """快照里另有三组自检的记录，各从 DNS 段里去掉一样东西再跑同一批用例：
+          去掉 proxy-server-nameserver-policy        → 只有“节点服务器是局域网名字”的几条变回国内 DNS；
+          去掉 direct-nameserver-follow-policy       → 只有“直连目标是局域网名字”的那条变回国内 DNS；
+          去掉 nameserver-policy 里局域网后缀那一条  → 设备查询局域网名字、直连局域网目标变回国内 DNS，节点的不变。
+        这说明核对看得见它要防的错误，也说明三处各管各的：审核 r10 指出的正是“只写了第三处，以为节点也管到了”。"""
+        lan = {kind: [k for k, c in zip(self.dial_keys, self.dial) if c["kind"] == kind and c["expect"] == "system"]
+               for kind in ("node", "direct")}
+        lan["query"] = [k for k, c in zip(self.dns_keys, self.dns) if c["expect"] == "system"]
+        for kind, keys in lan.items():
+            self.assertTrue(keys, f"用例里要有期望交给系统 DNS 的 {kind}")
+        moved = {"node_policy": lan["node"], "follow_policy": lan["direct"], "lan_policy": lan["query"] + lan["direct"]}
+        normal = {**{k: c["expect"] for k, c in zip(self.dial_keys, self.dial)},
+                  **{k: c["expect"] for k, c in zip(self.dns_keys, self.dns)}}
+        for name in self.WITHOUT:
+            for part in ("dial", "dns"):
+                self.assertIn(f"{part}_without_{name}", self.rec, f"快照里没有 {part}_without_{name}" + HINT)
+            got = {**self.rec[f"dial_without_{name}"], **self.rec[f"dns_without_{name}"]}
+            self.assertEqual(sorted(got), sorted(normal), name)
+            for k, want in normal.items():
+                self.assertEqual(got[k], "domestic" if k in moved[name] else want, f"去掉 {name} 后的 {k}")
 
 
 if __name__ == "__main__":

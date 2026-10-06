@@ -13,6 +13,25 @@ from .util import Rule, check_regex_line_safe
 MODES = ["manual_first", "manual", "auto", "failover", "balance"]
 PROVIDER_NAME = "订阅1"
 SUB_PLACEHOLDER = "https://REPLACE-ME.invalid/请替换为你的订阅链接"
+DOTLESS_NAME = "*"       # mihomo 的域名通配符：单独一个 * 只匹配不带点的主机名（homeproxy、nas）
+
+
+def node_server_dns_policy(lan_suffixes: List[str]) -> dict:
+    """proxy-server-nameserver-policy 的内容：节点自己的服务器地址是局域网里的名字时，交给系统 DNS 解析。
+
+    节点的服务器地址（订阅里每个节点的 server）由 proxy-server-nameserver 解析。这个解析器有自己的一套策略，
+    不看 nameserver-policy；direct-nameserver-follow-policy 也只管直连出口（v1.19.31 dns/resolver.go：
+    ProxyResolver 的 main 取自 ProxyServer，policy 取自 ProxyServerPolicy）。所以只在 nameserver-policy 里写
+    “局域网后缀 → system”是不够的：服务器地址是 gateway.lan、proxy.home.arpa 的节点（自己搭在家里 / 公司内网的代理）
+    会被拿去问国内的公共 DNS，查不到，节点不可用，内部的名字还发给了外面（2026-10-05 审核 r10 的 R10-F01）。
+    两类名字，与 sing-box 那边的 is_lan_name 判断相同：
+      - 以局域网后缀结尾的（+.lan 这种写法同时匹配 lan 本身和它下面的任意多级）；
+      - 不带点的主机名（单独一个 *）。
+    公网域名的节点不受影响，仍由 proxy-server-nameserver（国内 DNS）解析。"""
+    return {
+        ",".join("+." + s for s in lan_suffixes): ["system"],
+        DOTLESS_NAME: ["system"],
+    }
 
 
 class _Dumper(yaml.SafeDumper):
@@ -207,12 +226,15 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
             "fake-ip-filter": ["geosite:private"] + real_ip,
             "respect-rules": True,
             "default-nameserver": list(dns["domestic_plain"]),
+            # 不能清空：respect-rules 依赖它（清空后 mihomo 拒绝加载），公网域名的节点也由它解析
             "proxy-server-nameserver": list(dns["domestic_doh"]),
+            "proxy-server-nameserver-policy": node_server_dns_policy(p["lan"]["domain_suffix"]),
             "direct-nameserver": list(dns["domestic_doh"]),
             "nameserver": list(dns["foreign_doh"]),
             # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字），必须排在 geosite:private 之前：
             # mihomo 按书写顺序匹配 nameserver-policy。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这条策略，
             # 否则 DIRECT 出站会直接用 direct-nameserver（公共 DoH）。与 sing-box / Loon / QX 的做法一致。
+            # 这两项管的是“访问的目标”；节点自己的服务器地址另由上面的 proxy-server-nameserver-policy 管。
             "nameserver-policy": {
                 ",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"],
                 "geosite:cn,private": list(dns["domestic_doh"]),
