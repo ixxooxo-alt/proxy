@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 75 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 98 个，可以分两批同时跑）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -140,8 +140,8 @@ cases = [
             'if e.get("target") is not None and e["target"] not in names | {"DIRECT"}:', "if False:", 1).replace(
             "        if grp.name in grp.members:", "        if False:", 1)),
         ("generator/verify.py", lambda s: s.replace(
-            '    """files：{相对路径: 内容}。按文件名判断格式，返回“文件：问题”列表。"""\n',
-            '    """files：{相对路径: 内容}。按文件名判断格式，返回“文件：问题”列表。"""\n    return []\n', 1))], None),
+            '    out: List[str] = []\n    for rel, text in sorted(files.items()):\n',
+            '    out: List[str] = []\n    return out\n    for rel, text in sorted(files.items()):\n', 1))], None),
     ("M21 检查脚本又总是返回 0（F08）", [("tools/run_checks.sh", lambda s: s.replace("  exit 1\nfi", "  exit 0\nfi", 1))], None),
     ("M22 xAI 放回其他 AI（与 Cursor 合并的决定）", [("source/services/ai.yaml", lambda s: s.replace(
         "  - id: xai\n    group: Grok", "  - id: xai\n    group: 其他 AI", 1))], "Grok"),
@@ -245,8 +245,8 @@ cases = [
         '        return ic["base_url"] + urllib.parse.quote(file_name + ic.get("ext", ".png"), safe="")',
         '        return ic["base_url"] + file_name + ic.get("ext", ".png")', 1))], "img-url"),
     ("M61 图标张冠李戴（没有改名登记的组都指向同一张图）", [("generator/model.py", lambda s: s.replace(
-        '        file_name = (ic.get("renamed") or {}).get(group_name, group_name)',
-        '        file_name = (ic.get("renamed") or {}).get(group_name, "OpenAI")', 1))], "不是它自己的图"),
+        '        return (ic.get("renamed") or {}).get(group_name) or group_name',
+        '        return (ic.get("renamed") or {}).get(group_name) or "OpenAI"', 1))], "不是它自己的图"),
     ("M62 策略组找不到图标时不报错（公开配置悄悄少一个图标）", [("generator/model.py", lambda s: s.replace(
         "            if self.icons_strict:\n                raise SourceError(", "            if False:\n                raise SourceError(", 1))],
      "SourceError"),
@@ -286,6 +286,58 @@ cases = [
     ("M75 拨号记录的摘要又只算规则段和 DNS 段（出站改了、拨号记录过期也不提示）", [("tools/real_data.py", lambda s: s.replace(
         '        part = {"dns": base["dns"], "route": base["route"], "outbounds": outbounds}\n',
         '        part = {"dns": base["dns"], "route": base["route"]}\n', 1))], "dial_digest"),
+    # ---- 2026-10-06 r12：Loon / Quantumult X 严格版、“国外的连接名字不让国内 DNS 看到”的核对、Apple Push ----
+    ("M76 Loon 严格版：GEOIP,CN 又没有 no-resolve（没被接住的域名又要在本机解析）", [("generator/emit_loon.py", lambda s: s.replace(
+        '        L.append("GEOIP,CN,国内直连,no-resolve")\n', '        L.append("GEOIP,CN,国内直连")\n', 1))], "no-resolve"),
+    ("M77 Loon 严格版：没有订阅国内域名清单（国内网站全部走代理）", [("generator/emit_loon.py", lambda s: s.replace(
+        '        for x in m.strict["domestic_lists"]["loon"]:\n', '        for x in []:\n', 1))], "国内直连"),
+    ("M78 Loon 严格版：国内域名清单排到广告集合前面（清单里的域名下的广告主机拦不到）", [("generator/emit_loon.py", lambda s: s.replace(
+        """            L.append(f"{url}, policy=国内直连, tag={x['tag']}, enabled=true")\n""",
+        """            L.insert(L.index("[Remote Rule]") + 1, f"{url}, policy=国内直连, tag={x['tag']}, enabled=true")\n""", 1))], "广告"),
+    ("M79 Loon 严格版：订阅的是混着关键词和 IP 规则的 ChinaMax.list，不是只含域名的那一份", [("source/strict.yaml", lambda s: s.replace(
+        "rule/Loon/ChinaMax/ChinaMax_Domain.list", "rule/Loon/ChinaMax/ChinaMax.list", 1))], "ChinaMax"),
+    ("M80 Quantumult X 严格版：没有域名兜底", [("generator/emit_qx.py", lambda s: s.replace(
+        """        L.append(f"{strict_mod.own_url(m, fb['own'])}, tag={fb['tag']}, force-policy=国外默认, update-interval=86400, "\n"""
+        """                 "opt-parser=false, enabled=true")\n""", "", 1))], "兜底"),
+    ("M81 Quantumult X 严格版：域名兜底不是最后一条（排到了国内域名清单前面，国内网站全部走代理）", [("generator/emit_qx.py", lambda s: s.replace(
+        """        L.append(f"{strict_mod.own_url(m, fb['own'])}, tag={fb['tag']}, force-policy=国外默认, update-interval=86400, "\n"""
+        """                 "opt-parser=false, enabled=true")\n""",
+        """        L.insert(len(L) - 3, f"{strict_mod.own_url(m, fb['own'])}, tag={fb['tag']}, force-policy=国外默认, """
+        """update-interval=86400, opt-parser=false, enabled=true")\n""", 1))], "兜底"),
+    ("M82 Quantumult X 严格版：域名兜底交给了“国内直连”", [("generator/emit_qx.py", lambda s: s.replace(
+        "tag={fb['tag']}, force-policy=国外默认, update-interval=86400", "tag={fb['tag']}, force-policy=国内直连, update-interval=86400", 1))], "国外默认"),
+    ("M83 域名兜底文件里的关键词不是“.”（只接住含 com 的域名）", [("generator/strict.py", lambda s: s.replace(
+        'FALLBACK_KEYWORD = "."', 'FALLBACK_KEYWORD = "com"', 1))], "HOST-KEYWORD"),
+    ("M84 Loon 严格版：“要真实地址的名单”不固定直连（time.apple.com 又跟着 Apple 组）", [("generator/emit_loon.py", lambda s: s.replace(
+        "        emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
+    ("M85 Quantumult X 严格版：“要真实地址的名单”不固定直连", [("generator/emit_qx.py", lambda s: s.replace(
+        "        emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
+    ("M86 自有清单不去掉已被本地规则覆盖的条目（qwen.ai 又出现在国内清单里）", [("generator/strict.py", lambda s: s.replace(
+        "    kept_s = [x for x in suffix if not covered(x, False)]\n", "    kept_s = list(suffix)\n", 1))], "qwen.ai"),
+    ("M87 标准版被牵连：Loon 标准版的 GEOIP,CN 也带上了 no-resolve（标准版不再靠解析认国内网站）", [("generator/emit_loon.py", lambda s: s.replace(
+        '        L.append("GEOIP,CN,国内直连")\n', '        L.append("GEOIP,CN,国内直连,no-resolve")\n', 1))], "unknown-cn.example"),
+    ("M88 标准版被牵连：Quantumult X 标准版也带上了国内清单和域名兜底", [("generator/emit_qx.py", lambda s: s.replace(
+        '    if strict:\n        L.append("# 6 国内域名清单（严格版）：排在广告集合之后；本地的产品规则仍然优先于它")\n',
+        '    if True:\n        L.append("# 6 国内域名清单（严格版）：排在广告集合之后；本地的产品规则仍然优先于它")\n', 1))], "标准版"),
+    ("M89 国内域名清单的数据文件被手改：加了一条已被别的后缀覆盖的条目", [("source/data/cn-domains.txt", lambda s: s.replace(
+        "\n.baidu.com\n", "\n.baidu.com\n.tieba.baidu.com\n", 1))], "覆盖"),
+    ("M90 国内域名清单的数据文件里没有整段 .cn", [("source/data/cn-domains.txt", lambda s: s.replace("\n.cn\n", "\n", 1))], "cn"),
+    ("M91 mihomo：默认的 DNS 换成国内的（没被域名规则接住的域名改问国内 DNS；官方内核的记录过期）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '            "nameserver": list(dns["foreign_doh"]),\n', '            "nameserver": list(dns["domestic_doh"]),\n', 1))], "重新运行"),
+    ("M92 sing-box：路由里的 resolve 动作改用国内 DNS（没被域名规则接住的域名改问国内 DNS）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    rules.append({"action": "resolve", "server": "dns-foreign"})', '    rules.append({"action": "resolve", "server": "dns-cn"})', 1))], "重新运行"),
+    ("M93 “境外 DNS 不应答”那一遍不再包含没被接住的域名（那一遍等于什么也没证明）", [("tools/real_data.py", lambda s: s.replace(
+        'SILENT_KINDS = ("proxied", "unlisted")', 'SILENT_KINDS = ("proxied",)', 1))], "重新运行"),
+    ("M94 全集一致性：把 sing-box 那一类已知的不一致从清单里拿掉（扫出来的主机没有归属）", [("tests/cases.yaml", lambda s: s.replace(
+        "    - {kind: real_ip, why:", "    - {kind: something_else, why:", 1))], "已知类别"),
+    ("M95 去掉 Apple Push 的规则（推送又跟着 Apple 组）", [("source/services/bigtech.yaml", drop_service("apple_push"))], "Apple Push"),
+    ("M96 Apple Push 的默认出口改成国外默认（需求是默认直连，需要时手动切）", [("source/groups.yaml", lambda s: s.replace(
+        "  - {name: Apple Push,     category: 大厂, default: DIRECT, options: [国外默认, 香港,",
+        "  - {name: Apple Push,     category: 大厂, default: 国外默认, options: [DIRECT, 香港,", 1))], "Apple Push"),
+    ("M97 图标登记里漏了 Apple Push（组加了，图没有登记）", [("source/icons.yaml", lambda s: s.replace(
+        '"Apple Music／TV", "Apple Push", "Bahamut"', '"Apple Music／TV", "Bahamut"', 1))], "没有图标"),
+    ("M98 上游的 Loon 广告集合里有一条 IP 规则不带 no-resolve（改的是快照里的记录：Loon 严格版会为它在本机解析）",
+     [("tests/data/real_sets.json", lambda s: s.replace('"ip_resolving": 0', '"ip_resolving": 1', 1))], "no-resolve"),
 ]
 
 

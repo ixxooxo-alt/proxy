@@ -5,6 +5,8 @@
   - SnapshotFixtures：tests/data/real_sets.json 记录的真实上游数据成员关系（由 tools/check_real_routes.py 生成），
     用来检查“在真实数据下最后交给谁”（2026-10-03 审核 F01：只用样本看不出 qwen.ai 在真实的国内域名集合里）。
 解析结果（某个域名解析到哪个 IP）两种来源下都是 fixtures.yaml 里假定的。
+严格版（Loon / Quantumult X）另外引用本项目自己生成的远程规则文件（国内域名清单、Quantumult X 的域名兜底）：
+它们不是上游数据，内容就是这次生成的产物，由 register_own_lists 登记进来，两种来源下用的都是真实内容。
 
 这是自制模拟器，不能替代官方解析器与真机验证；mihomo / sing-box 另用官方内核实际跑一遍（tools/check_real_routes.py）。"""
 from __future__ import annotations
@@ -33,6 +35,43 @@ def in_cidrs(ip: str, cidrs: List[str]) -> bool:
     return any(a in ipaddress.ip_network(c) for c in cidrs)
 
 
+# 本项目自己生成的远程规则文件：{地址: [(类型, 值)]}，类型已经统一成 DOMAIN / DOMAIN-SUFFIX / DOMAIN-KEYWORD
+OWN_LISTS: Dict[str, list] = {}
+OWN_BASE: List[str] = []          # 自有文件的发布前缀（只有一个；用列表是为了能原地改）
+_OWN_TYPES = {"DOMAIN": "DOMAIN", "HOST": "DOMAIN", "DOMAIN-SUFFIX": "DOMAIN-SUFFIX", "HOST-SUFFIX": "DOMAIN-SUFFIX",
+              "DOMAIN-KEYWORD": "DOMAIN-KEYWORD", "HOST-KEYWORD": "DOMAIN-KEYWORD"}
+
+
+def parse_rule_file(text: str) -> list:
+    """自有远程规则文件 → [(类型, 值)]。Loon 的写法是“类型,值”，Quantumult X 的是“类型,值,策略”（策略由配置里的 force-policy 决定）。"""
+    out = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith(("#", ";")):
+            continue
+        parts = [x.strip() for x in line.split(",")]
+        if parts[0].upper() not in _OWN_TYPES:
+            raise ValueError(f"模拟器不认识自有规则文件里的规则类型 {parts[0]}")
+        out.append((_OWN_TYPES[parts[0].upper()], parts[1].lower()))
+    return out
+
+
+def register_own_lists(base: str, files: Dict[str, str]) -> None:
+    """base：发布前缀；files：{地址: 文件内容}。重复登记会整体替换。"""
+    OWN_LISTS.clear()
+    OWN_LISTS.update({url: parse_rule_file(text) for url, text in files.items()})
+    OWN_BASE[:] = [base]
+
+
+def _own_list(url: str):
+    """这个地址是不是自有文件：是，返回它的规则；不是，返回 None。在发布前缀下却没有登记的，直接报错。"""
+    if url in OWN_LISTS:
+        return OWN_LISTS[url]
+    if OWN_BASE and url.startswith(OWN_BASE[0]):
+        raise AssertionError(f"配置引用了自有远程规则文件 {url}，但模拟器没有它的内容（产物里没有生成，或者没有登记）")
+    return None
+
+
 class Fixtures:
     def __init__(self, data: dict, ads_on: bool = True, exception_values=()):
         """ads_on=False 模拟“关闭广告规则”：去掉广告拦截条目、远程广告集合以及只为对抗它们而存在的误杀例外。"""
@@ -44,6 +83,7 @@ class Fixtures:
         if not ads_on:
             self.geosite["category-ads-all"] = []
         self.ads = data["ad_list"] if ads_on else []
+        self.cn_list = data.get("cn_list", [])
 
     def resolve(self, host: str) -> Optional[str]:
         return self.dns.get(host)
@@ -54,10 +94,17 @@ class Fixtures:
     def geoip_match(self, code: str, ip: str) -> bool:
         return in_cidrs(ip, self.geoip.get(code.lower(), []))
 
-    # Loon / Quantumult X 订阅的远程规则文件（url 是配置里写的地址）。样本里不分文件：每个远程广告集合都用同一份样本
+    # Loon / Quantumult X 订阅的上游规则文件（url 是配置里写的地址）。样本按文件名分两类：广告集合（AdvertisingLite，
+    # 几个文件共用同一份样本）、Loon 严格版订阅的国内域名集合（ChinaMax）。别的地址直接报错，不当成“没命中”
     def remote_host_hit(self, url: str, host: str) -> bool:
+        if "AdvertisingLite" in url:
+            sample = self.ads
+        elif "ChinaMax" in url:
+            sample = self.cn_list
+        else:
+            raise AssertionError(f"样本数据里没有远程规则文件 {url} 的样本")
         return any((t == "domain" and host == v) or (t == "suffix" and suffix_match(host, v)) or (t == "keyword" and v in host)
-                   for t, v in self.ads)
+                   for t, v in sample)
 
     def remote_ip_hit(self, url: str, ip: str) -> bool:
         return False
@@ -97,6 +144,8 @@ class SnapshotFixtures(Fixtures):
             raise KeyError(f"成员快照里没有 IP {ip} 的记录：重新运行 tools/check_real_routes.py --write-snapshot") from None
 
     def remote_host_hit(self, url: str, host: str) -> bool:
+        if url not in self.snap["sizes"][self.family]:
+            raise KeyError(f"成员快照里没有远程规则文件 {url} 的记录：重新运行 tools/check_real_routes.py --write-snapshot")
         return url in self._rec("hosts", host)
 
     def remote_ip_hit(self, url: str, ip: str) -> bool:
@@ -312,10 +361,21 @@ LOON_DOMAIN = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD"}
 LOON_IP = {"IP-CIDR", "IP-CIDR6", "GEOIP"}
 
 
-def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_types, norm, remote_ip_resolves=False):
+def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_types, norm, remote_ip_resolves=False,
+                     trace: Optional[dict] = None):
     """先域名类、后 IP 类；同一类里本地规则先于订阅的远程规则（Loon 官方：本地 > 插件 > 订阅；域名规则先于 IP 规则）。
-    remote_ip_resolves：远程规则里的 IP 段遇到域名连接时会不会先解析再比（Loon 的带 no-resolve，不会；Quantumult X 会）。"""
+    远程规则之间按书写顺序；没有启用的（enabled 不是 true）不参加。
+    remote_ip_resolves：远程规则里的 IP 段遇到域名连接时会不会先解析再比（Loon 的带 no-resolve，不会；Quantumult X 会）。
+        “Loon 的带 no-resolve”说的是上游文件现在的内容，不是规定：tools/check_real_routes.py 每次读真实文件时数一遍、
+        记进快照，tests/test_real_data.py 核对记录是 0（test_upstream_lists_have_no_ip_rule_that_would_make_loon_strict_resolve）。
+    trace：给了一个字典时，域名连接为了判断 IP 规则而在本机解析过，就记 trace["resolved"] = True（严格版要保证它不发生）。"""
     drop_adblock = not fx.ads_on
+    remote = [r for r in remote if str(r.get("enabled", "true")).strip() == "true"]
+
+    def resolve(host):
+        if trace is not None:
+            trace["resolved"] = True
+        return fx.resolve(host)
     def dom_ok(t, v, h):
         t = norm(t)
         return (t == "DOMAIN" and h == v) or (t == "DOMAIN-SUFFIX" and suffix_match(h, v)) or (t == "DOMAIN-KEYWORD" and v in h)
@@ -330,7 +390,11 @@ def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_
             if norm(p[0]) in dom_types and dom_ok(p[0], p[1].lower(), c.host):
                 return p[2]
         for r in remote:
-            if fx.remote_host_hit(r["url"], c.host):
+            own = _own_list(r["url"])
+            if own is not None:
+                if any(dom_ok(t, v, c.host) for t, v in own):
+                    return r["policy"]
+            elif fx.remote_host_hit(r["url"], c.host):
                 return r["policy"]
     ip = c.ip
     for p in local:
@@ -341,7 +405,7 @@ def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_
         if cur is None and c.host:
             if "no-resolve" in p[3:]:
                 continue
-            cur = fx.resolve(c.host)
+            cur = resolve(c.host)
         if cur is None:
             continue
         if t == "GEOIP":
@@ -349,19 +413,20 @@ def _loon_like_route(local, remote, final, c: Conn, fx: Fixtures, dom_types, ip_
                 return p[2]
         elif in_cidrs(cur, [p[1]]):
             return p[2]
+    upstream = [r for r in remote if _own_list(r["url"]) is None]     # 自有文件里没有按 IP 判断的规则
     cur = ip
-    if cur is None and c.host and remote_ip_resolves:
-        cur = fx.resolve(c.host)
+    if cur is None and c.host and remote_ip_resolves and upstream:
+        cur = resolve(c.host)
     if cur is not None:
-        for r in remote:
+        for r in upstream:
             if fx.remote_ip_hit(r["url"], cur):
                 return r["policy"]
     return final
 
 
-def loon_route(conf: dict, c: Conn, fx: Fixtures) -> str:
+def loon_route(conf: dict, c: Conn, fx: Fixtures, trace: Optional[dict] = None) -> str:
     return _loon_like_route(conf["local"], conf["remote"], conf["final"], c, fx, LOON_DOMAIN, LOON_IP,
-                            lambda t: t)
+                            lambda t: t, trace=trace)
 
 
 QX_NORM = {"host": "DOMAIN", "host-suffix": "DOMAIN-SUFFIX", "host-keyword": "DOMAIN-KEYWORD",
@@ -391,9 +456,9 @@ def parse_qx(text: str) -> dict:
     return {"local": local, "final": final, "remote": remote, "policies": policies, "sections": s}
 
 
-def qx_route(conf: dict, c: Conn, fx: Fixtures) -> str:
+def qx_route(conf: dict, c: Conn, fx: Fixtures, trace: Optional[dict] = None) -> str:
     def norm(t):
         return QX_NORM.get(t, t)
     out = _loon_like_route(conf["local"], conf["remote"], conf["final"], c, fx, LOON_DOMAIN, LOON_IP, norm,
-                           remote_ip_resolves=True)
+                           remote_ip_resolves=True, trace=trace)
     return {"direct": "DIRECT", "reject": "REJECT"}.get(out, out)

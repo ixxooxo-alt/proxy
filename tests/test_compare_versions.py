@@ -176,7 +176,8 @@ class Units(unittest.TestCase):
 
 class AgainstItself(unittest.TestCase):
     def test_comparing_the_project_with_itself_reports_no_change(self):
-        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时六个产物都逐字节相同。
+        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时八份配置（标准版六份、严格版两份）都逐字节相同，
+        严格版一节照常列出它和标准版的差别，自有远程规则文件和“上一版”一模一样。
         顺带核对 --out：结果写到指定的文件，缺省的那份（docs/evidence/与上一版的对比.md）不动。"""
         default = os.path.join(ROOT, cv.OUT)
 
@@ -203,8 +204,35 @@ class AgainstItself(unittest.TestCase):
         self.assertIn("只是自动 / 故障转移 / 负载均衡的成员变了（0 个）", out)
         self.assertRegex(out, r"\| 乙 \| (\d+) \| 0 \| \1 \| 0 \|")
         if os.path.exists(os.path.join(ROOT, "dist", "loon", "loon.conf")):
-            self.assertEqual(out.count("逐字节相同。"), 6)
+            self.assertEqual(out.count("逐字节相同。"), 8)
             self.assertNotIn("顺序变了", out)
+            self.assertIn("## 六、严格版：乙 的严格版相对同一版的标准版", out)
+            self.assertIn("### `loon/loon-strict.conf` 对照 `loon/loon.conf`", out)
+            self.assertIn("GEOIP,CN,国内直连,no-resolve", out)
+            self.assertIn("domain-fallback.list", out)
+            self.assertEqual(out.count("和 甲 的一模一样。"), 3)
+            self.assertNotIn("严格版没有起作用", out)
+
+
+class StrictSection(unittest.TestCase):
+    def test_rule_file_stats(self):
+        text = "# 注释\nDOMAIN-SUFFIX,a.example\nDOMAIN-SUFFIX,b.example\nDOMAIN,c.example\n"
+        self.assertEqual(cv._rule_file_stats(text), f"{len(text.encode('utf-8')):,} 字节，规则 3 条（DOMAIN 1、DOMAIN-SUFFIX 2）")
+
+    def test_missing_strict_output_in_old_version_is_reported_as_new(self):
+        """上一版没有严格版时（r11 及更早），第五节写明“这一版新增”，不是含糊的“缺文件”。"""
+        if not os.path.exists(os.path.join(ROOT, "dist", "loon", "loon-strict.conf")):
+            self.skipTest("尚未生成 dist/")
+        with tempfile.TemporaryDirectory() as old:
+            L = []
+            labels = cv.Labels([])
+            cv.outputs_section(L, old, labels, "甲", "乙")
+            text = "\n".join(L)
+            self.assertEqual(text.count("是这一版新增的严格版"), 2)
+            self.assertEqual(text.count("缺文件，没有比。"), 6, "上一版目录是空的：六份标准版都没法比")
+            L = []
+            cv.strict_section(L, old, labels, "甲", "乙")
+            self.assertEqual("\n".join(L).count("甲 没有这个文件。"), 3)
 
 
 if __name__ == "__main__":

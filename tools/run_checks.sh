@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # 生成 + 测试 + Cursor 对照报告迁入核对 + ICU 正则核对（有 ICU 时）+ （可选）官方程序检查 + （可选）真实数据路由核对
-# + （可选）上游源码字段核对 + （可选）图标核对 + （可选）规则上游快照核对。
+# + （可选）上游源码字段核对 + （可选）图标核对 + （可选）规则上游快照核对 + （可选）严格版国内域名清单核对。
 # 每一步的完整日志写到 docs/evidence/。任何一步失败，脚本最后以非零退出码结束
 # （2026-09-30 审核 F08：以前只把退出码写进日志，脚本本身总是返回 0）。
 #
 # 可选环境变量：
 #   MIHOMO_BIN / SINGBOX_BIN [/ SINGBOX112_BIN / GEODATA_DIR]   官方程序与 mihomo 地理数据（tools/check_official.py）
 #   MIHOMO_SRC / SINGBOX_SRC     上游源码检出目录（tools/verify_with_upstream_source.py）
-#   DLC_SRC / BM7_SRC            规则上游快照检出目录，必须是 source/evidence.yaml 登记的提交（tools/check_upstream_evidence.py）
+#   DLC_SRC / BM7_SRC            规则上游快照检出目录，必须是 source/evidence.yaml 登记的提交（tools/check_upstream_evidence.py）。
+#                                给了 DLC_SRC 时另外核对严格版的国内域名清单（source/data/cn-domains.txt）确实是按这个快照生成的、
+#                                没有手改过（tools/update_cn_list.py --check）
 #   ICON_REPO                    图标仓库（source/icons.yaml 里登记的那个）的检出目录：核对配置里写的每个图标在仓库里都有（tools/check_icons.py）
 #   SRS_DIR                      sing-box 远程规则集的 .srs 文件所在目录。与 MIHOMO_BIN / SINGBOX_BIN / GEODATA_DIR / BM7_SRC
 #                                都给了时，用官方内核和这些真实数据核对路由与 DNS 去向（tools/check_real_routes.py）；
@@ -96,6 +98,10 @@ fi
 if [ -n "${DLC_SRC:-}" ] && [ -n "${BM7_SRC:-}" ]; then
   run_step "规则证据对照上游快照" docs/evidence/upstream-evidence-check.log \
     python3 tools/check_upstream_evidence.py --dlc "$DLC_SRC" --bm7 "$BM7_SRC"
+fi
+
+if [ -n "${DLC_SRC:-}" ]; then
+  run_step "严格版国内域名清单核对" docs/evidence/cn-list-check.log python3 tools/update_cn_list.py --dlc "$DLC_SRC" --check
 fi
 
 echo

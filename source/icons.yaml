@@ -13,21 +13,29 @@ icons:
   enabled: true               # 改成 false 重新生成，四端都不带图标
   # 图片地址 = base_url + 文件名按 UTF-8 逐字节百分号编码 + ext。地址跟着图标仓库的 main 分支走：仓库里换了图，客户端下次刷新就是新图。
   # 想换成 512px 那一套，把 256px 改成 512px 重新生成即可（图标仓库里两套的文件名相同）。现在用 256px 的理由：策略组图标在 App 里
-  # 只是列表里的一个小方块，256px 按界面尺寸估算已经够用（没有在真机上并排比过）；512px 每张约大 3.5 倍，81 张合计约 24 MB 对 7 MB。
+  # 只是列表里的一个小方块，256px 按界面尺寸估算已经够用（没有在真机上并排比过）；512px 每张约大 3.5 倍，82 张合计约 24 MB 对 7 MB。
   base_url: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
   ext: .png
   # 文件名和策略组名不一样的写在这里，其余的文件名就是策略组名。
   renamed:
     "Apple Music/TV": "Apple Music／TV"          # 文件名里不能有半角斜杠，图标仓库用的是全角斜杠（U+FF0F）
-  # 核对“下面这些图都在”时图标仓库的提交（2026-10-05 08:58 +0800 的提交，也是图标仓库的 v1.0.0 标签；256px/ 目录从 10 月 4 日
-  # 第一次核对到这个提交没有变过）。tools/check_icons.py 拿图标仓库的检出目录逐个核对文件存在、是 PNG、尺寸对。
-  checked_commit: 2d43eae18d1be7987b620e53e39b49968fa51b83
-  checked: 2026-10-05
+  # 已经写进配置、图还没有传到图标仓库的策略组（文件名就是策略组名）。登记在这里的组，配置里照样写它的图标地址，
+  # 只是那个地址暂时打不开：App 里这个组没有图标，分流不受影响；tools/check_icons.py 把它列为“还没有上传”，不算不符合。
+  # 图传好以后：把它从这里挪到 available，checked_commit 改成新的提交，重新跑 tools/check_icons.py。
+  # 现在是空的。用过一次：Apple Push 是 2026-10-06 加的组，用户当天给了两张候选图，选定蓝色铃铛那一张，说晚点自己传到
+  # 图标仓库、让配置直接按图标仓库的地址写；当天 14:12（+0800）图传到了图标仓库（提交 f250126），已经挪进 available。
+  pending: []
+  # 核对“下面这些图都在”时图标仓库的提交（2026-10-06 14:12 +0800 的提交：在 v1.0.0 标签 2d43eae 之后只多了
+  # 256px/Apple Push.png、512px/Apple Push.png 两张图，并改了 README；原有的图没有变）。
+  # tools/check_icons.py 拿图标仓库的检出目录逐个核对文件存在、是 PNG、尺寸对。
+  checked_commit: f250126f57228b0b32f3445b21078e382e6152e9
+  checked: 2026-10-06
   # 图标仓库 256px/ 目录里现有的图（文件名去掉 .png）。公开配置里的每个策略组都必须能在这里找到自己的图，
   # 否则生成时报错——组改了名而图没跟上时，宁可报错也不要悄悄少一个图标。
   # DIRECT、REJECT、无可用节点 三张图标仓库里有，但它们不是策略组，哪个客户端都没有地方写，所以没有用到。
+  # Apple Push 这一张不在图标仓库公布的地址清单（icon-urls.json，仍是 v1.0.0 时的 84 项）里，图标仓库是在 README 里单独给的链接。
   available: [
-    "Abema", "Apple", "Apple AI", "Apple Music／TV", "Bahamut", "Bilibili 港澳台", "Claude", "Copilot", "DIRECT", "DMM",
+    "Abema", "Apple", "Apple AI", "Apple Music／TV", "Apple Push", "Bahamut", "Bilibili 港澳台", "Claude", "Copilot", "DIRECT", "DMM",
     "Discord", "Disney+", "GitHub", "Google", "Google AI", "Grok", "Hulu Japan", "Hulu US", "LINE", "LinkedIn",
     "Max", "Meta 社交", "Microsoft", "Netflix", "Netflix·解锁入口", "OpenAI", "PayPal", "PayPal·美国固定", "Prime Video",
     "REJECT", "Reddit", "Spotify", "Telegram", "TikTok", "Twitch", "WhatsApp", "X", "YouTube", "其他 AI", "其他地区",

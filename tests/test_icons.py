@@ -3,6 +3,8 @@
 图片在用户自己的图标仓库里，不在本工程里；本工程只把图片地址写进 Loon（img-url）、Quantumult X（img-url）、
 mihomo（icon），sing-box 没有图标字段。这里检查：
   - 每个策略组写的是它自己的那张图，地址和图标仓库公布的写法一致；
+  - 已经写进配置、图还没有传到图标仓库的组可以登记在 icons.yaml 的 pending 里，地址写法相同
+    （2026-10-06 的 Apple Push 这样登记过半天，当天图传到图标仓库以后挪进了 available；现在 pending 是空的）；
   - 地址可以原样放进用逗号分隔参数的一行里；
   - 关掉图标后，产物里除了图标什么都不变；
   - 组找不到图时，公开产物直接生成失败。
@@ -30,7 +32,10 @@ PUBLISHED = {
     "PayPal·美国固定": BASE + "PayPal%C2%B7%E7%BE%8E%E5%9B%BD%E5%9B%BA%E5%AE%9A.png",
     "香港·手动优先": BASE + "%E9%A6%99%E6%B8%AF%C2%B7%E6%89%8B%E5%8A%A8%E4%BC%98%E5%85%88.png",
 }
-WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core")
+WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict")
+# Loon / Quantumult X / mihomo 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 2 个
+# + 地区入口 7 个 + 六个地区各 5 个模式组 30 个。增减策略组时要同时改这里
+GROUPS = 82
 
 
 def icons_in(client: str, source: str = None) -> dict:
@@ -43,14 +48,14 @@ def icons_in(client: str, source: str = None) -> dict:
                 out[g["name"]] = g["icon"]
         return out
     t = text(client) if source is None else source
-    section, want = None, "Proxy Group" if client == "loon" else "policy"
+    section, want = None, "Proxy Group" if client.startswith("loon") else "policy"
     for line in t.splitlines():
         if line.startswith("["):
             section = line.strip("[]")
             continue
         if section != want or not line.strip() or line.startswith(("#", ";")):
             continue
-        if client == "loon":
+        if client.startswith("loon"):
             name = line.split(" = ", 1)[0]
             m = re.search(r",img-url = (\S+)$", line)
         else:
@@ -65,7 +70,7 @@ def group_names(client: str) -> list:
     if client.startswith("mihomo"):
         return [g["name"] for g in parsed(client)["proxy-groups"]]
     c = parsed(client)
-    return list(c["groups"] if client == "loon" else c["policies"])
+    return list(c["groups"] if client.startswith("loon") else c["policies"])
 
 
 class Icons(unittest.TestCase):
@@ -75,13 +80,16 @@ class Icons(unittest.TestCase):
         for client in WITH_ICONS:
             names = group_names(client)
             icons = icons_in(client)
-            self.assertEqual(len(names), 81, client)
+            self.assertEqual(len(names), GROUPS, client)
             self.assertEqual(sorted(icons), sorted(names), f"{client}：每个策略组都要有图标，也不能多出别的")
             for name, url in icons.items():
                 self.assertTrue(url.startswith(BASE) and url.endswith(".png"), f"{client} {name}: {url}")
                 file_name = unquote(url[len(BASE):-len(".png")])
                 self.assertEqual(file_name, renamed.get(name, name), f"{client} {name} 写的不是它自己的图：{url}")
             self.assertEqual(len(set(icons.values())), len(icons), f"{client}：两个组用了同一个地址")
+            # 这一个不在图标仓库的地址清单（icon-urls.json）里：图是 2026-10-06 单独加的（提交 f250126），
+            # 图标仓库在 README 里给的链接就是这个写法
+            self.assertEqual(icons["Apple Push"], BASE + "Apple%20Push.png", client)
 
     def test_urls_match_what_the_icon_repository_publishes(self):
         for client in WITH_ICONS:
@@ -95,9 +103,10 @@ class Icons(unittest.TestCase):
             for name, url in icons_in(client).items():
                 self.assertRegex(url, r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]+$", f"{client} {name}")
         # 每个组一行，图标参数在行尾，而且只出现一次
-        for client, mark in (("loon", "img-url = "), ("quantumultx", "img-url=")):
+        for client, mark in (("loon", "img-url = "), ("quantumultx", "img-url="),
+                             ("loon-strict", "img-url = "), ("quantumultx-strict", "img-url=")):
             lines = [ln for ln in text(client).splitlines() if mark in ln and not ln.startswith("#")]
-            self.assertEqual(len(lines), 81, client)
+            self.assertEqual(len(lines), GROUPS, client)
             for ln in lines:
                 self.assertEqual(ln.count("img-url"), 1, ln[:60])
                 self.assertRegex(ln, r"img-url ?= ?https://\S+\.png$", ln[:60])
@@ -114,11 +123,32 @@ class Icons(unittest.TestCase):
         ic = m.icons
         self.assertTrue(ic["enabled"])
         self.assertRegex(ic["checked_commit"], r"^[0-9a-f]{40}$")
-        used = {ic["renamed"].get(n, n) for n in group_names("mihomo-core")}
-        self.assertLessEqual(used, set(ic["available"]))
+        used = {m.icon_file(n) for n in group_names("mihomo-core")}
+        # 已经写进配置、图还没有传到图标仓库的组登记在 pending 里。现在没有：2026-10-06 加的 Apple Push 当天下午
+        # 由用户传到了图标仓库（提交 f250126），已经挪进 available。以后再有这样的组，这里和 icons.yaml 一起改
+        self.assertEqual(ic["pending"], [])
+        self.assertIn("Apple Push", ic["available"])
+        self.assertFalse(set(ic["pending"]) & set(ic["available"]))
+        self.assertLessEqual(set(ic["pending"]), used)
+        self.assertLessEqual(used, set(ic["available"]) | set(ic["pending"]))
         self.assertEqual(sorted(set(ic["available"]) - used), ["DIRECT", "REJECT", "无可用节点"],
                          "icons.yaml 的说明里写着：图标仓库里多出来、没有用到的只有这三张")
         self.assertEqual(len(ic["available"]), len(set(ic["available"])))
+
+    def test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending(self):
+        """图还没传到图标仓库、但地址已经定了的组：登记在 pending 里，配置照样写它的地址，产物和图在 available 里时逐字相同。
+        两边都没登记才算“没有图标”（那种情况由下面 test_missing_icon… 检查）。"""
+        m, plan = model_and_plan()
+        moved = copy.copy(m)
+        moved.icons = {**m.icons, "available": [x for x in m.icons["available"] if x != "Apple Push"], "pending": ["Apple Push"]}
+        self.assertEqual(model_mod._check_icons(moved.icons), [])
+        self.assertEqual(moved.icon_url("Apple Push"), BASE + "Apple%20Push.png")
+        self.assertEqual(build.render_public(moved, plan), build.render_public(m, plan))
+        gone = copy.copy(m)
+        gone.icons = {**m.icons, "available": [x for x in m.icons["available"] if x != "Apple Push"], "pending": []}
+        with self.assertRaises(model_mod.SourceError) as cm:
+            build.render_public(gone, plan)
+        self.assertIn("Apple Push", str(cm.exception))
 
     def test_switching_icons_off_changes_nothing_else(self):
         m, plan = model_and_plan()
@@ -126,6 +156,7 @@ class Icons(unittest.TestCase):
         off.icons = {**m.icons, "enabled": False}
         files = build.render_public(off, plan)
         strip = {"loon/loon.conf": r",img-url = \S+$", "quantumultx/quantumultx.conf": r", img-url=\S+$",
+                 "loon/loon-strict.conf": r",img-url = \S+$", "quantumultx/quantumultx-strict.conf": r", img-url=\S+$",
                  "mihomo/mihomo-core.yaml": r"^    icon: \S+\n", "mihomo/mihomo-profile.yaml": r"^    icon: \S+\n"}
         on = build.render_public(m, plan)
         for rel, pattern in strip.items():
@@ -165,6 +196,10 @@ class Icons(unittest.TestCase):
                                ({"available": good["available"] + ["OpenAI"]}, "重复"),
                                ({"available": [x for x in good["available"] if x != "Apple Music／TV"]}, "renamed"),
                                ({"available": good["available"] + ["a/b"]}, "斜杠"),
+                               ({"pending": ["OpenAI"]}, "不该再留在 pending"),
+                               ({"pending": ["a/b"]}, "斜杠"),
+                               ({"pending": ["甲", "甲"]}, "重复"),
+                               ({"pending": "Apple Push"}, "pending"),
                                ({"enabled": "yes"}, "enabled")):
             errors = check({**good, **change})
             self.assertTrue(any(needle in e for e in errors), f"{change} 应该被拒绝，得到 {errors}")

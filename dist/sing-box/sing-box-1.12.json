@@ -666,6 +666,22 @@
     },
     {
       "type": "selector",
+      "tag": "Apple Push",
+      "outbounds": [
+        "DIRECT",
+        "国外默认",
+        "香港",
+        "日本",
+        "韩国",
+        "台湾",
+        "新加坡",
+        "美国",
+        "其他地区"
+      ],
+      "default": "DIRECT"
+    },
+    {
+      "type": "selector",
       "tag": "Google",
       "outbounds": [
         "国外默认",
@@ -1956,6 +1972,12 @@
       },
       {
         "domain_suffix": [
+          "push.apple.com"
+        ],
+        "outbound": "Apple Push"
+      },
+      {
+        "domain_suffix": [
           "apple.com",
           "apple.com.cn",
           "apple.co",
@@ -2688,6 +2710,7 @@
               "applesiri.cn",
               "music.apple.com",
               "tv.apple.com",
+              "push.apple.com",
               "apple.com",
               "apple.com.cn",
               "apple.co",

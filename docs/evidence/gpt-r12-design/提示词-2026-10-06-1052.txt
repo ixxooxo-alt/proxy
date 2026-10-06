@@ -1,0 +1,49 @@
+我在维护一套代理分流规则：一份规则源（YAML）由生成器产出四种客户端的配置——Loon、Quantumult X、mihomo（Clash Verge Rev / Clash Meta for Android 用）、sing-box。另一位助手（下面称“对方”）给了我一个改动方案，想请你独立判断。你上次说没读过配置，所以我把现状和已查证的事实都写在下面。
+
+【目标与约束】
+1. 出口是国外 IP 的连接，它的域名不交给国内 DNS（阿里 223.5.5.5、腾讯 119.29.29.29 / 1.12.12.12）解析，也不因为匹配规则或解析失败而回落过去。
+2. 国内网站不能因此变慢。
+3. 策略由生成器统一产出；我不是技术人员，需要明确的结论。
+
+【现状】
+- mihomo：fake-ip；nameserver 是 1.1.1.1 / 8.8.8.8 的 DoH，respect-rules: true；nameserver-policy 里局域网后缀 → system，geosite:cn,private → 国内 DoH；proxy-server-nameserver、direct-nameserver 是国内 DoH，direct-nameserver-follow-policy: true；规则末尾 GEOIP,CN → 国内直连，MATCH → 国外默认。
+- sing-box：fakeip；DNS 规则里国内域名集合 → dns-cn（223.5.5.5 DoH），其余 A/AAAA → fakeip，final 是 dns-foreign（1.1.1.1 DoH，detour 国外默认）；路由末尾先 resolve（dns-foreign），再 geoip-cn → 国内直连，final 国外默认。
+- Loon：dns-server = 223.5.5.5,119.29.29.29；doh-server 是 223.5.5.5 和 1.12.12.12 的 DoH；本地规则约 900 条（产品域名规则；局域网和 Telegram 的 IP-CIDR 都带 no-resolve）；末尾 GEOIP,CN,国内直连（没有 no-resolve）、FINAL,国外默认；远程规则只有 blackmatrix7 的 AdvertisingLite 两份。按域名指向国内直连的规则只有二十来条，国内网站主要靠 GEOIP,CN 兜底。
+- Quantumult X：[dns] 里 no-ipv6、server=223.5.5.5、server=119.29.29.29、doh-server 是两个国内 DoH、server=/*.lan/system 等；规则末尾 Telegram 的 ip-cidr、geoip, cn, 国内直连、final, 国外默认。
+- 结果：Loon / Quantumult X 上，没有命中任何域名规则的域名，要先由国内 DNS 解析，再按 IP 判断。
+
+【对方已查证的事实（2026-10-06）】
+- 官方内核实验（mihomo v1.19.31、sing-box 1.14.1 / 1.12.0；DNS 换成本机替身，不是真机）：有规则的境外域名，连接时本机不发 DNS 查询；没列到的域名只问境外 DNS；mihomo 上发往 1.1.1.1:443、8.8.8.8:443 的 DoH 连接命中 Match → 国外默认；境外 DNS 不应答时，等过超时也不转去问国内或系统 DNS。
+- Loon 官方文档：域名先匹配域名规则，未命中再解析 DNS 匹配 IP 规则；来源优先级 本地 > 插件 > 订阅；no-resolve 的说明是“规则只匹配目标地址已经是 IP 的请求，不会为域名执行 DNS 查询”，例子只出现在 IP-CIDR、IP-ASN 上，GEOIP 的例子没有；订阅规则文件可以写 GEOIP、IP-CIDR；写明“支持数十万条规则”；加密 DNS 失败默认回落到普通 DNS，可在 App 的 DNS 服务器页面关闭；没有查到“DNS 查询经代理发出”的选项。
+- Quantumult X 官方 sample.conf：没有 no-resolve；没有 DNS 经代理；[filter_local] 没写匹配顺序；写明解析结果只用于判断规则和直连；设了 doh-server / doq-server 后，system 和普通服务器被忽略；另有 no-system。
+- Clash Verge Rev（更新日志和 dev 分支源码）：v2.5.4 起 TUN 的界面设置优先，strict-route 写在配置里不生效，界面默认关；开 TUN 时 dns.ipv6 被改成与界面的 IPv6 开关一致；DNS 覆写从 v2.5.4 起只覆盖已填写的字段，订阅含自定义 DNS 时先确认。
+- mihomo 文档：strict-route 在 Windows 上加防火墙规则，防多宿主 DNS 解析造成的泄露；dns-hijack 在 macOS / Windows 上无法自动劫持发往局域网的 DNS；Android 开了私人 DNS 时无法自动劫持。
+
+【对方的方案（还没动手）】
+1. mihomo、sing-box 的配置不改。
+2. Loon、Quantumult X：现在这份（标准版）原样保留，各多生成一份“严格版”，在 App 里切换配置文件来选。
+   严格版的做法：产品规则不变；加一份国内域名清单 → 国内直连（仍由国内 DNS 解析）；其余域名不在本机解析，落到 FINAL 走国外默认。
+   - 国内域名清单：候选是 MetaCubeX 的 geosite cn（约 11.1 万条）或 SagerNet 的 geosite-cn（约 9300 条），去掉关键词和正则条目；做成远程规则，排在广告集合之后。
+   - Loon：去掉不带 no-resolve 的 GEOIP,CN；“国内 IP 直连”改用带 no-resolve 的 IP-CIDR 清单（约 8000 到 9600 段）。
+   - Quantumult X：没有 no-resolve，所以拿掉全部按 IP 判断的规则（geoip、Telegram 的 ip-cidr、局域网 ip-cidr）。代价是按 IP 直连的国内流量走代理、Telegram 的 IP 连接跟随国外默认。
+3. 不采用“把默认 DNS 换成 1.1.1.1 / 8.8.8.8 直连去问”。
+4. 文档里单列每个客户端必须手动开或关的项目；把上面的实验做成固定检查。
+
+【想请你判断的问题】
+1. 整体：有没有更好的做法能同时满足两个目标？严格版的机制有没有漏洞——哪些情况下 Loon / Quantumult X 仍会在本机解析一个最终走代理的域名？
+2. Loon：(a) GEOIP 能不能加 no-resolve；(b) 所有 IP 规则都带 no-resolve 时，没命中域名规则的域名是否确实不做本地解析、直接到 FINAL；(c) 订阅规则文件里的 IP-CIDR 行带 no-resolve 是否有效；(d) 有没有对方没查到的“DNS 经代理”或等效选项；(e) “加密 DNS 失败回落”能不能用配置项关闭。
+3. Quantumult X：(a) 没有任何 IP 类规则时，没命中的域名是否就不在本机解析；(b) 规则匹配顺序有没有官方依据；(c) 有没有官方办法让 ip-cidr / geoip 不触发域名解析；(d) 设了 DoH 时系统 DNS 是否完全不参与，DoH 失败时会怎样，要不要加 no-system；(e) 拿掉 IP 规则的代价，有没有更小的替代做法。
+4. 国内域名清单：选大的还是小的？iPhone 上 Loon / Quantumult X 加载 10 万级远程规则，内存和速度有没有官方或可靠依据？要让清单排在广告集合之后，两端各该怎么写才成立？上游清单里已知的误收（把境外服务算成国内）怎么处理？
+5. 交付形式：两份配置切换，还是单份配置里放一个可开关的远程规则？各自的风险。
+6. 标准版要不要也加一份“境外域名清单 → 直接走代理”？它对国内网站没有影响，泄露会减少但不能杜绝。
+7. Clash Verge Rev 和 Android：对方关于严格路由、IPv6 开关改写 dns.ipv6、DNS 覆写、私人 DNS 的理解有没有错？私人 DNS 设成“自动”行不行？
+8. 验证：对方没有 iPhone。哪些结论只能靠真机确认？请给出在 Loon、Quantumult X 上确认“某个域名有没有在本机解析、问的是哪台 DNS”的具体操作（App 里看哪个日志或页面），并注明依据。
+9. 对方没想到的风险。
+
+【回答要求】
+- 每个问题分开写：结论 / 依据（官方文档或源码链接）/ 把握程度（已查证、推断、不知道）。
+- 没有官方依据的社区说法请标明“社区说法”，不要当成事实。
+- 认为上面哪条事实查错了，请指出原文。
+- 不需要重写配置，只要判断和建议。
+- 没读过配置文件、没有实测的地方照实说明。
+- 最后给一句话结论：按这个方案做 / 改哪几点再做 / 不建议做。

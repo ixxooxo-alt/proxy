@@ -49,6 +49,11 @@ evidence:
     url: https://support.apple.com/en-us/101555
     checked: 2026-09-29
     note: Apple“在企业网络中使用 Apple 产品”。“Apple Intelligence, Siri, and Search”一节：guzzoni.apple.com（Siri 与听写）、*.smoot.apple.com（搜索服务）、apple-relay.apple.com（Apple Intelligence 扩展）、apple-relay.cloudflare.com / apple-relay.fastly-edge.com / cp4.cloudflare.com（Private Cloud Compute）；iCloud 一节：mask.icloud.com / mask-h2.icloud.com / mask-api.icloud.com（iCloud 专用代理）、gateway.icloud.com（CloudKit 内容，含 XProtect 更新与语音控制资源）
+  apple-push-net:
+    kind: official
+    url: https://support.apple.com/en-us/101555
+    checked: 2026-10-06
+    note: "和 apple-ent-net 是同一页（“在企业网络中使用 Apple 产品”，2026-10-06 查阅时页面写的发布日期是 2026-08-07）。“Apple Push Notifications”一节：*.push.apple.com，TCP 443、80、5223、2197，iOS / iPadOS / tvOS / macOS / visionOS，用途 Push notifications。同日另查阅 https://support.apple.com/102266 （发布日期 2023-08-22）：设备用 TCP 5223 连接 APNs，443 用于激活、以及连不上 5223 时的退路；建议放行整个 17.0.0.0/8；443 的连接可以经过不解密的代理"
   apple-ai-req:
     kind: requirement
     note: 需求补充（2026-09-29）：Apple AI 组照搬 Cursor 版 18 条规则（Cursor 版的 rules/apple-ai/APPLE_AI_18.list，“基线不得删除或改写”；逐条见对照明细副本 docs/evidence/cursor-对照明细.csv），关键词 siri 改为具体主机名；本登记只用于官方文档和上游快照里都没有同值依据的条目
@@ -119,8 +124,8 @@ evidence:
   bm7:
     kind: community
     url: https://github.com/blackmatrix7/ios_rule_script
-    checked: 2026-10-04
-    note: 仅用于 Loon / Quantumult X 的远程广告集合（AdvertisingLite，由客户端直接从上游更新，内容不固定）。2026-09-23 只抓了文件头；2026-10-04 按固定快照 51d2e1d 逐行读了 rule/Loon/AdvertisingLite 与 rule/QuantumultX/AdvertisingLite 下的文件（Loon 版拆成两个文件，README 要求一起用；上游常见问题 https://github.com/blackmatrix7/ios_rule_script/issues/131 也这样说）
+    checked: 2026-10-06
+    note: 用于客户端直接从上游订阅的规则文件（内容不固定，以上游为准）：Loon / Quantumult X 的远程广告集合（AdvertisingLite）；Loon 严格版的国内域名集合（ChinaMax_Domain.list，2026-10-06 起）。2026-09-23 只抓了文件头；2026-10-04 按固定快照 51d2e1d 逐行读了 rule/Loon/AdvertisingLite 与 rule/QuantumultX/AdvertisingLite 下的文件（Loon 版拆成两个文件，README 要求一起用；上游常见问题 https://github.com/blackmatrix7/ios_rule_script/issues/131 也这样说）；2026-10-06 按同一个快照逐行读了 rule/Loon/ChinaMax 与 rule/QuantumultX/ChinaMax 下的文件（Loon 版有只含域名的 ChinaMax_Domain.list；Quantumult X 版只有混着关键词和 UA 规则的 ChinaMax.list）。仓库的许可是 GPL-2.0：本项目只引用它的地址，没有把它的数据放进自己的文件
   maintainer:
     kind: maintainer
     note: 维护者知识，未找到官方清单，两个上游快照的映射列表里也没有；需实测命中与功能后才能视为已验证

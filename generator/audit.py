@@ -5,6 +5,7 @@ import json
 import os
 from collections import OrderedDict
 
+from . import strict as strict_mod
 from .model import COMMUNITY_EV_SOURCE, Model, Plan
 
 KIND_ZH = {"domain": "精确域名", "suffix": "域名后缀", "keyword": "关键词", "ip4": "IPv4 段", "ip6": "IPv6 段"}
@@ -135,4 +136,59 @@ def render_audit(m: Model, plan: Plan) -> str:
     L.append("")
     L.append("HTTPDNS：暂无经过验证的条目，未启用。复写 / 脚本 / MITM：未内置。")
     L.append("")
+    L += _strict_section(m, plan)
     return "\n".join(L)
+
+
+def _strict_section(m: Model, plan: Plan) -> list:
+    """严格版（Loon / Quantumult X 各多生成的一份配置）用到的清单：来源、条数、和本地规则的关系。"""
+    st = m.strict
+    suffix, full = m.cn_domains
+    L = ["## 严格版（Loon / Quantumult X）用到的清单", ""]
+    L.append("严格版只在这两端各多生成一份配置（`loon-strict.conf`、`quantumultx-strict.conf`），标准版不用下面这些。"
+             "做法与限制见 `docs/03`“严格版”一节和 `docs/06`。")
+    L.append("")
+    L.append("**国内域名清单**（远程规则，排在广告集合之后，交给“国内直连”）：")
+    for client in ("loon", "quantumultx"):
+        for x in st["domestic_lists"][client]:
+            if x.get("url"):
+                L.append(f"- {client}：{x['url']}（证据 `{x.get('ev', '')}`）—— {x.get('source', '')}")
+            else:
+                kept_s, kept_f, dropped = strict_mod.cn_entries(m, plan, client)
+                L.append(f"- {client}：`dist/{x['own']}`（自有清单，随本项目生成和发布，配置里引用的地址是 {strict_mod.own_url(m, x['own'])}）——"
+                         f"后缀 {len(kept_s)} 条、精确域名 {len(kept_f)} 条；数据文件里另有 {dropped} 条已被这一端的本地规则覆盖，没有写进去")
+    L.append("")
+    L.append(f"自有清单的数据在 `{strict_mod.CN_DATA_REL}`（后缀 {len(suffix)} 条、精确域名 {len(full)} 条），"
+             "由 `tools/update_cn_list.py` 从固定快照生成，文件头照录如下：")
+    L.append("")
+    for line in m.cn_data_header:
+        L.append("> " + line.lstrip("# ").strip())
+    L.append("")
+    gone = {}
+    for client in ("loon", "quantumultx"):
+        kept_s, kept_f, _ = strict_mod.cn_entries(m, plan, client)
+        for d in sorted((set(suffix) - set(kept_s)) | (set(full) - set(kept_f))):
+            gone.setdefault(d, []).append(client)
+    local = {c: [r for r in plan.lan + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(c)
+                 if r.kind in ("domain", "suffix")] for c in ("loon", "quantumultx")}
+    from .model import most_specific
+    L.append("已被本地规则覆盖、没有写进自有清单的条目（本地规则优先于远程规则，它们的去向由本地规则决定）：")
+    L.append("")
+    L.append("| 条目 | 本地规则把它交给 |")
+    L.append("|---|---|")
+    for d, clients in gone.items():
+        target = most_specific(local[clients[0]], d)
+        only = "" if len(clients) == 2 else f"（只在 {clients[0]} 上）"
+        L.append(f"| `{d}` | {target.target if target else '？'}{only} |")
+    L.append("")
+    fb = st["qx_fallback"]
+    L.append(f"**域名兜底**（只有 Quantumult X 严格版）：`dist/{fb['own']}`，只有一条规则 `HOST-KEYWORD,{strict_mod.FALLBACK_KEYWORD},{strict_mod.QX_INLINE_PROXY}`，"
+             "在配置里排在全部远程规则的最后，由 `force-policy` 交给“国外默认”。写法出自官方 sample.conf。")
+    L.append("")
+    L.append("**要真实地址的名单固定直连**（两端严格版的本地规则；名单在 `source/project.yaml` 的 `dns.real_ip`，"
+             "其中局域网后缀和系统联网检测本来就固定直连，下面是其余的）：")
+    L.append("")
+    for r in plan.real_ip_direct:
+        L.append(f"- `{r.value}`（{KIND_ZH[r.kind]}）")
+    L.append("")
+    return L

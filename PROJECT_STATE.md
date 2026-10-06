@@ -1,6 +1,6 @@
 # 项目状态与交接
 
-更新：2026-10-06　统一源 2026.10.05-2（r11）　生成器 1.4.1　摘要见 `dist/manifest.json`
+更新：2026-10-06　统一源 2026.10.06-1（r12）　生成器 1.5.0　摘要见 `dist/manifest.json`
 
 ## 已完成（有证据）
 
@@ -9,8 +9,8 @@
 | T1 核对四端目标版本与语法 | 已验证（文档 / 源码层面） | `docs/02-语法依据与能力矩阵.md` |
 | T2 统一模型：地区、模式、业务组、专用入口、规则、例外、DNS | 已验证 | `source/`、`generator/model.py`、`tests/test_source.py` |
 | T3 规则数据与逐条证据 | 已完成；社区来源已按固定快照核对 | `docs/04-规则清单与证据.md`、`docs/evidence/上游规则对照.md` |
-| T4 四个生成后端 + 平台变体 | 已验证（模拟器 + 上游字段核对 + mihomo / sing-box 官方程序检查） | `dist/`、`docs/evidence/*.log`、`docs/evidence/official-check.log` |
-| T5 测试：路由、结构、例外一致性、安全边界、节点转换（含负向输入）、跨平台、证据记录、连接记录分析、对照报告迁入、生成流程（回滚、写盘前检查、manifest、个人覆盖隔离）、检查脚本退出码、局域网 DNS、节点按名称分地区、真实上游数据下的路由与 DNS、版本对比工具、sing-box 拨号解析、策略组图标、Git 忽略私密文件、mihomo 节点服务器的解析策略与拨号记录的摘要 | 已验证（197 项；变异检查：75 类全部被发现） | `docs/evidence/tests.log`、`tools/check_mutations.py` |
+| T4 四个生成后端 + 平台变体（r12 起 Loon / Quantumult X 各多一份严格版，见 T20） | 已验证（模拟器 + 上游字段核对 + mihomo / sing-box 官方程序检查） | `dist/`、`docs/evidence/*.log`、`docs/evidence/official-check.log` |
+| T5 测试：路由、结构、例外一致性、安全边界、节点转换（含负向输入）、跨平台、证据记录、连接记录分析、对照报告迁入、生成流程（回滚、写盘前检查、manifest、个人覆盖隔离）、检查脚本退出码、局域网 DNS、节点按名称分地区、真实上游数据下的路由与 DNS、版本对比工具、sing-box 拨号解析、策略组图标、Git 忽略私密文件、mihomo 节点服务器的解析策略与拨号记录的摘要、Loon / Quantumult X 严格版、“走代理的域名不交给国内 DNS”的三项固定核对与全集一致性 | 已验证（244 项；变异检查：98 类全部被发现） | `docs/evidence/tests.log`、`tools/check_mutations.py` |
 | T6 导入 / 更新 / 诊断 / 回滚说明 | 已完成 | `docs/01-导入、更新、诊断与回滚.md` |
 | T7 第 1 轮外部审核意见核实与处理 | 已完成（2 项修复、2 项规避、2 项待真机） | `docs/08-外部审核记录.md` |
 | T8 按上游快照核对社区来源规则（审核建议 3） | 已完成：更正 19 条证据、升级 49 条维护者知识、补充 137 条上游支持的功能域名、上游广告条目四端一致 | `docs/08`“第 1 轮建议 3 的执行”、`docs/evidence/upstream-evidence-check.log` |
@@ -20,40 +20,48 @@
 | T12 节点按名称分地区改为由词表生成（2026-10-02 的要求）：`source/regions.yaml` 词表与判断顺序、四端共用的筛选正则、`local.yaml` 的本地补充、检查工具 `tools/check_node_names.py` | 已完成（Python 测试、ICU 引擎、mihomo 官方内核实际分组）；Loon / Quantumult X 未在 App 里验证 | `docs/02`“节点名称分地区”、`docs/evidence/icu-check.log`、`official-check.log`、`节点名称分组-r6与r7对比.md` |
 | T13 第 4 轮：GPT 独立审核（r7）F01–F06 全部处理；2026-10-04 决定（Qwen 走国外默认；说不清落地的节点只留在手动组）。另修了自己发现的 Loon 广告列表只订阅一半的问题；mihomo 上整段 `.ms` 走国内直连这一处，r8 加过更正规则，后来按用户的决定删掉（见 T14） | 已完成（自动测试、变异检查、官方内核 + 真实上游数据核对、ICU）；Loon / Quantumult X 未在 App 里验证 | `docs/08` 第 4 轮、`docs/evidence/gpt-r7/`、`docs/evidence/real-route-check.log`、`docs/evidence/与r7的对比.md` |
 | T14 r9：r8 交付后用户决定“第一个删掉吧”——删掉只写进 mihomo 的整段 `.ms` 更正规则，跟随上游。mihomo 上没有被产品规则接住的 `.ms` 域名走国内直连，作为已知行为写进文档和测试；全部检查在 r9 的代码上重跑 | 已完成（160 项测试、53 类变异、官方内核实测 `example.ms` → 国内直连）；Loon / Quantumult X、sing-box 的产物相对 r8 没有实质变化 | `docs/08`“第 4 轮之后”一节、`docs/06`“2026-10-04”一节 |
-| T15 第 5 轮：GPT 独立审核（r9）F01、F02 都属实、都已处理——名字里提到的地区不在落地位置的节点（`日本中转 01`、`Premium 01 \| 解锁美国`）不再进自动类的组；sing-box 拨号时局域网里的名字改由系统 DNS 解析。另：地名和中转词之间的连接符同等对待（自己发现的）；官方记录按 sing-box 版本分开 | 已完成（自动测试、变异检查、官方内核实际分组与实际拨号、ICU）；Loon / Quantumult X 未在 App 里验证 | `docs/08` 第 5 轮、`docs/evidence/gpt-r9/`、`docs/evidence/real-route-check.log`；r9 → r10 的逐条对比在 r10 的交付包里（这一版的 `与上一版的对比.md` 是 r10 → r11） |
-| T16 策略组图标（用户 2026-10-04 夜的要求：用用户图标仓库 `ixxooxo-alt/icon` 里的图）：地址写进 Loon、Quantumult X、mihomo 的配置。没有生成或修改任何图片，没有改动图标仓库 | 已完成（地址与图标仓库的检出目录逐个核对；自动测试、变异检查）；三个客户端里显示不显示未验证 | `source/icons.yaml`、`docs/02`“策略组图标”、`docs/evidence/icons-check.log` |
-| T17 为放进 GitHub 仓库做准备（用户的要求：新版本放进 `ixxooxo-alt/proxy`）：`.gitignore`、英文 `README.md` + 中文 `README.zh-CN.md`（照仓库已有的摆法）、Git 忽略私密文件的测试 | 已完成：用户在 GitHub 上给仓库装了 Claude 的应用以后，r10 于 2026-10-05 晚由我直接推到 `main`（提交 `cd63eba`）。以后每一版先交付压缩包、再推到 `main` | `.gitignore`、`tests/test_local_and_private.py`、`docs/06` 待决事项第 13 项 |
+| T15 第 5 轮：GPT 独立审核（r9）F01、F02 都属实、都已处理——名字里提到的地区不在落地位置的节点（`日本中转 01`、`Premium 01 \| 解锁美国`）不再进自动类的组；sing-box 拨号时局域网里的名字改由系统 DNS 解析。另：地名和中转词之间的连接符同等对待（自己发现的）；官方记录按 sing-box 版本分开 | 已完成（自动测试、变异检查、官方内核实际分组与实际拨号、ICU）；Loon / Quantumult X 未在 App 里验证 | `docs/08` 第 5 轮、`docs/evidence/gpt-r9/`、`docs/evidence/real-route-check.log`；r9 → r10 的逐条对比在 r10 的交付包里（这一版的 `与上一版的对比.md` 是 r11 → r12） |
+| T16 策略组图标（用户 2026-10-04 夜的要求：用用户图标仓库 `ixxooxo-alt/icon` 里的图）：地址写进 Loon、Quantumult X、mihomo 的配置。没有生成或修改任何图片，没有改动图标仓库 | 已完成（地址与图标仓库的检出目录逐个核对；自动测试、变异检查）；三个客户端里显示不显示未验证。r12 加了 Apple Push 的图（用户 2026-10-06 传到图标仓库），现在是 82 个 | `source/icons.yaml`、`docs/02`“策略组图标”、`docs/evidence/icons-check.log` |
+| T17 为放进 GitHub 仓库做准备（用户的要求：新版本放进 `ixxooxo-alt/proxy`）：`.gitignore`、英文 `README.md` + 中文 `README.zh-CN.md`（照仓库已有的摆法）、Git 忽略私密文件的测试 | 已完成：用户在 GitHub 上给仓库装了 Claude 的应用以后，r10 于 2026-10-05 晚由我直接推到 `main`（提交 `cd63eba`）。r11 同样推了（`946d655`）。r12 按用户 2026-10-06 的要求只交付压缩包，等审核完再推 | `.gitignore`、`tests/test_local_and_private.py`、`docs/06` 待决事项第 13 项 |
 | T18 交付前自查（2026-10-05，我自己做的，不是审核意见）：把 F01 那一类问题用没见过的写法又查了一遍，补了四处——国旗和文字用同一套“落地位置”的条件（`🇯🇵中转 01`、`IEPL 01 🇺🇸解锁`）、单个字的“港”在更长的词里不单独算（`经香港 01`、`港日中转 01`）、`via` / `经` 后面和“解锁”前面也认连字符与下划线（`via-HK-01`、`日本-解锁-01`）、连接符多认间隔号 / 句点 / 斜杠 / 破折号（`香港·中转·01`）。7 种认不出的中转写法没有改，记为已知限制 | 已完成（自动测试、变异检查、官方内核实际分组、ICU）；正则因此长了约 6%，Loon / Quantumult X 未在 App 里验证 | `docs/08` 第 5 轮“交付前自查”、`docs/06` 最后一节、`tests/node_names.yaml` 的 `known_auto_limits` |
-| T19 第 6 轮：GPT 独立审核（r10）。确认的问题 R10-F01 属实、已处理——mihomo 上服务器是局域网名字的节点（`gateway.lan`、不带点的主机名）改由系统 DNS 解析（dns 段加 `proxy-server-nameserver-policy`）。两条建议都采纳：拨号记录另记摘要；写明 16,000 字节是项目自己定的上限。另：mihomo 的解析去向也用官方内核核对（三个解析器各走一遍）；写盘前多查两条；自查了同一类问题 | 已完成（自动测试、变异检查、官方内核实际拨号）。只有 Clash 系的两份配置有实质变化；Loon / Quantumult X 的配置只变了注释里的版本号，sing-box 的两份没有变 | `docs/08` 第 6 轮、`docs/evidence/gpt-r10/`、`docs/03` 最后一节、`docs/evidence/real-route-check.log`、`docs/evidence/与上一版的对比.md`（r10 → r11） |
+| T19 第 6 轮：GPT 独立审核（r10）。确认的问题 R10-F01 属实、已处理——mihomo 上服务器是局域网名字的节点（`gateway.lan`、不带点的主机名）改由系统 DNS 解析（dns 段加 `proxy-server-nameserver-policy`）。两条建议都采纳：拨号记录另记摘要；写明 16,000 字节是项目自己定的上限。另：mihomo 的解析去向也用官方内核核对（三个解析器各走一遍）；写盘前多查两条；自查了同一类问题 | 已完成（自动测试、变异检查、官方内核实际拨号）。只有 Clash 系的两份配置有实质变化；Loon / Quantumult X 的配置只变了注释里的版本号，sing-box 的两份没有变 | `docs/08` 第 6 轮、`docs/evidence/gpt-r10/`、`docs/03` 最后一节、`docs/evidence/real-route-check.log`、r10 → r11 的逐条对比在 r11 的交付包里 |
+| T20 Loon / Quantumult X 严格版（用户 2026-10-06 的要求，起因是“国外 IP 的时候不泄露国内 DNS”）：各多生成一份配置，没被任何域名规则接住的域名不在本机解析、直接交给国外默认；国内网站靠国内域名清单认出来；“要真实地址的名单”固定直连。Loon 用 `GEOIP,CN,…,no-resolve` 加上游大清单和自有清单；Quantumult X 保留全部 IP 规则，加域名兜底。标准版不动 | 已完成（生成、写盘前的结构检查、模拟器 + 真实上游规则文件、变异检查）；**两个 App 里完全没有验证**，有四处靠推断，而且仓库 `main` 更新到这一版之前用不了 | `generator/strict.py`、`source/strict.yaml`、`source/data/cn-domains.txt`、`tests/test_strict.py`、`docs/03`“严格版”一节、`docs/02`“严格版用到的写法”、`docs/09` 第 1b 节 |
+| T21 “走代理的域名不交给国内 DNS”做成固定核对（mihomo、sing-box；配置没有改）：三项——走代理组的域名连接时不解析、没列到的域名只问境外 DNS、境外 DNS 不应答时不回落；另做国内 DNS 与路由的全集一致性扫描 | 已完成（官方内核 + 真实上游数据）。扫描查出 sing-box 5 个、mihomo 364 个“名字交给国内 DNS、连接走代理组”的主机，分三类如实登记，列为待决事项第 14–16 项，没有改配置 | `tools/check_real_routes.py`、`tools/dns_route_consistency.py`、`tests/cases.yaml`、`docs/03`“走代理的域名不交给国内 DNS”一节、`docs/evidence/real-route-check.log` |
+| T22 Apple Push 策略组（用户 2026-10-06 的要求）：四端各加一个组（默认直连）和一条规则 `push.apple.com` | 已完成（自动测试、官方内核核对）；切到代理以后推送通不通没有实测 | `source/groups.yaml`、`source/services/bigtech.yaml`、`docs/06`“2026-10-06（r12）”一节 |
+| T23 第 7 轮：GPT 2026-10-06 对做法的两段意见（r12 动手之前，不是对交付包的审核）。主要意见都成立，指出我两处说错（Quantumult X 不需要拿掉 IP 规则；Loon 的 GEOIP 加 `no-resolve` 有官方例子），方案据此改了；三条建议没有照做（`no-system`、标准版加境外清单、锁定快照），都写了原因。另整理了每个客户端要手动确认的开关（依据是源码和官方文档）、更正了 r11 文档里几处说得不准的地方 | 已完成（文档与核对）；开关表没有一项在 App 里验证 | `docs/08` 第 7 轮、`docs/evidence/gpt-r12-design/`、`docs/01`“每个客户端要手动确认的开关”、`docs/03`“客户端这一侧”一节 |
 
 ## 待验证 / 受阻
 
 | 任务 | 状态 | 原因 |
 |---|---|---|
-| **Loon / Quantumult X 导入本版配置，看策略组、图标和地区组里的节点对不对** | 待验证（最优先；r10 起风险比 r7 大） | r10 的六份配置相对 r9 都变了，导入过 r9 的要重新导入；r11 相对 r10 只有 Clash 系的两份有实质变化，Loon / Quantumult X 导入过 r10 的不用重新导入。地区筛选正则每条 12–16 KB、每个地区两条，只在 ICU 引擎上核对过；这两个 App 用的引擎、对长度的限制都没有官方说明。r10 起每个策略组的行尾多了图标地址：先看 81 个策略组是不是都在（Loon 的写法依据最弱），再看图标；有问题先换成不带图标的同一版。Quantumult X 另要看“X·自动”“X·负载均衡”是否按正则取节点；Loon 另要看第二个广告列表文件是否加载出三万多条。步骤见 `docs/09` 第 1 节；出问题先切回 2026.09.30-1 的配置 |
-| **Clash Verge Rev / Clash Meta for Android：配置文件里的 dns 段有没有原样生效；内核版本** | 待验证（r11 自查时查到的） | Clash Verge Rev 有“DNS 覆写”开关，打开时界面里的 DNS 设置会盖掉配置文件里的 dns 段，近几个版本这个开关的行为有变动（依据是它仓库里的讨论和问题单，没有在 App 里验证）。它影响的是整套 mihomo 的 DNS 设计，不只是这一轮的修正。r11 加的字段要内核 v1.19.20 或更新，旧内核会忽略它（官方 v1.19.19 试过）。怎么看见 `docs/09` 第 1 节，说明见 `docs/06`“2026-10-05 审核（GPT r10）”一节 |
-| 把这一版（r11）推到 GitHub 仓库 `ixxooxo-alt/proxy` 的 `main` | 交付压缩包以后由我推送 | r10 已在仓库里（2026-10-05 晚，提交 `cd63eba`）。做成没有，看 `main` 分支根目录 `dist/manifest.json` 的 `source_version`：`2026.10.05-2` 是这一版，`2026.10.05-1` 还是 r10（`docs/06` 待决事项第 13 项） |
+| **Loon / Quantumult X 导入本版配置，看策略组、图标和地区组里的节点对不对** | 待验证（最优先；r10 起风险比 r7 大） | r12 相对 r11：标准版只多了 Apple Push 一个组和一条规则，导入过 r11（或 r10）、又不需要这个组的可以不重新导入。地区筛选正则每条 12–16 KB、每个地区两条，只在 ICU 引擎上核对过；这两个 App 用的引擎、对长度的限制都没有官方说明。每个策略组的行尾有图标地址：先看 82 个策略组是不是都在（Loon 的写法依据最弱），再看图标；有问题先换成不带图标的同一版。Quantumult X 另要看“X·自动”“X·负载均衡”是否按正则取节点；Loon 另要看第二个广告列表文件是否加载出三万多条。步骤见 `docs/09` 第 1 节；出问题先切回 2026.09.30-1 的配置 |
+| **Loon / Quantumult X 的严格版（r12 新增）** | 待验证（要用严格版的话，这是第一件事）；现在还用不了 | 它引用仓库 `main` 分支里的三个规则文件，r12 没有推到 `main`（用户的要求），所以这三个地址现在取不到。推上去以后按 `docs/09` 第 1b 节的 13 步走：远程规则是否都加载、Loon 是否接受单独一行 `GEOIP,CN,…,no-resolve`、没被接住的域名是否真的不在本机解析（第 3 步，最要紧）、清单里的国内网站是否直连、清单里的域名下的广告主机是否仍被拦。Quantumult X 的域名兜底没加载时会悄悄退回标准版的行为 |
+| **Clash Verge Rev / Clash Meta for Android / SFA：要手动确认的开关；内核版本** | 待验证 | 开关表在 `docs/01`“每个客户端要手动确认的开关”：虚拟网卡开、Clash Verge Rev 的“DNS 覆写”关、Windows 上严格路由开、App 的 IPv6 开关关、Android 的“私人 DNS”关闭。r12 按 Clash Verge Rev v2.5.7 的源码和 mihomo 的官方文档写的，没有一项在 App 里验证过。它们不对，“走代理的域名不让国内 DNS 看到”就不成立。r11 加的字段要内核 v1.19.20 或更新，旧内核会忽略它（官方 v1.19.19 试过）。怎么看见 `docs/09` 第 1、5 节 |
+| 把这一版（r12）推到 GitHub 仓库 `ixxooxo-alt/proxy` 的 `main` | 等用户发话（用户 2026-10-06：先交给 GPT 审核，不急着更新 `main`） | 仓库里现在是 r11（2026-10-06 上午推的，提交 `946d655`）。推上去之前严格版用不了。做成没有，看 `main` 分支根目录 `dist/manifest.json` 的 `source_version`：`2026.10.06-1` 是这一版（`docs/06` 待决事项第 13 项） |
 | 请审核方复核这一轮的修改 | 待进行 | 范围可以只限改动的部分；改动清单与建议攻击的点见 `00-审核说明.md` |
+| 给“没被域名规则接住的域名只问境外 DNS”补静态断言 | 待做（下一版） | 变异检查里 M91、M92 两类只靠“官方内核的记录过期”发现：离线测试没有直接断言 mihomo 默认的 DNS 是境外的、sing-box 最后那条 `resolve` 用的是 `dns-foreign`。现在的保护是两步的（摘要测试报记录过期 → 重跑核对工具报具体的不符合，实际重跑过一次确认）。补两条断言很小，但要在改动以后把全部检查重跑一遍，这一版没有做 |
 | 用真实订阅的节点名核对分组 | 待用户提供 | 样本是归纳的常见写法和独立来源的国家 / 城市名，不是任何一家机场的真实节点名。r10 把只写“地名 + 中转”“国旗 + 中转”的节点从自动类的组里拿掉了，用户的机场如果大多这样命名，自动组会少很多（`docs/06` 待决事项第 12 项）；反过来，规则不认识的中转说法（`经由`、`跳板`、`Entry` 等）会被当成落地放进自动组（`docs/06` 最后一节）。两头都要看真实的节点名才知道有多少。用户说以后多订阅几家再把节点列表截图发来；届时用 `tools/check_node_names.py` 核对，再补词表或 `local.yaml` |
-| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58；之后几轮改动较多，需要再跑一次 197 项。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
+| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58；之后几轮改动较多，需要再跑一次 244 项。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
 | 带真实订阅的私密配置过官方检查 | 待验证 | 公开配置和样例节点已通过 mihomo / sing-box 官方检查；真实订阅只在你的电脑上，需要你本机运行一次 |
 | 十个平台真机验收（优先：QX 策略名、Loon 手动优先组成员） | 待验证 | 没有设备、订阅与账号；操作步骤见 `docs/09-真机验收操作清单.md`，记录表见 `docs/05-验收记录.md` |
 | 21 条维护者知识规则的实测 | 待验证 | 两个上游快照里都没有，需要真机抓包或实测命中（清单见 `docs/evidence/上游规则对照.md`） |
 | Apple AI 真机：Siri / Apple 智能走美国；地图、App Store、iCloud 同步正常 | 待验证 | 需要支持 Apple 智能的设备与地区；步骤见 `docs/09` 第 2 节 |
 | 迁入的 9 条无同值上游依据的广告（尤其友盟、阿里妈妈整域拦截）是否误伤 | 待验证 | 需要在常用国内 App 上实测；见 `docs/06` 第 7 项 |
-| 需求决定项 14 项 | 受阻（等待决定） | 见 `docs/06-已知限制与待决事项.md`（第 7–9 项是 2026-09-29 迁入带来的；第 10–11 项是 2026-10-04 的：Loon / QX 要不要加境外域名集合、Loon 第二个广告文件不被接受时怎么办；第 12–14 项是 2026-10-05 的：只写“地名 + 中转”的节点只进手动组这个取舍、GitHub 仓库里放哪一版（已按决定办，只是说明现状）、不带点的名字作为访问目标要不要处理） |
-| 工作环境的两次中断 | 已说明 | r11：2026-10-05 夜里代码冻结以后对话中断、云端机器被回收，后台的变异检查没有跑完；第二天接上，代码没有改（核对过哈希），全部检查从头重跑（`docs/05`“已验证的事实”开头）。r10：2026-10-05 原来的云端环境被换掉，工程是按操作记录从 r5 的交付包逐步重做的（每一轮的摘要、产物、测试项数与当时的记录一致），全部检查在新环境重跑。和前几轮不同的三样：运行环境（Python 3.11.17 / PyYAML 6.0.1）、真实数据核对用的上游文件（2026-10-05 当天的）、`tests/data/cldr_tz_names.json`（重新导出，条目数相同，内容是否逐字相同无法核对）。r6–r9 的交付包如果你手里还有，以你手里的为准；我这边重做出来的 r6–r9 只用来做版本对比 |
+| 需求决定项 20 项 | 受阻（等待决定） | 见 `docs/06-已知限制与待决事项.md`（第 7–9 项是 2026-09-29 迁入带来的；第 10–11 项是 2026-10-04 的：Loon / QX 要不要加境外域名集合、Loon 第二个广告文件不被接受时怎么办；第 12–14 项是 2026-10-05 的：只写“地名 + 中转”的节点只进手动组这个取舍、GitHub 仓库里放哪一版（已按决定办，只是说明现状）、不带点的名字作为访问目标要不要处理；第 15–20 项是 2026-10-06 的：“要真实地址的名单”里路由不直连的名字、mihomo 的 DNS 策略少一层、“国内直连”切到代理以后 sing-box 仍先问国内 DNS、标准版 Loon / Quantumult X 上两个运营商认证主机被广告集合拦、Quantumult X 严格版的清单比 Loon 小、Quantumult X 要不要加 `no-system`） |
+| 工作环境的几次中断 | 已说明 | r12：2026-10-06 代码定稿以后对话中断、云端机器被回收，后台的变异检查只跑完 28 类；接上以后因为两处改动（Apple Push 的图标登记、一项新的固定核对）又定稿了两次，全部检查都是最后一次定稿以后跑的（`docs/05`“已验证的事实”开头）。r11：2026-10-05 夜里代码冻结以后对话中断、云端机器被回收，后台的变异检查没有跑完；第二天接上，代码没有改（核对过哈希），全部检查从头重跑（`docs/05`“已验证的事实”开头）。r10：2026-10-05 原来的云端环境被换掉，工程是按操作记录从 r5 的交付包逐步重做的（每一轮的摘要、产物、测试项数与当时的记录一致），全部检查在新环境重跑。和前几轮不同的三样：运行环境（Python 3.11.17 / PyYAML 6.0.1）、真实数据核对用的上游文件（2026-10-05 当天的）、`tests/data/cldr_tz_names.json`（重新导出，条目数相同，内容是否逐字相同无法核对）。r6–r9 的交付包如果你手里还有，以你手里的为准；我这边重做出来的 r6–r9 只用来做版本对比 |
 | 定期带新下载的上游数据重跑 `tools/check_real_routes.py` | 持续 | 上游的国内 / 国外 / 广告集合每天在变；这一版的核对只对当时取得的那几份文件成立（哈希记在 `tests/data/real_sets.json`）。命令见 `docs/01` |
-| 策略组图标在真机上的显示 | 待验证 | 地址已写进配置（T16）；Loon、Quantumult X、Clash Verge Rev、Clash Meta for Android 里显示不显示都没有看过。图标仓库以后改名或删图会让对应的组没有图标，更新图标仓库后重跑 `tools/check_icons.py` |
+| 策略组图标在真机上的显示 | 待验证 | 地址已写进配置（T16；82 个，含 Apple Push）；Loon、Quantumult X、Clash Verge Rev、Clash Meta for Android 里显示不显示都没有看过。图标仓库以后改名或删图会让对应的组没有图标，更新图标仓库后重跑 `tools/check_icons.py` |
+| Apple Push 切到代理以后推送通不通 | 待验证 | 组默认直连。推送主要用 5223 端口，节点不放行时苹果的说明是会退回 443；没有实测。步骤见 `docs/09` 第 2 节“Apple 推送通知”一行 |
 
 ## 下一条具体操作
 
 1. 把这一版交给审核方复核（范围：`00-审核说明.md` 列的改动）。
-2. 用 Clash Verge Rev / Clash Meta for Android 的：导入这一版的 `mihomo-profile.yaml` 以后，先按 `docs/09` 第 1 节看两件事——“DNS 覆写”是不是关着、运行时配置里的 dns 段和配置文件里的是不是一样；再记下内核版本。
-3. 在 Loon / Quantumult X 上导入本版配置（导入过 r10 的不用重新导入；保留旧配置；可以先导入、再在 App 里换订阅，见 `docs/01`），按 `docs/09` 第 1 节检查：有没有报错；81 个策略组是不是都在、图标有没有出来；地区组里的节点对不对；“自动”组是不是“手动”组的一部分；Loon 的两条广告订阅是否都加载成功（看条数，再试 `app-measurement.com`）；Quantumult X 的“自动”“负载均衡”组里有没有节点。结果发回来。
-4. 把订阅里的节点名交给 `python3 tools/check_node_names.py`（或把节点列表截图 / 文本发回来），按报告在 `source/local.yaml` 的 `node_names` 里补或指定，常见写法并入 `source/regions.yaml`。
-5. 在 Windows 上运行 `python -m unittest discover -s tests`，确认 197 项通过。
-6. 填订阅后运行 `mihomo -t -d . -f dist/private/mihomo-core.yaml`（SFA 用户再跑 `sing-box check -c dist/private/sing-box-1.14.json`），记录结果。
-7. 按 `docs/09-真机验收操作清单.md` 做其余真机验收：Loon 的“香港·手动优先”成员列表、QX 带 `/`、`+` 的策略名；电脑上的分流结果用 `tools/check_connections.py` 分析。
-8. 回复 `docs/06` 的待决事项（14 项），按结果修改 `source/` 并重新生成。
-9. GitHub 仓库的 `main`（待决事项第 13 项）：这一版交付压缩包以后由我推上去；推完以后 `main` 分支根目录 `dist/manifest.json` 的 `source_version` 应该是 `2026.10.05-2`，并确认 `dist/private/`、`source/local.yaml` 没有被传上去。如果还是 `2026.10.05-1`，说明我没能推上去，告诉我；也可以自己把压缩包的内容放进仓库根目录、替换旧文件。
+2. 审核完告诉我，我把这一版推到 GitHub 仓库的 `main`（待决事项第 13 项）。推完以后 `main` 分支根目录 `dist/manifest.json` 的 `source_version` 应该是 `2026.10.06-1`，严格版引用的三个规则文件才取得到。
+3. 用 Clash Verge Rev / Clash Meta for Android / SFA 的：对着 `docs/01`“每个客户端要手动确认的开关”那张表把开关看一遍；Clash Verge Rev 另按 `docs/09` 第 1 节看运行时配置里的 dns 段和配置文件里的是不是一样，记下内核版本。
+4. 在 Loon / Quantumult X 上导入本版配置（保留旧配置；可以先导入、再在 App 里换订阅，见 `docs/01`），按 `docs/09` 第 1 节检查：有没有报错；82 个策略组是不是都在、图标有没有出来；地区组里的节点对不对；“自动”组是不是“手动”组的一部分；Loon 的两条广告订阅是否都加载成功（看条数，再试 `app-measurement.com`）；Quantumult X 的“自动”“负载均衡”组里有没有节点。结果发回来。
+5. 想用严格版：第 2 步做完以后，按 `docs/09` 第 1b 节的 13 步走一遍，哪一步不对先切回标准版，把现象发回来。
+6. 把订阅里的节点名交给 `python3 tools/check_node_names.py`（或把节点列表截图 / 文本发回来），按报告在 `source/local.yaml` 的 `node_names` 里补或指定，常见写法并入 `source/regions.yaml`。
+7. 在 Windows 上运行 `python -m unittest discover -s tests`，确认 244 项通过。
+8. 填订阅后运行 `mihomo -t -d . -f dist/private/mihomo-core.yaml`（SFA 用户再跑 `sing-box check -c dist/private/sing-box-1.14.json`），记录结果。
+9. 按 `docs/09-真机验收操作清单.md` 做其余真机验收：Loon 的“香港·手动优先”成员列表、QX 带 `/`、`+` 的策略名；电脑上的分流结果用 `tools/check_connections.py` 分析。
+10. 回复 `docs/06` 的待决事项（20 项；这一轮新列的是第 15–20 项），按结果修改 `source/` 并重新生成。

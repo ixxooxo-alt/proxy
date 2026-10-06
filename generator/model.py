@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple
 import yaml
 
 from . import regions as region_rules
+from . import strict as strict_mod
 from .util import (BANNED_SHARED_SUFFIXES, GOOGLE_SHARED_ROOTS, Rule, cidr_covers, covers,
                    rule_matches_host, valid_cidr, valid_domain, check_regex_line_safe)
 
@@ -85,6 +86,9 @@ class Model:
     region_spec: Optional[region_rules.Spec] = None      # 节点名称分地区的词表（source/regions.yaml + 本地补充）
     icons: dict = field(default_factory=dict)            # 策略组图标的登记（source/icons.yaml 的 icons 一节；没有这个文件时为空）
     icons_strict: bool = True                            # 公开模型：启用图标后每个策略组都必须有图；带本地覆盖的私密模型不强求
+    strict: dict = field(default_factory=dict)           # 严格版的设定（source/strict.yaml 的 strict 一节）
+    cn_domains: Tuple[List[str], List[str]] = field(default_factory=lambda: ([], []))   # 国内域名清单：(后缀, 精确域名)
+    cn_data_header: List[str] = field(default_factory=list)    # 清单数据文件头部讲来源与授权的几行
     _node_rx: Optional[Tuple[Dict[str, str], Dict[str, str]]] = field(default=None, repr=False, compare=False)
 
     # 便捷访问
@@ -107,13 +111,18 @@ class Model:
         ic = self.icons or {}
         if not ic.get("enabled"):
             return None
-        file_name = (ic.get("renamed") or {}).get(group_name, group_name)
-        if file_name not in set(ic.get("available") or []):
+        file_name = self.icon_file(group_name)
+        if file_name not in set(ic.get("available") or []) | set(ic.get("pending") or []):
             if self.icons_strict:
                 raise SourceError(f"策略组 {group_name} 没有图标：source/icons.yaml 的 available 里没有“{file_name}”。"
                                   "先把图放进图标仓库并登记到 available（文件名和组名不同时写进 renamed），或者把 icons.enabled 改成 false")
             return None
         return ic["base_url"] + urllib.parse.quote(file_name + ic.get("ext", ".png"), safe="")
+
+    def icon_file(self, group_name: str) -> str:
+        """这个策略组用图标仓库里的哪张图（文件名，不带扩展名）：改名表里有就用它，否则和组名相同。"""
+        ic = self.icons or {}
+        return (ic.get("renamed") or {}).get(group_name) or group_name
 
     @property
     def regions(self) -> List[dict]:
@@ -187,7 +196,12 @@ AD_KEYS = {"suffix", "domain", "ev", "note"}
 EXCEPTION_KEYS = {"suffix", "domain", "target", "ev", "why", "allow_direct"}
 ADBLOCK_KEYS = {"remote_lists", "local_ads", "local_tracking", "httpdns", "exceptions", "rewrite_mitm"}
 LOCAL_KEYS = {"special_entries", "extra_services", "evidence", "node_names"}
-ICON_KEYS = {"enabled", "base_url", "ext", "renamed", "checked_commit", "checked", "available"}
+ICON_KEYS = {"enabled", "base_url", "ext", "renamed", "pending", "checked_commit", "checked", "available"}
+STRICT_KEYS = {"publish_base", "domestic_lists", "qx_fallback"}
+STRICT_LIST_KEYS = {"url", "own", "tag", "ev", "source"}
+# 严格版只给这两端生成；各端能引用的自有清单文件
+STRICT_CLIENTS = ("loon", "quantumultx")
+STRICT_OWN_CN = {"loon": strict_mod.LOON_CN_REL, "quantumultx": strict_mod.QX_CN_REL}
 # 图标地址要原样写进 Loon / Quantumult X 的一行：不能有逗号、空格、引号、反引号这些会被当成分隔符的字符
 _ICON_BASE_RX = re.compile(r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]*/$")
 _ICON_EXT_RX = re.compile(r"^\.[A-Za-z0-9]{2,5}$")
@@ -219,9 +233,91 @@ def _check_icons(ic: dict) -> List[str]:
     for group, file_name in renamed.items():
         if file_name not in avail:
             errors.append(f"icons.yaml：renamed 把 {group} 指向“{file_name}”，available 里没有它")
+    pending = ic.get("pending") or []
+    if not isinstance(pending, list) or not all(isinstance(x, str) and x.strip() == x and x for x in pending):
+        errors.append("icons.yaml：pending 应是图标文件名（不带扩展名）的列表")
+        pending = []
+    for x in pending:
+        if x in avail:
+            errors.append(f"icons.yaml：{x} 已经在 available 里了，不该再留在 pending 里")
+        if "/" in x or "\\" in x:
+            errors.append(f"icons.yaml：pending 里的名字不能含斜杠：{x!r}")
+    if len(set(pending)) != len(pending):
+        errors.append("icons.yaml：pending 里有重复的名字")
     for x in avail:
         if "/" in x or "\\" in x:
             errors.append(f"icons.yaml：available 里的名字不能含斜杠：{x!r}（文件名里的斜杠写全角“／”，再在 renamed 里对应）")
+    return errors
+
+
+def _check_strict(st: dict, evidence: dict) -> List[str]:
+    """source/strict.yaml 的 strict 一节。地址和标签要原样写进 Loon / Quantumult X 用逗号分隔参数的一行。"""
+    errors: List[str] = []
+    base = st.get("publish_base")
+    if not isinstance(base, str) or not _ICON_BASE_RX.match(base):
+        errors.append(f"strict.yaml：publish_base 必须是 https:// 开头、以 / 结尾，且不含逗号、空格、引号的地址：{base!r}")
+    lists = st.get("domestic_lists")
+    if not isinstance(lists, dict) or set(lists) != set(STRICT_CLIENTS):
+        errors.append(f"strict.yaml：domestic_lists 要给 {' / '.join(STRICT_CLIENTS)} 各写一份")
+        lists = {}
+    entries = [(c, e) for c in STRICT_CLIENTS for e in (lists.get(c) or [])]
+    fb = st.get("qx_fallback")
+    if not isinstance(fb, dict) or fb.get("own") != strict_mod.QX_FALLBACK_REL:
+        errors.append(f"strict.yaml：qx_fallback.own 只能是 {strict_mod.QX_FALLBACK_REL}")
+    else:
+        entries.append(("quantumultx 的域名兜底", fb))
+    for client in STRICT_CLIENTS:
+        if not lists.get(client) and lists:
+            errors.append(f"strict.yaml：{client} 的国内域名清单不能为空（严格版要靠它认出国内网站）")
+    for where, e in entries:
+        errors += _unknown(f"strict.yaml {where} {e}", e, STRICT_LIST_KEYS)
+        if not isinstance(e, dict):
+            continue
+        if ("url" in e) == ("own" in e):
+            errors.append(f"strict.yaml {where} {e}：url（订阅上游文件）和 own（自有清单）必须且只能写一个")
+        tag = e.get("tag")
+        if not isinstance(tag, str) or not tag or any(ch in tag for ch in ", \"'`=\n"):
+            errors.append(f"strict.yaml {where} {e}：tag 不能为空，也不能含逗号、空格、引号、等号")
+        if "url" in e:
+            url = e["url"]
+            if not isinstance(url, str) or not re.match(r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]+$", url):
+                errors.append(f"strict.yaml {where}：url 必须是 https:// 地址，且不含逗号、空格、引号：{url!r}")
+            if e.get("ev") not in evidence:
+                errors.append(f"strict.yaml {where} {url}：证据 {e.get('ev')!r} 未登记")
+        elif "own" in e and where in STRICT_OWN_CN and e["own"] != STRICT_OWN_CN[where]:
+            errors.append(f"strict.yaml {where}：own 只能是 {STRICT_OWN_CN[where]}")
+    tags = [(c, e.get("tag")) for c, e in entries if isinstance(e, dict)]
+    for client in STRICT_CLIENTS:
+        mine = [t for c, t in tags if c.startswith(client)]
+        if len(mine) != len(set(mine)):
+            errors.append(f"strict.yaml：{client} 的远程规则标签有重复")
+    return errors
+
+
+def _check_cn_domains(cn: Tuple[List[str], List[str]]) -> List[str]:
+    """source/data/cn-domains.txt：由 tools/update_cn_list.py 生成，这里只查写法（内容与上游快照是否一致由那个工具核对）。"""
+    suffix, full = cn
+    errors: List[str] = []
+    if len(suffix) < 1000:
+        errors.append(f"{strict_mod.CN_DATA_REL}：后缀只有 {len(suffix)} 条，不像一份完整的国内域名清单")
+    bad = [d for d in list(suffix) + list(full) if not valid_domain(d)]
+    if bad:
+        errors.append(f"{strict_mod.CN_DATA_REL}：有 {len(bad)} 条不是合法域名，例如 {bad[:5]}")
+    every = list(suffix) + list(full)
+    if len(set(suffix)) != len(suffix) or len(set(full)) != len(full):
+        errors.append(f"{strict_mod.CN_DATA_REL}：有重复的条目")
+    sset = set(suffix)
+
+    def covered(name: str, itself: bool) -> bool:
+        parts = name.split(".")
+        return any(".".join(parts[i:]) in sset for i in range(0 if itself else 1, len(parts)))
+
+    redundant = [d for d in suffix if covered(d, False)] + [d for d in full if covered(d, True)]
+    if redundant:
+        errors.append(f"{strict_mod.CN_DATA_REL}：有 {len(redundant)} 条已被别的后缀覆盖（应由生成工具去掉），例如 {redundant[:5]}")
+    if "cn" not in sset:
+        errors.append(f"{strict_mod.CN_DATA_REL}：没有整段 cn——严格版要靠它把没有单独列出的 .cn 域名交给国内直连")
+    del every
     return errors
 
 
@@ -336,12 +432,30 @@ def load(root: str, include_local: bool = True) -> Model:
         else:
             schema_errors += _unknown("icons.yaml icons", icons, ICON_KEYS)
             schema_errors += _check_icons(icons)
+    # 严格版（Loon / Quantumult X 各多生成一份）的设定与国内域名清单
+    strict_data = _load_yaml(os.path.join(src, "strict.yaml")) or {}
+    schema_errors += _unknown("strict.yaml", strict_data, {"strict"})
+    strict_conf = strict_data.get("strict") if isinstance(strict_data, dict) else None
+    if not isinstance(strict_conf, dict):
+        schema_errors.append("strict.yaml：缺少 strict 一节")
+        strict_conf = {}
+    else:
+        schema_errors += _unknown("strict.yaml strict", strict_conf, STRICT_KEYS)
+        schema_errors += _check_strict(strict_conf, evidence)
+    cn_domains, cn_header = ([], []), []
+    try:
+        cn_domains = strict_mod.load_cn_domains(root)
+        cn_header = strict_mod.data_header(root)
+        schema_errors += _check_cn_domains(cn_domains)
+    except OSError as e:
+        schema_errors.append(f"读不到国内域名清单 {strict_mod.CN_DATA_REL}（{e}）：用 tools/update_cn_list.py 生成")
     if schema_errors:
         raise SourceError("统一源校验失败：\n  - " + "\n  - ".join(schema_errors))
     has_local = include_local and os.path.exists(local_path)
     model = Model(root=root, project=project, groups=groups, special_entries=special,
                   evidence=evidence, services=services, adblock=adblock, region_spec=region_spec,
-                  icons=icons, icons_strict=not has_local)
+                  icons=icons, icons_strict=not has_local, strict=strict_conf,
+                  cn_domains=cn_domains, cn_data_header=cn_header)
     validate(model)
     return model
 
@@ -535,6 +649,9 @@ class Plan:
     product: List[Rule]        # 第 4–5 阶段：产品专属 + 共享依赖 / 厂商规则（已排序）
     service_ip: List[Rule]     # 第 7 阶段：服务专属 IP（no-resolve，已排序）
     service_clients: Dict[str, Tuple[str, ...]] = field(default_factory=dict)   # 只生成到部分客户端的服务
+    # 严格版（Loon / Quantumult X）多出的一段：要真实地址的名单里，标准版没有固定直连规则的那些名字。
+    # 这些名字必须先在本机解析（解析发生在选出口之前），所以严格版把它们固定成直连，不让“国内 DNS 解析 + 代理出口”出现
+    real_ip_direct: List[Rule] = field(default_factory=list)
 
     def emitted_to(self, rule: Rule, family: str) -> bool:
         clients = self.service_clients.get(rule.service) or ALL_CLIENTS
@@ -573,6 +690,15 @@ def build_plan(m: Model) -> Plan:
     for s in m.services:
         if s.group == "DIRECT":
             lan.extend(s.rules)
+
+    lan_keys = {r.key for r in lan}
+    real_ip_direct: List[Rule] = []
+    for i, x in enumerate(m.project["dns"]["real_ip"], 1):
+        kind = "suffix" if "suffix" in x else "domain"
+        value = str(x[kind]).lower()
+        if (kind, value) not in lan_keys:
+            real_ip_direct.append(Rule(kind, value, "DIRECT", "lan", "real_ip", "maintainer",
+                                       "要真实地址的名单：解析在选出口之前，严格版固定直连", i))
 
     product_all = [r for s in m.services if s.group != "DIRECT" for r in s.rules if r.stage == "product"]
     service_ip = [r for s in m.services if s.group != "DIRECT" for r in s.rules if r.stage == "service_ip"]
@@ -619,4 +745,4 @@ def build_plan(m: Model) -> Plan:
 
     # 自有拦截条目若位于产品根域下，确认确实存在需要前置的产品规则（仅记录，不报错）
     return Plan(lan=lan, exceptions=exceptions, ads_local=ads_local, product=product, service_ip=service_ip,
-                service_clients={s.id: s.clients for s in m.services if s.clients})
+                service_clients={s.id: s.clients for s in m.services if s.clients}, real_ip_direct=real_ip_direct)

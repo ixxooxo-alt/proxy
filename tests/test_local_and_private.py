@@ -74,7 +74,7 @@ class ReducedModes(unittest.TestCase):
             m = load(d)
             p = build_plan(m)
             conf = emulate.parse_loon(emit_loon.build(m, p))
-            self.assertEqual(len(conf["groups"]), 69)
+            self.assertEqual(len(conf["groups"]), 70)       # 82 个组去掉六个地区各两种模式（2026-10-06 加 Apple Push 之前是 81 → 69）
             self.assertEqual(conf["groups"]["香港"]["members"], ["香港·手动优先", "香港·手动", "香港·自动"])
         finally:
             shutil.rmtree(d)

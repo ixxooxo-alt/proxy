@@ -5,7 +5,7 @@ import re
 import unittest
 from urllib.parse import urlparse
 
-from helpers import CLIENT_FILES, ROOT, build, load_yaml, model_and_plan, outputs, parsed, text
+from helpers import CLIENT_FILES, LOON_CLIENTS, QX_CLIENTS, ROOT, build, family, load_yaml, model_and_plan, outputs, parsed, text
 
 CASES = load_yaml("cases.yaml")
 REGIONS = ["香港", "日本", "韩国", "台湾", "新加坡", "美国"]
@@ -28,7 +28,7 @@ def groups_of(client):
                     mem.remove(o["default"])
                     mem.insert(0, o["default"])
                 out[o["tag"]] = {"type": o["type"], "members": mem, "raw": o}
-    elif client == "loon":
+    elif family(client) == "loon":
         for k, v in c["groups"].items():
             out[k] = {"type": v["type"], "members": v["members"], "raw": v}
     else:
@@ -96,20 +96,21 @@ class Structure(unittest.TestCase):
         附带节点可保证那种情况下该组不为空，且仍只含同地区节点。附带的是严的那条（F-XX-AUTO）：
         这条退路是客户端自己选节点，说不清落地的节点不能进。"""
         codes = {"香港": "HK", "日本": "JP", "韩国": "KR", "台湾": "TW", "新加坡": "SG", "美国": "US"}
-        for client in ("mihomo-profile", "loon", "quantumultx"):
+        for client in ("mihomo-profile",) + LOON_CLIENTS + QX_CLIENTS:
             gs = groups_of(client)
             for r in REGIONS:
                 g = gs[f"{r}·手动优先"]
                 self.assertIn(g["type"], ("fallback", "available"), client)
-                want = [f"{r}·手动", f"{r}·自动"] + ([f"F-{codes[r]}-AUTO"] if client == "loon" else [])
+                want = [f"{r}·手动", f"{r}·自动"] + ([f"F-{codes[r]}-AUTO"] if family(client) == "loon" else [])
                 self.assertEqual(g["members"], want, client)
-                if client == "loon":
+                if family(client) == "loon":
                     self.assertEqual(gs[f"{r}·自动"]["members"], [f"F-{codes[r]}-AUTO"], "附带的节点筛选必须与本地区的自动组一致")
                     self.assertEqual(gs[f"{r}·手动"]["members"], [f"F-{codes[r]}"])
 
     def test_review_followups(self):
         """外部审核后的修正：Loon 不写无用的局域网共享端口；sing-box 不返回 AAAA 时不配 IPv6 假地址段。"""
-        self.assertNotIn("wifi-access-", text("loon").replace("allow-wifi-access", ""))
+        for client in LOON_CLIENTS:
+            self.assertNotIn("wifi-access-", text(client).replace("allow-wifi-access", ""), client)
         for client in ("singbox-1.14", "singbox-1.12"):
             fake = [s for s in parsed(client)["dns"]["servers"] if s["type"] == "fakeip"][0]
             self.assertEqual(parsed(client)["dns"]["strategy"], "ipv4_only")
@@ -132,8 +133,8 @@ class Structure(unittest.TestCase):
     def test_final_is_foreign_default(self):
         self.assertEqual(parsed("mihomo-profile")["rules"][-1], "MATCH,国外默认")
         self.assertEqual(parsed("singbox-1.14")["route"]["final"], "国外默认")
-        self.assertEqual(parsed("loon")["final"], "国外默认")
-        self.assertEqual(parsed("quantumultx")["final"], "国外默认")
+        for client in LOON_CLIENTS + QX_CLIENTS:
+            self.assertEqual(parsed(client)["final"], "国外默认", client)
 
     def test_references_resolve(self):
         for client in CLIENT_FILES:
@@ -143,8 +144,8 @@ class Structure(unittest.TestCase):
                 known |= {o["tag"] for o in parsed(client)["outbounds"]}
             for name, g in gs.items():
                 for mem in g["members"]:
-                    if client == "loon" and mem.startswith("F-"):
-                        self.assertIn(mem, parsed("loon")["filters"])
+                    if family(client) == "loon" and mem.startswith("F-"):
+                        self.assertIn(mem, parsed(client)["filters"])
                         continue
                     self.assertIn(mem, known, f"{client} 组 {name} 引用了不存在的 {mem}")
             # 规则目标
@@ -152,7 +153,7 @@ class Structure(unittest.TestCase):
                 targets = {r.split(",")[2] if not r.startswith("MATCH") else r.split(",")[1] for r in parsed(client)["rules"]}
             elif client.startswith("singbox"):
                 targets = {r["outbound"] for r in parsed(client)["route"]["rules"] if "outbound" in r}
-            elif client == "loon":
+            elif family(client) == "loon":
                 c = parsed(client)
                 targets = {p[2] for p in c["local"]} | {r["policy"] for r in c["remote"]} | {c["final"]}
             else:
@@ -180,11 +181,16 @@ class Structure(unittest.TestCase):
             "testingcf.jsdelivr.net", "raw.githubusercontent.com", "223.5.5.5", "1.12.12.12",
             "1.1.1.1", "8.8.8.8",
         }
+        # raw.githubusercontent.com 下只允许这几个仓库：上游规则库、用户自己的图标仓库、用户自己放配置的仓库（严格版的自有规则文件）
+        allowed_repos = ("/blackmatrix7/ios_rule_script/", "/ixxooxo-alt/icon/", "/ixxooxo-alt/proxy/",
+                         "/SagerNet/sing-geosite/", "/SagerNet/sing-geoip/")
         for rel, t in outputs().items():
             for u in re.findall(r"https?://[^\s,\"']+", t):
                 host = urlparse(u).hostname or ""
                 self.assertIn(host if host != "replace-me.invalid" else "REPLACE-ME.invalid", allowed_hosts,
                               f"{rel} 出现未登记的外部地址 {u}")
+                if host == "raw.githubusercontent.com":
+                    self.assertTrue(urlparse(u).path.startswith(allowed_repos), f"{rel} 引用了没有登记的仓库 {u}")
             for bad in ("password", "uuid", "ca-p12", "ca-passphrase", "token="):
                 self.assertNotIn(bad, t.lower(), f"{rel} 含敏感字段 {bad}")
         for client in CLIENT_FILES:
@@ -256,19 +262,42 @@ class Structure(unittest.TestCase):
             self.assertNotIn("geosite", c["route"])
             self.assertNotIn("geoip", c["route"])
 
+    def test_dns_and_routing_read_the_same_domestic_set(self):
+        """“哪些域名算国内”在 DNS 和路由两边用的是同一份数据，运行时不会出现一边已经更新、另一边还是旧的
+        （2026-10-06，GPT 评审 r12 方案时提的“运行时快照一致”）。
+        sing-box：DNS 规则和路由规则引用同一个规则集标签 geosite-cn，这个标签只定义一次（一个地址、一份下载）。
+        mihomo：路由的 GEOSITE,cn 和 nameserver-policy 的 geosite:cn 都读同一个 geosite.dat（geox-url 里只有一个 geosite 地址）。
+        Loon / Quantumult X 的标准版没有国内域名集合；严格版只在路由一边用清单，DNS 一边没有按域名分流的设置。"""
+        for client in ("singbox-1.14", "singbox-1.12"):
+            c = parsed(client)
+            dns_cn = [r["rule_set"] for r in c["dns"]["rules"] if r.get("server") == "dns-cn" and "rule_set" in r]
+            route_cn = [r["rule_set"] for r in c["route"]["rules"] if r.get("outbound") == "国内直连" and "rule_set" in r]
+            self.assertEqual(dns_cn, ["geosite-cn"], client)
+            self.assertIn("geosite-cn", route_cn, client)
+            defs = [x for x in c["route"]["rule_set"] if x["tag"] == "geosite-cn"]
+            self.assertEqual(len(defs), 1, client)
+            self.assertEqual(defs[0]["type"], "remote")
+        for client in ("mihomo-profile", "mihomo-core"):
+            c = parsed(client)
+            self.assertIn("GEOSITE,cn,国内直连", c["rules"], client)
+            policy = [k for k in c["dns"]["nameserver-policy"] if k.startswith("geosite:")]
+            self.assertEqual(policy, ["geosite:cn,private"], client)
+        self.assertEqual(sorted(parsed("mihomo-core")["geox-url"]), ["asn", "geoip", "geosite", "mmdb"])
+
     def test_line_formats(self):
-        found = 0
-        for rx in re.findall(r'FilterKey = "([^"\n]+)"', text("loon")):
-            re.compile(rx)
-            found += 1
-        for line in text("quantumultx").splitlines():
-            if "server-tag-regex=" in line:
-                rest = line.split("server-tag-regex=", 1)[1]
-                rx = rest.split(", ", 1)[0]
+        for loon, qx in zip(LOON_CLIENTS, QX_CLIENTS):
+            found = 0
+            for rx in re.findall(r'FilterKey = "([^"\n]+)"', text(loon)):
                 re.compile(rx)
-                self.assertTrue(rx.endswith("$"), f"QX 正则被逗号截断：{rx}")
                 found += 1
-        self.assertGreater(found, 30)
+            for line in text(qx).splitlines():
+                if "server-tag-regex=" in line:
+                    rest = line.split("server-tag-regex=", 1)[1]
+                    rx = rest.split(", ", 1)[0]
+                    re.compile(rx)
+                    self.assertTrue(rx.endswith("$"), f"QX 正则被逗号截断：{rx}")
+                    found += 1
+            self.assertGreater(found, 30, loon)
 
     def test_node_name_screening(self):
         m, _ = model_and_plan()

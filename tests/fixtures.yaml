@@ -18,6 +18,11 @@ dns:
   gemini.google.com.evil.example: 104.18.1.4
   example.cn: 1.2.4.9
   www.jd.com: 110.242.68.3
+  www.zhihu.com: 110.242.68.4
+  www.ithome.com: 110.242.68.5
+  news.sina.com.cn: 110.242.68.6
+  id6.me: 110.242.68.7
+  log.cmpassport.com: 110.242.68.8
 geoip:
   cn: [1.2.4.0/24, 110.242.0.0/16, 223.5.5.0/24, 119.29.29.0/24, 36.110.0.0/16, '240e::/20']
 geosite:
@@ -49,3 +54,12 @@ ad_list:
   - [domain, ads.twitter.com]
   - [keyword, appsflyer]
   - [keyword, wixsite.com]
+# Loon 严格版订阅的国内域名集合（blackmatrix7 ChinaMax_Domain.list）的样本。真实文件里只有域名和后缀、没有整段顶级域；
+# qwen.ai 取自真实文件（本地规则把它交给国外默认，要排在这份集合前面）。严格版另有一份自有清单（含整段 cn），那一份
+# 不是样本：模拟器用的就是这次生成的文件。
+cn_list:
+  - [suffix, baidu.com]
+  - [suffix, qq.com]
+  - [suffix, jd.com]
+  - [suffix, qwen.ai]
+  - [suffix, only-in-chinamax-sample.com]

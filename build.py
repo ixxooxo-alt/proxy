@@ -26,12 +26,12 @@ import sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from generator import emit_loon, emit_mihomo, emit_qx, emit_singbox, nodes as nodeconv, regions, verify  # noqa: E402
+from generator import emit_loon, emit_mihomo, emit_qx, emit_singbox, nodes as nodeconv, regions, strict, verify  # noqa: E402
 from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.4.1"
+GENERATOR_VERSION = "1.5.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -40,6 +40,12 @@ PUBLIC_OUTPUTS = {
     "sing-box/sing-box-1.12.json": lambda m, p: emit_singbox.build(m, p, "1.12"),
     "loon/loon.conf": lambda m, p: emit_loon.build(m, p),
     "quantumultx/quantumultx.conf": lambda m, p: emit_qx.build(m, p),
+    # 严格版（2026-10-06）：只有 Loon / Quantumult X 各多一份，连同它们引用的自有远程规则文件。说明见 generator/strict.py
+    "loon/loon-strict.conf": lambda m, p: emit_loon.build(m, p, strict=True),
+    "quantumultx/quantumultx-strict.conf": lambda m, p: emit_qx.build(m, p, strict=True),
+    strict.LOON_CN_REL: strict.loon_cn_list,
+    strict.QX_CN_REL: strict.qx_cn_list,
+    strict.QX_FALLBACK_REL: strict.qx_fallback_list,
 }
 PRIVATE_NOTE = "本目录包含你的订阅链接、节点凭据或个人覆盖（local.yaml），只用于导入自己的设备，不要上传、提交或发给别人。\n"
 
@@ -59,6 +65,10 @@ def render_public(model, plan, root: str = ROOT) -> dict:
             "service_ip": len(plan.service_ip),
             # 部分服务只写进某些客户端（例如国内常用网站不写进 Loon / QX，原因见 docs/06）
             "product_by_client": {f: len(plan.product_for(f)) for f in ("mihomo", "singbox", "loon", "quantumultx")},
+            # 严格版多出的一段：要真实地址的名单里补的固定直连规则；自有国内域名清单各端实际写出的条数
+            "strict_real_ip_direct": len(plan.real_ip_direct),
+            "strict_cn_domains": {f: len(strict.cn_entries(model, plan, f)[0]) + len(strict.cn_entries(model, plan, f)[1])
+                                  for f in ("loon", "quantumultx")},
         },
         "outputs": {path: sha256_text(text) for path, text in sorted(files.items())},
         "targets": model.project["targets"],
@@ -69,12 +79,13 @@ def render_public(model, plan, root: str = ROOT) -> dict:
 
 def _source_files(root: str = ROOT) -> list:
     """统一源 + 生成器 + 本文件，返回按相对路径排序的 [(相对路径, 内容)]。不含 source/local.yaml（个人覆盖）。
-    路径统一用 “/”，读文件时换行统一为 LF，所以同一份源在 Windows、macOS、Linux 上得到相同的摘要。"""
+    路径统一用 “/”，读文件时换行统一为 LF，所以同一份源在 Windows、macOS、Linux 上得到相同的摘要。
+    source/data/ 下的 .txt 是数据文件（严格版的国内域名清单与它的许可全文），同样算在内。"""
     parts = []
     for base in ("source", "generator"):
         for dirpath, _, names in os.walk(os.path.join(root, base)):
             for n in names:
-                if n.endswith((".yaml", ".py")) and not (base == "source" and n == "local.yaml"):
+                if n.endswith((".yaml", ".py", ".txt")) and not (base == "source" and n == "local.yaml"):
                     fp = os.path.join(dirpath, n)
                     rel = os.path.relpath(fp, root).replace(os.sep, "/")
                     with open(fp, encoding="utf-8") as f:       # 文本模式读取会把 CRLF 转成 LF
@@ -211,6 +222,9 @@ def main(argv=None, root: str = ROOT) -> int:
             private["mihomo-core.yaml"] = emit_mihomo.build(pmodel, pplan, "core", subs)
             private["loon.conf"] = emit_loon.build(pmodel, pplan, subs)
             private["quantumultx.conf"] = emit_qx.build(pmodel, pplan, subs)
+            # 严格版也各出一份带订阅的；它们引用的自有远程规则文件是公开产物里那几个（按 strict.publish_base 的地址）
+            private["loon-strict.conf"] = emit_loon.build(pmodel, pplan, subs, strict=True)
+            private["quantumultx-strict.conf"] = emit_qx.build(pmodel, pplan, subs, strict=True)
         if a.singbox_nodes or a.singbox_sub_url:
             if a.singbox_nodes:
                 with open(a.singbox_nodes, encoding="utf-8") as f:
@@ -252,7 +266,8 @@ def main(argv=None, root: str = ROOT) -> int:
         return 3
 
     # ---------- 3. 写盘前的结构检查（审核 F09） ----------
-    problems = verify.check_outputs(files) + verify.check_outputs({f"private/{k}": v for k, v in private.items()})
+    own = verify.own_files(model, files)
+    problems = verify.check_outputs(files, own) + verify.check_outputs({f"private/{k}": v for k, v in private.items()}, own)
     if problems:
         print("生成的配置结构有问题，未改动任何产物：\n  - " + "\n  - ".join(problems), file=sys.stderr)
         return 2

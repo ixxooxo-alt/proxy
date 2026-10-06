@@ -1,13 +1,13 @@
-运行时间（UTC）：2026-10-06 01:27:17
+运行时间（UTC）：2026-10-06 13:01:09
 Python：Python 3.11.17，PyYAML：6.0.1
-统一源摘要：9e21de7d671fb457f7e59c5dcea2bfb46d39ac3891813df90942b1ea35c4944a
+统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
 命令：python3 -m unittest discover -s tests -v
 
-test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 7 个公开产物到 out（订阅为占位符）
+test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 12 个公开产物到 out（订阅为占位符）
 私密产物已写入 out/private（含local.yaml，请勿分享）
 产物与统一源一致（含 manifest.json）。
 ok
-test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_check_detects_manifest_tampering) ... 已生成 7 个公开产物到 out（订阅为占位符）
+test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_check_detects_manifest_tampering) ... 已生成 12 个公开产物到 out（订阅为占位符）
 产物与统一源一致（含 manifest.json）。
 以下产物与统一源不一致，需要重新生成：
   manifest.json
@@ -17,12 +17,12 @@ test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_ch
 ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
-节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 7 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpbrk_p3qu/不存在.yaml'
+节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 12 个公开产物到 out（订阅为占位符）
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpweijwhx1/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
-F09 复现的三种输入，以及拼错的字段、重复的键，都要在写盘前失败。 ... 已生成 7 个公开产物到 out（订阅为占位符）
+F09 复现的三种输入，以及拼错的字段、重复的键，都要在写盘前失败。 ... 已生成 12 个公开产物到 out（订阅为占位符）
 统一源校验失败：
   - 例外 example-unknown.org 的目标 不存在的组 不是已有的业务组
 统一源有错误，未改动任何产物。
@@ -35,7 +35,7 @@ F09 复现的三种输入，以及拼错的字段、重复的键，都要在写�
 统一源校验失败：
   - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
 统一源有错误，未改动任何产物。
-groups.yaml：YAML 重复键 'groups'（第 93 行）
+groups.yaml：YAML 重复键 'groups'（第 95 行）
 统一源有错误，未改动任何产物。
 ok
 test_failure_while_replacing_rolls_back (test_build_pipeline.Transaction.test_failure_while_replacing_rolls_back) ... ok
@@ -52,11 +52,14 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp5ayqf5y9/report.md
-报告已写入 /tmp/tmp5ayqf5y9/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpohdrc8zk/report.md
+报告已写入 /tmp/tmpohdrc8zk/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
-拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时六个产物都逐字节相同。 ... ok
+拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时八份配置（标准版六份、严格版两份）都逐字节相同， ... ok
+test_missing_strict_output_in_old_version_is_reported_as_new (test_compare_versions.StrictSection.test_missing_strict_output_in_old_version_is_reported_as_new)
+上一版没有严格版时（r11 及更早），第五节写明“这一版新增”，不是含糊的“缺文件”。 ... ok
+test_rule_file_stats (test_compare_versions.StrictSection.test_rule_file_stats) ... ok
 test_comment_only_difference_is_stated_not_hidden (test_compare_versions.Units.test_comment_only_difference_is_stated_not_hidden)
 两版只差注释（例如开头的版本号）：各分段逐条相同，但文件不同。报告要把有差别的行列出来， ... ok
 test_identical_differences_are_listed_once (test_compare_versions.Units.test_identical_differences_are_listed_once)
@@ -87,6 +90,8 @@ test_singbox_dial_time_resolution_of_lan_names (test_dns_lan.LanDns.test_singbox
 审核 r9 的 F02：sing-box 拨号时解析名字不经过 dns.rules，用的是出站自己的 domain_resolver，没有就用 ... ok
 test_singbox_uses_local_dns_for_lan_suffixes (test_dns_lan.LanDns.test_singbox_uses_local_dns_for_lan_suffixes) ... ok
 test_what_counts_as_a_lan_name (test_dns_lan.LanDns.test_what_counts_as_a_lan_name) ... ok
+test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending (test_icons.Icons.test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending)
+图还没传到图标仓库、但地址已经定了的组：登记在 pending 里，配置照样写它的地址，产物和图在 available 里时逐字相同。 ... ok
 test_bad_registry_is_rejected (test_icons.Icons.test_bad_registry_is_rejected) ... ok
 test_every_group_carries_its_own_icon (test_icons.Icons.test_every_group_carries_its_own_icon) ... ok
 test_missing_icon_fails_the_public_build_but_not_a_private_one (test_icons.Icons.test_missing_icon_fails_the_public_build_but_not_a_private_one) ... ok
@@ -97,7 +102,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 7 个公开产物到 /tmp/tmp3npr93ty（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 12 个公开产物到 /tmp/tmpcpga0zyt（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -105,8 +110,8 @@ test_git_really_ignores_them (test_local_and_private.GitIgnore.test_git_really_i
 test_private_paths_are_listed (test_local_and_private.GitIgnore.test_private_paths_are_listed) ... ok
 test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_local_rules_route) ... ok
 test_pinned_paypal_and_verified_netflix (test_local_and_private.LocalOverrides.test_pinned_paypal_and_verified_netflix) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 7 个公开产物到 ../../../tmp/tmpqvuz5w60（订阅为占位符）
-私密产物已写入 ../../../tmp/tmpqvuz5w60/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 12 个公开产物到 ../../../tmp/tmpmrl3la1w（订阅为占位符）
+私密产物已写入 ../../../tmp/tmpmrl3la1w/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -120,18 +125,31 @@ test_names_colliding_with_groups_are_renamed_and_still_filtered (test_nodes.Node
 test_obfs_plugin_semantics (test_nodes.NodeConversionNegative.test_obfs_plugin_semantics) ... ok
 test_v2ray_plugin_mux_and_host_semantics (test_nodes.NodeConversionNegative.test_v2ray_plugin_mux_and_host_semantics) ... ok
 test_ws_early_data_and_http_upgrade (test_nodes.NodeConversionNegative.test_ws_early_data_and_http_upgrade) ... ok
+test_mihomo_device_queries_for_proxied_and_unlisted_names (test_real_data.DnsLeakChecks.test_mihomo_device_queries_for_proxied_and_unlisted_names)
+mihomo 上设备发来的查询：A 直接给假地址，HTTPS 回空应答，都不向上游查询；其他类型交给境外 DNS。 ... ok
+test_silent_foreign_dns_changes_nothing (test_real_data.DnsLeakChecks.test_silent_foreign_dns_changes_nothing)
+境外 DNS 的替身只收不答、每个连接保持十几秒：收到查询的替身和正常那一遍完全相同， ... ok
+test_the_three_kinds_of_cases_exist_and_hold (test_real_data.DnsLeakChecks.test_the_three_kinds_of_cases_exist_and_hold) ... ok
+test_default_direct_groups_are_what_they_say (test_real_data.DnsRouteConsistency.test_default_direct_groups_are_what_they_say)
+归“默认直连、可以切换”的组的主机：那个组的首选确实是 DIRECT（现在只有 Apple 几个组）。默认状态下它们是一致的； ... ok
+test_every_mismatch_belongs_to_a_known_kind (test_real_data.DnsRouteConsistency.test_every_mismatch_belongs_to_a_known_kind) ... ok
+test_singbox_and_mihomo_differ_as_documented (test_real_data.DnsRouteConsistency.test_singbox_and_mihomo_differ_as_documented)
+sing-box 的 DNS 规则里有“走代理组的产品域名”一层，所以它的不一致只剩“要真实地址的名单”； ... ok
+test_sweep_covered_the_full_sets (test_real_data.DnsRouteConsistency.test_sweep_covered_the_full_sets) ... ok
 test_dial_resolution_matches_recorded_official_core (test_real_data.MihomoDial.test_dial_resolution_matches_recorded_official_core)
 期望在 cases.yaml 的 mihomo_dial（人工写的）：局域网里的名字交给系统 DNS，公网名字照旧交给国内 DNS。 ... ok
 test_dns_cases_match_recorded_official_core (test_real_data.MihomoDial.test_dns_cases_match_recorded_official_core)
 期望在 cases.yaml 的 mihomo_dns（人工写的）：局域网后缀下的名字交给系统 DNS；普通域名给假地址、不向上游查询。 ... ok
 test_each_setting_only_governs_its_own_path (test_real_data.MihomoDial.test_each_setting_only_governs_its_own_path)
 快照里另有三组自检的记录，各从 DNS 段里去掉一样东西再跑同一批用例： ... ok
+test_real_only_cases_come_from_upstream_data (test_real_data.RealOnlyCases.test_real_only_cases_come_from_upstream_data)
+cases.yaml 的 real_only 要名副其实。现在两条是同一件事：blackmatrix7 的 AdvertisingLite 收了“要真实地址的名单”里的 ... ok
 test_dial_digest_sees_what_the_routing_digest_cannot (test_real_data.RealRoutes.test_dial_digest_sees_what_the_routing_digest_cannot)
 审核 r10 举的例子：把 sing-box 直连出站的解析器改成境外 DNS，规则段与 DNS 段的摘要不变。拨号摘要必须变； ... ok
 test_emulator_agrees_with_recorded_official_cores (test_real_data.RealRoutes.test_emulator_agrees_with_recorded_official_cores)
 模拟器（真实成员关系）与官方内核的记录逐个主机相同。不同 = 规则改了但没重新核对，或者模拟器的语义不对。 ... ok
 test_expectations_hold_with_real_sets (test_real_data.RealRoutes.test_expectations_hold_with_real_sets)
-全部用例与“写了去向的排除项”，在真实集合成员关系下，四个客户端的六份产物都符合人工期望。 ... ok
+全部用例与“写了去向的排除项”，在真实集合成员关系下，六份标准版产物和两份严格版都符合人工期望。 ... ok
 test_followed_upstream_behaviour_is_real_and_uncorrected (test_real_data.RealRoutes.test_followed_upstream_behaviour_is_real_and_uncorrected)
 “跟随上游的已知行为”（cases.yaml 的 upstream_followed）要名副其实： ... ok
 test_probe_list_is_substantial (test_real_data.RealRoutes.test_probe_list_is_substantial) ... ok
@@ -157,6 +175,15 @@ test_data_files_are_identified (test_real_data.SnapshotCoverage.test_data_files_
 test_every_needed_host_and_ip_is_recorded (test_real_data.SnapshotCoverage.test_every_needed_host_and_ip_is_recorded) ... ok
 test_loon_ad_list_has_its_domain_part (test_real_data.SnapshotCoverage.test_loon_ad_list_has_its_domain_part)
 blackmatrix7 把 Loon 版的 AdvertisingLite 拆成两个文件：只订阅 .list 的话只有关键词和 IP 段， ... ok
+test_loon_strict_domestic_list_is_recorded (test_real_data.SnapshotCoverage.test_loon_strict_domestic_list_is_recorded)
+Loon 严格版订阅的上游国内域名集合：只有域名和后缀两类（没有关键词、IP 段、别的规则类型），规模在十万条以上。 ... ok
+test_standard_configs_do_resolve_unlisted_hosts (test_real_data.StrictWithRealSets.test_standard_configs_do_resolve_unlisted_hosts)
+对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。 ... ok
+test_strict_configs_never_resolve_for_rule_matching (test_real_data.StrictWithRealSets.test_strict_configs_never_resolve_for_rule_matching) ... ok
+test_upstream_lists_have_no_ip_rule_that_would_make_loon_strict_resolve (test_real_data.StrictWithRealSets.test_upstream_lists_have_no_ip_rule_that_would_make_loon_strict_resolve)
+Loon 严格版的前提之一：它订阅的上游规则文件里，按 IP 判断的规则都带 no-resolve。 ... ok
+test_where_strict_and_standard_differ (test_real_data.StrictWithRealSets.test_where_strict_and_standard_differ)
+真实数据下，严格版和同一个 App 的标准版去向不同的主机，只有用例里写明的那些（per_client 里给严格版单独写了期望的）。 ... ok
 test_bad_input (test_regions.CheckerTool.test_bad_input) ... ok
 test_build_writes_grouping_report_to_private (test_regions.CheckerTool.test_build_writes_grouping_report_to_private) ... ok
 test_clash_file_only_names_are_read (test_regions.CheckerTool.test_clash_file_only_names_are_read) ... ok
@@ -282,10 +309,55 @@ test_every_community_rule_is_backed (test_source.UpstreamEvidenceRecord.test_eve
 test_snapshots_match_evidence_registry (test_source.UpstreamEvidenceRecord.test_snapshots_match_evidence_registry) ... ok
 test_upstream_ads_under_products_are_handled (test_source.UpstreamEvidenceRecord.test_upstream_ads_under_products_are_handled)
 category-ads-all 落在产品规则内的条目，四端都必须一致处理（自有拦截或误杀例外）。 ... ok
+test_every_ip_rule_carries_no_resolve (test_strict.LoonStrict.test_every_ip_rule_carries_no_resolve) ... ok
+test_real_ip_names_are_fixed_direct_before_product_rules (test_strict.LoonStrict.test_real_ip_names_are_fixed_direct_before_product_rules) ... ok
+test_remote_rules_order (test_strict.LoonStrict.test_remote_rules_order)
+订阅规则按书写顺序匹配：广告集合 → blackmatrix7 的国内域名集合 → 自有清单（含整段 .cn）。 ... ok
+test_data_file_has_no_redundant_or_malformed_entries (test_strict.OwnLists.test_data_file_has_no_redundant_or_malformed_entries) ... ok
+test_data_file_header_matches_its_content (test_strict.OwnLists.test_data_file_header_matches_its_content) ... ok
+test_generated_lists_are_the_data_minus_locally_covered_entries (test_strict.OwnLists.test_generated_lists_are_the_data_minus_locally_covered_entries) ... ok
+test_list_headers_carry_source_and_license (test_strict.OwnLists.test_list_headers_carry_source_and_license) ... ok
+test_fallback_file_is_the_single_documented_rule (test_strict.QuantumultXStrict.test_fallback_file_is_the_single_documented_rule)
+官方 sample.conf 给的写法是 host-keyword, ., proxy；文件里只有这一条，真正的去向由配置里的 force-policy 决定。 ... ok
+test_fallback_is_the_last_remote_resource (test_strict.QuantumultXStrict.test_fallback_is_the_last_remote_resource) ... ok
+test_ip_rules_are_all_kept (test_strict.QuantumultXStrict.test_ip_rules_are_all_kept)
+Quantumult X 没有 no-resolve，也不需要拿掉 IP 规则：域名兜底先于 IP 类规则接住全部域名，IP 规则只剩原本就是 IP 的连接。 ... ok
+test_real_ip_names_are_fixed_direct (test_strict.QuantumultXStrict.test_real_ip_names_are_fixed_direct) ... ok
+test_ads_still_win_over_the_domestic_lists (test_strict.StrictBehaviour.test_ads_still_win_over_the_domestic_lists)
+广告集合排在国内域名清单之前：清单里的域名下的广告主机仍然被拦（样本里的 ad.12306.cn，整段 .cn 在自有清单里）。 ... ok
+test_domestic_lists_cover_the_supplementary_rules_other_clients_get (test_strict.StrictBehaviour.test_domestic_lists_cover_the_supplementary_rules_other_clients_get)
+mihomo / sing-box 另有一批只写给它们的国内补充规则（source/services/misc.yaml 的 cn_common）。 ... ok
+test_local_product_rules_win_over_the_domestic_lists (test_strict.StrictBehaviour.test_local_product_rules_win_over_the_domestic_lists)
+本地规则先于远程规则：上游的国内域名集合收了 qwen.ai（样本里也放了），仍由本地的显式规则交给国外默认。 ... ok
+test_loon_also_uses_the_larger_upstream_list (test_strict.StrictBehaviour.test_loon_also_uses_the_larger_upstream_list)
+Loon 严格版多订阅一份上游的大清单（blackmatrix7 ChinaMax_Domain）；Quantumult X 没有只含域名的上游成品，只有自有清单。 ... ok
+test_no_domain_is_resolved_locally_for_rule_matching (test_strict.StrictBehaviour.test_no_domain_is_resolved_locally_for_rule_matching)
+全部用例里的域名，在两份严格版上都不需要“为了判断 IP 规则而在本机解析”；标准版上有一批需要（对照）。 ... ok
+test_quantumultx_known_gaps_are_as_documented (test_strict.StrictBehaviour.test_quantumultx_known_gaps_are_as_documented)
+docs/06 写的两处限制，在模拟器里确实如此： ... ok
+test_real_ip_names_route_direct (test_strict.StrictBehaviour.test_real_ip_names_route_direct) ... ok
+test_strict_follows_standard_wherever_no_override_is_written (test_strict.StrictBehaviour.test_strict_follows_standard_wherever_no_override_is_written)
+用例里没有专门给严格版写期望的，严格版的结果和同一个 App 的标准版相同（样本数据）。 ... ok
+test_unlisted_domain_goes_to_foreign_default_even_if_it_resolves_to_china (test_strict.StrictBehaviour.test_unlisted_domain_goes_to_foreign_default_even_if_it_resolves_to_china) ... ok
+test_family_and_expectation_lookup (test_strict.StrictFamilies.test_family_and_expectation_lookup) ... ok
+test_manifest_records_the_strict_outputs (test_strict.StrictOutputs.test_manifest_records_the_strict_outputs) ... ok
+test_standard_configs_do_not_use_any_strict_part (test_strict.StrictOutputs.test_standard_configs_do_not_use_any_strict_part)
+标准版不引用自有远程规则文件、不订阅国内域名集合；Loon 标准版的 GEOIP,CN 仍然会解析（没有 no-resolve）。 ... ok
+test_strict_differs_from_standard_only_where_intended (test_strict.StrictOutputs.test_strict_differs_from_standard_only_where_intended)
+严格版和同一个 App 的标准版相比：策略组、节点订阅、DNS、其余设置逐行相同；规则部分只多不少。 ... ok
+test_twelve_public_outputs (test_strict.StrictOutputs.test_twelve_public_outputs) ... ok
+test_build_refuses_to_write_a_broken_strict_config (test_strict.StrictVerifier.test_build_refuses_to_write_a_broken_strict_config)
+生成流程里，严格版的结构检查不合格时整个生成失败（不会留下一份“看起来是严格版、其实会解析”的文件）。 ... ok
+test_generated_outputs_pass (test_strict.StrictVerifier.test_generated_outputs_pass) ... ok
+test_loon_breakages_are_caught (test_strict.StrictVerifier.test_loon_breakages_are_caught) ... ok
+test_own_list_content_breakages_are_caught (test_strict.StrictVerifier.test_own_list_content_breakages_are_caught) ... ok
+test_quantumultx_breakages_are_caught (test_strict.StrictVerifier.test_quantumultx_breakages_are_caught) ... ok
 test_business_groups_present (test_structure.Structure.test_business_groups_present) ... ok
 test_defaults (test_structure.Structure.test_defaults) ... ok
 test_deterministic (test_structure.Structure.test_deterministic) ... ok
 test_dist_matches_source (test_structure.Structure.test_dist_matches_source) ... ok
+test_dns_and_routing_read_the_same_domestic_set (test_structure.Structure.test_dns_and_routing_read_the_same_domestic_set)
+“哪些域名算国内”在 DNS 和路由两边用的是同一份数据，运行时不会出现一边已经更新、另一边还是旧的 ... ok
 test_final_is_foreign_default (test_structure.Structure.test_final_is_foreign_default) ... ok
 test_line_formats (test_structure.Structure.test_line_formats) ... ok
 test_manual_first_semantics (test_structure.Structure.test_manual_first_semantics)
@@ -304,7 +376,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 197 tests in 102.240s
+Ran 244 tests in 96.692s
 
 OK
 退出码：0

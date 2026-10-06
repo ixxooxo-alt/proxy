@@ -21,6 +21,10 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SNAPSHOT = os.path.join(ROOT, "tests", "data", "real_sets.json")
 FAMILIES = ("mihomo", "singbox", "loon", "quantumultx")
+# Loon / Quantumult X 另有严格版（2026-10-06）。它和标准版订阅的上游数据算在同一类里（成员快照按类记录），
+# 但期望可以不同：用例的 per_client 里可以单独写 loon-strict / quantumultx-strict，没写时跟同一类的标准版。
+STRICT_KEYS = {"loon-strict": "loon", "quantumultx-strict": "quantumultx"}
+EXPECT_KEYS = FAMILIES + tuple(STRICT_KEYS)
 # 各端配置里引用的集合（改了配置引用的集合，这里和快照都要跟着改；测试会检查两边一致）
 MIHOMO_SETS = ("category-ads-all", "cn", "geolocation-!cn")
 SINGBOX_SETS = ("geosite-category-ads-all", "geosite-cn", "geosite-geolocation-!cn")
@@ -219,7 +223,7 @@ def _as_list(v) -> list:
     return [] if v is None else (v if isinstance(v, list) else [v])
 
 
-# ---- blackmatrix7 的规则列表（Loon / Quantumult X 的远程广告集合）----
+# ---- blackmatrix7 的规则列表（Loon / Quantumult X 的远程广告集合；Loon 严格版订阅的国内域名集合）----
 
 class RuleList:
     """一份远程规则文件：域名、后缀、关键词、IP 段。"""
@@ -228,6 +232,9 @@ class RuleList:
         self.domains = DomainSet()
         self.nets: list = []
         self.ignored: Dict[str, int] = {}
+        # 按 IP 判断、又不带 no-resolve 的行（原文）。Loon 遇到域名连接时会为这样的规则先在本机解析——严格版的前提是
+        # 它订阅的上游文件里没有这样的行（只对 Loon 的写法有意义：Quantumult X 没有 no-resolve 这个参数）
+        self.ip_resolving: List[str] = []
 
     def host_hits(self, host: str) -> List[str]:
         w = self.domains.why(host)
@@ -236,6 +243,10 @@ class RuleList:
     def ip_hits(self, ip: str) -> List[str]:
         a = ipaddress.ip_address(ip)
         return ["ip:" + str(n) for n in self.nets if a.version == n.version and a in n][:1]
+
+
+# 按目标 IP 判断的规则类型（Loon / Clash 的写法）。GEOIP、IP-ASN 这里不读成员，但带不带 no-resolve 照样要数
+IP_RULE_TYPES = {"IP-CIDR", "IP-CIDR6", "IP6-CIDR", "GEOIP", "IP-ASN"}
 
 
 def read_rule_list(path: str) -> RuleList:
@@ -257,6 +268,8 @@ def read_rule_list(path: str) -> RuleList:
                 continue
             parts = [x.strip() for x in line.split(",")]
             kind = kinds.get(parts[0].upper())
+            if parts[0].upper() in IP_RULE_TYPES and not any(x.lower() == "no-resolve" for x in parts[2:]):
+                rl.ip_resolving.append(line)
             if kind is None:
                 rl.ignored[parts[0].upper()] = rl.ignored.get(parts[0].upper(), 0) + 1
             elif kind == "ip":
@@ -287,27 +300,50 @@ def _load(rel: str):
         return yaml.safe_load(f)
 
 
+def expect_of(case: dict, key: str) -> str:
+    """一条用例在某一类客户端（或某一份严格版）上的期望：per_client[键] → per_client[同一类的标准版] → expect。"""
+    pc = case.get("per_client") or {}
+    if key in pc:
+        return pc[key]
+    return pc.get(STRICT_KEYS.get(key, key), case["expect"])
+
+
+def upstream_remote_lists(model) -> Dict[str, List[str]]:
+    """Loon / Quantumult X 的配置（标准版和严格版合起来）订阅的上游规则文件地址。本项目自己生成的远程规则文件不在内：
+    它们的内容就是这次的产物，模拟器直接读（tests/emulate.py 的 register_own_lists）。"""
+    out = {}
+    for family in ("loon", "quantumultx"):
+        urls = [x["url"] for x in model.adblock["remote_lists"][family]]
+        urls += [x["url"] for x in model.strict["domestic_lists"][family] if x.get("url")]
+        out[family] = urls
+    return out
+
+
 def collect_probes(model) -> List[dict]:
-    """[{host | ip, expect: {族: 期望的组}, src}]。
+    """[{host | ip, expect: {键: 期望的组}, src}]。expect 的键是四类客户端加两份严格版（EXPECT_KEYS）。
     来源：tests/cases.yaml 的全部路由用例（标了 synthetic 的除外：它们只在样本数据下有意义）、
-    同一个文件里“跟随上游数据的已知行为”（upstream_followed，只在真实数据下有意义），
+    同一个文件里“跟随上游数据的已知行为”（upstream_followed）和“只在真实数据下才看得到的行为”（real_only），
     以及统一源里写了去向（to）的排除项。期望都是人工写的。"""
     out = []
     cases = _load("tests/cases.yaml")
     for c in cases["cases"]:
         if c.get("synthetic"):
             continue
-        exp = {f: c.get("per_client", {}).get(f, c["expect"]) for f in FAMILIES}
+        exp = {k: expect_of(c, k) for k in EXPECT_KEYS}
         out.append({"host": c.get("host"), "ip": c.get("ip"), "expect": exp, "src": "cases.yaml", "why": c.get("why", "")})
     for c in cases.get("upstream_followed") or []:
-        exp = {f: c.get("per_client", {}).get(f, c["expect"]) for f in FAMILIES}
+        exp = {k: expect_of(c, k) for k in EXPECT_KEYS}
         out.append({"host": c["host"], "ip": None, "expect": exp, "src": "cases.yaml 的 upstream_followed（跟随上游的已知行为）",
                     "why": c.get("why", ""), "followed": True, "base": c["expect"]})
+    for c in cases.get("real_only") or []:
+        exp = {k: expect_of(c, k) for k in EXPECT_KEYS}
+        out.append({"host": c["host"], "ip": None, "expect": exp, "src": "cases.yaml 的 real_only（只在真实数据下看得到的行为）",
+                    "why": c.get("why", ""), "real_only": True})
     for s in model.services:
         for x in s.shared_excluded:
             if x.get("to"):
                 for h in x["probe"]:
-                    out.append({"host": h, "ip": None, "expect": {f: x["to"] for f in FAMILIES},
+                    out.append({"host": h, "ip": None, "expect": {k: x["to"] for k in EXPECT_KEYS},
                                 "src": f"{s.file} {s.id} 的排除项", "why": x.get("why", "")})
     return out
 
@@ -318,14 +354,34 @@ def dns_cases(family: str = "singbox") -> List[dict]:
 
 
 def dial_cases(family: str = "singbox") -> List[dict]:
-    """拨号时的解析用例（节点服务器的名字、域名形式的直连目标各交给哪个 DNS）：sing-box 的在 singbox_dial，
-    mihomo 的在 mihomo_dial。"""
+    """连接时名字交给哪个 DNS 的用例：sing-box 的在 singbox_dial，mihomo 的在 mihomo_dial。
+    kind: node（节点服务器的名字）、direct（域名形式的直连目标）是拨号时的解析；
+    kind: proxied（有规则、走代理组的域名）、unlisted（没有被任何域名规则接住的域名）是 2026-10-06 加的，
+    看的是规则判断阶段这个名字有没有被拿去解析、问的是谁。"""
     return _load("tests/cases.yaml")[f"{family}_dial"]
+
+
+DIAL_KINDS = ("node", "direct", "proxied", "unlisted")
+# “境外 DNS 不应答”那一遍重跑的用例：这两类加上公网直连的对照
+SILENT_KINDS = ("proxied", "unlisted")
+
+
+def dial_name(case: dict) -> str:
+    """这条用例看的是哪个名字。"""
+    return case["server"] if case["kind"] == "node" else case["host"]
 
 
 def dial_key(case: dict) -> str:
     """快照里记录一条拨号用例的键。"""
-    return f"node {case['server']}" if case["kind"] == "node" else f"direct {case['host']}"
+    if case["kind"] not in DIAL_KINDS:
+        raise ValueError(f"不认识的拨号用例类型 {case['kind']}")
+    return f"{case['kind']} {dial_name(case)}"
+
+
+def silent_cases(cases: List[dict]) -> List[dict]:
+    """“境外 DNS 只收不答”那一遍用到的用例：走代理的、没被接住的，加上“直连公网域名”作对照（它应该照旧只问国内 DNS）。"""
+    control = [c for c in cases if c["kind"] == "direct" and c["expect"] in ("domestic", "dns-cn")]
+    return [c for c in cases if c["kind"] in SILENT_KINDS] + control
 
 
 def all_hosts(model) -> List[str]:

@@ -4,11 +4,21 @@
 节点筛选：server-tag-regex。sample.conf 的注释写它“only work for static, available and round-robin type of polices”，
 同一文件的示例又把它写在 dest-hash 和 url-latency-benchmark 上（2026-10-02 读取）；所以“X·自动”“X·负载均衡”
 是否按正则取节点，要在设备上确认（docs/06）。地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py。
-分流优先级：本地 filter_local > 远程 filter_remote（不使用 inserted-resource）；域名类先于 IP 类。"""
+分流优先级：本地 filter_local > 远程 filter_remote（不使用 inserted-resource）；域名类先于 IP 类。
+
+严格版（build 的 strict=True，另存为 quantumultx-strict.conf；设定在 source/strict.yaml，说明见 generator/strict.py）与标准版的差别：
+  1. [filter_remote] 在广告集合之后多两项：国内域名清单（交给“国内直连”）、域名兜底（一条 HOST-KEYWORD,. ，交给“国外默认”，排在最后）。
+     兜底的写法出自官方 sample.conf：“You can add below host-keyword rule to skip the DNS query for all the non-matched hosts.
+     Pure IP requests won't be matched by the host related rules.” 官方把它写在 filter_local 里；这里放在远程规则的最后，
+     因为官方仓库的问题单 #251（用户报告）说它放在本地时全部远程规则不再触发——广告集合和国内清单都是远程的。
+     代价：这个远程文件没有加载成功时，兜底不存在，行为回到标准版（验收步骤见 docs/09）。
+  2. 本地规则与标准版相同（按 IP 判断的规则全部保留，原本就是 IP 的连接照旧按它们走），只多一段：
+     要真实地址的名单（dns_exclusion_list）里标准版没有固定直连规则的名字，补上固定直连。"""
 from __future__ import annotations
 
 from typing import List
 
+from . import strict as strict_mod
 from .groups import NodeFilter, build_groups
 from .model import Model, Plan
 from .util import Rule, check_regex_line_safe
@@ -39,7 +49,7 @@ def _regex(nf: NodeFilter) -> str:
     return rx
 
 
-def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
+def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False) -> str:
     p = m.project
     hc = m.hc
     dns = m.dns
@@ -48,6 +58,12 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     L.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['quantumultx']['core']}")
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
+    if strict:
+        L.append("# 这是【严格版】：没有命中任何域名规则的域名不在本机解析，直接交给“国外默认”；国内网站靠 [filter_remote] 里的国内域名清单认出来。")
+        L.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 quantumultx.conf。")
+        L.append("# 这一份依赖 [filter_remote] 最后那条“域名兜底”加载成功，Quantumult X 的规则先后也没有完整的官方说明：导入后请按 docs/09 的严格版一节验收。")
+        L.append(f"# 国内域名清单和域名兜底都在 {m.strict['publish_base']} 下：文件还没有发布、改了名、或者仓库改成私有时加载会失败——"
+                 "国内清单失败，国内网站改走代理；域名兜底失败，回到标准版的行为（没命中的域名又在本机解析），App 不会有任何提示。")
     if not sub_urls:
         L.append("# ⚠ 使用前必须把 [server_remote] 的订阅链接换成你自己的（当前是占位符，不可直接使用）。")
     L.append("# 证书：本配置不含任何 MITM 证书或密码。")
@@ -105,6 +121,15 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
           "# 3c 广告集合。远程分流优先级低于本地分流，位于产品根域下的广告主机需要本地前置拦截（见 filter_local 3b）"]
     for x in m.adblock["remote_lists"]["quantumultx"]:
         L.append(f"{x['url']}, tag={x['tag']}, force-policy=广告拦截, update-interval=86400, opt-parser=false, enabled=true")
+    if strict:
+        L.append("# 6 国内域名清单（严格版）：排在广告集合之后；本地的产品规则仍然优先于它")
+        for x in m.strict["domestic_lists"]["quantumultx"]:
+            url = x["url"] if "url" in x else strict_mod.own_url(m, x["own"])
+            L.append(f"{url}, tag={x['tag']}, force-policy=国内直连, update-interval=86400, opt-parser=false, enabled=true")
+        fb = m.strict["qx_fallback"]
+        L.append("# 9 域名兜底（严格版）：必须是最后一条。前面都没接住的域名交给“国外默认”，不再为了判断 IP 规则而在本机解析")
+        L.append(f"{strict_mod.own_url(m, fb['own'])}, tag={fb['tag']}, force-policy=国外默认, update-interval=86400, "
+                 "opt-parser=false, enabled=true")
 
     L += ["", "[rewrite_remote]", "", "[server_local]", "", "[filter_local]"]
 
@@ -118,16 +143,26 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
 
     L.append("# ==== 2 局域网、内网与系统联网检测（固定直连） ====")
     emit(plan.lan)
+    if strict:
+        L.append("# ==== 2b 要真实地址的名单（[general] 的 dns_exclusion_list）：这些名字先在本机解析、再选出口，严格版固定直连 ====")
+        emit(plan.real_ip_direct, by_service=False)
     L.append("# ==== 3a 广告误杀例外：按业务目标放行 ====")
     emit(plan.exceptions, by_service=False)
     L.append("# ==== 3b 自有广告 / 跟踪拦截 ====")
     emit(plan.ads_local, by_service=False)
     L.append("# ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前） ====")
     emit(plan.product_for("quantumultx"))
-    L.append("# ==== 6 国内外域名分类：未引入第三方大集合，由自有规则与 GEOIP 兜底覆盖 ====")
-    L.append("# ==== 7 服务专属 IP ====")
+    if strict:
+        L.append("# ==== 6 国内外域名分类：国内域名清单与域名兜底都在 [filter_remote] 里；域名类规则全部先于下面的 IP 类规则判断 ====")
+        L.append("# ==== 7 服务专属 IP：只有原本就是 IP 的连接会走到这里（域名已经被上面的规则或域名兜底接住） ====")
+    else:
+        L.append("# ==== 6 国内外域名分类：未引入第三方大集合，由自有规则与 GEOIP 兜底覆盖 ====")
+        L.append("# ==== 7 服务专属 IP ====")
     emit(plan.service_ip_for("quantumultx"))
-    L.append("# ==== 8 国内 IP 兜底 ====")
+    if strict:
+        L.append("# ==== 8 国内 IP：同上，只对原本就是 IP 的连接生效 ====")
+    else:
+        L.append("# ==== 8 国内 IP 兜底 ====")
     L.append("geoip, cn, 国内直连")
     L.append("# ==== 9 其余目标 ====")
     L.append("final, 国外默认")

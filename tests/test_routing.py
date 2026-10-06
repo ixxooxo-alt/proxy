@@ -1,16 +1,16 @@
-"""路由行为：用独立写出的期望（cases.yaml）检查四个客户端的真实产物。"""
+"""路由行为：用独立写出的期望（cases.yaml）检查各个客户端的真实产物（标准版六份，加 Loon / Quantumult X 的严格版两份）。"""
 import csv
 import os
 import unittest
 
-from helpers import CLIENT_FILES, ROOT, emulate, family, load_yaml, model_and_plan, parsed, route
+from helpers import CLIENT_FILES, ROOT, emulate, expected, family, load_yaml, model_and_plan, parsed, route
 
 CASES = load_yaml("cases.yaml")
 FIX = load_yaml("fixtures.yaml")
 
 
 def expected_for(case, client):
-    exp = case.get("per_client", {}).get(family(client), case["expect"])
+    exp = expected(case, client)
     if family(client) == "singbox" and exp == "广告拦截":
         return "REJECT"        # sing-box 以规则动作 reject 实现广告拦截
     return exp
@@ -137,18 +137,26 @@ class RoutingCases(unittest.TestCase):
         if client.startswith("singbox"):
             return [r.get("outbound") for r in conf["route"]["rules"]
                     if any(k in r for k in ("domain", "domain_suffix", "domain_keyword"))]
-        types = ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") if client == "loon" else ("host", "host-suffix", "host-keyword")
+        types = (("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") if family(client) == "loon"
+                 else ("host", "host-suffix", "host-keyword"))
         return [p[2] for p in conf["local"] if p[0] in types]
 
     def test_service_ip_rules_do_not_trigger_resolution(self):
         """服务专属 IP 规则只匹配直接 IP 连接：域名连接解析到 Telegram 段也不应被它截走（no-resolve 语义）。"""
         fx = emulate.Fixtures({"dns": {"somewhere.example": "149.154.167.51"}, "geoip": {"cn": []},
                                "geosite": {}, "ad_list": []})
-        for client in ("mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "loon"):
+        for client in ("mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "loon", "loon-strict"):
             got = route(client, emulate.Conn(host="somewhere.example"), fx)
             self.assertEqual(got, "国外默认", client)
-        # Quantumult X 的 ip-cidr 没有 no-resolve 参数：域名连接走到 IP 规则时会解析并命中（已知差异，见 docs）
+        # Quantumult X 的 ip-cidr 没有 no-resolve 参数：标准版里域名连接走到 IP 规则时会解析并命中（已知差异，见 docs）
         self.assertEqual(route("quantumultx", emulate.Conn(host="somewhere.example"), fx), "Telegram")
+        # 严格版：域名兜底先于 IP 类规则接住它，不解析，也就不会被服务专属 IP 段截走
+        trace = {}
+        self.assertEqual(route("quantumultx-strict", emulate.Conn(host="somewhere.example"), fx, trace=trace), "国外默认")
+        self.assertFalse(trace.get("resolved"))
+        # 原本就是 IP 的连接，各端（含两份严格版）仍按服务专属 IP 规则走
+        for client in CLIENT_FILES:
+            self.assertEqual(route(client, emulate.Conn(ip="149.154.167.51"), fx), "Telegram", client)
 
 
 if __name__ == "__main__":

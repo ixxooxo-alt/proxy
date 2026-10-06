@@ -1,11 +1,2250 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（只有和局域网名字有关的几条；fake-ip 表示直接给了假地址）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的全集一致性（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
  },
- "generated": "2026-10-05",
+ "consistency": {
+  "mihomo": {
+   "consistent": 222359,
+   "default_direct": [
+    {
+     "host": "aaplimg.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "apple.com.cn",
+     "route": "Apple",
+     "via": "规则的值"
+    },
+    {
+     "host": "icloud.com.cn",
+     "route": "Apple",
+     "via": "规则的值"
+    },
+    {
+     "host": "me.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "mzstatic.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.aaplimg.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.apple.com.cn",
+     "route": "Apple",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.icloud.com.cn",
+     "route": "Apple",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.me.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.mzstatic.com",
+     "route": "Apple",
+     "via": "geosite:cn"
+    }
+   ],
+   "mismatch": [
+    {
+     "by_ip": true,
+     "host": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "10.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "100.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "100.51.198.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "101.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "102.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "103.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "104.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "105.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "106.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "107.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "108.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "109.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "110.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "111.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "112.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "113.0.203.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "113.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "114.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "115.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "116.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "117.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "118.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "119.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "120.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "121.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "122.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "123.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "124.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "125.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "126.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "127.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "127.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "16.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "168.192.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "17.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "18.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "19.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "1drv.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "2.0.192.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "20.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "21.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "22.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "23.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "24.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "25.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "254.169.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "255.255.255.255.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "26.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "27.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "28.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "29.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "30.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "31.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "64.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "65.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "66.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "67.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "68.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "69.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "70.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "71.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "72.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "73.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "74.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "75.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "76.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "77.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "78.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "79.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "8.b.d.0.1.0.0.2.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "8.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "80.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "81.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "82.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "83.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "84.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "85.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "86.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "87.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "88.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "89.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "9.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "90.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "91.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "92.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "93.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "94.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "95.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "96.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "97.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "98.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "99.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "a.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "aka.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "api.bilibili.com",
+     "route": "Bilibili 港澳台",
+     "via": "规则的值"
+    },
+    {
+     "host": "app.bilibili.com",
+     "route": "Bilibili 港澳台",
+     "via": "规则的值"
+    },
+    {
+     "host": "applesiri.cn",
+     "route": "Apple AI",
+     "via": "规则的值"
+    },
+    {
+     "host": "apps.mzstatic.com",
+     "route": "Apple AI",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "asusrouter.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "azuremigrate.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "azuremigratetest.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "azurestackhub.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "azurestackhubuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "b.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "bangumi.bilibili.com",
+     "route": "Bilibili 港澳台",
+     "via": "规则的值"
+    },
+    {
+     "host": "bilibili.tv",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "biliintl.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "bj1.api.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "cbdstest.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "cn.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "cn.bing.net",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "cn.mm.bing.net",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "collaborate.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "collaborateppe.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "d.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "dcg.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "ditu.live.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "download.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "download.visualstudio.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "dreamspark.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "dreamsparkuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "example",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "gfx.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "google.cn",
+     "route": "Google",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "hiwifi.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "images-amazon.com",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "instant.arubanetworks.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "internal",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "invalid",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "iq.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "itacademy.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "itacademyuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "lex.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "lexuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "local.adguard.org",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "mbs.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "mpnbenefits.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "mpnbenefitsrtl.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "mpnbenefitsrtluat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "msdn.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "msdprod-ad.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "msproduct.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "my.router",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "myvs.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "nico.ms",
+     "route": "日本影音",
+     "via": "规则的值"
+    },
+    {
+     "host": "oemsoc.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "oemsocuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "officecdn.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "officemkt.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "officemktuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "osrelease.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "p.bstarstatic.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "phicomm.me",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "plex.direct",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.10.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.100.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.100.51.198.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.101.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.102.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.103.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.104.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.105.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.106.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.107.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.108.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.109.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.110.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.111.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.112.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.113.0.203.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.113.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.114.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.115.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.116.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.117.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.118.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.119.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.120.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.121.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.122.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.123.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.124.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.125.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.126.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.127.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.127.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.16.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.168.192.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.17.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.18.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.19.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.1drv.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.2.0.192.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.20.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.21.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.22.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.23.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.24.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.25.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.254.169.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.255.255.255.255.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.26.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.27.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.28.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.29.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.30.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.31.172.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.64.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.65.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.66.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.67.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.68.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.69.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.70.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.71.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.72.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.73.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.74.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.75.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.76.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.77.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.78.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.79.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.8.b.d.0.1.0.0.2.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.8.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.80.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.81.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.82.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.83.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.84.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.85.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.86.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.87.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.88.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.89.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.9.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.90.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.91.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.92.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.93.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.94.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.95.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.96.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.97.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.98.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.99.100.in-addr.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.a.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.aka.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.applesiri.cn",
+     "route": "Apple AI",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.apps.mzstatic.com",
+     "route": "Apple AI",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.azuremigrate.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.azuremigratetest.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.azurestackhub.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.azurestackhubuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.b.e.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.bilibili.tv",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.biliintl.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.bj1.api.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.cbdstest.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.cn.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.cn.bing.net",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.cn.mm.bing.net",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.collaborate.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.collaborateppe.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.d.f.ip6.arpa",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.dcg.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.ditu.live.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.download.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.download.visualstudio.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.dreamspark.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.dreamsparkuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.example",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.gfx.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.google.cn",
+     "route": "Google",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.hiwifi.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.images-amazon.com",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.internal",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.invalid",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.iq.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.itacademy.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.itacademyuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.lex.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.lexuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.mbs.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.mpnbenefits.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.mpnbenefitsrtl.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.mpnbenefitsrtluat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.msdn.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.msdprod-ad.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.msproduct.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.my.router",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.myvs.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.nico.ms",
+     "route": "日本影音",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.oemsoc.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.oemsocuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.officecdn.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.officemkt.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.officemktuat.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.osrelease.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.p.bstarstatic.com",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.phicomm.me",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.plex.direct",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.qwen.ai",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.qwenlm.ai",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.r.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.router.ctc",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.rsm.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.sdx.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.sfx.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "probe-x1.software.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.storecorefulfillment.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.storeedge.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.surface.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.surface.downloads.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.svc.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.test",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.th.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.tiktokrow-cdn.com",
+     "route": "TikTok",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.tplinkwifi.net",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.ts.net",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "probe-x1.update.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.vlportal.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.volic.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.vscode.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.vz.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.wetv.vip",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.windbg.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "probe-x1.windowsupdate.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.zte.home",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "qwen.ai",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "qwenlm.ai",
+     "route": "国外默认",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "r.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "router.asus.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "router.ctc",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "routerlogin.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "rsm.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "sdx.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "setmeup.arubanetworks.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "sfx.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "host": "software.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "storecorefulfillment.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "storeedge.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "surface.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "surface.downloads.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "svc.ms",
+     "route": "Microsoft",
+     "via": "规则的值"
+    },
+    {
+     "by_ip": true,
+     "host": "test",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "th.bing.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "tiktokrow-cdn.com",
+     "route": "TikTok",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "tplinkwifi.net",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "ts.net",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "host": "update.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "upos-hz-mirrorakam.akamaized.net",
+     "route": "Bilibili 港澳台",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "vlportal.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "volic.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "vscode.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "vz.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "wetv.vip",
+     "route": "其他流媒体",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "windbg.download.prss.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "host": "windowsupdate.microsoft.com",
+     "route": "Microsoft",
+     "via": "geosite:cn"
+    },
+    {
+     "by_ip": true,
+     "host": "www.asusrouter.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "www.routerlogin.com",
+     "route": "国外默认",
+     "via": "geosite:private"
+    },
+    {
+     "by_ip": true,
+     "host": "zte.home",
+     "route": "国外默认",
+     "via": "geosite:private"
+    }
+   ],
+   "official_checked": 574,
+   "swept": {
+    "from_rules": 1577,
+    "from_sets": 222689,
+    "hosts": 224266,
+    "sets": {
+     "cn": 111224,
+     "private": 131
+    },
+    "skipped": {
+     "keyword": 0,
+     "regex": 1
+    }
+   },
+   "to_domestic": 222733
+  },
+  "singbox": {
+   "consistent": 17673,
+   "default_direct": [
+    {
+     "host": "time.apple.com",
+     "route": "Apple",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    }
+   ],
+   "mismatch": [
+    {
+     "by_ip": true,
+     "host": "icitymobile.mobi",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "pool.ntp.org",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.icitymobile.mobi",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "probe-x1.pool.ntp.org",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "time.windows.com",
+     "route": "Microsoft",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    }
+   ],
+   "official_checked": 206,
+   "swept": {
+    "from_rules": 1535,
+    "from_sets": 17996,
+    "hosts": 19531,
+    "sets": {
+     "geosite-cn": 9303
+    },
+    "skipped": {
+     "keyword": 0,
+     "regex": 8
+    }
+   },
+   "to_domestic": 17679,
+   "without_product_dns_rules": 152
+  },
+  "singbox112": {
+   "consistent": 17673,
+   "default_direct": [
+    {
+     "host": "time.apple.com",
+     "route": "Apple",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    }
+   ],
+   "mismatch": [
+    {
+     "by_ip": true,
+     "host": "icitymobile.mobi",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "pool.ntp.org",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "by_ip": true,
+     "host": "probe-x1.icitymobile.mobi",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "probe-x1.pool.ntp.org",
+     "route": "国外默认",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    },
+    {
+     "host": "time.windows.com",
+     "route": "Microsoft",
+     "via": "DNS 规则里写明交给国内 DNS 的名单"
+    }
+   ],
+   "official_checked": 206,
+   "swept": {
+    "from_rules": 1535,
+    "from_sets": 17996,
+    "hosts": 19531,
+    "sets": {
+     "geosite-cn": 9303
+    },
+    "skipped": {
+     "keyword": 0,
+     "regex": 8
+    }
+   },
+   "to_domestic": 17679
+  }
+ },
+ "generated": "2026-10-06",
  "hosts": {
+  "0.pool.ntp.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:pool.ntp.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:pool.ntp.org"
+   }
+  },
+  "1-courier.push.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
   "a.b.cursorvm.com": {
    "loon": {},
    "mihomo": {},
@@ -242,7 +2481,9 @@
    }
   },
   "api.bilibili.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:bilibili.com"
+   },
    "mihomo": {
     "cn": "suffix:bilibili.com"
    },
@@ -349,7 +2590,8 @@
   },
   "app-measurement.com": {
    "loon": {
-    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:app-measurement.com"
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:app-measurement.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "full:app-measurement.com"
    },
    "mihomo": {
     "category-ads-all": "suffix:app-measurement.com",
@@ -470,7 +2712,9 @@
    }
   },
   "chat.deepseek.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:deepseek.com"
+   },
    "mihomo": {
     "cn": "suffix:deepseek.com"
    },
@@ -480,7 +2724,9 @@
    }
   },
   "chat.qwen.ai": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:qwen.ai"
+   },
    "mihomo": {
     "cn": "suffix:qwen.ai"
    },
@@ -490,7 +2736,9 @@
    }
   },
   "chat.qwenlm.ai": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:qwenlm.ai"
+   },
    "mihomo": {
     "cn": "suffix:qwenlm.ai"
    },
@@ -702,7 +2950,9 @@
    }
   },
   "dl.delivery.mp.microsoft.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:dl.delivery.mp.microsoft.com"
+   },
    "mihomo": {
     "cn": "suffix:dl.delivery.mp.microsoft.com",
     "geolocation-!cn": "suffix:microsoft.com"
@@ -1036,7 +3286,9 @@
    }
   },
   "i0.hdslb.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:hdslb.com"
+   },
    "mihomo": {
     "cn": "suffix:hdslb.com"
    },
@@ -1055,6 +3307,18 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:iadsdk.apple.com",
     "geosite-geolocation-!cn": "suffix:iadsdk.apple.com"
+   }
+  },
+  "id6.me": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "full:id6.me"
+   },
+   "mihomo": {},
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "full:id6.me"
+   },
+   "singbox": {
+    "geosite-cn": "full:id6.me"
    }
   },
   "images-eu.ssl-images-amazon.com": {
@@ -1092,6 +3356,27 @@
    "mihomo": {},
    "quantumultx": {},
    "singbox": {}
+  },
+  "init-p01st.push.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:init-p01st.push.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "init.push.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
   },
   "itunes.apple.com": {
    "loon": {},
@@ -1196,6 +3481,18 @@
    "quantumultx": {},
    "singbox": {}
   },
+  "log.cmpassport.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "full:log.cmpassport.com"
+   },
+   "mihomo": {},
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "full:log.cmpassport.com"
+   },
+   "singbox": {
+    "geosite-cn": "suffix:cmpassport.com"
+   }
+  },
   "log.isnssdk.com": {
    "loon": {},
    "mihomo": {},
@@ -1297,6 +3594,22 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:netflixdnstest7.com"
+   }
+  },
+  "never-listed-site.org": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {}
+  },
+  "news.sina.com.cn": {
+   "loon": {},
+   "mihomo": {
+    "cn": "suffix:cn"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:sina.com.cn"
    }
   },
   "notopenai.com": {
@@ -1495,6 +3808,16 @@
     "geosite-geolocation-!cn": "suffix:golang.org"
    }
   },
+  "push.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
   "pypi.org": {
    "loon": {},
    "mihomo": {
@@ -1506,7 +3829,9 @@
    }
   },
   "qwen.ai": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:qwen.ai"
+   },
    "mihomo": {
     "cn": "suffix:qwen.ai"
    },
@@ -1645,6 +3970,18 @@
     "geosite-geolocation-!cn": "suffix:siege-amazon.com"
    }
   },
+  "static.zhihu.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:zhihu.com"
+   },
+   "mihomo": {
+    "cn": "suffix:zhihu.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:zhihu.com"
+   }
+  },
   "stats.g.doubleclick.net": {
    "loon": {
     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:doubleclick.net"
@@ -1731,8 +4068,30 @@
     "geosite-geolocation-!cn": "suffix:apple-dns.net"
    }
   },
-  "tongyi.aliyun.com": {
+  "time.apple.com": {
    "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:time.apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "time.windows.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "full:time.windows.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:windows.com"
+   }
+  },
+  "tongyi.aliyun.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:aliyun.com"
+   },
    "mihomo": {
     "cn": "suffix:aliyun.com"
    },
@@ -1915,7 +4274,9 @@
    }
   },
   "www.baidu.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:baidu.com"
+   },
    "mihomo": {
     "cn": "suffix:baidu.com"
    },
@@ -1925,7 +4286,9 @@
    }
   },
   "www.bilibili.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:bilibili.com"
+   },
    "mihomo": {
     "cn": "suffix:bilibili.com"
    },
@@ -1935,7 +4298,9 @@
    }
   },
   "www.bilibili.tv": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:bilibili.tv"
+   },
    "mihomo": {
     "cn": "suffix:bilibili.tv"
    },
@@ -1995,7 +4360,9 @@
    }
   },
   "www.doubao.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:doubao.com"
+   },
    "mihomo": {
     "cn": "suffix:doubao.com"
    },
@@ -2090,8 +4457,22 @@
     "geosite-geolocation-!cn": "suffix:instagram.com"
    }
   },
+  "www.ithome.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:ithome.com"
+   },
+   "mihomo": {
+    "cn": "suffix:ithome.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:ithome.com"
+   }
+  },
   "www.jd.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:jd.com"
+   },
    "mihomo": {
     "cn": "suffix:jd.com"
    },
@@ -2211,7 +4592,9 @@
    }
   },
   "www.qianwen.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:qianwen.com"
+   },
    "mihomo": {
     "cn": "suffix:qianwen.com"
    },
@@ -2221,7 +4604,9 @@
    }
   },
   "www.recaptcha.net": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "full:www.recaptcha.net"
+   },
    "mihomo": {
     "geolocation-!cn": "suffix:recaptcha.net"
    },
@@ -2277,7 +4662,9 @@
    }
   },
   "www.tongyi.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:tongyi.com"
+   },
    "mihomo": {
     "cn": "suffix:tongyi.com"
    },
@@ -2316,6 +4703,18 @@
     "geosite-geolocation-!cn": "suffix:youtube.com"
    }
   },
+  "www.zhihu.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:zhihu.com"
+   },
+   "mihomo": {
+    "cn": "suffix:zhihu.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "suffix:zhihu.com"
+   }
+  },
   "x.com": {
    "loon": {},
    "mihomo": {
@@ -2334,6 +4733,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:chatgpt.livekit.cloud"
+   }
+  },
+  "xp.apple.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:apple.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:xp.apple.com",
+    "geosite-geolocation-!cn": "suffix:apple.com"
    }
   },
   "youtubeembeddedplayer.googleapis.com": {
@@ -2377,7 +4787,9 @@
    }
   },
   "yuanbao.tencent.com": {
-   "loon": {},
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": "suffix:tencent.com"
+   },
    "mihomo": {
     "cn": "suffix:tencent.com"
    },
@@ -2468,7 +4880,57 @@
     "cn": true
    }
   },
+  "110.242.68.4": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "110.242.68.5": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "110.242.68.6": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
   "110.242.68.66": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "110.242.68.7": {
+   "loon": {},
+   "mihomo": {
+    "cn": true
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": true
+   }
+  },
+  "110.242.68.8": {
    "loon": {},
    "mihomo": {
     "cn": true
@@ -2684,7 +5146,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "8bbd3b352fc4661138b682a1de32e8527946fd31ae469941e804e5e4afe587bc",
+   "config_sha256": "6becbefd8dcf1ea5e9a00c5ea2c26fd7c9447e0f9d1e03e1901356a0c51cbbe7",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -2692,9 +5154,22 @@
     "node homeproxy": "system",
     "node lan.example.com": "domestic",
     "node node.example.com": "domestic",
-    "node proxy.home.arpa": "system"
+    "node proxy.home.arpa": "system",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "foreign",
+    "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "a23d31ab059248cb8310749516cd3ee00c1c08a5166630042573be7337097c31",
+   "dial_foreign_silent": {
+    "direct www.baidu.com": "domestic",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "foreign",
+    "unlisted r1.test.dnsleaktest.com": "foreign"
+   },
+   "dial_sha256": "10a728a1704986b0081641165c4a21af5a1e715bd1d9f175b912aeb8dbd1cdd9",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -2702,7 +5177,12 @@
     "node homeproxy": "system",
     "node lan.example.com": "domestic",
     "node node.example.com": "domestic",
-    "node proxy.home.arpa": "system"
+    "node proxy.home.arpa": "system",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "foreign",
+    "unlisted r1.test.dnsleaktest.com": "foreign"
    },
    "dial_without_lan_policy": {
     "direct nas.lan": "domestic",
@@ -2711,7 +5191,12 @@
     "node homeproxy": "system",
     "node lan.example.com": "domestic",
     "node node.example.com": "domestic",
-    "node proxy.home.arpa": "system"
+    "node proxy.home.arpa": "system",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "foreign",
+    "unlisted r1.test.dnsleaktest.com": "foreign"
    },
    "dial_without_node_policy": {
     "direct nas.lan": "system",
@@ -2720,33 +5205,87 @@
     "node homeproxy": "domestic",
     "node lan.example.com": "domestic",
     "node node.example.com": "domestic",
-    "node proxy.home.arpa": "domestic"
+    "node proxy.home.arpa": "domestic",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "foreign",
+    "unlisted r1.test.dnsleaktest.com": "foreign"
    },
    "dns": {
+    "api.openai.com HTTPS": "empty",
+    "chatgpt.com A": "fake-ip",
+    "claude.ai TXT": "foreign",
     "nas.home.arpa A": "system",
+    "never-listed-query.net A": "fake-ip",
+    "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
+    "qwen.ai TXT": "domestic",
+    "www.qq.com TXT": "domestic",
+    "www.taobao.com A": "fake-ip"
+   },
+   "dns_foreign_silent": {
+    "api.openai.com HTTPS": "empty",
+    "chatgpt.com A": "fake-ip",
+    "claude.ai TXT": "foreign",
+    "nas.home.arpa A": "system",
+    "never-listed-query.net A": "fake-ip",
+    "never-listed-txt.net TXT": "foreign",
+    "printer A": "domestic",
+    "printer.lan A": "system",
+    "qwen.ai TXT": "domestic",
+    "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
    "dns_without_follow_policy": {
+    "api.openai.com HTTPS": "empty",
+    "chatgpt.com A": "fake-ip",
+    "claude.ai TXT": "foreign",
     "nas.home.arpa A": "system",
+    "never-listed-query.net A": "fake-ip",
+    "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
+    "qwen.ai TXT": "domestic",
+    "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
    "dns_without_lan_policy": {
+    "api.openai.com HTTPS": "empty",
+    "chatgpt.com A": "fake-ip",
+    "claude.ai TXT": "foreign",
     "nas.home.arpa A": "domestic",
+    "never-listed-query.net A": "fake-ip",
+    "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "domestic",
+    "qwen.ai TXT": "domestic",
+    "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
    "dns_without_node_policy": {
+    "api.openai.com HTTPS": "empty",
+    "chatgpt.com A": "fake-ip",
+    "claude.ai TXT": "foreign",
     "nas.home.arpa A": "system",
+    "never-listed-query.net A": "fake-ip",
+    "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
+    "qwen.ai TXT": "domestic",
+    "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
    "routes": {
+    "0.pool.ntp.org": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "1-courier.push.apple.com": [
+     "DomainSuffix(push.apple.com)",
+     "Apple Push"
+    ],
     "1.2.4.8": [
      "GeoIP(cn)",
      "国内直连"
@@ -3199,6 +5738,10 @@
      "DomainSuffix(iadsdk.apple.com)",
      "广告拦截"
     ],
+    "id6.me": [
+     "GeoIP(cn)",
+     "国内直连"
+    ],
     "images-eu.ssl-images-amazon.com": [
      "DomainSuffix(ssl-images-amazon.com)",
      "国外默认"
@@ -3214,6 +5757,14 @@
     "images.workoscdn.com": [
      "Match",
      "国外默认"
+    ],
+    "init-p01st.push.apple.com": [
+     "DomainSuffix(push.apple.com)",
+     "Apple Push"
+    ],
+    "init.push.apple.com": [
+     "DomainSuffix(push.apple.com)",
+     "Apple Push"
     ],
     "itunes.apple.com": [
      "DomainSuffix(apple.com)",
@@ -3259,6 +5810,10 @@
      "Match",
      "国外默认"
     ],
+    "log.cmpassport.com": [
+     "GeoIP(cn)",
+     "国内直连"
+    ],
     "log.isnssdk.com": [
      "DomainSuffix(isnssdk.com)",
      "TikTok"
@@ -3298,6 +5853,14 @@
     "netflixdnstest7.com": [
      "DomainSuffix(netflixdnstest7.com)",
      "Netflix"
+    ],
+    "never-listed-site.org": [
+     "Match",
+     "国外默认"
+    ],
+    "news.sina.com.cn": [
+     "DomainSuffix(sina.com.cn)",
+     "国内直连"
     ],
     "notopenai.com": [
      "Match",
@@ -3379,6 +5942,10 @@
      "Domain(proxy.golang.org)",
      "开发下载"
     ],
+    "push.apple.com": [
+     "DomainSuffix(push.apple.com)",
+     "Apple Push"
+    ],
     "pypi.org": [
      "DomainSuffix(pypi.org)",
      "开发下载"
@@ -3439,6 +6006,10 @@
      "GeoSite(geolocation-!cn)",
      "国外默认"
     ],
+    "static.zhihu.com": [
+     "DomainSuffix(zhihu.com)",
+     "国内直连"
+    ],
     "stats.g.doubleclick.net": [
      "DomainSuffix(doubleclick.net)",
      "广告拦截"
@@ -3470,6 +6041,14 @@
     "time.apple-dns.net": [
      "DomainSuffix(apple-dns.net)",
      "Apple"
+    ],
+    "time.apple.com": [
+     "DomainSuffix(apple.com)",
+     "Apple"
+    ],
+    "time.windows.com": [
+     "DomainSuffix(windows.com)",
+     "Microsoft"
     ],
     "tongyi.aliyun.com": [
      "Domain(tongyi.aliyun.com)",
@@ -3611,6 +6190,10 @@
      "DomainSuffix(instagram.com)",
      "Meta 社交"
     ],
+    "www.ithome.com": [
+     "GeoSite(cn)",
+     "国内直连"
+    ],
     "www.jd.com": [
      "DomainSuffix(jd.com)",
      "国内直连"
@@ -3699,6 +6282,10 @@
      "DomainSuffix(youtube.com)",
      "YouTube"
     ],
+    "www.zhihu.com": [
+     "DomainSuffix(zhihu.com)",
+     "国内直连"
+    ],
     "x.com": [
      "DomainSuffix(x.com)",
      "X"
@@ -3706,6 +6293,10 @@
     "x1.chatgpt.livekit.cloud": [
      "DomainSuffix(chatgpt.livekit.cloud)",
      "OpenAI"
+    ],
+    "xp.apple.com": [
+     "DomainSuffix(apple.com)",
+     "Apple"
     ],
     "youtubeembeddedplayer.googleapis.com": [
      "DomainSuffix(youtubeembeddedplayer.googleapis.com)",
@@ -3728,12 +6319,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "ec451a096d3431fb1e2286bfdc1445b43bf2bf26bb07b0b01248bce500de306a",
+   "routing_sha256": "3360da1ebf6d9a024d043f658738d25beb4635a54f16b67b1da31a1d33d2165b",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "4398f35b5e0c993e12f3d2ef4418364c4003bcac09d7397b98684c2897bf5954",
+   "config_sha256": "1ff196ea1d9880d628c8197412413ab10f6bff90fed46ebd90f25cd0f89828f3",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -3741,9 +6332,22 @@
     "node homeproxy": "dns-local",
     "node lan.example.com": "dns-cn",
     "node node.example.com": "dns-cn",
-    "node proxy.home.arpa": "dns-local"
+    "node proxy.home.arpa": "dns-local",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "009dfc4b74effc013ffc36c48759b76a66e78e9075718150f3d400fd11468d90",
+   "dial_foreign_silent": {
+    "direct www.baidu.com": "dns-cn",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
+   },
+   "dial_sha256": "a08d2f29d0213b48e2caf1de8641f35054551491f8915bcd2f6a7e403fe7176c",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -3751,7 +6355,12 @@
     "node homeproxy": "dns-cn",
     "node lan.example.com": "dns-cn",
     "node node.example.com": "dns-cn",
-    "node proxy.home.arpa": "dns-cn"
+    "node proxy.home.arpa": "dns-cn",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
    "dns": {
     "api.bilibili.com A": "dns-fakeip",
@@ -3763,6 +6372,31 @@
     "chatgpt.com HTTPS": "dns-foreign",
     "dl.delivery.mp.microsoft.com A": "dns-cn",
     "guzzoni.apple.com A": "dns-fakeip",
+    "init-p01st.push.apple.com A": "dns-fakeip",
+    "music.apple.com A": "dns-fakeip",
+    "nas.lan A": "dns-local",
+    "unknown-foreign.example A": "dns-fakeip",
+    "unknown-foreign.example HTTPS": "dns-foreign",
+    "www.apple.com.cn A": "dns-fakeip",
+    "www.baidu.com A": "dns-cn",
+    "www.baidu.com HTTPS": "dns-cn",
+    "www.bilibili.com A": "dns-cn",
+    "www.google.cn A": "dns-fakeip",
+    "www.microsoft.com A": "dns-fakeip",
+    "www.qianwen.com A": "dns-cn",
+    "www.recaptcha.net A": "dns-fakeip"
+   },
+   "dns_foreign_silent": {
+    "api.bilibili.com A": "dns-fakeip",
+    "api.bilibili.com HTTPS": "dns-foreign",
+    "captive.apple.com A": "dns-cn",
+    "chat.qwen.ai A": "dns-fakeip",
+    "chat.qwen.ai HTTPS": "dns-foreign",
+    "chatgpt.com A": "dns-fakeip",
+    "chatgpt.com HTTPS": "dns-foreign",
+    "dl.delivery.mp.microsoft.com A": "dns-cn",
+    "guzzoni.apple.com A": "dns-fakeip",
+    "init-p01st.push.apple.com A": "dns-fakeip",
     "music.apple.com A": "dns-fakeip",
     "nas.lan A": "dns-local",
     "unknown-foreign.example A": "dns-fakeip",
@@ -3777,6 +6411,14 @@
     "www.recaptcha.net A": "dns-fakeip"
    },
    "routes": {
+    "0.pool.ntp.org": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "1-courier.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
     "1.2.4.8": [
      "rule_set=geoip-cn",
      "国内直连"
@@ -4229,6 +6871,10 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "id6.me": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "images-eu.ssl-images-amazon.com": [
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
@@ -4244,6 +6890,14 @@
     "images.workoscdn.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "init-p01st.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
+    "init.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
     ],
     "itunes.apple.com": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
@@ -4289,6 +6943,10 @@
      "没有规则命中（route.final）",
      "国外默认"
     ],
+    "log.cmpassport.com": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "log.isnssdk.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -4328,6 +6986,14 @@
     "netflixdnstest7.com": [
      "domain_suffix=[netflix.com netflix.net nflxext.com...]",
      "Netflix"
+    ],
+    "never-listed-site.org": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "news.sina.com.cn": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
     ],
     "notopenai.com": [
      "没有规则命中（route.final）",
@@ -4409,6 +7075,10 @@
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
     ],
+    "push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
     "pypi.org": [
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
@@ -4469,6 +7139,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "static.zhihu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
     "stats.g.doubleclick.net": [
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
@@ -4500,6 +7174,14 @@
     "time.apple-dns.net": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
      "Apple"
+    ],
+    "time.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "time.windows.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
     ],
     "tongyi.aliyun.com": [
      "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
@@ -4641,6 +7323,10 @@
      "domain_suffix=[facebook.com facebook.net fb.com...]",
      "Meta 社交"
     ],
+    "www.ithome.com": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "www.jd.com": [
      "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
      "国内直连"
@@ -4729,6 +7415,10 @@
      "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
      "YouTube"
     ],
+    "www.zhihu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
     "x.com": [
      "domain_suffix=[x.com twitter.com twimg.com...]",
      "X"
@@ -4736,6 +7426,10 @@
     "x1.chatgpt.livekit.cloud": [
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
+    ],
+    "xp.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
     ],
     "youtubeembeddedplayer.googleapis.com": [
      "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
@@ -4758,12 +7452,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "4e91a3f613c17d039813d7fe4eb61dfe4ece3f8ae5d013e7e734bf5e8d82031e",
+   "routing_sha256": "8fed891f005edb867fc8294d72d05d7446849b7df1885727772b22b52c739076",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "1883187cf9d48e505a65dba708984d5a0c6227e7d410353484f5d551c826dfde",
+   "config_sha256": "306d345435055671ea340765a08629055296fb8fe969f6c9fcdea4b8bb4c74ac",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -4771,9 +7465,22 @@
     "node homeproxy": "dns-local",
     "node lan.example.com": "dns-cn",
     "node node.example.com": "dns-cn",
-    "node proxy.home.arpa": "dns-local"
+    "node proxy.home.arpa": "dns-local",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "7d3d7b6abf232be94c3c089c1e79ac184bc34717a6ddaf36083f1aca9d5a13c4",
+   "dial_foreign_silent": {
+    "direct www.baidu.com": "dns-cn",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
+   },
+   "dial_sha256": "ade12125408aaa4e82f067c1a480c1a598d4c5b995574b87052c3af8010e682b",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -4781,7 +7488,12 @@
     "node homeproxy": "dns-cn",
     "node lan.example.com": "dns-cn",
     "node node.example.com": "dns-cn",
-    "node proxy.home.arpa": "dns-cn"
+    "node proxy.home.arpa": "dns-cn",
+    "proxied chat.qwen.ai": "none",
+    "proxied gemini.google.com": "none",
+    "proxied www.youtube.com": "none",
+    "unlisted never-listed-site.org": "dns-foreign",
+    "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
    "dns": {
     "api.bilibili.com A": "dns-fakeip",
@@ -4793,6 +7505,31 @@
     "chatgpt.com HTTPS": "dns-foreign",
     "dl.delivery.mp.microsoft.com A": "dns-cn",
     "guzzoni.apple.com A": "dns-fakeip",
+    "init-p01st.push.apple.com A": "dns-fakeip",
+    "music.apple.com A": "dns-fakeip",
+    "nas.lan A": "dns-local",
+    "unknown-foreign.example A": "dns-fakeip",
+    "unknown-foreign.example HTTPS": "dns-foreign",
+    "www.apple.com.cn A": "dns-fakeip",
+    "www.baidu.com A": "dns-cn",
+    "www.baidu.com HTTPS": "dns-cn",
+    "www.bilibili.com A": "dns-cn",
+    "www.google.cn A": "dns-fakeip",
+    "www.microsoft.com A": "dns-fakeip",
+    "www.qianwen.com A": "dns-cn",
+    "www.recaptcha.net A": "dns-fakeip"
+   },
+   "dns_foreign_silent": {
+    "api.bilibili.com A": "dns-fakeip",
+    "api.bilibili.com HTTPS": "dns-foreign",
+    "captive.apple.com A": "dns-cn",
+    "chat.qwen.ai A": "dns-fakeip",
+    "chat.qwen.ai HTTPS": "dns-foreign",
+    "chatgpt.com A": "dns-fakeip",
+    "chatgpt.com HTTPS": "dns-foreign",
+    "dl.delivery.mp.microsoft.com A": "dns-cn",
+    "guzzoni.apple.com A": "dns-fakeip",
+    "init-p01st.push.apple.com A": "dns-fakeip",
     "music.apple.com A": "dns-fakeip",
     "nas.lan A": "dns-local",
     "unknown-foreign.example A": "dns-fakeip",
@@ -4807,6 +7544,14 @@
     "www.recaptcha.net A": "dns-fakeip"
    },
    "routes": {
+    "0.pool.ntp.org": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
+    "1-courier.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
     "1.2.4.8": [
      "rule_set=geoip-cn",
      "国内直连"
@@ -5259,6 +8004,10 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "id6.me": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "images-eu.ssl-images-amazon.com": [
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
@@ -5274,6 +8023,14 @@
     "images.workoscdn.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "init-p01st.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
+    "init.push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
     ],
     "itunes.apple.com": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
@@ -5319,6 +8076,10 @@
      "没有规则命中（route.final）",
      "国外默认"
     ],
+    "log.cmpassport.com": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "log.isnssdk.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -5358,6 +8119,14 @@
     "netflixdnstest7.com": [
      "domain_suffix=[netflix.com netflix.net nflxext.com...]",
      "Netflix"
+    ],
+    "never-listed-site.org": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "news.sina.com.cn": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
     ],
     "notopenai.com": [
      "没有规则命中（route.final）",
@@ -5439,6 +8208,10 @@
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
     ],
+    "push.apple.com": [
+     "domain_suffix=push.apple.com",
+     "Apple Push"
+    ],
     "pypi.org": [
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
@@ -5499,6 +8272,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "static.zhihu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
     "stats.g.doubleclick.net": [
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
@@ -5530,6 +8307,14 @@
     "time.apple-dns.net": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
      "Apple"
+    ],
+    "time.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
+    ],
+    "time.windows.com": [
+     "domain=[autologon.microsoftazuread-sso.com clientconfig.microsoftonline-p.net join.secure.skypeassets.com...] domain_suf",
+     "Microsoft"
     ],
     "tongyi.aliyun.com": [
      "domain=[tongyi.aliyun.com qianwen.aliyun.com yuanbao.tencent.com...] domain_suffix=[deepseek.com doubao.com tongyi.com..",
@@ -5671,6 +8456,10 @@
      "domain_suffix=[facebook.com facebook.net fb.com...]",
      "Meta 社交"
     ],
+    "www.ithome.com": [
+     "rule_set=geosite-cn",
+     "国内直连"
+    ],
     "www.jd.com": [
      "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
      "国内直连"
@@ -5759,6 +8548,10 @@
      "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
      "YouTube"
     ],
+    "www.zhihu.com": [
+     "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com 10010.com...]",
+     "国内直连"
+    ],
     "x.com": [
      "domain_suffix=[x.com twitter.com twimg.com...]",
      "X"
@@ -5766,6 +8559,10 @@
     "x1.chatgpt.livekit.cloud": [
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
+    ],
+    "xp.apple.com": [
+     "domain_suffix=[apple.com apple.com.cn apple.co...]",
+     "Apple"
     ],
     "youtubeembeddedplayer.googleapis.com": [
      "domain=[youtubei.googleapis.com youtube.googleapis.com yt3.ggpht.com...] domain_suffix=[youtube.com youtu.be yt.be...]",
@@ -5788,7 +8585,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "6b9df15f01cb90b11923e2f204e62ee15edd3ffbfd59d5e1962f3acc72b56203",
+   "routing_sha256": "39db584213d0eeb243e8413a8a035ad3a42bcd19e79b40aa5263e44d5791e849",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -5800,6 +8597,8 @@
      "URL-REGEX": 2
     },
     "ip": 187,
+    "ip_resolving": 0,
+    "ip_resolving_examples": [],
     "keyword": 187,
     "suffix": 0
    },
@@ -5807,14 +8606,28 @@
     "domain": 23753,
     "ignored": {},
     "ip": 0,
+    "ip_resolving": 0,
+    "ip_resolving_examples": [],
     "keyword": 0,
     "suffix": 13939
+   },
+   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list": {
+    "domain": 268,
+    "ignored": {},
+    "ip": 0,
+    "ip_resolving": 0,
+    "ip_resolving_examples": [],
+    "keyword": 0,
+    "suffix": 111009
    }
   },
   "mihomo": {
    "category-ads-all": 911,
    "cn": 111224,
    "geolocation-!cn": 27217
+  },
+  "mihomo_dns_only": {
+   "private": 131
   },
   "mihomo_geoip_cn": 9648,
   "quantumultx": {
@@ -5835,7 +8648,7 @@
    "geoip-cn": 8045
   }
  },
- "source_version": "2026.10.05-2",
+ "source_version": "2026.10.06-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
@@ -5847,6 +8660,11 @@
     "bytes": 595785,
     "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
     "sha256": "90fc37c6affc550aa62f8449ee69fae42113f70a66906cf2a6cfafd8b76c2bde"
+   },
+   "ChinaMax_Domain.list": {
+    "bytes": 1522827,
+    "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
+    "sha256": "838a06dfbe6d3fca9d8ad373a04ba5e15939c94e674b1d4b95b34632ac4974bf"
    }
   },
   "mihomo": {

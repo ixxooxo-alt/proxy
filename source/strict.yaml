@@ -1,0 +1,27 @@
+# 严格版：只给 Loon / Quantumult X 各多生成一份配置（loon-strict.conf、quantumultx-strict.conf）。标准版不受这个文件影响。
+#
+# 要解决的事：这两端填的是国内 DNS。标准版里，没有命中任何域名规则的域名要先在本机解析、再按 IP 判断走哪里，
+#             所以出口是代理的连接，域名也被国内 DNS 看到了。这两端的官方文档里没有“让 DNS 查询经代理发出”的选项。
+# 做法：      先按域名认出国内网站（下面的国内域名清单）交给“国内直连”；其余域名不在本机解析，直接交给“国外默认”；
+#             原本就是 IP 的连接照旧按 IP 规则判断（局域网、服务专属 IP、国内 IP）。
+# 代价：      清单里没有的国内网站会走代理（能打开，会慢）。详见 docs/03“严格版”一节与 docs/06。
+strict:
+  # 自有远程规则文件发布的位置：文件生成在 dist/ 下，随仓库的 main 分支发布，严格版的配置按这个前缀引用它们。
+  # 文件改名、仓库改成私有或删除以后，引用它们的规则会失效：国内清单失效 = 国内网站改走代理；
+  # Quantumult X 的域名兜底失效 = 回到标准版的行为（没命中的域名又要在本机解析）。
+  publish_base: https://raw.githubusercontent.com/ixxooxo-alt/proxy/main/dist/
+  # 国内域名清单：排在广告集合之后，都交给“国内直连”。
+  #   own：本项目自己生成的清单（数据在 source/data/cn-domains.txt，源自 domain-list-community 的 cn 列表，含整段 .cn 等顶级域）。
+  #   url：直接订阅上游文件。Loon 另订阅 blackmatrix7 的 ChinaMax_Domain.list（只含域名和后缀，mihomo 的 geosite:cn 与它同源）。
+  #        Quantumult X 没有只含域名的上游成品：blackmatrix7 给它的 ChinaMax.list 里混着 13 条关键词（stripe、baidu、aliyun 等）
+  #        和 65 条 UA 规则，不能直接订阅，所以 Quantumult X 只用自有清单（见 docs/06 的待决事项）。
+  domestic_lists:
+    loon:
+      - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list",
+         tag: 国内域名-ChinaMax, ev: bm7,
+         source: "blackmatrix7 ChinaMax 的域名部分（按固定快照 51d2e1d 读的：111,277 条，268 条精确域名 + 111,009 条后缀，没有关键词和 IP 规则，不含整段顶级域；文件头写的更新时间是 2026-09-22。客户端订阅的是上游的最新版，内容会变）"}
+      - {own: loon/rules/cn-domains.list, tag: 国内域名-自有清单}
+    quantumultx:
+      - {own: quantumultx/rules/cn-domains.list, tag: 国内域名-自有清单}
+  # Quantumult X 的域名兜底：排在全部远程规则的最后（放进本地规则会让全部远程规则失效，见 docs/02）。
+  qx_fallback: {own: quantumultx/rules/domain-fallback.list, tag: 域名兜底-不在本机解析}

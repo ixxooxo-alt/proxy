@@ -2,11 +2,19 @@
 语法依据：https://nsloon.app/docs/（规则优先级：本地 > 插件 > 订阅；域名规则先于 IP 规则，Loon 3.0.3+）
 策略组：select / url-test / fallback / load-balance，支持嵌套；节点筛选用 [Remote Filter] NameRegex
 （官方“节点筛选”页 https://nsloon.app/docs/Node/nodefilter 的常用正则里有否定前瞻 ^(?!.*A)，没有说明用的是什么正则引擎；
-地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py）。"""
+地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py）。
+
+严格版（build 的 strict=True，另存为 loon-strict.conf；设定在 source/strict.yaml，说明见 generator/strict.py）与标准版只差三处：
+  1. 末尾的 GEOIP,CN 加 no-resolve——官方 IP 规则页：加了它“规则只匹配目标地址已经是 IP 的请求，不会为域名执行 DNS 查询”；
+     GEOIP 与 no-resolve 写在一起的官方例子在逻辑规则页（https://nsloon.app/docs/Rule/logic_rule/ 的子规则 (GEOIP,CN,no-resolve)），
+     单独一行的写法没有官方例子，要在设备上确认。这样全部 IP 规则都带 no-resolve，没命中域名规则的域名不解析，落到 FINAL；
+  2. [Remote Rule] 在广告集合之后多订阅国内域名清单，交给“国内直连”；
+  3. 要真实地址的名单（real-ip）里标准版没有固定直连规则的名字，补上固定直连。"""
 from __future__ import annotations
 
 from typing import List
 
+from . import strict as strict_mod
 from .groups import GroupSpec, NodeFilter, build_groups, shared_filter_labels
 from .model import Model, Plan
 from .util import Rule, check_regex_line_safe
@@ -32,7 +40,7 @@ def _filter_regex(nf: NodeFilter) -> str:
     return rx
 
 
-def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
+def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False) -> str:
     p = m.project
     hc = m.hc
     dns = m.dns
@@ -46,6 +54,11 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
     L.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['loon']['core']}")
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
+    if strict:
+        L.append("# 这是【严格版】：没有命中任何域名规则的域名不在本机解析，直接交给“国外默认”；国内网站靠 [Remote Rule] 里的国内域名清单认出来。")
+        L.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 loon.conf。导入后请按 docs/09 的严格版一节验收。")
+        L.append(f"# [Remote Rule] 的最后一条引用 {m.strict['publish_base']} 下的规则文件：那个文件还没有发布、改了名、"
+                 "或者仓库改成私有时，这条订阅会加载失败，只收在它里面的国内网站（整段 .cn 等）会改走代理。")
     if not sub_urls:
         L.append("# ⚠ 使用前必须把 [Remote Proxy] 的订阅链接换成你自己的（当前是占位符，不可直接使用）。")
     L.append("# 证书：本配置不含任何 MITM 证书或密码，如需复写 / 脚本请在设备上自行生成并信任证书。")
@@ -141,24 +154,40 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None) -> str:
 
     L.append("# ==== 2 局域网、内网与系统联网检测（固定直连） ====")
     emit(plan.lan)
+    if strict:
+        L.append("# ==== 2b 要真实地址的名单（[General] 的 real-ip）：这些名字先在本机解析、再选出口，严格版固定直连 ====")
+        emit(plan.real_ip_direct, by_service=False)
     L.append("# ==== 3a 广告误杀例外：按业务目标放行（本地规则优先于订阅的广告集合） ====")
     emit(plan.exceptions, by_service=False)
     L.append("# ==== 3b 自有广告 / 跟踪拦截（位于产品根域下，必须在本地产品规则之前） ====")
     emit(plan.ads_local, by_service=False)
     L.append("# ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前） ====")
     emit(plan.product_for("loon"))
-    L.append("# ==== 6 国内外域名分类：未引入第三方大集合（其中含宽泛关键词规则），由上面的自有规则与下面的 GEOIP 兜底覆盖 ====")
+    if strict:
+        L.append("# ==== 6 国内外域名分类：国内域名清单在 [Remote Rule] 里（排在广告集合之后）；没被任何域名规则接住的域名落到最后的 FINAL ====")
+    else:
+        L.append("# ==== 6 国内外域名分类：未引入第三方大集合（其中含宽泛关键词规则），由上面的自有规则与下面的 GEOIP 兜底覆盖 ====")
     L.append("# ==== 7 服务专属 IP（不触发 DNS 解析） ====")
     emit(plan.service_ip_for("loon"))
-    L.append("# ==== 8 国内 IP 兜底 ====")
-    L.append("GEOIP,CN,国内直连")
-    L.append("# ==== 9 其余目标 ====")
+    if strict:
+        L.append("# ==== 8 国内 IP：只对原本就是 IP 的连接生效（no-resolve），不为域名做本机解析 ====")
+        L.append("GEOIP,CN,国内直连,no-resolve")
+        L.append("# ==== 9 其余目标：包括没被任何域名规则接住的域名（不在本机解析，由代理那一端解析） ====")
+    else:
+        L.append("# ==== 8 国内 IP 兜底 ====")
+        L.append("GEOIP,CN,国内直连")
+        L.append("# ==== 9 其余目标 ====")
     L.append("FINAL,国外默认")
 
     L += ["", "[Remote Rule]",
           "# 3c 广告集合：Loon 中订阅规则优先级低于本地规则（官方文档），因此位于上面产品根域下的广告主机不会被它拦截"]
     for x in m.adblock["remote_lists"]["loon"]:
         L.append(f"{x['url']}, policy=广告拦截, tag={x['tag']}, enabled=true")
+    if strict:
+        L.append("# 6 国内域名清单（严格版）：订阅规则按书写顺序匹配，排在广告集合之后；本地的产品规则仍然优先于它们")
+        for x in m.strict["domestic_lists"]["loon"]:
+            url = x["url"] if "url" in x else strict_mod.own_url(m, x["own"])
+            L.append(f"{url}, policy=国内直连, tag={x['tag']}, enabled=true")
 
     L += ["", "[Rewrite]", "", "[Script]", "",
           "[Plugin]",

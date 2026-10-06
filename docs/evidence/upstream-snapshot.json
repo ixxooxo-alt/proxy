@@ -1,7 +1,7 @@
 {
  "generated_by": "tools/check_upstream_evidence.py",
  "snapshots": {"dlc": {"evidence_id": "dlc", "repo": "https://github.com/v2fly/domain-list-community", "commit": "c1c2cf0d252871e8739747714df06e8d2671f72f", "date": "2026-09-22T19:29:39+08:00"}, "bm7": {"evidence_id": "bm7-snap", "repo": "https://github.com/blackmatrix7/ios_rule_script", "commit": "51d2e1dd8429a91be575157d6f8ed051c93559f8", "date": "2026-09-21T21:38:01+00:00"}},
- "summary": {"rules_checked": 856, "community_rules": 559, "failures": 0, "category_ads_all_domain_entries": 910, "category_ads_all_keyword_regexp_entries": 1},
+ "summary": {"rules_checked": 857, "community_rules": 559, "failures": 0, "category_ads_all_domain_entries": 910, "category_ads_all_keyword_regexp_entries": 1},
  "rules": [
   {"service": "openai", "group": "OpenAI", "kind": "suffix", "value": "openai.com", "ev": "openai-net", "dlc": {"status": "same", "hits": ["openai:openai.com"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "openai", "group": "OpenAI", "kind": "suffix", "value": "chatgpt.com", "ev": "openai-net", "dlc": {"status": "same", "hits": ["openai:chatgpt.com"]}, "bm7": {"status": "absent", "hits": []}},
@@ -562,6 +562,7 @@
   {"service": "apple_media", "group": "Apple Music/TV", "kind": "domain", "value": "play-edge.itunes.apple.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple-tvplus:full:play-edge.itunes.apple.com", "itunes:full:play-edge.itunes.apple.com @cn", "itunes:itunes.apple.com"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "apple_media", "group": "Apple Music/TV", "kind": "domain", "value": "np-edge.itunes.apple.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple-tvplus:full:np-edge.itunes.apple.com", "itunes:full:np-edge.itunes.apple.com @cn", "itunes:itunes.apple.com"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "apple_media", "group": "Apple Music/TV", "kind": "domain", "value": "uts-api.itunes.apple.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple-tvplus:full:uts-api.itunes.apple.com", "itunes:itunes.apple.com"]}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "apple_push", "group": "Apple Push", "kind": "suffix", "value": "push.apple.com", "ev": "apple-push-net", "dlc": {"status": "covered", "hits": ["apple:apple.com", "apple:full:init-p01st.push.apple.com @cn", "apple:full:init-s01st.push.apple.com @cn"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "apple", "group": "Apple", "kind": "suffix", "value": "apple.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple:apple.com", "apple:full:amp-api-edge.apps.apple.com @cn", "apple:full:amp-api-search-edge.apps.apple.com @cn", "apple:full:amp-api.apps.apple.com @cn"]}, "bm7": {"status": "same", "hits": ["Apple:DOMAIN-SUFFIX,apple.com"]}},
   {"service": "apple", "group": "Apple", "kind": "suffix", "value": "apple.com.cn", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple:apple.com.cn @cn"]}, "bm7": {"status": "same", "hits": ["Apple:DOMAIN-SUFFIX,apple.com.cn"]}},
   {"service": "apple", "group": "Apple", "kind": "suffix", "value": "apple.co", "ev": "dlc", "dlc": {"status": "same", "hits": ["apple:apple.co"]}, "bm7": {"status": "same", "hits": ["Apple:DOMAIN-SUFFIX,apple.co"]}},

@@ -1,5 +1,8 @@
 # 路由期望：由需求与官方资料独立写出，不从生成结果反推。
 # expect：策略组名 / DIRECT / 广告拦截；per_client：各端语义不同时的覆盖值（必须写明原因）。
+#   per_client 的键是四类客户端：mihomo、singbox、loon、quantumultx。Loon / Quantumult X 另有严格版（2026-10-06），
+#   键是 loon-strict、quantumultx-strict：只管严格版那一份产物；没写的话，严格版跟同一个 App 的标准版走
+#   （查找顺序：per_client[严格版的键] → per_client[loon / quantumultx] → expect）。
 # 字段 host 表示按域名连接，ip 表示直接 IP 连接。
 #
 # 每个用例跑两遍（2026-10-03 审核 F01 之后）：
@@ -203,7 +206,8 @@ cases:
   - {ip: 'fe80::1', expect: DIRECT}
   - {host: www.baidu.com, expect: 国内直连}
   - {host: example.cn, expect: 国内直连, why: "mihomo/sing-box 靠 GeoSite cn；Loon/QX 靠解析后的 GEOIP"}
-  - {host: unknown-cn.example, expect: 国内直连, why: 未分类域名解析到国内 IP}
+  - {host: unknown-cn.example, expect: 国内直连, per_client: {loon-strict: 国外默认, quantumultx-strict: 国外默认},
+     why: "未分类域名解析到国内 IP。严格版不在本机解析没被域名规则接住的域名，所以它走国外默认——这是严格版的代价：清单里没有的国内网站会走代理"}
   - {ip: 1.2.4.8, expect: 国内直连}
   - {ip: '240e::1', expect: 国内直连, why: 国内 IPv6 兜底}
   - {host: unknown-foreign.example, expect: 国外默认, why: 其余目标进入国外默认}
@@ -248,6 +252,32 @@ cases:
   - {host: copilot-telemetry.githubusercontent.com, expect: Copilot, why: 误杀例外：官方放行清单列出}
   - {host: collector.github.com, expect: GitHub, why: 误杀例外：官方放行清单列出}
 
+  # ---------- 2026-10-06：Loon / Quantumult X 严格版 ----------
+  # 国内网站靠什么认出来，各端不一样：mihomo / sing-box 靠国内补充规则和国内域名集合；Loon / Quantumult X 的标准版靠解析以后的
+  # GEOIP,CN；严格版靠国内域名清单（不解析）。下面几条的解析结果是假定的（fixtures.yaml 的 dns）。
+  - {host: www.zhihu.com, expect: 国内直连, why: "清单里有，也解析到国内 IP：各端结果相同，只是认出来的办法不同"}
+  - {host: www.ithome.com, expect: 国内直连, why: "同上。它不在只写进 mihomo / sing-box 的国内补充规则里：这两端靠的是国内域名集合"}
+  - {host: news.sina.com.cn, expect: 国内直连, why: "整段 .cn：自有清单里有（blackmatrix7 的 ChinaMax_Domain 不含整段顶级域）"}
+  - {host: static.zhihu.com, expect: 国内直连,
+     per_client: {loon: 国外默认, quantumultx: 国外默认, loon-strict: 国内直连, quantumultx-strict: 国内直连},
+     why: "假定这个主机解析到境外 CDN（fixtures 里没列，按境外 IP 算）：标准版 Loon / QX 按解析到的 IP 走国外默认（已知行为，见 source/services/misc.yaml 里国内常用网站的说明）；严格版按域名清单直连，和 mihomo / sing-box 一致"}
+  - {host: time.apple.com, expect: Apple, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "要真实地址的名单（source/project.yaml 的 dns.real_ip）：严格版固定直连。标准版没有专门的规则，跟着 Apple 组"}
+  - {host: time.windows.com, expect: Microsoft, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "同上；标准版跟着 Microsoft 组"}
+  - {host: 0.pool.ntp.org, expect: 国外默认, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "同上；标准版没有规则接住它，落到国外默认"}
+  - {host: id6.me, expect: 国内直连, synthetic: true, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "同上（运营商号码认证）。这一条只在样本数据下跑：样本的广告集合里没有它，看的是“名单里的名字在严格版固定直连”。真实数据下的结果见 real_only 一节"}
+  - {host: never-listed-site.org, expect: 国外默认, why: "虚构的名字，哪个集合、哪份清单里都没有：各端都落到国外默认。标准版要先解析再判断，严格版不解析"}
+
+  # ---------- 2026-10-06 需求补充：Apple Push（推送通知单独一组，默认直连） ----------
+  - {host: 1-courier.push.apple.com, expect: Apple Push, why: "推送长连接用的主机；比 apple.com 更具体，排在 Apple 组之前"}
+  - {host: init.push.apple.com, expect: Apple Push}
+  - {host: init-p01st.push.apple.com, expect: Apple Push, why: "上游把它标成国内节点（@cn），sing-box 用的国内域名集合里有它：仍然先由这条规则接住"}
+  - {host: push.apple.com, expect: Apple Push}
+  - {host: xp.apple.com, expect: Apple, why: "对照：别的 apple.com 主机仍归 Apple 组"}
+
 # 跟随上游数据的已知行为。这一节不是“应该这样”的期望，是“上游数据现在是这样、用户决定不更正”的记录：
 #   expect 写这个主机按需求本该去哪里，per_client 写某一端因为上游数据实际去了哪里。
 # 只在真实数据下核对（tests/test_real_data.py；mihomo / sing-box 另由 tools/check_real_routes.py 用官方内核实际跑），
@@ -256,6 +286,16 @@ cases:
 upstream_followed:
   - {host: example.ms, expect: 国外默认, per_client: {mihomo: 国内直连},
      why: "MetaCubeX 的国内域名集合里有整段 .ms（SagerNet 的没有）。r8 加过一条只写进 mihomo 的 DOMAIN-SUFFIX,ms → 国外默认；2026-10-04 用户决定删掉、跟随上游。所以 mihomo 上没被产品规则接住的 .ms 域名走国内直连"}
+
+# 只在真实数据下才看得到的行为（2026-10-06）。和 upstream_followed 不同：这里的 expect / per_client 就是现状的如实记录，
+# 样本数据那一遍不跑（样本里没有这些上游条目）。每一条都要在 docs/06 里有对应的说明。
+real_only:
+  - {host: id6.me, expect: 国内直连,
+     per_client: {loon: 广告拦截, quantumultx: 广告拦截, loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "中国电信的号码认证主机，在“要真实地址的名单”里。blackmatrix7 的 AdvertisingLite 把它当广告收了（domain-list-community 的广告集合没有收）：标准版 Loon / QX 上远程广告集合先接住它，被拦；mihomo / sing-box 不拦；严格版里名单固定直连的本地规则排在远程集合之前，直连。标准版这一轮没有改，列为待决事项 18"}
+  - {host: log.cmpassport.com, expect: 国内直连,
+     per_client: {loon: 广告拦截, quantumultx: 广告拦截, loon-strict: DIRECT, quantumultx-strict: DIRECT},
+     why: "中国移动号码认证的日志主机，cmpassport.com 在“要真实地址的名单”里。AdvertisingLite 收了这一个子域：标准版 Loon / QX 拦；sing-box 的国内域名集合收了 cmpassport.com，mihomo 的没有收、靠解析到的国内 IP（假定的解析结果），都是国内直连；严格版固定直连。同属待决事项 18"}
 
 # sing-box 的 DNS 去向（2026-10-03 审核 F01 的 DNS 部分）。期望按设计人工写出：
 #   按产品规则走代理组的域名，不交给国内 DNS：A 查询给假地址（dns-fakeip），其他类型交给经代理的 dns-foreign；
@@ -283,6 +323,7 @@ singbox_dns:
   - {host: unknown-foreign.example, type: HTTPS, expect: dns-foreign}
   - {host: nas.lan, type: A, expect: dns-local}
   - {host: captive.apple.com, type: A, expect: dns-cn, why: 系统联网检测要真实地址}
+  - {host: init-p01st.push.apple.com, type: A, expect: dns-fakeip, why: "Apple Push 组（默认直连，可切到代理）：上游国内域名集合收了它，仍然给假地址，直连时由直连出站用国内 DNS 解析"}
 
 # sing-box 拨号时的解析（2026-10-04 审核 r9 的 F02）。普通的 DNS 查询走 dns.rules；节点连接自己的服务器、直连出站连接
 # 域名形式的目标时，解析走的是另一条路：出站自己的 domain_resolver，没有的话用 route.default_domain_resolver（国内 DoH），
@@ -291,6 +332,13 @@ singbox_dns:
 #   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连之前，这个名字交给哪个 DNS 服务器解析”
 # tests/test_dns_lan.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
 # （拨号过程保留，DNS 换成本机替身、所有名字都答 127.0.0.1，所以不会连到本机以外），结果记在快照里。
+#
+# 2026-10-06 加了两类（“国外的连接，名字不要让国内 DNS 看到”）。看的是内核处理这个连接的全过程里，这个名字被哪个 DNS 替身收到过：
+#   kind: proxied   有规则、走代理组的域名；expect: none = 三个替身都没有收到关于它的查询（规则判断时不解析，连接交给代理）
+#   kind: unlisted  没有被任何域名规则接住的域名；expect: dns-foreign = 为了判断后面的国内 IP 规则要解析一次，只问境外 DNS
+# 这两类加上“直连公网域名”那条对照，另外在“境外 DNS 替身只收不答”的条件下重跑一遍（每个连接保持 14 秒，比内核的 DNS 超时长）：
+# 结果必须和正常那一遍相同——境外 DNS 不应答时，内核不会转去问国内 / 系统 DNS。记录在快照的 dial_foreign_silent 里。
+# 名字的选法：不用 .example 结尾的（上游的 private 集合把 example 当保留后缀收了），不用容器 hosts 文件里有的名字。
 singbox_dial:
   - {kind: node, server: gateway.lan, expect: dns-local, why: 节点的服务器是局域网后缀下的名字（审核方的例子）}
   - {kind: node, server: proxy.home.arpa, expect: dns-local, why: 审核方的另一个例子}
@@ -299,18 +347,35 @@ singbox_dial:
   - {kind: node, server: lan.example.com, expect: dns-cn, why: "只是名字里有 lan，不是局域网后缀"}
   - {kind: direct, host: nas.lan, expect: dns-local, why: 域名形式的局域网目标：直连之前先用系统 DNS 解析}
   - {kind: direct, host: www.baidu.com, expect: dns-cn, why: 国内直连的公网域名：直连出站用默认解析器}
+  - {kind: proxied, host: www.youtube.com, expect: none, why: "有产品规则、走代理组：规则判断时不解析"}
+  - {kind: proxied, host: gemini.google.com, expect: none}
+  - {kind: proxied, host: chat.qwen.ai, expect: none, why: "在上游的国内域名集合里，但排在前面的显式规则把它交给国外默认：不解析，国内 DNS 看不到它"}
+  - {kind: unlisted, host: never-listed-site.org, expect: dns-foreign, why: "虚构的名字，没有被任何域名规则接住：路由里的 resolve 动作只问境外 DNS"}
+  - {kind: unlisted, host: r1.test.dnsleaktest.com, expect: dns-foreign, why: "DNS 泄露测试网站用的那一类随机子域名"}
 
-# mihomo 的 DNS 查询去向：设备上的程序发来的查询（TUN 接管的查询走这条）交给哪一类 DNS。只核对和局域网名字有关的几条——
-# 2026-10-05 处理审核 r10 的 R10-F01 时自查加的：局域网后缀 → 系统 DNS 这一条（2026-09-30 审核 F04）以前只有静态检查，没有用官方内核跑过。
-# expect：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS；fake-ip = 直接给假地址，不向任何上游查询。
+# mihomo 的 DNS 查询去向：设备上的程序发来的查询（TUN 接管的查询走这条）交给哪一类 DNS。
+# 前四条和局域网名字有关——2026-10-05 处理审核 r10 的 R10-F01 时自查加的：局域网后缀 → 系统 DNS 这一条（2026-09-30 审核 F04）
+# 以前只有静态检查，没有用官方内核跑过。后面几条是 2026-10-06 加的：走代理的域名、哪个集合里都没有的域名，查询交给谁。
+# expect：system = 系统 DNS（路由器 / 公司内网的 DNS）；domestic = 国内 DNS；foreign = 境外 DNS；
+#         fake-ip = 直接给假地址，不向任何上游查询；empty = 内核直接回一个没有记录的应答，同样不向任何上游查询。
 # 期望是人工写的；tools/check_real_routes.py 用官方内核实际查询（三类 DNS 各换成一个本机替身），结果记在快照里。
+# 同一批查询另外在“境外 DNS 替身只收不答”的条件下重跑一遍，收到查询的替身必须不变（记录在 dns_foreign_silent）。
 # 标了 limit 的是已知限制的现状（docs/06），记在这里是为了让文档里的说法有据可查：哪天改了或者上游数据变了，这里会提示。
+# 一个名字只能出现在一条用例里（mihomo_dial 里的名字也算）：核对时是按名字认查询的。
 mihomo_dns:
   - {host: printer.lan, type: A, expect: system, why: "局域网后缀：nameserver-policy 的第一条"}
   - {host: nas.home.arpa, type: A, expect: system, why: 两级的局域网后缀}
   - {host: www.taobao.com, type: A, expect: fake-ip, why: "对照：普通域名直接给假地址，不向上游查询"}
   - {host: printer, type: A, expect: domestic, limit: true,
      why: "已知限制：不带点的名字。上游的 private 集合里有一条匹配“字母开头的单个标签”的正则，查询落到 geosite:cn,private 那条策略，交给国内的公共 DNS（它不认识这个名字）"}
+  - {host: chatgpt.com, type: A, expect: fake-ip, why: "走代理组的域名：直接给假地址，不向任何上游查询"}
+  - {host: api.openai.com, type: HTTPS, expect: empty, why: "HTTPS 类型的查询：内核直接回空应答，不向任何上游查询"}
+  - {host: claude.ai, type: TXT, expect: foreign, why: "地址以外的类型才会真的去查：交给境外 DNS"}
+  - {host: never-listed-query.net, type: A, expect: fake-ip, why: "虚构的名字，哪个集合里都没有：同样直接给假地址"}
+  - {host: never-listed-txt.net, type: TXT, expect: foreign, why: "同上，其他类型交给境外 DNS"}
+  - {host: www.qq.com, type: TXT, expect: domestic, why: "对照：国内域名集合里、路由也走国内直连的域名，交给国内 DNS"}
+  - {host: qwen.ai, type: TXT, expect: domestic, limit: true,
+     why: "已知限制（2026-10-06 全集一致性核对查出来的）：上游的国内域名集合收了 qwen.ai，路由靠排在前面的显式规则把它交给国外默认，但 nameserver-policy 里没有对应的一条，所以地址以外的查询类型仍交给国内 DNS。A 查询给假地址、连接本身不解析，不受影响。sing-box 的 DNS 规则里有这一层，没有这个问题"}
 
 # mihomo 拨号时的解析（2026-10-05 审核 r10 的 R10-F01）。mihomo 里“内核自己要连一个域名形式的地址”有两条路，各用各的解析器：
 #   节点连接自己的服务器 → proxy-server-nameserver，它的例外写在 proxy-server-nameserver-policy 里，不看 nameserver-policy；
@@ -319,6 +384,7 @@ mihomo_dns:
 # 用例和上面 sing-box 的是同一批名字，两个内核对同一个名字的归类应该相同（dns-local 对 system，dns-cn 对 domestic），测试会核对。
 #   kind: node    一个节点，服务器地址是 server；expect 是“连这个节点时，server 这个名字交给哪一类 DNS 解析”
 #   kind: direct  一个域名形式的目标 host，按规则走直连；expect 是“直连时，这个名字交给哪一类 DNS 解析”
+#   kind: proxied / unlisted  2026-10-06 加的，含义见上面 sing-box 那一节；expect: none = 三类替身都没有收到关于它的查询
 # tests/test_dns_lan.py 静态检查生成的配置里有对应的字段；tools/check_real_routes.py 另用官方内核实际拨号核对
 # （拨号过程保留；系统、国内、境外三类 DNS 各换成一个本机替身，所有名字都答 127.0.0.1，所以不会连到本机以外），结果记在快照里。
 mihomo_dial:
@@ -329,6 +395,25 @@ mihomo_dial:
   - {kind: node, server: lan.example.com, expect: domestic, why: "只是名字里有 lan，不是局域网后缀"}
   - {kind: direct, host: nas.lan, expect: system, why: "域名形式的局域网目标：直连出口的解析跟随 nameserver-policy（2026-09-30 审核 F04 的修正）"}
   - {kind: direct, host: www.baidu.com, expect: domestic, why: 国内直连的公网域名：国内 DNS}
+  - {kind: proxied, host: www.youtube.com, expect: none, why: "有产品规则、走代理组：规则判断时不解析"}
+  - {kind: proxied, host: gemini.google.com, expect: none}
+  - {kind: proxied, host: chat.qwen.ai, expect: none, why: "在上游的国内域名集合里，但排在前面的显式规则把它交给国外默认：不解析，国内 DNS 看不到它"}
+  - {kind: unlisted, host: never-listed-site.org, expect: foreign, why: "虚构的名字，没有被任何域名规则接住：为了判断最后的 GEOIP,CN 要解析一次，只问境外 DNS"}
+  - {kind: unlisted, host: r1.test.dnsleaktest.com, expect: foreign, why: "DNS 泄露测试网站用的那一类随机子域名"}
+
+# 国内 DNS 与路由的全集一致性（2026-10-06）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；现在有的，
+# 必须属于下面列出的已知类别。全集怎么扫的见 tools/dns_route_consistency.py；扫描结果连同官方内核的抽查记在快照的
+# consistency 里，tests/test_real_data.py 逐个核对：每个不一致的主机都能归到某一类，每一类都确实还有主机（没有了就该删掉）。
+# 这些都是现状的记录，不是“应该这样”——标准版这一轮没有改，怎么处理列在 docs/06 的待决事项里。
+#   kind: real_ip     名字在“要真实地址的名单”里（source/project.yaml 的 dns.real_ip），路由没有把它固定为直连
+#   kind: private     名字来自上游的 private 集合（保留后缀、反向解析域、路由器登录域名），路由没有把它固定为直连
+#   kind: product_cn  上游的国内域名集合收了它，路由靠排在前面的产品规则把它交给代理组
+dns_route_consistency:
+  singbox:
+    - {kind: real_ip, why: "DNS 规则第二条把要真实地址的名单整个交给 dns-cn；其中 time.windows.com 路由归 Microsoft 组，pool.ntp.org 落到国外默认，icitymobile.mobi 没有域名规则、按解析到的 IP 决定。待决事项 15"}
+  mihomo:
+    - {kind: private, why: "nameserver-policy 的 geosite:cn,private 把 private 集合也交给国内 DNS，fake-ip-filter 又让它们拿真实地址；路由上只有局域网后缀固定直连，其余按解析到的 IP 决定。待决事项 14"}
+    - {kind: product_cn, why: "nameserver-policy 里没有“走代理组的产品域名”这一层（sing-box 的 DNS 规则里有）。只影响地址以外的查询类型：A 查询给假地址，AAAA / HTTPS 回空应答，连接本身不解析。待决事项 16"}
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:
@@ -376,6 +461,7 @@ defaults:
   Apple: DIRECT
   Apple AI: 美国
   Apple Music/TV: DIRECT
+  Apple Push: DIRECT
   Google: 国外默认
   Microsoft: 国外默认
   GitHub: 国外默认

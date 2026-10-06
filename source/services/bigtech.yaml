@@ -56,6 +56,18 @@ services:
       - {domain: np-edge.itunes.apple.com, ev: dlc}
       - {domain: uts-api.itunes.apple.com, ev: dlc}
 
+  # ---------- Apple 推送（需求补充 2026-10-06）----------
+  # 只收官方网络要求里写明的 *.push.apple.com。官方另外建议放行整个 17.0.0.0/8——那是整个 Apple 的地址段，不只是推送，
+  # 所以没有按地址段写规则：设备是按域名（1-courier.push.apple.com 这类）连接推送服务器的，域名规则接得住。
+  # 没有按端口写规则（推送主要用 TCP 5223）：四端里只有部分客户端有端口类规则，而且别的服务也会用这个端口。
+  # 写在 apple 之前；生成器另按“更具体的规则先匹配”把它排在 apple.com 之前。
+  - id: apple_push
+    group: Apple Push
+    title: Apple 推送通知（APNs）
+    upstream: {dlc: [apple]}
+    rules:
+      - {suffix: push.apple.com, ev: apple-push-net, note: "官方写的是 *.push.apple.com（TCP 443 / 80 / 5223 / 2197）；courier、init、api 等主机都在它下面"}
+
   - id: apple
     group: Apple
     title: Apple 通用（App Store、iCloud、系统服务）

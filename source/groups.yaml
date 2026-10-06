@@ -57,6 +57,8 @@ groups:
   - {name: Apple,          category: 大厂, default: DIRECT, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区]}
   - {name: Apple Music/TV, category: 大厂, default: DIRECT, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区],
      note: 可手动选择地区}
+  - {name: Apple Push,     category: 大厂, default: DIRECT, options: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区],
+     note: 需求补充（2026-10-06）：Apple 推送通知（APNs）单独一组。默认直连（和加这个组之前的效果一样），推送不正常时手动切到代理；规则排在 Apple 组之前}
   - {name: Google,    category: 大厂, default: 国外默认, options: standard}
   - {name: Microsoft, category: 大厂, default: 国外默认, options: standard}
   - {name: GitHub,    category: 大厂, default: 国外默认, options: standard}

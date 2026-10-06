@@ -1,6 +1,6 @@
 # Cursor 版迁入核对（自动生成，请勿手改）
 
-由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.05-2` 计算每条规则的去向。
+由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.06-1` 计算每条规则的去向。
 “去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box”那一类。
 
 ## 一、Cursor 版的规则在本工程里进哪个组

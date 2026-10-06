@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""上一版交付包与当前工程的对比：节点按名称分地区的结果，以及六个公开产物改了什么。
+"""上一版交付包与当前工程的对比：节点按名称分地区的结果，以及公开产物改了什么。
 
 用法：python3 tools/compare_versions.py --old <上一版交付包解压后的工程目录> [--old-label r8] [--new-label r9] [--write] [--out 文件]
   --old    上一版的工程目录（里面有 source/、generator/、dist/）。上一版的筛选正则由它自己的生成器算出来：
@@ -14,8 +14,11 @@
      城市名）在两版规则下各分到哪里。当前这一版每个地区有两条筛选（宽的给手动组，严的给自动 / 故障转移 / 负载均衡），
      上一版如果只有一条，就拿它同时和两种期望比。
   2. 社区写法：几份公开配置里的地区正则，原样用 ICU 执行（这台机器没有 ICU 时跳过这一节）。
-  3. 公开产物：两版 dist/ 里的六个文件按“规则 / 策略组 / DNS / 其余设置”拆成一条一条来比，列出新增、删除、改动的条目，
-     并确认两版都有的规则先后顺序没有变。节点筛选正则太长，对比时换成“宽 hk”“严 hk”“上一版 hk”这样的标记。
+  3. 公开产物：两版 dist/ 里的配置文件（标准版六份；2026-10-06 起另有 Loon / Quantumult X 的严格版两份）按
+     “规则 / 策略组 / DNS / 其余设置”拆成一条一条来比，列出新增、删除、改动的条目，并确认两版都有的规则先后顺序没有变。
+     节点筛选正则太长，对比时换成“宽 hk”“严 hk”“上一版 hk”这样的标记。
+  4. 严格版：当前这一版的严格版相对同一版的标准版改了什么（同一套拆分办法），以及它引用的自有远程规则文件的规模、
+     和上一版相比有没有变。
 只读取文件，不联网。r6 → r7 那一次的对比（当时的规则写在 project.yaml 里，结构不同）保留在
 docs/evidence/节点名称分组-r6与r7对比.md，不再重算。
 """
@@ -64,7 +67,11 @@ COMMUNITY = {
 }
 
 OUTPUTS = ("loon/loon.conf", "quantumultx/quantumultx.conf", "mihomo/mihomo-profile.yaml", "mihomo/mihomo-core.yaml",
-           "sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json")
+           "sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json",
+           "loon/loon-strict.conf", "quantumultx/quantumultx-strict.conf")
+# 严格版（2026-10-06 起）：（严格版, 同一个 App 的标准版）；以及严格版引用的自有远程规则文件
+STRICT_PAIRS = (("loon/loon-strict.conf", "loon/loon.conf"), ("quantumultx/quantumultx-strict.conf", "quantumultx/quantumultx.conf"))
+OWN_RULE_FILES = ("loon/rules/cn-domains.list", "quantumultx/rules/cn-domains.list", "quantumultx/rules/domain-fallback.list")
 MAX_ITEMS = 40          # 每个分段最多列出这么多条，其余只报数量
 MAX_LEN = 220
 
@@ -529,7 +536,7 @@ def output_diff_lines(ta: str, tb: str, rel: str, labels, seen: dict) -> list:
 
 
 def outputs_section(L, old_dir, labels, old_label, new_label):
-    L += [f"## 五、六个公开产物：{old_label} → {new_label} 改了什么", "",
+    L += [f"## 五、公开产物（配置文件）：{old_label} → {new_label} 改了什么", "",
           "每个产物按“分段”拆成一条一条来比（去掉注释）：Loon / Quantumult X 按 `[分段]` 逐行；mihomo 按策略组、规则、DNS、其余设置；"
           "sing-box 按 DNS 服务器、DNS 规则、路由规则、规则集、出站与策略组、其余设置。节点筛选正则换成了标记："
           f"`<筛选：上一版 hk>` / `<筛选：上一版严 hk>` 是 {old_label} 的（{old_label} 每个地区只有一条筛选时没有后一种），"
@@ -539,6 +546,9 @@ def outputs_section(L, old_dir, labels, old_label, new_label):
     for rel in OUTPUTS:
         a, b = os.path.join(old_dir, "dist", rel), os.path.join(ROOT, "dist", rel)
         L += [f"### `{rel}`", ""]
+        if os.path.exists(b) and not os.path.exists(a) and rel in dict(STRICT_PAIRS):
+            L += [f"{old_label} 没有这个文件，是这一版新增的严格版。它和同一版标准版的差别见第六节。", ""]
+            continue
         if not (os.path.exists(a) and os.path.exists(b)):
             L += ["缺文件，没有比。", ""]
             continue
@@ -546,6 +556,60 @@ def outputs_section(L, old_dir, labels, old_label, new_label):
             ta, tb = fa.read(), fb.read()
         L.append(f"大小：{len(ta.encode('utf-8')):,} → {len(tb.encode('utf-8')):,} 字节。")
         L += output_diff_lines(ta, tb, rel, labels, seen)
+
+
+def _rule_file_stats(text: str) -> str:
+    rules = [ln for ln in text.splitlines() if ln.strip() and not ln.startswith(("#", ";"))]
+    kinds = collections.Counter(ln.split(",", 1)[0] for ln in rules)
+    return (f"{len(text.encode('utf-8')):,} 字节，规则 {len(rules):,} 条（"
+            + "、".join(f"{k} {v:,}" for k, v in sorted(kinds.items())) + "）")
+
+
+def strict_section(L, old_dir, labels, old_label, new_label):
+    """严格版：当前这一版的严格版相对同一版的标准版改了什么；它引用的自有远程规则文件。当前这一版没有严格版时什么都不写。"""
+    dist = os.path.join(ROOT, "dist")
+    if not any(os.path.exists(os.path.join(dist, strict_rel)) for strict_rel, _ in STRICT_PAIRS):
+        return
+    L += [f"## 六、严格版：{new_label} 的严格版相对同一版的标准版", "",
+          "严格版只给 Loon / Quantumult X 各多生成一份。下面比的是**同一版里**严格版和标准版这两个文件（不是和上一版比），"
+          "拆分办法和第五节相同；两份文件的筛选正则相同，所以标记都是这一版的。", ""]
+    for strict_rel, std_rel in STRICT_PAIRS:
+        a, b = os.path.join(dist, std_rel), os.path.join(dist, strict_rel)
+        L += [f"### `{strict_rel}` 对照 `{std_rel}`", ""]
+        if not (os.path.exists(a) and os.path.exists(b)):
+            L += ["缺文件，没有比。", ""]
+            continue
+        with open(a, encoding="utf-8") as fa, open(b, encoding="utf-8") as fb:
+            ta, tb = fa.read(), fb.read()
+        L.append(f"大小：标准版 {len(ta.encode('utf-8')):,} 字节，严格版 {len(tb.encode('utf-8')):,} 字节。")
+        if ta == tb:
+            L += ["两个文件一模一样——严格版没有起作用。", ""]
+            continue
+        L += output_diff_lines(ta, tb, strict_rel, labels, {})
+    L += ["### 严格版引用的自有远程规则文件", "",
+          "这几个文件生成在 `dist/` 下，严格版的配置按仓库 `main` 分支的地址引用它们。", ""]
+    for rel in OWN_RULE_FILES:
+        b, a = os.path.join(dist, rel), os.path.join(old_dir, "dist", rel)
+        if not os.path.exists(b):
+            L.append(f"- `{rel}`：这一版没有生成。")
+            continue
+        with open(b, encoding="utf-8") as f:
+            tb = f.read()
+        line = f"- `{rel}`：{_rule_file_stats(tb)}。"
+        if not os.path.exists(a):
+            line += f"{old_label} 没有这个文件。"
+        else:
+            with open(a, encoding="utf-8") as f:
+                ta = f.read()
+            if ta == tb:
+                line += f"和 {old_label} 的一模一样。"
+            else:
+                ra = {ln for ln in ta.splitlines() if ln.strip() and not ln.startswith("#")}
+                rb = {ln for ln in tb.splitlines() if ln.strip() and not ln.startswith("#")}
+                line += (f"和 {old_label} 相比：新增 {len(rb - ra):,} 条、删除 {len(ra - rb):,} 条"
+                         + ("（规则相同，只有注释不同）" if ra == rb else "") + "。")
+        L.append(line)
+    L.append("")
 
 
 def main(argv=None) -> int:
@@ -578,6 +642,7 @@ def main(argv=None) -> int:
     community_section(L, expect, indep, comp(old_loose), comp(new_loose), a.old_label, a.new_label)
     labels = Labels([("上一版 ", old_loose), ("上一版严 ", old_strict), ("宽 ", new_loose), ("严 ", new_strict)])
     outputs_section(L, a.old, labels, a.old_label, a.new_label)
+    strict_section(L, a.old, labels, a.old_label, a.new_label)
 
     text = "\n".join(L) + "\n"
     if a.write:

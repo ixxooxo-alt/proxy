@@ -82,7 +82,7 @@ class LanDns(unittest.TestCase):
         for host in names:
             self.assertEqual(mihomo_policy_matches(patterns, host), emit_singbox.is_lan_name(host, self.lan), host)
         cases = load_yaml("cases.yaml")
-        same = {"dns-local": "system", "dns-cn": "domestic", "dns-foreign": "foreign"}
+        same = {"dns-local": "system", "dns-cn": "domestic", "dns-foreign": "foreign", "none": "none"}
         self.assertEqual([(c["kind"], c.get("server"), c.get("host"), same[c["expect"]]) for c in cases["singbox_dial"]],
                          [(c["kind"], c.get("server"), c.get("host"), c["expect"]) for c in cases["mihomo_dial"]])
         nodes = [c for c in cases["mihomo_dial"] if c["kind"] == "node"]

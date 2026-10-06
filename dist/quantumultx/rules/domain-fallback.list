@@ -1,0 +1,6 @@
+# Quantumult X 严格版的域名兜底。由统一源生成，请勿手工修改。
+# 只有一条规则：主机名里含“.”就命中。它排在全部远程规则的最后，没有被前面任何域名规则接住的域名都落到这里，
+# 交给配置里 force-policy= 指定的策略（国外默认），不再为了判断 IP 规则而在本机解析。
+# 写法出自官方 sample.conf：“You can add below host-keyword rule to skip the DNS query for all the non-matched hosts.
+# Pure IP requests won't be matched by the host related rules.”——原本就是 IP 的连接不受它影响。
+HOST-KEYWORD,.,proxy

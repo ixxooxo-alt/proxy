@@ -2,16 +2,25 @@
 sing-box 的出站标签不能重名。以前这些只在单独运行测试时检查，正常生成不会拦住坏配置。
 
 这里的解析只看结构（名字和引用），不模拟匹配；匹配行为由 tests/ 里独立写的模拟器检查。
+
+严格版（loon-strict.conf、quantumultx-strict.conf，2026-10-06）另查几条它赖以成立的结构：
+  Loon：[Rule] 里每一条按 IP 判断的规则都带 no-resolve（漏一条，没命中域名规则的域名就又要在本机解析）；
+  Quantumult X：[filter_remote] 的最后一条是域名兜底、交给“国外默认”，而且没有用 inserted-resource；
+  两端：广告集合在前、国内域名清单在后，清单交给“国内直连”；引用的自有远程规则文件确实在这次生成的产物里；
+  自有文件本身：国内清单只有域名和后缀两类规则，兜底文件只有那一条关键词规则。
 """
 from __future__ import annotations
 
 import json
 import re
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 import yaml
 
+from . import strict as strict_mod
+
 BUILTIN = {"DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE"}
+LOON_IP_RULES = {"IP-CIDR", "IP-CIDR6", "GEOIP", "IP-ASN"}
 
 
 def _sections(text: str) -> Dict[str, List[str]]:
@@ -164,7 +173,45 @@ def check_singbox(text: str) -> List[str]:
     return problems
 
 
-def check_loon(text: str) -> List[str]:
+def own_files(model, files: Dict[str, str]) -> dict:
+    """这次生成的自有远程规则文件：{"base": 发布前缀, "files": {地址: (相对路径, 内容)}}。
+    私密产物里的严格版引用的也是这几个公开文件，所以检查私密产物时传同一份。"""
+    base = model.strict["publish_base"]
+    return {"base": base, "files": {base + rel: (rel, files[rel]) for rel in strict_mod.OWN_FILES if rel in files}}
+
+
+def _remote_entries(lines: List[str], policy_key: str) -> List[dict]:
+    out = []
+    for line in lines:
+        parts = [x.strip() for x in line.split(",")]
+        kv = dict(x.split("=", 1) for x in parts[1:] if "=" in x)
+        out.append({"url": parts[0], "policy": (kv.get(policy_key) or "").strip(), "enabled": kv.get("enabled", "true").strip(),
+                    "raw": line, "flags": {k.strip() for k in kv}})
+    return out
+
+
+def _check_own_refs(entries: List[dict], own: Optional[dict]) -> List[str]:
+    if not own:
+        return []
+    return [f"远程规则 {e['url']} 在自有文件的发布位置下，但这次生成的产物里没有这个文件"
+            for e in entries if e["url"].startswith(own["base"]) and e["url"] not in own["files"]]
+
+
+def _check_domestic_after_ads(entries: List[dict], what: str) -> List[str]:
+    problems = []
+    ads = [i for i, e in enumerate(entries) if e["policy"] == "广告拦截"]
+    cn = [i for i, e in enumerate(entries) if e["policy"] == "国内直连"]
+    if not cn:
+        problems.append(f"严格版的{what}里没有交给“国内直连”的国内域名清单（国内网站会全部走代理）")
+    elif ads and min(cn) < max(ads):
+        problems.append(f"严格版的{what}里国内域名清单排在了广告集合前面（清单里的域名下的广告主机拦不到了）")
+    for e in entries:
+        if e["enabled"] != "true":
+            problems.append(f"严格版的远程规则 {e['url']} 没有启用")
+    return problems
+
+
+def check_loon(text: str, strict: bool = False, own: Optional[dict] = None) -> List[str]:
     s = _sections(text)
     problems = []
     filters = {line.split("=", 1)[0].strip() for line in s.get("Remote Filter", [])}
@@ -194,10 +241,18 @@ def check_loon(text: str) -> List[str]:
     loop = _cycles(graph)
     if loop:
         problems.append("组循环引用：" + " → ".join(loop))
+    remote = _remote_entries(s.get("Remote Rule", []), "policy")
+    problems += _check_own_refs(remote, own)
+    if strict:
+        for line in s.get("Rule", []):
+            parts = [x.strip() for x in line.split(",")]
+            if parts[0].upper() in LOON_IP_RULES and "no-resolve" not in parts[3:]:
+                problems.append(f"严格版里按 IP 判断的规则 {line} 没有 no-resolve：没命中域名规则的域名又要在本机解析")
+        problems += _check_domestic_after_ads(remote, " [Remote Rule] ")
     return problems
 
 
-def check_qx(text: str) -> List[str]:
+def check_qx(text: str, strict: bool = False, own: Optional[dict] = None) -> List[str]:
     s = _sections(text)
     problems = []
     graph: Dict[str, List[str]] = {}
@@ -227,11 +282,51 @@ def check_qx(text: str) -> List[str]:
     loop = _cycles(graph)
     if loop:
         problems.append("策略循环引用：" + " → ".join(loop))
+    remote = _remote_entries(s.get("filter_remote", []), "force-policy")
+    problems += _check_own_refs(remote, own)
+    if strict:
+        last = remote[-1] if remote else None
+        is_fallback = bool(last) and last["url"].endswith("/" + strict_mod.QX_FALLBACK_REL)
+        if not is_fallback:
+            problems.append("严格版 [filter_remote] 的最后一条不是域名兜底：没被前面规则接住的域名又要在本机解析")
+        elif last["policy"] != "国外默认":
+            problems.append(f"严格版的域名兜底交给了 {last['policy']}，应该是“国外默认”")
+        if any(e["url"].endswith("/" + strict_mod.QX_FALLBACK_REL) for e in remote[:-1]):
+            problems.append("严格版的域名兜底不是最后一条：排在它后面的远程规则不会再有域名命中")
+        if any("inserted-resource" in e["flags"] for e in remote):
+            problems.append("严格版的远程规则用了 inserted-resource：它会改变远程规则与本地规则的先后，本项目没有按这种写法核对过")
+        problems += _check_domestic_after_ads(remote[:-1] if is_fallback else remote, " [filter_remote] ")
     return problems
 
 
-def check_outputs(files: Dict[str, str]) -> List[str]:
-    """files：{相对路径: 内容}。按文件名判断格式，返回“文件：问题”列表。"""
+def check_own_lists(files: Dict[str, str]) -> List[str]:
+    """自有远程规则文件的内容：国内清单只能有域名、后缀两类规则；域名兜底只能有那一条关键词规则。"""
+    out: List[str] = []
+
+    def rules_of(rel):
+        return [[x.strip() for x in ln.split(",")] for ln in files[rel].splitlines() if ln.strip() and not ln.startswith("#")]
+
+    for rel, allowed, fields in ((strict_mod.LOON_CN_REL, {"DOMAIN", "DOMAIN-SUFFIX"}, 2),
+                                 (strict_mod.QX_CN_REL, {"HOST", "HOST-SUFFIX"}, 3)):
+        if rel not in files:
+            continue
+        rules = rules_of(rel)
+        bad = [r for r in rules if r[0] not in allowed or len(r) != fields or not r[1]]
+        if bad:
+            out.append(f"{rel}：有 {len(bad)} 行不是“域名 / 后缀”规则，例如 {','.join(bad[0])}")
+        if len(rules) < 1000:
+            out.append(f"{rel}：只有 {len(rules)} 条，不像一份完整的国内域名清单")
+        if fields == 3 and any(r[2] != strict_mod.QX_INLINE_DIRECT for r in rules if len(r) == 3):
+            out.append(f"{rel}：行内的策略名应全部是 {strict_mod.QX_INLINE_DIRECT}")
+    rel = strict_mod.QX_FALLBACK_REL
+    if rel in files and rules_of(rel) != [["HOST-KEYWORD", strict_mod.FALLBACK_KEYWORD, strict_mod.QX_INLINE_PROXY]]:
+        out.append(f"{rel}：应该只有一条 HOST-KEYWORD,{strict_mod.FALLBACK_KEYWORD},{strict_mod.QX_INLINE_PROXY}")
+    return [f"{x}" for x in out]
+
+
+def check_outputs(files: Dict[str, str], own: Optional[dict] = None) -> List[str]:
+    """files：{相对路径: 内容}。按文件名判断格式，返回“文件：问题”列表。
+    own：这次生成的自有远程规则文件（own_files 的返回值）；给了才检查配置里对它们的引用。"""
     out: List[str] = []
     for rel, text in sorted(files.items()):
         base = rel.rsplit("/", 1)[-1]
@@ -239,11 +334,12 @@ def check_outputs(files: Dict[str, str]) -> List[str]:
             probs = check_mihomo(text)
         elif base.startswith("sing-box") and base.endswith(".json"):
             probs = check_singbox(text)
-        elif base == "loon.conf":
-            probs = check_loon(text)
-        elif base == "quantumultx.conf":
-            probs = check_qx(text)
+        elif base in ("loon.conf", "loon-strict.conf"):
+            probs = check_loon(text, strict=base == "loon-strict.conf", own=own)
+        elif base in ("quantumultx.conf", "quantumultx-strict.conf"):
+            probs = check_qx(text, strict=base == "quantumultx-strict.conf", own=own)
         else:
             continue
         out += [f"{rel}：{p}" for p in probs]
+    out += check_own_lists(files)
     return out
