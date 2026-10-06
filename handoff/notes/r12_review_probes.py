@@ -3,7 +3,7 @@
 
 用官方 mihomo v1.19.31 和这份工程生成的配置：
   A. 复现审核报告第二节第 7 条：6 个节点服务器名字分别交给哪一类 DNS 解析；
-  B. 复现第二节第 8 条：快照里归为 product_cn 的主机（全集一致性查出来的第三类，待决事项 16），
+  B. 复现第二节第 8 条：快照里归为 product_cn 的主机（逐条扫描——r12 时叫“全集一致性”——查出来的第三类，待决事项 16），
      A / AAAA / HTTPS 查询各一次，内核怎么回、有没有替身收到；再加 qwen.ai 的 TXT；
   C. 审核报告第三节第 4 点说的 Clash Verge Rev 开虚拟网卡时的情形：v2.5.7 enhance/tun.rs 第 34–48 行在 fake-ip 模式下
      把 dns.ipv6 设成顶层的 ipv6（App 的 IPv6 开关，模板默认开），并在没有 fake-ip-range6 时补上 2001:2::0/64。
@@ -14,6 +14,9 @@
 看“这个名字被哪一类替身收到过”，内核没有向上游查询时看它自己回了什么。不联网。
 
 用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r12_review_probes.py > handoff/notes/r12_review_probes.out
+
+r12_review_probes.before-fix.out 是同一个脚本在修 tools/check_real_routes.py 之前跑的输出（当时那里只读 A 记录、
+没有 A 记录就算“空应答”）：C 两遍都报 AAAA 空应答 142 个，假的 IPv6 地址被看漏了——这就是那个缺陷。只截了脚本的标准输出。
 """
 import ipaddress
 import json

@@ -145,6 +145,7 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 1. **做了什么**：用户发来 GPT 对 r12 的审核报告（原文 `docs/evidence/gpt-r12/`），按第 6 节处理，记在 `docs/08` 第 8 轮。没有确认新的配置错误，配置没有改；补了第 7 节第 3 条说的两条静态断言（`tests/test_dns_lan.py`），第 7 节第 2 条的数字写进了 `docs/03`、`docs/06`；修了核对工具判断“空应答”只看 A 记录的缺陷（`tools/check_real_routes.py` 的 `reply_kind`）；“全集一致性”改名“逐条扫描”。变异 98 → 100 类（M99、M100）。
 2. **第 7 节还开着的**：第 1 条（待决事项第 15–20 项）用户还没有答复；第 5 条（真实节点名）等用户。第 2、3、4、6 条做完了（图标仓库 2026-10-07 仍是 `f250126`）。
 3. **新查出来、没有改的**：Mac 上开着 Clash Verge Rev 的虚拟网卡时，mihomo 的 `system` 按源码推断是 114.114.114.114，局域网名字解析不到（`docs/06`“2026-10-07（r13）”一节）。配置改不了；用户在 Mac 上遇到了再商量。
+   GPT 后来补充的“Apple 推送的三个 DNS 别名”（`…akadns.net`）核实后没有加，理由在 `docs/08` 第 8 轮最后一节；交付时告诉了用户可以要求加。要加的话：三条后缀加在 `source/services/bigtech.yaml` 的 Apple Push 下面（只这三条，不要整个 `akadns.net`），证据只能写“审核方的 DNS 观察”，要出新的统一源版本、全部检查重跑；`docs/09` 第 2 节那句“看到了告诉我”也要跟着改。
 4. **环境**：这次的机器是 Python 3.13.16 / PyYAML 6.0.1。`setup_env.sh` 从零跑完约 2 分钟，全部按登记的版本取到；`run_checks.sh` 约 7 分半。Python 3.13 对 `re.sub` 的位置参数 `count` 报弃用警告，`tools/check_mutations.py` 里 5 处已改成关键字写法（变异日志里不应再出现警告，`r13-as-used/assemble.py` 会检查）。
 5. **出这一版用的脚本**在 `handoff/release/r13-as-used/`（汇总变异日志、写 `mutations.log`、核对文档数字），一次性核对的脚本和输出在 `handoff/notes/r12_review_probes.*`。和 r12 的一样，它们是“这一版的样子”，下一版照着改。
 6. **交付**：r13 推到了上面那个分支，没有动 `main`（`main` 仍是 r11）。用户说可以以后，`main` 更新到 r13（配置和 r12 相同），严格版才用得上。

@@ -1,0 +1,28 @@
+统一源 2026.10.06-1；mihomo：mihomo-linux-amd64-v1.19.31；geodata：MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同
+
+A. 节点的服务器地址交给哪一类 DNS（审核报告第二节第 7 条；期望是按审核方写的结果抄的）
+  auditnode                    期望 system    实际 system
+  auditnode.lan                期望 system    实际 system
+  auditnode.local              期望 system    实际 system
+  auditnode.home.arpa          期望 system    实际 system
+  auditnode.lan.example.com    期望 domestic  实际 domestic
+  auditnode.public.net         期望 domestic  实际 domestic
+  6/6 与审核方的结果相同
+
+B. 快照里 mihomo 的不一致共 364 个，按 tests/test_real_data.py 的归类，product_cn 142 个。交付的原始配置（mihomo-core.yaml；它和 mihomo-profile.yaml 的 dns 段相同），每个主机 A / AAAA / HTTPS 各查一次：
+  A    ：fake-ip 142 个
+  AAAA ：empty 142 个
+  HTTPS：empty 142 个
+  qwen.ai 的 TXT：domestic（收到查询的替身）
+
+C. 托管版配置照 Clash Verge Rev v2.5.7 开虚拟网卡时的改法改两处（dns.ipv6: true、fake-ip-range6: 2001:2::0/64），带 SKIP_SYSTEM_IPV6_CHECK=1（当作这台机器有公网 IPv6 地址）：
+  product_cn 142 个，AAAA ：empty 142 个
+  product_cn 142 个，HTTPS：empty 142 个
+  对照：printer.lan AAAA → system；time.apple.com AAAA → foreign；www.qq.com AAAA → empty；chatgpt.com AAAA → empty
+
+C. 托管版配置照 Clash Verge Rev v2.5.7 开虚拟网卡时的改法改两处（dns.ipv6: true、fake-ip-range6: 2001:2::0/64），不带（这台机器的实际情况：没有公网 IPv6 地址时内核丢掉 fake-ip-range6）：
+  product_cn 142 个，AAAA ：empty 142 个
+  product_cn 142 个，HTTPS：empty 142 个
+  对照：printer.lan AAAA → system；time.apple.com AAAA → foreign；www.qq.com AAAA → empty；chatgpt.com AAAA → empty
+
+结果的含义：system / domestic / foreign = 收到这个名字的查询的是哪一类替身；fake-ip = 内核直接给了假的 IPv4 地址；empty = 内核直接回了没有记录的正常应答；都没有向上游查询。
