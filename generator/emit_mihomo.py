@@ -35,7 +35,7 @@ def node_server_dns_policy(lan_suffixes: List[str]) -> dict:
 
 
 def direct_default_groups(m: Model) -> set:
-    """默认直连的组（国内直连、Apple 那几个组）：组的首选是 DIRECT。"""
+    """默认直连的组（国内直连、Apple 那几个组，2026-10-07 起还有 Bilibili 港澳台）：组的首选是 DIRECT。"""
     return {g.name for g in m.groups if g.default == "DIRECT"} | {"DIRECT"}
 
 
@@ -52,15 +52,16 @@ def product_dns_policy(m: Model, plan: Plan) -> List[Tuple[str, bool]]:
 
     做法和 sing-box 的 dns_layers 一样按覆盖关系分层，只是“归哪一类”看的是规则交给的组默认直连不直连：
       - 默认走代理的组（国外默认、Google、Microsoft……）→ 境外 DNS；
-      - 默认直连的组（国内直连、Apple、Apple Music/TV、Apple Push）里，被更宽的“走代理”规则覆盖的那些 → 国内 DNS
-        （例如 microsoft.com 下的 delivery.mp.microsoft.com）；最外层的默认直连规则不写，和以前一样由后面的
-        geosite:cn,private 或默认的 nameserver 管。
+      - 默认直连的组（国内直连、Apple、Apple Music/TV、Apple Push，2026-10-07 起还有 Bilibili 港澳台）里，被更宽的
+        “走代理”规则覆盖的那些 → 国内 DNS（例如 microsoft.com 下的 delivery.mp.microsoft.com）；最外层的默认直连规则不写，
+        和以前一样由后面的 geosite:cn 或默认的 nameserver 管。
     默认直连的组不能算进“境外 DNS”：mihomo 的直连连接也按 nameserver-policy 解析（direct-nameserver-follow-policy），
     算进去的话 Apple 默认直连时会拿境外 DNS 的结果、可能变慢。sing-box 那边把它们算作走代理的一类，是因为它的直连出站
     另由 route.default_domain_resolver（国内 DNS）解析，和这里不同。
     写成一条一条的域名：mihomo 把相邻的普通域名写法合成一棵域名树，树里越具体的越优先、不看先后
     （v1.19.31 dns/resolver.go 的 makePolicy、component/trie/domain.go 的 search），和路由规则“更具体的优先”一致；
-    geosite: 的条目各自单独、按书写顺序，所以这一层要写在 geosite:cn,private 之前。
+    geosite: 的条目各自单独、按书写顺序，所以这一层要写在 geosite:private、geosite:cn 之前（2026-10-07 以前这两个
+    集合合成一条 geosite:cn,private）。
     关键词规则写不进域名树；现在的产品规则里没有，有了就报错，要另想办法。"""
     direct = direct_default_groups(m)
     rules = [r for r in plan.exceptions + plan.product_for("mihomo") if r.kind in ("domain", "suffix", "keyword")]

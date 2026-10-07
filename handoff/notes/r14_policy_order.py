@@ -37,6 +37,8 @@ def first_match(policy: dict, host: str):
                 ok = host == pat[2:] or host.endswith(pat[1:])
             elif pat.startswith("*."):
                 ok = host.endswith(pat[1:]) and host != pat[2:]
+            elif pat == "*":            # 不带点的名字（2026-10-07 起有这一条，待决事项 14；r13 的旧办法里没有，按 mihomo 的含义补上）
+                ok = "." not in host
             elif "*" in pat:
                 raise ValueError(pat)
             else:
@@ -68,7 +70,7 @@ def main():
     conf = yaml.safe_load(open(path, encoding="utf-8"))
     head = next(l for l in open(path, encoding="utf-8") if "统一源版本" in l).strip().lstrip("# ")
     policy = conf["dns"]["nameserver-policy"]
-    foreign, domestic = conf["dns"]["nameserver"], policy["geosite:cn,private"]
+    foreign, domestic = conf["dns"]["nameserver"], policy["geosite:cn"]     # 2026-10-07 起 private 单独一条交给 system（待决事项 14）
     plain = [k for k in policy if not k.startswith("geosite:")]
     pats = [p.strip() for k in plain for p in k.split(",")]
     hosts = set()
