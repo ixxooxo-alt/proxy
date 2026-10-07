@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-10-06 19:15:31
+运行时间（UTC）：2026-10-07 01:49:39
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
+统一源摘要：a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc
 命令：python3 tools/check_real_routes.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata --srs-dir /root/proxy-vendor/srs --bm7 /root/proxy-vendor/src/bm7 --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /root/proxy-vendor/src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
 
-统一源 2026.10.06-1；用例与排除项共 280 条，不同的目标 260 个；DNS 去向用例 sing-box 22 条、mihomo 12 条，拨号解析用例 sing-box 12 条、mihomo 12 条
+统一源 2026.10.07-1；用例与排除项共 280 条，不同的目标 260 个；DNS 去向用例 sing-box 22 条、mihomo 13 条，拨号解析用例 sing-box 12 条、mihomo 12 条
 数据文件：
   [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
   [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
@@ -30,7 +30,7 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
   [符合] 路由 260 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国内直连（GeoSite(cn)）；按需求本该去 国外默认，差异来自上游集合的内容，决定不更正（见 docs/06）
   拨号核对原样保留的部分（规则、DNS、嗅探和几个开关），两份 mihomo 配置完全相同，只跑一份
-  [符合] DNS 去向 12 条（设备发来的查询交给哪一类 DNS。system 是系统 DNS 的替身，domestic 国内，foreign 境外；fake-ip 是直接给假地址，empty 是直接回空应答，都不向上游查询）：官方内核与人工期望一致
+  [符合] DNS 去向 13 条（设备发来的查询交给哪一类 DNS。system 是系统 DNS 的替身，domestic 国内，foreign 境外；fake-ip 是直接给假地址，empty 是直接回空应答，都不向上游查询）：官方内核与人工期望一致
       printer.lan A → system
       nas.home.arpa A → system
       www.taobao.com A → fake-ip
@@ -42,7 +42,8 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
       never-listed-txt.net TXT → foreign
       www.qq.com TXT → domestic
       google.cn AAAA → empty
-      qwen.ai TXT → domestic（已知限制的现状，见 docs/06）
+      qwen.ai TXT → foreign
+      tlu.dl.delivery.mp.microsoft.com TXT → domestic
   [符合] 连接时的解析 12 条（节点服务器的名字、域名形式的直连目标、走代理组的域名、没被域名规则接住的域名，各交给哪一类 DNS；none = 三类替身都没有收到关于它的查询）：官方内核与人工期望一致
       node gateway.lan → system
       node proxy.home.arpa → system
@@ -59,7 +60,17 @@ mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 
       自检：去掉 proxy-server-nameserver-policy 后，node gateway.lan → domestic、node proxy.home.arpa → domestic、node homeproxy → domestic——只有它管的这几条变了，这一处仍然需要
       自检：去掉 direct-nameserver-follow-policy 后，direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
       自检：去掉 nameserver-policy 里局域网后缀那一条后，printer.lan A → domestic、nas.home.arpa A → domestic、direct nas.lan → domestic——只有它管的这几条变了，这一处仍然需要
-  [符合] 境外 DNS 不应答（境外替身只收不答，每个连接保持 14 秒）：连接 6 条、查询 12 条，收到查询的替身与正常那一遍完全相同；其中 4 条只有境外替身收到——没有转去问国内 / 系统 DNS
+  [符合] 境外 DNS 不应答（境外替身只收不答，每个连接保持 14 秒）：连接 6 条、查询 13 条，收到查询的替身与正常那一遍完全相同；其中 5 条只有境外替身收到——没有转去问国内 / 系统 DNS
+  [符合] 出站时的解析 8 个主机 × 3 种出口（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP，出口连本机空端口；看出口自己会不会再解析目标、交给哪一类 DNS；none = 三类替身都没有收到）：官方内核与人工期望一致
+      qwen.ai：socks5-tcp → none，socks5-udp → foreign，wireguard-tcp → foreign
+      download.microsoft.com：socks5-tcp → none，socks5-udp → foreign，wireguard-tcp → foreign
+      chatgpt.com：socks5-tcp → none，socks5-udp → foreign，wireguard-tcp → foreign
+      never-listed-site.org：socks5-tcp → foreign，socks5-udp → foreign，wireguard-tcp → foreign
+      www.qq.com：socks5-tcp → domestic，socks5-udp → domestic，wireguard-tcp → domestic
+      www.apple.com：socks5-tcp → domestic，socks5-udp → domestic，wireguard-tcp → domestic
+      tlu.dl.delivery.mp.microsoft.com：socks5-tcp → domestic，socks5-udp → domestic，wireguard-tcp → domestic
+      time.windows.com：socks5-tcp → none，socks5-udp → foreign，wireguard-tcp → foreign
+      自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，WireGuard 出口下 download.microsoft.com → domestic、qwen.ai → domestic——只有这一类变回国内 DNS，这一层仍然需要
 singbox-1.14：sing-box version 1.14.1，配置 sing-box/sing-box-1.14.json
   [符合] 路由 260 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国外默认（没有规则命中（route.final））；这一端没有差异
@@ -79,6 +90,15 @@ singbox-1.14：sing-box version 1.14.1，配置 sing-box/sing-box-1.14.json
       unlisted r1.test.dnsleaktest.com → dns-foreign
       自检：去掉节点上的 domain_resolver 和局域网后缀的 resolve 规则后，node gateway.lan → dns-cn、node proxy.home.arpa → dns-cn、node homeproxy → dns-cn、direct nas.lan → dns-cn——这两处修正仍然需要
   [符合] 境外 DNS 不应答（dns-foreign 的替身只收不答，保持 14 秒）：连接 6 条、查询 22 条，收到查询的替身与正常那一遍完全相同；其中 6 条只有境外替身收到——没有转去问国内 / 系统 DNS
+  [符合] 出站时的解析 8 个主机 × 2 种出口（走代理的组换成 SOCKS 走 UDP、WireGuard 端点走 TCP）：官方内核与人工期望一致
+      qwen.ai：socks-udp → none，wireguard-tcp → dns-foreign
+      download.microsoft.com：socks-udp → none，wireguard-tcp → dns-foreign
+      chatgpt.com：socks-udp → none，wireguard-tcp → dns-foreign
+      never-listed-site.org：socks-udp → dns-foreign，wireguard-tcp → dns-foreign
+      www.qq.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      www.apple.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      tlu.dl.delivery.mp.microsoft.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      time.windows.com：socks-udp → none，wireguard-tcp → dns-cn（已知限制的现状，见 docs/06）
 singbox-1.12：sing-box version 1.12.0，配置 sing-box/sing-box-1.12.json
   [符合] 路由 260 条：官方内核、模拟器（真实成员快照）、人工期望三者一致
       其中跟随上游的已知行为：example.ms → 国外默认（没有规则命中（route.final））；这一端没有差异
@@ -98,6 +118,15 @@ singbox-1.12：sing-box version 1.12.0，配置 sing-box/sing-box-1.12.json
       unlisted r1.test.dnsleaktest.com → dns-foreign
       自检：去掉节点上的 domain_resolver 和局域网后缀的 resolve 规则后，node gateway.lan → dns-cn、node proxy.home.arpa → dns-cn、node homeproxy → dns-cn、direct nas.lan → dns-cn——这两处修正仍然需要
   [符合] 境外 DNS 不应答（dns-foreign 的替身只收不答，保持 14 秒）：连接 6 条、查询 22 条，收到查询的替身与正常那一遍完全相同；其中 6 条只有境外替身收到——没有转去问国内 / 系统 DNS
+  [符合] 出站时的解析 8 个主机 × 2 种出口（走代理的组换成 SOCKS 走 UDP、WireGuard 端点走 TCP）：官方内核与人工期望一致
+      qwen.ai：socks-udp → none，wireguard-tcp → dns-foreign
+      download.microsoft.com：socks-udp → none，wireguard-tcp → dns-foreign
+      chatgpt.com：socks-udp → none，wireguard-tcp → dns-foreign
+      never-listed-site.org：socks-udp → dns-foreign，wireguard-tcp → dns-foreign
+      www.qq.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      www.apple.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      tlu.dl.delivery.mp.microsoft.com：socks-udp → dns-cn，wireguard-tcp → dns-cn
+      time.windows.com：socks-udp → none，wireguard-tcp → dns-cn（已知限制的现状，见 docs/06）
 自检（把更正拿掉以后，官方内核怎么判断）：
   mihomo：去掉 Qwen 的显式规则后 chat.qwen.ai → 国内直连（GeoSite(cn)）——更正仍然需要
   sing-box：去掉 Qwen 的显式规则后 chat.qwen.ai → 国内直连（rule_set=geosite-cn）——更正仍然需要
@@ -105,19 +134,11 @@ singbox-1.12：sing-box version 1.12.0，配置 sing-box/sing-box-1.12.json
   sing-box：去掉 DNS 上的产品规则后，music.apple.com 的 A 查询交给 dns-cn——产品规则仍然需要
 国内 DNS 与路由的逐条扫描（名字会交给国内 DNS 的集合，逐条取代表主机，看路由有没有把它交给代理组；说明见 tools/dns_route_consistency.py）：
   mihomo：扫了 224266 个代表主机（集合条目 222689 个、规则的值 1577 个；集合规模 {'cn': 111224, 'private': 131}；正则 1 条、关键词 0 条取不出代表主机，没有扫）
-      名字会交给国内 DNS 的 222733 个：路由是国内直连 / 直连 / 拦截的 222359 个；归默认直连、可以切换的组的 10 个；走代理组的 364 个
-      走代理组：来自 geosite:cn、路由交给 Bilibili 港澳台 的 1 个，例如 upos-hz-mirrorakam.akamaized.net
-      走代理组：来自 geosite:cn、路由交给 Microsoft 的 102 个，例如 azuremigrate.download.prss.microsoft.com、azuremigratetest.download.prss.microsoft.com、azurestackhub.download.prss.microsoft.com、azurestackhubuat.download.prss.microsoft.com
-      走代理组：来自 geosite:cn、路由交给 TikTok 的 2 个，例如 probe-x1.tiktokrow-cdn.com、tiktokrow-cdn.com
-      走代理组：来自 geosite:cn、路由交给 其他流媒体 的 10 个，例如 bilibili.tv、biliintl.com、iq.com、p.bstarstatic.com
-      走代理组：来自 geosite:cn、路由交给 国外默认 的 6 个，例如 images-amazon.com、probe-x1.images-amazon.com、probe-x1.qwen.ai、probe-x1.qwenlm.ai
+      名字会交给国内 DNS 的 222593 个：路由是国内直连 / 直连 / 拦截的 222361 个；归默认直连、可以切换的组的 10 个；走代理组的 222 个
       走代理组：来自 geosite:private、路由交给 国外默认 的 222 个，例如 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa、10.in-addr.arpa、100.100.in-addr.arpa、100.51.198.in-addr.arpa
-      走代理组：来自 规则的值、路由交给 Apple AI 的 4 个，例如 applesiri.cn、apps.mzstatic.com、probe-x1.applesiri.cn、probe-x1.apps.mzstatic.com
-      走代理组：来自 规则的值、路由交给 Bilibili 港澳台 的 3 个，例如 api.bilibili.com、app.bilibili.com、bangumi.bilibili.com
-      走代理组：来自 规则的值、路由交给 Google 的 2 个，例如 google.cn、probe-x1.google.cn
-      走代理组：来自 规则的值、路由交给 Microsoft 的 10 个，例如 1drv.ms、aka.ms、gfx.ms、probe-x1.1drv.ms
-      走代理组：来自 规则的值、路由交给 日本影音 的 2 个，例如 nico.ms、probe-x1.nico.ms
-      [符合] 官方内核核对 574 个主机（走代理组的和默认直连组的全部，另抽 200 个）：路由结果与模拟器相同；TXT 查询都由国内 DNS 的替身收到
+      [符合] 官方内核核对 432 个主机（走代理组的和默认直连组的全部，另抽 200 个）：路由结果与模拟器相同；TXT 查询都由国内 DNS 的替身收到
+      自检：去掉 nameserver-policy 里“走代理组的产品域名”那一层再扫，走代理组的从 222 个变成 364 个——这一层仍然需要，这项核对看得见它要防的错误
+      [符合] 多出来的 142 个（产品域名那一层管到的）交给官方内核查 TXT：都只由境外 DNS 的替身收到
   sing-box 1.14：扫了 19531 个代表主机（集合条目 17996 个、规则的值 1535 个；集合规模 {'geosite-cn': 9303}；正则 8 条、关键词 0 条取不出代表主机，没有扫）
       名字会交给国内 DNS 的 17679 个：路由是国内直连 / 直连 / 拦截的 17673 个；归默认直连、可以切换的组的 1 个；走代理组的 5 个
       走代理组：来自 DNS 规则里写明交给国内 DNS 的名单、路由交给 Microsoft 的 1 个，例如 time.windows.com

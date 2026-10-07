@@ -1,8 +1,8 @@
 {
-  "generator_version": "1.5.0",
-  "source_version": "2026.10.06-1",
+  "generator_version": "1.6.0",
+  "source_version": "2026.10.07-1",
   "docs_checked": "2026-09-23",
-  "source_sha256": "3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349",
+  "source_sha256": "a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
@@ -22,13 +22,13 @@
     }
   },
   "outputs": {
-    "loon/loon-strict.conf": "c136ee43f4bf69b36ef9cd1986e726a38d8a5150d17930d7a91b7e5f0bb8bca9",
-    "loon/loon.conf": "91de5d454cc6552efcfa2165cd12f93fd6ad3f4af990f118ce63fe3a7c7b0cd4",
+    "loon/loon-strict.conf": "30e79487c65643a16df2ea1513fb871048d3c180cc7f5bef9890e37c9eda01a2",
+    "loon/loon.conf": "479bacae3326694d075335d4fc852c47d59f35d650f764f4b266afe87af1529c",
     "loon/rules/cn-domains.list": "09c986cd9866c8ad2dacebf895c43dbd71a3180f8226ca9ff9a30b622dc04775",
-    "mihomo/mihomo-core.yaml": "6becbefd8dcf1ea5e9a00c5ea2c26fd7c9447e0f9d1e03e1901356a0c51cbbe7",
-    "mihomo/mihomo-profile.yaml": "ff73c31d95d1f54419969fc425dbb680a69f6a3140559dfdb2b018feec7a9a43",
-    "quantumultx/quantumultx-strict.conf": "e186d11d48c4c5dec7903e9230de8471647ee28ba74480cce44e8f952edc2319",
-    "quantumultx/quantumultx.conf": "333344193616c9006c8ed8e94c49ac3622f94ef6043787b46fcc0d97f4160e4c",
+    "mihomo/mihomo-core.yaml": "a2f89037ab788fc131190554991e939c3d1665a2e5d9bbd97477d8acd51c7625",
+    "mihomo/mihomo-profile.yaml": "e56f071b7baf370e7a3f1becbe1e8197345e3797f47cd1cb52bca3e5681e1c1e",
+    "quantumultx/quantumultx-strict.conf": "2dc0a6a3ef971e9da5fdf2ff68f6cb6bb938973d84b8e10e4795a42ab9b5ac59",
+    "quantumultx/quantumultx.conf": "c67d576d042b2896eee6eea9d75fbb1bf0c1ac456769cbcf6bb4aadef4e6ed1e",
     "quantumultx/rules/cn-domains.list": "20be6de9679baa6c71a808d1be3669ea9178b3dde0b9625f3415d88f737fc0c1",
     "quantumultx/rules/domain-fallback.list": "c15975930f5d0e8097dd7d9330ca24b29438d07c7374eca5beb90e47b685e4c6",
     "sing-box/sing-box-1.12.json": "306d345435055671ea340765a08629055296fb8fe969f6c9fcdea4b8bb4c74ac",

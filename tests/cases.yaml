@@ -378,9 +378,11 @@ mihomo_dns:
   - {host: never-listed-txt.net, type: TXT, expect: foreign, why: "同上，其他类型交给境外 DNS"}
   - {host: www.qq.com, type: TXT, expect: domestic, why: "对照：国内域名集合里、路由也走国内直连的域名，交给国内 DNS"}
   - {host: google.cn, type: AAAA, expect: empty,
-     why: "交付的配置里 dns.ipv6 是 false：AAAA 查询直接回空应答，不向任何上游查询。google.cn 在上游的国内域名集合里、路由走 Google 组，属于待决事项 16 那一类（2026-10-07 加，GPT 审核 r12 第 4 点：“AAAA 为空”要限定在交付的原始配置）。Clash Verge Rev 开虚拟网卡、App 的 IPv6 开关开着、机器有公网 IPv6 时会变成假的 IPv6 地址，同样不向上游查询（docs/03“客户端这一侧”）"}
-  - {host: qwen.ai, type: TXT, expect: domestic, limit: true,
-     why: "已知限制（2026-10-06 逐条扫描查出来的）：上游的国内域名集合收了 qwen.ai，路由靠排在前面的显式规则把它交给国外默认，但 nameserver-policy 里没有对应的一条，所以地址以外的查询类型仍交给国内 DNS。A 查询给假地址、连接本身不解析，不受影响。sing-box 的 DNS 规则里有这一层，没有这个问题"}
+     why: "交付的配置里 dns.ipv6 是 false：AAAA 查询直接回空应答，不向任何上游查询。google.cn 在上游的国内域名集合里、路由走 Google 组（2026-10-07 加，GPT 审核 r12 第 4 点：“AAAA 为空”要限定在交付的原始配置）。Clash Verge Rev 开虚拟网卡、App 的 IPv6 开关开着、机器有公网 IPv6 时会变成假的 IPv6 地址，同样不向上游查询（docs/03“客户端这一侧”）"}
+  - {host: qwen.ai, type: TXT, expect: foreign,
+     why: "上游的国内域名集合收了 qwen.ai，路由靠排在前面的显式规则把它交给国外默认。r13 以前 nameserver-policy 里没有对应的一条，这条查询交给国内 DNS（当时标为已知限制）；r14 起 nameserver-policy 有“走代理组的产品域名 → 境外 DNS”一层（GPT 审核 r13 的 R13-F01，待决事项 16 用户选了改），和 sing-box 的 DNS 规则一致"}
+  - {host: tlu.dl.delivery.mp.microsoft.com, type: TXT, expect: domestic,
+     why: "Microsoft 组默认走代理，它下面更具体的 delivery.mp.microsoft.com 归国内直连：产品域名那一层里这一条交给国内 DNS。mihomo 把相邻的域名写法合成一棵树、越具体的越优先，和路由“更具体的规则优先”一致（2026-10-07 加）"}
 
 # mihomo 拨号时的解析（2026-10-05 审核 r10 的 R10-F01）。mihomo 里“内核自己要连一个域名形式的地址”有两条路，各用各的解析器：
 #   节点连接自己的服务器 → proxy-server-nameserver，它的例外写在 proxy-server-nameserver-policy 里，不看 nameserver-policy；
@@ -407,19 +409,60 @@ mihomo_dial:
   - {kind: unlisted, host: never-listed-site.org, expect: foreign, why: "虚构的名字，没有被任何域名规则接住：为了判断最后的 GEOIP,CN 要解析一次，只问境外 DNS"}
   - {kind: unlisted, host: r1.test.dnsleaktest.com, expect: foreign, why: "DNS 泄露测试网站用的那一类随机子域名"}
 
+# 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01；r14 加）：连接交给代理出口以后，内核还会不会在本机解析目标域名、交给谁。
+# 上面 proxied 一类的 none 是在“走代理的组都换成 REJECT”的条件下得到的，只说明规则判断时不解析；真实的出口会不会再解析，
+# 要看出口的类型和流量：mihomo 转发 UDP 时，几乎所有代理协议都先在本机解析目标域名（v1.19.31 adapter/outbound/base.go 的
+# ResolveUDP）；WireGuard 这类按 IP 转发的出口连 TCP 也是（wireguard.go）。它们用的是默认解析器，按 nameserver-policy 选服务器。
+# 场景（出口都连本机一个没人监听的端口，连不出去）：
+#   mihomo-socks5-tcp / mihomo-socks5-udp / mihomo-wireguard-tcp：mihomo，默认直连的组仍直连，其余策略组都换成一个 SOCKS5 或 WireGuard 出口；
+#   singbox-socks-udp / singbox-wireguard-tcp：sing-box（1.14 版配置 + 1.14 内核、1.12 兼容版 + 1.12 内核各跑一遍，期望相同）。
+# udp 是经 SOCKS5 UDP ASSOCIATE 发一个目标是“主机:443”的 UDP 包（开了 TUN 时程序发 QUIC 走的是同一条路，一次性核对试过两种，结果相同）。
+# 结果：mihomo 写收到查询的那一类替身（system / domestic / foreign），sing-box 写 DNS 服务器标签；none = 都没有收到。
+# limit：列出的场景里，期望写的是已知限制的现状（docs/06）。
+# 这一节单独起内核，名字可以和上面几节重复。product: true 的主机属于“上游国内域名集合收了、规则交给代理组”那一类：
+# 自检时把 nameserver-policy 里产品域名那一层去掉（r13 的样子），mihomo-wireguard-tcp 下它们应该变回 domestic，别的不变。
+outbound_resolve:
+  - host: qwen.ai
+    product: true
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    why: "R13-F01 的例子。mihomo：TCP 经普通代理协议时把域名交给节点；UDP、WireGuard 时在本机解析，r14 起问境外 DNS（r13 时问的是国内 DNS）。sing-box：代理出站把域名交给节点，WireGuard 端点按 DNS 规则解析，产品域名那一层交给 dns-foreign"
+  - host: download.microsoft.com
+    product: true
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    why: "同一类：上游的国内域名集合收了，规则交给 Microsoft 组（默认走代理）"
+  - host: chatgpt.com
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    why: "对照：普通的境外产品域名，本来就问境外 DNS"
+  - host: never-listed-site.org
+    expect: {mihomo-socks5-tcp: foreign, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: dns-foreign, singbox-wireguard-tcp: dns-foreign}
+    why: "没被任何域名规则接住的域名：为了判断最后的国内 IP 规则，两个内核都先解析一次，只问境外 DNS（和 mihomo_dial、singbox_dial 里的 unlisted 一样）"
+  - host: www.qq.com
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    why: "对照：国内直连的网站，由直连出口用国内 DNS 解析，和走哪种代理出口无关"
+  - host: www.apple.com
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    why: "Apple 组默认直连：产品域名那一层不收默认直连的组（否则 mihomo 的直连连接也会按这一层问境外 DNS，可能变慢），仍由国内 DNS 解析"
+  - host: tlu.dl.delivery.mp.microsoft.com
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    why: "Microsoft 组下面更具体的国内直连规则（Windows 更新的下载）：直连，国内 DNS"
+  - host: time.windows.com
+    limit: [singbox-wireguard-tcp]
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-cn}
+    why: "已知限制（待决事项 15）：sing-box 的 DNS 规则把要真实地址的名单整个交给 dns-cn，路由却归 Microsoft 组；WireGuard 端点按 DNS 规则解析，就问了国内 DNS。mihomo 上这个名字没有交给国内 DNS"
+
 # 国内 DNS 与路由的逐条扫描（2026-10-06；r12 时叫“全集一致性”）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；
 # 现在有的，必须属于下面列出的已知类别。怎么扫的见 tools/dns_route_consistency.py（每个条目取代表主机，不是全部域名）；扫描结果连同官方内核的抽查记在快照的
 # consistency 里，tests/test_real_data.py 逐个核对：每个不一致的主机都能归到某一类，每一类都确实还有主机（没有了就该删掉）。
 # 这些都是现状的记录，不是“应该这样”——标准版这一轮没有改，怎么处理列在 docs/06 的待决事项里。
 #   kind: real_ip     名字在“要真实地址的名单”里（source/project.yaml 的 dns.real_ip），路由没有把它固定为直连
 #   kind: private     名字来自上游的 private 集合（保留后缀、反向解析域、路由器登录域名），路由没有把它固定为直连
-#   kind: product_cn  上游的国内域名集合收了它，路由靠排在前面的产品规则把它交给代理组
+# r13 时 mihomo 还有一类 product_cn（上游的国内域名集合收了它，路由靠排在前面的产品规则把它交给代理组；待决事项 16）。
+# r14 在 nameserver-policy 里加了“走代理组的产品域名 → 境外 DNS”一层（GPT 审核 r13 的 R13-F01，用户选了改），这一类没有了。
 dns_route_consistency:
   singbox:
     - {kind: real_ip, why: "DNS 规则第二条把要真实地址的名单整个交给 dns-cn；其中 time.windows.com 路由归 Microsoft 组，pool.ntp.org 落到国外默认，icitymobile.mobi 没有域名规则、按解析到的 IP 决定。待决事项 15"}
   mihomo:
     - {kind: private, why: "nameserver-policy 的 geosite:cn,private 把 private 集合也交给国内 DNS，fake-ip-filter 又让它们拿真实地址；路由上只有局域网后缀固定直连，其余按解析到的 IP 决定。待决事项 14"}
-    - {kind: product_cn, why: "nameserver-policy 里没有“走代理组的产品域名”这一层（sing-box 的 DNS 规则里有）。交付的配置里只影响地址以外的查询类型：A 查询给假地址，AAAA / HTTPS 回空应答（Clash Verge Rev 开虚拟网卡时 AAAA 可能是假的 IPv6 地址，同样不向上游查询），连接本身不解析。待决事项 16"}
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:

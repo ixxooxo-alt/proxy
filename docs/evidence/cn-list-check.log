@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-06 19:20:13
+运行时间（UTC）：2026-10-07 02:04:57
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：3390e37f8d26dbbbe4016d2b94320c1ee08eb7779862dcdd289d117dfd4a3349
+统一源摘要：a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc
 命令：python3 tools/update_cn_list.py --dlc /root/proxy-vendor/src/domain-list-community --check
 
 source/data/cn-domains.txt 与按固定快照重新生成的逐字节相同：后缀 6142 条、精确域名 12 条（快照 c1c2cf0d，2026-09-22）

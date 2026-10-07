@@ -10,9 +10,10 @@ r12 时叫“全集一致性”。2026-10-07 按 GPT 对 r12 的审核改名：�
 （和它的一个子域）也查一遍——“规则比集合条目更具体”的那种重叠，只有这样才看得到。
   sing-box：名字交给国内 DNS = DNS 规则把它的查询交给 dns-cn（要真实地址的名单、比代理规则更具体的直连规则、
             geosite-cn 里没有被“走代理组的产品域名”先接住的部分）。
-  mihomo：  名字交给国内 DNS = nameserver-policy 里指向国内 DNS 的那一条（geosite:cn,private）管到它。
-            设备发来的 A 查询直接给假地址、AAAA / HTTPS 回空应答（交付的原始配置），都不向上游查询；真正会去问这条策略的是
-            fake-ip-filter 里的名字、其他类型的查询，以及规则判断时的解析——所以 mihomo 上的不一致比 sing-box 上的轻。
+  mihomo：  名字交给国内 DNS = nameserver-policy 按 mihomo 的匹配方式（见 mihomo_policy）最后落到指向国内 DNS 的条目。
+            r14 起 nameserver-policy 里有“走代理组的产品域名 → 境外 DNS”一层（2026-10-07，GPT 审核 r13 的 R13-F01），
+            和 sing-box 的 DNS 规则对齐。会去问这份策略的不只是设备发来的查询：mihomo 转发 UDP、经 WireGuard 这类出口连接时，
+            也会在本机用它解析目标域名（tools/check_real_routes.py 的“出站时的解析”）。
 判断用的是自制模拟器加读进来的真实集合（不是成员快照里那几百条记录），所以可以查任意主机。
 模拟器会不会算错：不一致的每个主机，加上按固定间隔抽出来的一批主机，由调用方另外交给官方内核实际跑一遍。
 解析结果仍是假定的（tests/fixtures.yaml 的 dns；没列出的主机按境外 IP 算）：只有“没被任何域名规则接住、靠解析到的
@@ -144,33 +145,85 @@ class FastMihomo:
         return None
 
 
+class DomainTrie:
+    """mihomo 的域名树（v1.19.31 component/trie/domain.go）：
+      +.a.com 等于同时写 a.com（精确）和 .a.com（全部子域）；*.a.com 只管下一级子域；其余是精确写法。
+      查找时从顶级域往下走，能往下走就先往下（更具体的优先）：下一级精确的标签 > 这一级的 * > 这一级的“.”（全部子域）。
+    和写的先后无关；同一个写法写两次，后写的覆盖先写的。"""
+
+    def __init__(self):
+        self.root: dict = {}
+
+    def insert(self, pattern: str, value) -> None:
+        pattern = pattern.strip().lower()
+        if pattern.startswith("+."):
+            self._insert(pattern[2:].split("."), value)
+            self._insert([""] + pattern[2:].split("."), value)
+            return
+        parts = pattern.split(".")
+        if any(("*" in x and x != "*") or "+" in x for x in parts) or not all(parts[1:]):
+            raise ValueError(f"不认识的 nameserver-policy 域名写法 {pattern}")
+        self._insert(parts, value)
+
+    def _insert(self, parts: List[str], value) -> None:
+        node = self.root
+        for part in reversed(parts):
+            node = node.setdefault(part, {})
+        node[None] = value
+
+    def search(self, host: str):
+        parts = host.lower().rstrip(".").split(".")
+        return self._search(self.root, parts)
+
+    def _search(self, node: dict, parts: List[str]):
+        if not parts:
+            return node.get(None)
+        child = node.get(parts[-1])
+        if child is not None:
+            got = self._search(child, parts[:-1])
+            if got is not None:
+                return got
+        star = node.get("*")
+        if star is not None:
+            got = self._search(star, parts[:-1])
+            if got is not None:
+                return got
+        dot = node.get("")
+        return None if dot is None else dot.get(None)
+
+
 def mihomo_policy(conf: dict, host: str, sets: dict) -> Optional[List[str]]:
-    """nameserver-policy 里第一条管到这个主机的策略的服务器列表（没有返回 None，表示用默认的 nameserver）。
-    认三种键：geosite:甲,乙；用逗号分开的域名写法（+.后缀 = 域名和全部子域，*.后缀 = 子域，其余 = 精确）。"""
-    for key, servers in conf["dns"].get("nameserver-policy", {}).items():
-        servers = [servers] if isinstance(servers, str) else list(servers)
+    """nameserver-policy 里管到这个主机的那一条的服务器列表（没有返回 None，表示用默认的 nameserver）。
+    按 mihomo v1.19.31 的做法（dns/resolver.go 的 makePolicy）：条目按书写顺序；但相邻的普通域名写法合成一棵域名树
+    （DomainTrie），树里越具体的越优先、不看先后；geosite:甲,乙 的条目各自单独、按顺序。
+    2026-10-07 以前这里按“第一条命中”算：当时策略里只有两条、域名写法不重叠，结果一样；r14 加了产品域名那一层，
+    写法之间有包含关系（+.microsoft.com 与 +.delivery.mp.microsoft.com），必须按域名树算。"""
+    items = list(conf["dns"].get("nameserver-policy", {}).items())
+    i = 0
+    while i < len(items):
+        key, servers = items[i]
         if key.startswith("geosite:"):
+            servers = [servers] if isinstance(servers, str) else list(servers)
             names = key[len("geosite:"):].split(",")
             for n in names:
                 if n not in sets:
                     raise AssertionError(f"nameserver-policy 引用了没有读进来的域名集合 {n}")
             if any(sets[n].why(host) for n in names):
                 return servers
+            i += 1
             continue
-        if ":" in key:
-            raise ValueError(f"不认识的 nameserver-policy 写法 {key}")
-        for pat in key.split(","):
-            pat = pat.strip()
-            if pat.startswith("+."):
-                ok = emulate.suffix_match(host, pat[2:])
-            elif pat.startswith("*."):
-                ok = host.endswith(pat[1:]) and host != pat[2:]
-            elif "*" in pat:
-                raise ValueError(f"不认识的 nameserver-policy 域名写法 {pat}")
-            else:
-                ok = host == pat
-            if ok:
-                return servers
+        trie = DomainTrie()
+        while i < len(items) and not items[i][0].startswith("geosite:"):
+            key, servers = items[i]
+            if ":" in key:
+                raise ValueError(f"不认识的 nameserver-policy 写法 {key}")
+            servers = [servers] if isinstance(servers, str) else list(servers)
+            for pat in key.split(","):
+                trie.insert(pat, servers)
+            i += 1
+        got = trie.search(host)
+        if got is not None:
+            return got
     return None
 
 

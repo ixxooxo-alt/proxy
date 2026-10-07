@@ -1,8 +1,10 @@
 """局域网名字的解析路径：四端都把局域网后缀交给系统 / 本地 DNS，而不是公共 DoH（审核 F04）；
 sing-box 拨号时的解析也一样（审核 r9 的 F02）；mihomo 节点自己的服务器地址也一样（审核 r10 的 R10-F01）；
-没被任何域名规则接住的域名只问境外 DNS（GPT 审核 r12 的第 10 点）；
-以及 mihomo 订阅上的健康检查间隔与组一致（审核 3.4）。"""
+没被任何域名规则接住的域名只问境外 DNS（GPT 审核 r12 的第 10 点）；mihomo 上走代理组的产品域名也只问境外 DNS
+（GPT 审核 r13 的 R13-F01，待决事项 16）；以及 mihomo 订阅上的健康检查间隔与组一致（审核 3.4）。"""
 import json
+import os
+import sys
 import unittest
 
 import yaml
@@ -10,7 +12,17 @@ import yaml
 from helpers import ROOT, load_yaml, model_and_plan, parsed
 
 from generator import emit_mihomo, emit_singbox, nodes as nodeconv, verify
-from generator.model import build_plan, load
+from generator.model import build_plan, load, most_specific
+
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import dns_route_consistency as drc  # noqa: E402
+
+
+class _NotInAnySet:
+    """静态检查不读上游集合：geosite: 的条目一律当作没命中，只看 nameserver-policy 里写明的域名。"""
+
+    def why(self, host):
+        return None
 
 
 def mihomo_policy_matches(patterns, host: str) -> bool:
@@ -224,6 +236,57 @@ class LanDns(unittest.TestCase):
             self.assertEqual((fs["type"], fs["server"], fs.get("detour")), ("https", foreign_host, "国外默认"),
                              f"{client}：dns-foreign 必须是境外 DoH，并且经国外默认发出")
             self.assertEqual(c["dns"]["final"], "dns-foreign", client)
+
+    def test_policy_lookup_follows_mihomos_domain_trie(self):
+        """核对工具（tools/dns_route_consistency.py 的 mihomo_policy）按 mihomo 的方式查 nameserver-policy：相邻的域名写法
+        合成一棵树，越具体的越优先、不看先后；精确写法不管子域；*. 只管下一级；geosite: 的条目按顺序（变异 M104）。
+        期望按 v1.19.31 component/trie/domain.go 的 search 人工写出。"""
+        F, D = ["境外"], ["国内"]
+        conf = {"dns": {"nameserver-policy": {"+.a.com": F, "+.b.a.com": D, "x.b.a.com": F, "*.c.com": D, "geosite:cn": D}}}
+        sets = {"cn": _NotInAnySet()}
+        for host, want in (("a.com", F), ("y.a.com", F), ("b.a.com", D), ("z.b.a.com", D), ("x.b.a.com", F),
+                           ("w.x.b.a.com", D), ("c.com", None), ("q.c.com", D), ("r.q.c.com", None), ("other.org", None)):
+            self.assertEqual(drc.mihomo_policy(conf, host, sets), want, host)
+
+    def test_mihomo_product_names_go_to_the_foreign_dns(self):
+        """GPT 审核 r13 的 R13-F01（待决事项 16，用户 2026-10-07 选了改）：mihomo 转发 UDP、经 WireGuard 这类出口时，会用默认解析器
+        在本机解析目标域名，按 nameserver-policy 选服务器。所以 nameserver-policy 上的归类必须和路由一致：
+          1. 第一条是局域网后缀 → system，最后一条是 geosite:cn,private → 国内 DNS，中间只有域名写法（产品域名那一层）；
+          2. 每条产品规则（含误杀例外）的值和它的一个子域：路由交给默认走代理的组的，nameserver-policy 交给境外 DNS（和 nameserver
+             是同一份）；交给默认直连的组的（国内直连、Apple 那几个组），nameserver-policy 不能交给境外 DNS——mihomo 的直连连接
+             也按这份策略解析，交给境外 DNS 会变慢。
+        路由用 generator.model.most_specific（更具体的规则优先），DNS 用核对工具的域名树查找（上一项测试核对它）。
+        官方内核的实际去向另由 tools/check_real_routes.py 的“出站时的解析”核对、记进快照（变异 M102、M103）。"""
+        m, plan = model_and_plan()
+        direct = {g.name for g in m.groups if g.default == "DIRECT"} | {"DIRECT"}
+        rules = [r for r in plan.exceptions + plan.product_for("mihomo") if r.kind in ("domain", "suffix")]
+        self.assertGreater(len(rules), 500)
+        sets = {"cn": _NotInAnySet(), "private": _NotInAnySet()}
+        for client in ("mihomo-profile", "mihomo-core"):
+            conf = parsed(client)
+            dns = conf["dns"]
+            keys = list(dns["nameserver-policy"])
+            self.assertEqual(keys[-1], "geosite:cn,private", client)
+            self.assertEqual(dns["nameserver-policy"][keys[-1]], list(m.dns["domestic_doh"]), client)
+            self.assertEqual(dns["nameserver-policy"][keys[0]], ["system"], client)
+            self.assertFalse([k for k in keys[1:-1] if ":" in k or "," in k], f"{client}：中间只能是一条一条的域名写法")
+            foreign = list(m.dns["foreign_doh"])
+            self.assertEqual(dns["nameserver"], foreign, client)
+            wrong = []
+            checked = {True: 0, False: 0}
+            for r in rules:
+                for host in ([r.value, "probe-x1." + r.value] if r.kind == "suffix" else [r.value]):
+                    route = most_specific(rules, host).target
+                    got = drc.mihomo_policy(conf, host, sets)
+                    proxied = route not in direct
+                    checked[proxied] += 1
+                    if proxied and got != foreign:
+                        wrong.append(f"{host} → {route}（默认走代理），nameserver-policy 却是 {got}")
+                    if not proxied and got == foreign:
+                        wrong.append(f"{host} → {route}（默认直连），nameserver-policy 却交给境外 DNS")
+            self.assertEqual(wrong[:10], [], client)
+            self.assertGreater(checked[True], 500, client)
+            self.assertGreater(checked[False], 50, client)
 
     def test_mihomo_provider_health_check_matches_groups(self):
         for client in ("mihomo-profile", "mihomo-core"):

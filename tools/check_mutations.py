@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 100 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 104 个，可以分两批同时跑）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -115,7 +115,7 @@ cases = [
     ("M10 byteoversea.com 放回 TikTok", [("source/services/streaming.yaml", lambda s: s.replace("      - {suffix: tiktok.com,", "      - {suffix: byteoversea.com, ev: dlc}\n      - {suffix: tiktok.com,", 1))], "byteoversea"),
     # ---- 2026-09-30 审核修复（Astra r5）----
     ("M11 mihomo 去掉局域网后缀的系统 DNS（F04）", [("generator/emit_mihomo.py", lambda s: s.replace(
-        '                ",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"],\n', "", 1))], "nameserver"),
+        '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"]}\n', "    policy = {}\n", 1))], "nameserver"),
     ("M12 graph.instagram.com 放回自有拦截（F05）", [("source/adblock.yaml", lambda s: re.sub(
         r"  - \{suffix: graph\.instagram\.com, ev: meta-ig-api,[^\n]*\n", "", s, count=1).replace(
         "local_tracking:\n", "local_tracking:\n  - {suffix: graph.instagram.com, ev: dlc, note: x}\n", 1))], "graph.instagram.com"),
@@ -323,7 +323,7 @@ cases = [
         "\n.baidu.com\n", "\n.baidu.com\n.tieba.baidu.com\n", 1))], "覆盖"),
     ("M90 国内域名清单的数据文件里没有整段 .cn", [("source/data/cn-domains.txt", lambda s: s.replace("\n.cn\n", "\n", 1))], "cn"),
     ("M91 mihomo：默认的 DNS 换成国内的（没被域名规则接住的域名改问国内 DNS；官方内核的记录过期）", [("generator/emit_mihomo.py", lambda s: s.replace(
-        '            "nameserver": list(dns["foreign_doh"]),\n', '            "nameserver": list(dns["domestic_doh"]),\n', 1))], "重新运行"),
+        '            "nameserver": foreign,\n', '            "nameserver": list(dns["domestic_doh"]),\n', 1))], "重新运行"),
     ("M92 sing-box：路由里的 resolve 动作改用国内 DNS（没被域名规则接住的域名改问国内 DNS）", [("generator/emit_singbox.py", lambda s: s.replace(
         '    rules.append({"action": "resolve", "server": "dns-foreign"})', '    rules.append({"action": "resolve", "server": "dns-cn"})', 1))], "重新运行"),
     ("M93 “境外 DNS 不应答”那一遍不再包含没被接住的域名（那一遍等于什么也没证明）", [("tools/real_data.py", lambda s: s.replace(
@@ -344,6 +344,25 @@ cases = [
     ("M100 核对工具又只读 A 记录、按“没有 A 记录”判空应答（AAAA 拿到地址、HTTPS 拿到记录也记成 empty）", [("tools/check_real_routes.py", lambda s: s.replace(
         "            elif rtype == 28:\n                ips.append(socket.inet_ntop(socket.AF_INET6, data[i:i + 16]))\n", "", 1).replace(
         "    if rcode == 0 and count == 0:\n", "    if rcode == 0 and not ips:\n", 1))], "不是空应答"),
+    # 2026-10-07（r14，GPT 审核 r13）
+    ("M101 核对工具又只在名字的第一个字节看压缩指针（“标签 + 指针”的合法名字读错，CNAME + A 的应答记成读不懂）",
+     [("tools/check_real_routes.py", lambda s: s.replace(
+         "            i = _skip_name(data, i)\n",
+         "            if data[i] & 0xC0:\n                i += 2\n            else:\n                while data[i]:\n"
+         "                    i += data[i] + 1\n                i += 1\n", 1))], "CNAME + A 的正常应答要读出地址和记录数"),
+    ("M102 mihomo：nameserver-policy 里又没有“走代理组的产品域名 → 境外 DNS”那一层（r13 的样子：UDP、WireGuard 时这类名字交给国内 DNS）",
+     [("generator/emit_mihomo.py", lambda s: s.replace(
+         "    for pattern, to_foreign in product_dns_policy(m, plan):\n        policy[pattern] = foreign if to_foreign else domestic_layer\n",
+         "", 1))], "默认走代理"),
+    ("M103 mihomo：产品域名那一层把默认直连的组（Apple 那几个）也交给境外 DNS（直连时会拿境外 DNS 的结果）",
+     [("generator/emit_mihomo.py", lambda s: s.replace(
+         "    is_direct = {id(r): r.target in direct for r in rules}\n",
+         '    is_direct = {id(r): r.target == "国内直连" for r in rules}\n', 1))], "却交给境外 DNS"),
+    ("M104 核对工具查 nameserver-policy 时按“第一条命中”而不是 mihomo 的域名树（更宽的写法挡住更具体的）",
+     [("tools/dns_route_consistency.py", lambda s: s.replace(
+         "    def _search(self, node: dict, parts: List[str]):\n        if not parts:\n",
+         '    def _search(self, node: dict, parts: List[str]):\n        if parts and node.get("") is not None:\n'
+         '            return node[""].get(None)\n        if not parts:\n', 1))], "b.a.com"),
 ]
 
 

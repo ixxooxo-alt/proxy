@@ -349,8 +349,26 @@ def collect_probes(model) -> List[dict]:
 
 
 def dns_cases(family: str = "singbox") -> List[dict]:
-    """DNS 查询去向的用例：sing-box 的在 singbox_dns，mihomo 的在 mihomo_dns（只有和局域网名字有关的几条）。"""
+    """DNS 查询去向的用例：sing-box 的在 singbox_dns，mihomo 的在 mihomo_dns。"""
     return _load("tests/cases.yaml")[f"{family}_dns"]
+
+
+# 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：哪个内核 - 测试出口的类型 - 流量
+OUTBOUND_SCENARIOS = ("mihomo-socks5-tcp", "mihomo-socks5-udp", "mihomo-wireguard-tcp", "singbox-socks-udp", "singbox-wireguard-tcp")
+
+
+def outbound_cases() -> List[dict]:
+    """连接交给代理出口以后、名字交给谁解析的用例（tests/cases.yaml 的 outbound_resolve）。每条都要写全部场景的期望。"""
+    cases = _load("tests/cases.yaml")["outbound_resolve"]
+    for c in cases:
+        if sorted(c["expect"]) != sorted(OUTBOUND_SCENARIOS):
+            raise ValueError(f"outbound_resolve 里 {c['host']} 的期望没有写全场景：{sorted(c['expect'])}")
+        if not set(c.get("limit", [])) <= set(OUTBOUND_SCENARIOS):
+            raise ValueError(f"outbound_resolve 里 {c['host']} 的 limit 要写场景名：{c['limit']}")
+    hosts = [c["host"] for c in cases]
+    if len(set(hosts)) != len(hosts):
+        raise ValueError("outbound_resolve 里有重复的主机：核对时是按名字认查询的")
+    return cases
 
 
 def dial_cases(family: str = "singbox") -> List[dict]:

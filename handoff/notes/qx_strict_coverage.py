@@ -1,5 +1,10 @@
 """一次性估算：blackmatrix7 ChinaMax_Domain.list 里有多少条，Quantumult X 严格版接不住。
-只读两个清单和已生成的配置，不改任何文件。用法：coverage.py <bm7 清单> <自有清单> <qx 严格版配置>"""
+只读两个清单和已生成的配置，不改任何文件。用法：coverage.py <bm7 清单> <自有清单> <qx 严格版配置>
+
+2026-10-07 补的说明（GPT 审核 r13 的 R13-F03）：下面输出里“两边都接不住（Loon 严格版直连、QX 严格版走代理）”的 105,446 条，
+只扣掉了自有国内清单和 Quantumult X 本地域名规则接得住的条目，没有扣两端都排在国内清单之前的远程广告集合，
+也不是按两端完整的规则顺序算的——它是“这两样都没接住的条目数”，不是两端实际分流不同的条目数。
+按两端完整的规则顺序逐条算的结果见 handoff/notes/r13_strict_routes.py（.out）。这个脚本和它的输出照原样留着，作为 r13 当时的记录。"""
 import sys, collections
 
 def read_list(path):

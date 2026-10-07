@@ -22,7 +22,10 @@ sing-box（自查同一类问题）：dist/sing-box/sing-box-1.14.json 的 DNS �
         （socks、shadowsocks，或者 WireGuard 端点），服务器同样是 127.0.0.1 上没人监听的端口。流量和上面一样（不做假地址那一种：
         mixed 入站没有假地址）。主机多一个 time.windows.com（待决事项第 15 项：DNS 规则交给 dns-cn、路由归 Microsoft 组）。
 
-用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r13_review_probes.py > handoff/notes/r13_review_probes.out
+用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r13_review_probes.py [mihomo 配置 sing-box 1.14 配置]
+  不给路径时用 dist/ 里现在的两份。2026-10-07 跑了两遍（handoff/release/r14-as-used/README.md 有命令）：
+    r13_review_probes.r13.out  GPT 审的 r13（提交 bf42e8b）的配置——R13-F01 说的就是它；
+    r13_review_probes.out      r14 的配置——nameserver-policy 加了产品域名那一层之后。
 """
 import base64
 import ipaddress
@@ -209,8 +212,9 @@ def sb_outbound(kind: str, port: int):
     raise ValueError(kind)
 
 
-def run_singbox_case(binary, srs_dir, kind, transport):
-    conf = json.load(open(os.path.join(ROOT, "dist", "sing-box", "sing-box-1.14.json"), encoding="utf-8"))
+def run_singbox_case(binary, srs_dir, kind, transport, config_path=None):
+    config_path = config_path or os.path.join(ROOT, "dist", "sing-box", "sing-box-1.14.json")
+    conf = json.load(open(config_path, encoding="utf-8"))
     stubs = {tag: crr.DnsStub(tag, crr._Loopback()) for tag in ("dns-cn", "dns-foreign", "dns-local")}
     for srv in conf["dns"]["servers"]:
         if srv["tag"] in stubs:
@@ -288,10 +292,14 @@ def run_singbox_case(binary, srs_dir, kind, transport):
 def main():
     binary, geodata = os.environ["MIHOMO_BIN"], os.environ["GEODATA_DIR"]
     model = load(ROOT, include_local=False)
-    config_text = open(os.path.join(ROOT, "dist", "mihomo", "mihomo-core.yaml"), encoding="utf-8").read()
-    print(f"统一源 {model.project['project']['source_version']}；mihomo：{os.path.basename(binary)}；"
-          f"geodata：{os.environ.get('GEODATA_ORIGIN', geodata)}")
-    print("配置：dist/mihomo/mihomo-core.yaml 的规则和 DNS 段原样；三类 DNS 换成本机替身；默认直连的组仍直连，其余策略组都换成测试节点。")
+    mihomo_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "dist", "mihomo", "mihomo-core.yaml")
+    singbox_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "dist", "sing-box", "sing-box-1.14.json")
+    config_text = open(mihomo_path, encoding="utf-8").read()
+    head = next(ln for ln in config_text.splitlines() if ln.startswith("# 统一源版本"))
+    # 统一源版本以配置文件头上写的为准（下一行）：跑 r13 的配置时，工程本身已经是 r14
+    print(f"mihomo：{os.path.basename(binary)}；geodata：{os.environ.get('GEODATA_ORIGIN', geodata)}")
+    print(f"配置：{os.path.relpath(mihomo_path, ROOT) if mihomo_path.startswith(ROOT) else os.path.basename(mihomo_path)}"
+          f"（{head.lstrip('# ')}）的规则和 DNS 段原样；三类 DNS 换成本机替身；默认直连的组仍直连，其余策略组都换成测试节点。")
     print("结果：收到这个名字查询的替身（system / domestic / foreign），none = 三类替身都没有收到。\n")
     plan = [("socks5", "tcp"), ("socks5", "udp-domain"), ("socks5", "udp-fakeip"),
             ("shadowsocks", "tcp"), ("shadowsocks", "udp-domain"), ("shadowsocks", "udp-fakeip"),
@@ -310,11 +318,11 @@ def main():
             for ln in r["log"]:
                 print(f"        日志：{ln[:160]}")
     sb_bin, srs_dir = os.environ["SINGBOX_BIN"], os.environ["SRS_DIR"]
-    print(f"\nsing-box：{os.path.basename(sb_bin)}；dist/sing-box/sing-box-1.14.json 的 DNS 规则和路由规则原样；"
+    print(f"\nsing-box：{os.path.basename(sb_bin)}；{os.path.basename(singbox_path)} 的 DNS 规则和路由规则原样；"
           f"dns-cn / dns-foreign / dns-local 换成本机替身；默认直连的组仍直连，其余策略组都换成测试出站。\n")
     for kind, transport in (("socks", "tcp"), ("socks", "udp-domain"), ("shadowsocks", "tcp"), ("shadowsocks", "udp-domain"),
                             ("wireguard", "tcp"), ("wireguard", "udp-domain")):
-        res = run_singbox_case(sb_bin, srs_dir, kind, transport)
+        res = run_singbox_case(sb_bin, srs_dir, kind, transport, singbox_path)
         print(f"{kind:22s} {label[transport]}")
         for h in SB_HOSTS:
             r = res[h]

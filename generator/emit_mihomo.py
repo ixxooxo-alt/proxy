@@ -2,13 +2,13 @@
 语法依据：mihomo v1.19.31 源码（config/config.go、adapter/outboundgroup/*）与 https://wiki.metacubex.one/config/"""
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List, Tuple
 
 import yaml
 
 from .groups import GroupSpec, build_groups, shared_filter_labels
 from .model import Model, Plan
-from .util import Rule, check_regex_line_safe
+from .util import Rule, check_regex_line_safe, covers
 
 MODES = ["manual_first", "manual", "auto", "failover", "balance"]
 PROVIDER_NAME = "订阅1"
@@ -34,6 +34,67 @@ def node_server_dns_policy(lan_suffixes: List[str]) -> dict:
     }
 
 
+def direct_default_groups(m: Model) -> set:
+    """默认直连的组（国内直连、Apple 那几个组）：组的首选是 DIRECT。"""
+    return {g.name for g in m.groups if g.default == "DIRECT"} | {"DIRECT"}
+
+
+def product_dns_policy(m: Model, plan: Plan) -> List[Tuple[str, bool]]:
+    """nameserver-policy 里“走代理组的产品域名”这一层。返回 [(域名写法, True = 交给境外 DNS / False = 交给国内 DNS)]，
+    按产品规则的先后。
+
+    为什么要有（2026-10-07，GPT 审核 r13 的 R13-F01；待决事项第 16 项，用户选了“改”）：以前 nameserver-policy 只有
+    “局域网后缀 → system”“geosite:cn,private → 国内 DNS”两条，上游国内域名集合收了、规则又交给代理组的域名（qwen.ai、
+    google.cn、bilibili.tv、一批微软下载主机……）由国内 DNS 解析。以为只有设备发来的 TXT 这类查询会受影响，其实不止：
+    mihomo v1.19.31 转发 UDP 时，几乎所有代理协议都先用默认解析器在本机解析目标域名（adapter/outbound/base.go 的
+    ResolveUDP），WireGuard 这类出站连 TCP 也是（wireguard.go 的 DialContext）——这些域名就被交给了国内 DNS。
+    官方内核实测见 handoff/notes/r13_review_probes.*。
+
+    做法和 sing-box 的 dns_layers 一样按覆盖关系分层，只是“归哪一类”看的是规则交给的组默认直连不直连：
+      - 默认走代理的组（国外默认、Google、Microsoft……）→ 境外 DNS；
+      - 默认直连的组（国内直连、Apple、Apple Music/TV、Apple Push）里，被更宽的“走代理”规则覆盖的那些 → 国内 DNS
+        （例如 microsoft.com 下的 delivery.mp.microsoft.com）；最外层的默认直连规则不写，和以前一样由后面的
+        geosite:cn,private 或默认的 nameserver 管。
+    默认直连的组不能算进“境外 DNS”：mihomo 的直连连接也按 nameserver-policy 解析（direct-nameserver-follow-policy），
+    算进去的话 Apple 默认直连时会拿境外 DNS 的结果、可能变慢。sing-box 那边把它们算作走代理的一类，是因为它的直连出站
+    另由 route.default_domain_resolver（国内 DNS）解析，和这里不同。
+    写成一条一条的域名：mihomo 把相邻的普通域名写法合成一棵域名树，树里越具体的越优先、不看先后
+    （v1.19.31 dns/resolver.go 的 makePolicy、component/trie/domain.go 的 search），和路由规则“更具体的优先”一致；
+    geosite: 的条目各自单独、按书写顺序，所以这一层要写在 geosite:cn,private 之前。
+    关键词规则写不进域名树；现在的产品规则里没有，有了就报错，要另想办法。"""
+    direct = direct_default_groups(m)
+    rules = [r for r in plan.exceptions + plan.product_for("mihomo") if r.kind in ("domain", "suffix", "keyword")]
+    keyword = [f"{r.value} → {r.target}" for r in rules if r.kind == "keyword"]
+    if keyword:
+        raise ValueError("mihomo 的 nameserver-policy 写不了关键词规则，产品规则里出现了：" + "、".join(keyword))
+    is_direct = {id(r): r.target in direct for r in rules}
+    depth: Dict[int, int] = {}
+
+    def depth_of(r: Rule, stack=()) -> int:
+        if id(r) in depth:
+            return depth[id(r)]
+        if id(r) in stack:
+            raise ValueError(f"规则覆盖关系成环：{r.kind},{r.value}")
+        d = 0
+        for b in rules:
+            if b is not r and covers(b.kind, b.value, r.kind, r.value) and not covers(r.kind, r.value, b.kind, b.value):
+                d = max(d, depth_of(b, stack + (id(r),)) + (1 if is_direct[id(b)] != is_direct[id(r)] else 0))
+        depth[id(r)] = d
+        return d
+
+    out: List[Tuple[str, bool]] = []
+    seen = set()
+    for r in rules:
+        if is_direct[id(r)] and depth_of(r) == 0:
+            continue
+        pattern = ("+." + r.value) if r.kind == "suffix" else r.value
+        if pattern in seen:
+            continue
+        seen.add(pattern)
+        out.append((pattern, not is_direct[id(r)]))
+    return out
+
+
 class _Dumper(yaml.SafeDumper):
     """映射用块格式、纯标量列表用行内格式：既好读又紧凑。"""
 
@@ -46,8 +107,21 @@ def _repr_list(dumper, data):
 _Dumper.add_representer(list, _repr_list)
 
 
-def _y(obj) -> str:
-    return yaml.dump(obj, Dumper=_Dumper, allow_unicode=True, sort_keys=False, width=1000, default_flow_style=False)
+def _y(obj, dumper=None) -> str:
+    return yaml.dump(obj, Dumper=dumper or _Dumper, allow_unicode=True, sort_keys=False, width=1000, default_flow_style=False)
+
+
+class _DnsDumper(_Dumper):
+    """dns 段：同一份服务器列表出现多次时，第一次写成锚点（&dns-foreign / &dns-domestic），之后用别名引用——
+    nameserver-policy 里几百条产品域名不必每条都把两个地址抄一遍。只有同一个 Python 列表对象才会这样写。"""
+    ANCHORS: Dict[Tuple[str, ...], str] = {}
+
+    def generate_anchor(self, node):
+        if isinstance(node, yaml.SequenceNode):
+            name = self.ANCHORS.get(tuple(x.value for x in node.value))
+            if name:
+                return name
+        return super().generate_anchor(node)
 
 
 def _scalar(s: str) -> str:
@@ -216,6 +290,13 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     real_ip = []
     for x in dns["real_ip"]:
         real_ip.append(("+." + x["suffix"]) if "suffix" in x else x["domain"])
+    foreign = list(dns["foreign_doh"])          # nameserver 和产品域名那一层共用这一个列表：写出来是 &dns-foreign / *dns-foreign
+    domestic_layer = list(dns["domestic_doh"])  # 被更宽的代理规则覆盖的直连规则共用：&dns-domestic / *dns-domestic
+    _DnsDumper.ANCHORS = {tuple(foreign): "dns-foreign", tuple(domestic_layer): "dns-domestic"}
+    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"]}
+    for pattern, to_foreign in product_dns_policy(m, plan):
+        policy[pattern] = foreign if to_foreign else domestic_layer
+    policy["geosite:cn,private"] = list(dns["domestic_doh"])
     dns_block = {
         "dns": {
             "enable": True,
@@ -230,15 +311,13 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
             "proxy-server-nameserver": list(dns["domestic_doh"]),
             "proxy-server-nameserver-policy": node_server_dns_policy(p["lan"]["domain_suffix"]),
             "direct-nameserver": list(dns["domestic_doh"]),
-            "nameserver": list(dns["foreign_doh"]),
-            # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字），必须排在 geosite:private 之前：
-            # mihomo 按书写顺序匹配 nameserver-policy。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这条策略，
+            "nameserver": foreign,
+            # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字）；接着是走代理组的产品域名那一层
+            # （product_dns_policy）；geosite:cn,private 放在最后：geosite 条目按书写顺序匹配，相邻的普通域名写法合成一棵
+            # 域名树、越具体的越优先。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这份策略，
             # 否则 DIRECT 出站会直接用 direct-nameserver（公共 DoH）。与 sing-box / Loon / QX 的做法一致。
-            # 这两项管的是“访问的目标”；节点自己的服务器地址另由上面的 proxy-server-nameserver-policy 管。
-            "nameserver-policy": {
-                ",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"],
-                "geosite:cn,private": list(dns["domestic_doh"]),
-            },
+            # 这些管的是“访问的目标”；节点自己的服务器地址另由上面的 proxy-server-nameserver-policy 管。
+            "nameserver-policy": policy,
             "direct-nameserver-follow-policy": True,
         }
     }
@@ -286,7 +365,7 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     out.append("")
     out.append(_y(head).rstrip())
     out.append("")
-    out.append(_y(dns_block).rstrip())
+    out.append(_y(dns_block, _DnsDumper).rstrip())
     out.append("")
     out.append(_y(sniffer).rstrip())
     out.append("")

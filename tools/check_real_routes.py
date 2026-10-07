@@ -28,6 +28,11 @@
        境外 DNS 不应答——把境外替身改成只收不答、每个连接保持 14 秒（比内核的 DNS 超时长）重跑一遍，
        收到查询的替身必须和正常那一遍相同：内核没有转去问国内 / 系统 DNS。只试了“只收不答”这一种失败方式（替身是 UDP 的），
        连接被重置、证书错误、SERVFAIL 这些没有试，结论不能直接推到真实的 DoH 故障上。
+  5b. 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：第 4、5 步把走代理的组换成了 REJECT，拒绝出口不拨号，
+     看不到“出口自己为连接解析目标”。这一步把它们换成真的出口（SOCKS5 / WireGuard，连本机一个没人监听的端口），
+     分别发 TCP 连接和 UDP 包（tests/cases.yaml 的 outbound_resolve），看目标域名有没有被拿去解析、交给了哪一类 DNS。
+     mihomo 转发 UDP、经 WireGuard 出口时都会在本机解析目标；sing-box 的代理出站把域名交给节点，WireGuard 端点按 DNS 规则解析。
+     再把 mihomo 的 nameserver-policy 里“走代理组的产品域名”那一层去掉重跑，确认这项核对看得出它。
   6. 国内 DNS 与路由的逐条扫描（2026-10-06，tools/dns_route_consistency.py；r12 时叫“全集一致性”）：把“名字会交给国内 DNS”的集合
      逐条取代表主机扫一遍，看路由有没有把其中哪个交给代理组；不一致的主机和抽出来的一批主机再交给官方内核核对。
   7. 把同一批主机在各个集合里的成员关系，连同上面几步的结果，记成快照（--write-snapshot → tests/data/real_sets.json）。
@@ -60,6 +65,7 @@ Loon / Quantumult X 没有可以在电脑上运行的官方内核，这里只把
 from __future__ import annotations
 
 import argparse
+import base64
 import concurrent.futures
 import datetime
 import ipaddress
@@ -132,7 +138,27 @@ def hostport(target: str) -> str:
 # 本机 DNS 替身
 # ---------------------------------------------------------------------------
 
+def _skip_name(data: bytes, i: int) -> int:
+    """跳过从 i 开始的一个域名，返回它后面的位置。域名是一串标签，以 0 结束，或者以一个压缩指针（高两位是 11、占两个字节）
+    结束——指针可以出现在任何一个标签边界上，例如“cdn + 指向 example.com 的指针”（RFC 1035 第 4.1.4 节）。
+    只跳过、不展开指针：这里只需要找到名字后面的类型和长度。高两位是 01 / 10 的保留写法、越界，都按读不懂处理。
+    2026-10-07 处理 GPT 对 r13 的审核（R13-F04）时改的：以前只看名字的第一个字节是不是指针，“标签 + 指针”这种合法的
+    写法会读错，正常的 CNAME + A 应答被报成 rcode--1。"""
+    while True:
+        n = data[i]
+        if n == 0:
+            return i + 1
+        if n & 0xC0 == 0xC0:
+            if i + 1 >= len(data):
+                raise IndexError("压缩指针不完整")
+            return i + 2
+        if n & 0xC0:
+            raise ValueError("保留的标签类型")
+        i += n + 1
+
+
 def _parse_question(data: bytes):
+    """读问题区的名字和类型。查询里的名字是问题区的第一个名字，前面没有可指向的内容，不会用压缩指针。"""
     i, labels = 12, []
     while data[i]:
         n = data[i]
@@ -205,12 +231,7 @@ def dns_exchange(port: int, host: str, qtype: int):
         _, _, i = _parse_question(data)
         ips = []
         for _ in range(count):
-            if data[i] & 0xC0:
-                i += 2
-            else:
-                while data[i]:
-                    i += data[i] + 1
-                i += 1
+            i = _skip_name(data, i)
             rtype, _, _, rlen = struct.unpack("!HHIH", data[i:i + 10])
             i += 10
             if rtype == 1:
@@ -218,13 +239,16 @@ def dns_exchange(port: int, host: str, qtype: int):
             elif rtype == 28:
                 ips.append(socket.inet_ntop(socket.AF_INET6, data[i:i + 16]))
             i += rlen
+            if i > len(data):
+                raise IndexError("记录比应答长")
         return rcode, ips, count
     except (IndexError, struct.error, ValueError):
-        return -1, [], 0
+        return -1, [], 0                      # 读不懂这个应答（reply_kind 记成 unparsed）
 
 
 def reply_kind(reply, fake_net) -> str:
-    """内核自己回答的一次查询（没有任何替身收到它）算哪一种：no-reply（没有应答）、fake-ip（地址全在假地址段里）、
+    """内核自己回答的一次查询（没有任何替身收到它）算哪一种：no-reply（没有应答）、unparsed（应答读不懂）、
+    fake-ip（地址全在假地址段里）、
     empty（应答码正常、一条记录都没有）、rcode-N（别的应答码）、answer:地址（有 A / AAAA 记录、不是假地址）、
     records:N（有 N 条记录、都不是地址，例如 HTTPS 记录）。
     2026-10-07 处理 GPT 对 r12 的审核时发现：以前 dns_exchange 只读 A 记录，这里按“没有 A 记录”判 empty，
@@ -233,6 +257,8 @@ def reply_kind(reply, fake_net) -> str:
     if reply is None:
         return "no-reply"
     rcode, ips, count = reply
+    if rcode == -1:
+        return "unparsed"                     # 应答格式读不懂（2026-10-07 以前会显示成 rcode--1，看不出是工具没读懂）
     if ips and all(ipaddress.ip_address(x) in fake_net for x in ips):
         return "fake-ip"
     if rcode == 0 and count == 0:
@@ -724,6 +750,225 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
 
 
 # ---------------------------------------------------------------------------
+# 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）
+# ---------------------------------------------------------------------------
+
+# 场景见 tools/real_data.py 的 OUTBOUND_SCENARIOS（哪个内核 - 测试出口的类型 - 流量）。
+# mihomo 记哪一类替身收到（system / domestic / foreign / none），sing-box 记 DNS 服务器标签
+OUTBOUND_NODE = "核对用的出口"
+
+
+def _throwaway_key() -> str:
+    """WireGuard 的一次性随机密钥：只在这一次运行里用，配置写在临时目录、用完就删，不写进任何文件。"""
+    return base64.b64encode(os.urandom(32)).decode()
+
+
+def socks5_udp_once(port: int, host: str, wait: float = 4.0) -> None:
+    """经本机的 SOCKS5 端口做 UDP ASSOCIATE，发一个目标是“host:443”（域名形式）的 UDP 包；控制连接保持 wait 秒。"""
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=5) as c:
+            c.settimeout(5)
+            c.sendall(b"\x05\x01\x00")
+            if c.recv(2) != b"\x05\x00":
+                raise RuntimeError("SOCKS5 握手失败")
+            c.sendall(b"\x05\x03\x00\x01" + socket.inet_aton("0.0.0.0") + b"\x00\x00")
+            rep = c.recv(64)
+            if len(rep) < 10 or rep[1] != 0:
+                raise RuntimeError(f"UDP ASSOCIATE 失败：{rep!r}")
+            relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+            if relay[0] == "0.0.0.0":
+                relay = ("127.0.0.1", relay[1])
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                u.sendto(b"\x00\x00\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443) + b"probe", relay)
+                time.sleep(wait)
+    except OSError:
+        pass
+
+
+def _send_all(port: int, hosts: list, transport: str) -> None:
+    """每个主机发一次（并发；查询按名字归属，互不干扰），每个连接保持 4 秒，让内核走完选出口、拨号这一段。"""
+    if transport not in ("tcp", "udp"):
+        raise ValueError(transport)
+    send = (lambda h: connect_once(port, h, wait=4.0, hold=4.0)) if transport == "tcp" else (lambda h: socks5_udp_once(port, h, wait=4.0))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(hosts))) as pool:
+        list(pool.map(send, hosts))
+    time.sleep(1.0)
+
+
+def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str, hosts: list, outbound: str,
+                          transport: str, without_product_layer: bool = False) -> dict:
+    """连接交给代理出口以后，mihomo 还会不会在本机解析目标域名、交给哪一类 DNS（2026-10-07，GPT 审核 r13 的 R13-F01）。
+    返回 {主机: system / domestic / foreign / none}（收到这个名字的查询的替身；都没有收到记 none）。
+
+    mihomo_dial_probe 把走代理的组换成了 REJECT：拒绝出口不拨号，碰不到“出口自己为连接解析目标”这条路。实际上
+      - WireGuard 这类按 IP 转发的出口，目标还是域名时用默认解析器在本机解析（v1.19.31 adapter/outbound/wireguard.go）；
+      - 几乎所有代理协议转发 UDP 前都先在本机解析目标域名（adapter/outbound/base.go 的 ResolveUDP，
+        socks5.go、shadowsocks.go、trojan.go、vmess.go、hysteria2.go…… 的 ListenPacketContext 都调用它）。
+    默认解析器按 nameserver-policy 选服务器，所以名字归国内 DNS 的域名就被交给了国内 DNS。做法同 mihomo_dial_probe：
+    规则、DNS 段的结构原样，三类 DNS 各换成本机替身（都答 127.0.0.1）；默认直连的组仍直连，其余策略组都换成一个测试出口
+    （socks5 或 wireguard，服务器是本机一个没人监听的端口，WireGuard 用一次性随机密钥）——每次拨号都落在本机。
+    transport：tcp 发 CONNECT 主机:443；udp 经 SOCKS5 UDP ASSOCIATE 发一个目标是“主机:443”的 UDP 包（开了 TUN 时程序发 QUIC，
+    目标是假地址，内核按假地址找回域名，走的是同一条路；2026-10-07 的一次性核对两种都试过，结果相同）。
+    without_product_layer：去掉 nameserver-policy 里走代理组的产品域名那一层（r13 以前的样子），用来自检。"""
+    conf = rd.mihomo_dial_base(config_text)
+    orig = yaml.safe_load(config_text)
+    dns = conf["dns"]
+    if without_product_layer:
+        policy = dns["nameserver-policy"]
+        lan_key = next(iter(policy))
+        dns["nameserver-policy"] = {k: v for k, v in policy.items() if k == lan_key or k.startswith("geosite:")}
+    kind_of = {"system": "system"}
+    for srv in list(model.dns["domestic_doh"]) + list(model.dns["domestic_plain"]):
+        kind_of[srv] = "domestic"
+    for srv in model.dns["foreign_doh"]:
+        kind_of[srv] = "foreign"
+    stubs = {k: DnsStub(k, _Loopback()) for k in ("system", "domestic", "foreign")}
+
+    def stand_in(servers) -> list:
+        out = []
+        for srv in [servers] if isinstance(servers, str) else list(servers):
+            if srv not in kind_of:
+                raise RuntimeError(f"dns 段里的服务器 {srv} 不在统一源的三类 DNS 里，不知道该换成哪个替身")
+            addr = f"127.0.0.1:{stubs[kind_of[srv]].port}"
+            if addr not in out:
+                out.append(addr)
+        return out
+
+    for key in MIHOMO_DNS_SERVER_LISTS:
+        if key in dns:
+            dns[key] = stand_in(dns[key])
+    for key in MIHOMO_DNS_POLICIES:
+        if key in dns:
+            dns[key] = {pattern: stand_in(servers) for pattern, servers in dns[key].items()}
+    closed = free_port_tcp_udp()
+    node = {"name": OUTBOUND_NODE, "server": "127.0.0.1", "port": closed, "udp": True}
+    if outbound == "socks5":
+        node["type"] = "socks5"
+    elif outbound == "wireguard":
+        node.update({"type": "wireguard", "ip": "172.16.0.2", "private-key": _throwaway_key(),
+                     "public-key": _throwaway_key(), "mtu": 1280})
+    else:
+        raise ValueError(outbound)
+    port = free_port_tcp_udp()
+    conf.update({
+        "mixed-port": port, "allow-lan": False, "bind-address": "127.0.0.1", "log-level": "debug",
+        "find-process-mode": "off", "geo-auto-update": False, "profile": {"store-selected": False, "store-fake-ip": False},
+        "proxies": [node],
+        "proxy-groups": [{"name": g["name"], "type": "select",
+                          "proxies": ["DIRECT" if (g.get("proxies") or [None])[0] == "DIRECT" else OUTBOUND_NODE]}
+                         for g in orig["proxy-groups"]],
+    })
+    home = tempfile.mkdtemp(prefix="outbound-mihomo-")
+    try:
+        for st in stubs.values():
+            st.start()
+        for src, dst in {"geosite.dat": "GeoSite.dat", "geoip.dat": "GeoIP.dat", "geoip.metadb": "geoip.metadb"}.items():
+            if os.path.exists(os.path.join(geodata_dir, src)):
+                shutil.copy(os.path.join(geodata_dir, src), os.path.join(home, dst))
+        cfg = os.path.join(home, "probe.yaml")
+        with open(cfg, "w", encoding="utf-8") as f:
+            yaml.safe_dump(conf, f, allow_unicode=True, sort_keys=False, width=100000)
+        logp = os.path.join(home, "log.txt")
+        with open(logp, "w", encoding="utf-8") as log:
+            proc = subprocess.Popen([binary, "-d", home, "-f", cfg], stdout=log, stderr=subprocess.STDOUT)
+            try:
+                if not wait_port(port, proc):
+                    raise RuntimeError("mihomo 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                # 测试出口连不通，内核记的是“dial … error”而不是“match”，所以只等日志里出现这个目标
+                if not wait_log(logp, lambda: connect_once(port, CANARY, wait=1.0), f"--> {CANARY}:443", proc):
+                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                _send_all(port, hosts, transport)
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+        out = {}
+        for h in hosts:
+            asked = [k for k, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
+            out[h] = "+".join(asked) if asked else NONE
+        return out
+    finally:
+        for st in stubs.values():
+            st.close()
+        shutil.rmtree(home, ignore_errors=True)
+
+
+def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: list, outbound: str, transport: str) -> dict:
+    """同上，sing-box 这一边（自查同一类问题）。返回 {主机: 收到查询的 DNS 服务器标签，或 none}。
+    DNS 规则、路由规则原样；dns-cn / dns-foreign / dns-local 换成本机替身（dns-fakeip 保留），TUN 入站换成本机回环上的
+    mixed 入站；默认直连的组仍直连，其余策略组都换成测试出口（socks 出站，或 WireGuard 端点）。
+    sing-box 的代理出站把域名原样交给节点（TCP、UDP 都是）；WireGuard 端点要 IP，按 DNS 规则解析
+    （v1.14.1 protocol/wireguard/endpoint.go 的 DialContext：dnsRouter.Lookup，不指定服务器）。"""
+    conf = json.loads(config_text)
+    stubs = {tag: DnsStub(tag, _Loopback()) for tag in ("dns-cn", "dns-foreign", "dns-local")}
+    for srv in conf["dns"]["servers"]:
+        if srv["tag"] in stubs:
+            port, tag = stubs[srv["tag"]].port, srv["tag"]
+            srv.clear()
+            srv.update({"type": "udp", "tag": tag, "server": "127.0.0.1", "server_port": port})
+    closed, mixed = free_port_tcp_udp(), free_port_tcp_udp()
+    conf["log"] = {"level": "debug", "timestamp": False}
+    conf["inbounds"] = [{"type": "mixed", "tag": "probe-in", "listen": "127.0.0.1", "listen_port": mixed}]
+    for rs in conf["route"]["rule_set"]:
+        if rs["type"] == "remote":
+            tag = rs["tag"]
+            rs.clear()
+            rs.update({"type": "local", "tag": tag, "format": "binary", "path": os.path.abspath(os.path.join(srs_dir, SB_SRS[tag]))})
+    conf["route"].pop("auto_detect_interface", None)
+    conf["route"].pop("default_http_client", None)
+    conf.pop("experimental", None)
+    conf.pop("http_clients", None)
+    outs = []
+    for o in conf["outbounds"]:
+        if o["type"] in ("selector", "urltest"):
+            direct = (o.get("default") or (o.get("outbounds") or [None])[0]) == "DIRECT"
+            outs.append({"type": "selector", "tag": o["tag"], "outbounds": ["DIRECT" if direct else OUTBOUND_NODE]})
+        else:
+            outs.append(o)
+    if outbound == "socks":
+        outs.append({"type": "socks", "tag": OUTBOUND_NODE, "server": "127.0.0.1", "server_port": closed})
+    elif outbound == "wireguard":
+        conf["endpoints"] = [{"type": "wireguard", "tag": OUTBOUND_NODE, "address": ["172.16.0.2/32"], "mtu": 1280,
+                              "private_key": _throwaway_key(),
+                              "peers": [{"address": "127.0.0.1", "port": closed, "public_key": _throwaway_key(),
+                                         "allowed_ips": ["0.0.0.0/0"]}]}]
+    else:
+        raise ValueError(outbound)
+    conf["outbounds"] = outs
+    tmp = tempfile.mkdtemp(prefix="outbound-singbox-")
+    try:
+        for st in stubs.values():
+            st.start()
+        cfg = os.path.join(tmp, "probe.json")
+        with open(cfg, "w", encoding="utf-8") as f:
+            json.dump(conf, f, ensure_ascii=False)
+        logp = os.path.join(tmp, "log.txt")
+        with open(logp, "w", encoding="utf-8") as log:
+            proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
+            try:
+                if not wait_port(mixed, proc) or not wait_log(logp, lambda: None, "sing-box started", proc):
+                    raise RuntimeError("sing-box 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                _send_all(mixed, hosts, transport)
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+        out = {}
+        for h in hosts:
+            asked = [tag for tag, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
+            out[h] = "+".join(asked) if asked else NONE
+        return out
+    finally:
+        for st in stubs.values():
+            st.close()
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
 # 成员快照
 # ---------------------------------------------------------------------------
 
@@ -876,6 +1121,28 @@ def check_consistency(a, model, files, loaded, dns_map) -> tuple:
         print("        " + x)
     failures += [f"mihomo 逐条扫描：{x}" for x in bad]
     out["mihomo"] = _consistency_record(rec, len(sel))
+    # 自检（2026-10-07，r14）：把 nameserver-policy 里“走代理组的产品域名”那一层拿掉（r13 的样子）再扫。走代理组的应该多出一大批；
+    # 多出来的这些就是那一层管到的主机，交给官方内核查一次 TXT，现在应该都由境外 DNS 的替身收到
+    stripped = yaml.safe_load(core)
+    policy = stripped["dns"]["nameserver-policy"]
+    lan_key = next(iter(policy))
+    stripped["dns"]["nameserver-policy"] = {k: v for k, v in policy.items() if k == lan_key or k.startswith("geosite:")}
+    fx2 = drc.LiveFixtures("mihomo", loaded["mihomo"], loaded["mihomo_cn_nets"], dns_map, DEFAULT_FOREIGN_IP)
+    rec2 = drc.sweep_mihomo(stripped, loaded["mihomo"], fx2, domestic)
+    back = sorted({x["host"] for x in rec2["mismatch"]} - {x["host"] for x in rec["mismatch"]})
+    ok = len(back) > 20
+    print(f"      自检：去掉 nameserver-policy 里“走代理组的产品域名”那一层再扫，走代理组的从 {len(rec['mismatch'])} 个变成 "
+          f"{len(rec2['mismatch'])} 个" + ("——这一层仍然需要，这项核对看得见它要防的错误" if ok
+                                         else "——没有明显变化：这项核对没有起作用，或者上游数据变了"))
+    if not ok:
+        failures.append("mihomo 逐条扫描：自检没有看到差别")
+    _, asked = mihomo_dial_probe(a.mihomo, a.geodata_dir, model, core, [], [{"host": h, "type": "TXT"} for h in back])
+    wrong = [f"{h}：{asked[(h, 'TXT')]}" for h in back if asked[(h, "TXT")] != "foreign"]
+    print(f"      [{'符合' if not wrong else '不符合'}] 多出来的 {len(back)} 个（产品域名那一层管到的）交给官方内核查 TXT："
+          + ("都只由境外 DNS 的替身收到" if not wrong else f"{len(wrong)} 个不是，例如 {'、'.join(wrong[:5])}"))
+    failures += [f"mihomo 逐条扫描（产品域名那一层）：{x}" for x in wrong]
+    out["mihomo"]["without_product_dns_rules"] = len(rec2["mismatch"])
+    out["mihomo"]["product_layer_checked"] = len(back)
 
     # ---- sing-box ----
     runs = [("singbox", "1.14", a.singbox)] + ([("singbox112", "1.12", a.singbox_112)] if a.singbox_112 else [])
@@ -1089,6 +1356,37 @@ def main(argv=None) -> int:
         print("      " + x)
     failures += [f"mihomo 境外 DNS 不应答：{x}" for x in bad]
     mihomo_dial_record["dial_foreign_silent"], mihomo_dial_record["dns_foreign_silent"] = d3, q3
+    # 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：走代理的组换成真的出口（连本机空端口），看出口自己会不会再解析
+    ob_cases = rd.outbound_cases()
+    ob_hosts = [c["host"] for c in ob_cases]
+    ob_rec = {}
+    for scen in rd.OUTBOUND_SCENARIOS:
+        core, outbound, transport = scen.split("-")
+        if core == "mihomo":
+            ob_rec[scen] = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, outbound, transport)
+    bad = [f"{scen} {c['host']}：期望 {c['expect'][scen]}，官方内核 {ob_rec[scen][c['host']]}"
+           for scen in ob_rec for c in ob_cases if ob_rec[scen][c["host"]] != c["expect"][scen]]
+    print(f"  [{'符合' if not bad else '不符合'}] 出站时的解析 {len(ob_cases)} 个主机 × {len(ob_rec)} 种出口"
+          "（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP，出口连本机空端口；"
+          "看出口自己会不会再解析目标、交给哪一类 DNS；none = 三类替身都没有收到）："
+          + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
+    for c in ob_cases:
+        print(f"      {c['host']}：" + "，".join(f"{scen[len('mihomo-'):]} → {ob_rec[scen][c['host']]}"
+                                             + ("（已知限制的现状，见 docs/06）" if scen in c.get("limit", []) else "")
+                                             for scen in ob_rec))
+    failures += [f"mihomo 出站时的解析：{x}" for x in bad]
+    # 自检：去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard 那一种。应该只有 product: true 的主机变回国内 DNS
+    without = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, "wireguard", "tcp", without_product_layer=True)
+    should = sorted(c["host"] for c in ob_cases if c.get("product"))
+    moved = sorted(h for h in ob_hosts if without[h] != ob_rec["mihomo-wireguard-tcp"][h])
+    ok = moved == should and bool(should) and all(without[h] == "domestic" for h in moved)
+    print("      自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，WireGuard 出口下 "
+          + ("、".join(f"{h} → {without[h]}" for h in moved) if moved else "结果没有变化")
+          + ("——只有这一类变回国内 DNS，这一层仍然需要" if ok
+             else f"——应该变回 domestic 的是 {should}，实际不是这样：这项核对没有起作用，或者内核的行为变了"))
+    if not ok:
+        failures.append("mihomo 出站时的解析：去掉产品域名那一层的自检结果不对")
+    mihomo_dial_record["outbound"], mihomo_dial_record["outbound_without_product_layer"] = ob_rec, without
     official["mihomo"].update(mihomo_dial_record)
 
     # ---- sing-box ----
@@ -1151,13 +1449,28 @@ def main(argv=None) -> int:
         for x in bad[:20]:
             print("      " + x)
         failures += [f"{client} 境外 DNS 不应答：{x}" for x in bad]
+        # 出站时的解析（2026-10-07，自查 GPT 审核 r13 的 R13-F01 在 sing-box 上有没有）
+        sb_ob = {}
+        for scen in rd.OUTBOUND_SCENARIOS:
+            core, outbound, transport = scen.split("-")
+            if core == "singbox":
+                sb_ob[scen] = singbox_outbound_probe(binary, a.srs_dir, files[rel], ob_hosts, outbound, transport)
+        bad = [f"{scen} {c['host']}：期望 {c['expect'][scen]}，官方内核 {sb_ob[scen][c['host']]}"
+               for scen in sb_ob for c in ob_cases if sb_ob[scen][c["host"]] != c["expect"][scen]]
+        print(f"  [{'符合' if not bad else '不符合'}] 出站时的解析 {len(ob_cases)} 个主机 × {len(sb_ob)} 种出口"
+              "（走代理的组换成 SOCKS 走 UDP、WireGuard 端点走 TCP）：" + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
+        for c in ob_cases:
+            print(f"      {c['host']}：" + "，".join(f"{scen[len('singbox-'):]} → {sb_ob[scen][c['host']]}"
+                                                 + ("（已知限制的现状，见 docs/06）" if scen in c.get("limit", []) else "")
+                                                 for scen in sb_ob))
+        failures += [f"{client} 出站时的解析：{x}" for x in bad]
         # 两个版本的官方记录分开存：1.14 的在 singbox，1.12 的在 singbox112（测试里各比各的）
         official["singbox" if client == "singbox-1.14" else "singbox112"] = {
             "version": ver, "config": rel, "config_sha256": sha256_text(files[rel]),
             "routing_sha256": rd.routing_digest(rel, files[rel]),
             "routes": {t: list(v) for t, v in routes.items() if v},
             "dns": {f"{h} {q}": v for (h, q), v in dns_got.items()},
-            "dial": dial, "dial_without_fix": before, "dial_foreign_silent": d3, "dns_foreign_silent": q3,
+            "dial": dial, "dial_without_fix": before, "dial_foreign_silent": d3, "dns_foreign_silent": q3, "outbound": sb_ob,
             "dial_sha256": rd.dial_digest("singbox", rd.singbox_dial_base(model, plan, variant, dial_cases)[0])}
 
     # ---- 自检：把更正拿掉再跑一遍 ----
@@ -1226,7 +1539,10 @@ def main(argv=None) -> int:
                          "consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，"
                          "to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、"
                          "可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），"
-                         "official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的"
+                         "official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析"
+                         "（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），"
+                         "mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。"
+                         "loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的"
                          "国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
                 "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
                 "source_version": model.project["project"]["source_version"],

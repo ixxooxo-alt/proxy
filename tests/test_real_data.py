@@ -430,9 +430,10 @@ class MihomoDial(unittest.TestCase):
         wrong = [(k, c["expect"], self.rec["dns"][k]) for k, c in zip(self.dns_keys, self.dns) if self.rec["dns"][k] != c["expect"]]
         self.assertEqual(wrong, [], "（用例, 期望, 官方内核记录）" + HINT)
         limits = [c for c in self.dns if c.get("limit")]
-        self.assertEqual([(c["host"], c["type"], c["expect"]) for c in limits],
-                         [("printer", "A", "domestic"), ("qwen.ai", "TXT", "domestic")],
-                         "已知限制的现状变了：docs/03、docs/06 里“不带点的名字”和“国内域名集合里走代理的域名”两条要跟着改")
+        self.assertEqual([(c["host"], c["type"], c["expect"]) for c in limits], [("printer", "A", "domestic")],
+                         "已知限制的现状变了：docs/03、docs/06 里“不带点的名字”那一条要跟着改")
+        # r13 时 qwen.ai 的 TXT 查询交给国内 DNS（待决事项 16）；r14 起产品域名那一层把它交给境外 DNS（R13-F01，用户选了改）
+        self.assertEqual(self.rec["dns"]["qwen.ai TXT"], "foreign")
         self.assertFalse(set(self.dns_keys) & set(self.dial_keys))
 
     def test_each_setting_only_governs_its_own_path(self):
@@ -674,20 +675,23 @@ class DnsRouteConsistency(unittest.TestCase):
             for item in rec["default_direct"]:
                 self.assertEqual(defaults.get(item["route"]), "DIRECT", f"{key} {item['host']} → {item['route']}")
 
-    def test_singbox_and_mihomo_differ_as_documented(self):
-        """sing-box 的 DNS 规则里有“走代理组的产品域名”一层，所以它的不一致只剩“要真实地址的名单”；
-        mihomo 的 nameserver-policy 没有这一层，国内域名集合里走代理的产品域名都算进来了。
-        另外，快照里记着自检的结果：把 sing-box 的那一层拿掉再扫，走代理组的主机会多出一大批。"""
+    def test_singbox_and_mihomo_both_have_the_product_layer(self):
+        """两个内核的 DNS 上都有“走代理组的产品域名先判断”一层：sing-box 一直在 DNS 规则里；mihomo 是 r14 在 nameserver-policy 里加的
+        （2026-10-07，GPT 审核 r13 的 R13-F01，待决事项 16 用户选了改）。所以 sing-box 的不一致只剩“要真实地址的名单”，
+        mihomo 的只剩 private 集合那一类，“国内域名集合里走代理的产品域名”（r13 时 mihomo 有 142 个代表主机）一个都没有了。
+        另外，快照里记着 sing-box 的自检：把那一层拿掉再扫，走代理组的主机会多出一大批。"""
         sb = self.cons["singbox"]
         self.assertLessEqual(len(sb["mismatch"]), 20)
         self.assertGreater(sb["without_product_dns_rules"], len(sb["mismatch"]) + 20)
         mi = self.cons["mihomo"]["mismatch"]
         kinds = [self.kind_of("mihomo", x) for x in mi]
-        self.assertGreater(kinds.count("product_cn"), 50)
+        self.assertEqual(kinds.count("product_cn"), 0, "mihomo 上又出现了“名字交给国内 DNS、规则交给代理组”的产品域名")
         self.assertGreater(kinds.count("private"), 50)
-        hosts = {x["host"] for x in mi}
-        self.assertIn("qwen.ai", hosts, "mihomo_dns 里那条已知限制（qwen.ai 的 TXT 查询交给国内 DNS）说的就是这一类")
-        self.assertEqual(self.snap["official"]["mihomo"]["dns"]["qwen.ai TXT"], "domestic")
+        # mihomo 的自检：拿掉产品域名那一层再扫，多出来的就是这一层管到的主机，它们都交给官方内核查过 TXT（都由境外 DNS 收到）
+        self.assertGreater(self.cons["mihomo"]["without_product_dns_rules"], len(mi) + 50)
+        self.assertEqual(self.cons["mihomo"]["product_layer_checked"], self.cons["mihomo"]["without_product_dns_rules"] - len(mi))
+        self.assertNotIn("qwen.ai", {x["host"] for x in mi})
+        self.assertEqual(self.snap["official"]["mihomo"]["dns"]["qwen.ai TXT"], "foreign")
 
 
 class ProbeReplyParsing(unittest.TestCase):
@@ -748,6 +752,97 @@ class ProbeReplyParsing(unittest.TestCase):
         self.assertEqual(self.kind(self.ask(q["A"], [(1, socket.inet_aton("203.0.113.5"))])), "answer:203.0.113.5")
         self.assertEqual(self.kind(self.ask(q["A"], rcode=2)), "rcode-2")
         self.assertEqual(self.kind(None), "no-reply")
+
+    def test_names_ending_in_a_pointer_after_labels_are_read(self):
+        """GPT 审核 r13 的 R13-F04：记录的名字可以是“几个标签 + 一个压缩指针”（RFC 1035 第 4.1.4 节），例如 CNAME 之后的
+        cdn.example.com 写成“cdn + 指向问题区 example.com 的指针”。以前只在名字的第一个字节看指针，这种合法的应答被读错、
+        记成 rcode--1（变异 M101）。读不懂的应答现在记 unparsed，不再冒充应答码。"""
+        import socket
+        import struct
+        import threading
+
+        def serve(build):
+            srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            srv.bind(("127.0.0.1", 0))
+            srv.settimeout(5)
+
+            def run():
+                data, addr = srv.recvfrom(4096)
+                srv.sendto(build(data), addr)
+            th = threading.Thread(target=run, daemon=True)
+            th.start()
+            try:
+                return self.crr.dns_exchange(srv.getsockname()[1], "www.example.com", self.crr.QTYPE["A"])
+            finally:
+                th.join(5)
+                srv.close()
+
+        def cname_then_a(data):
+            _, _, end = self.crr._parse_question(data)
+            head = data[:2] + struct.pack("!HHHHH", 0x8180, 1, 2, 0, 0)
+            # 问题区的 www.example.com 从偏移 12 开始，example.com 在偏移 16
+            cname = b"\xc0\x0c" + struct.pack("!HHIH", 5, 1, 60, 6) + b"\x03cdn\xc0\x10"
+            a = b"\x03cdn\xc0\x10" + struct.pack("!HHIH", 1, 1, 60, 4) + socket.inet_aton("192.0.2.7")
+            return head + data[12:end] + cname + a
+
+        def cut_short(data):
+            _, _, end = self.crr._parse_question(data)
+            return data[:2] + struct.pack("!HHHHH", 0x8180, 1, 1, 0, 0) + data[12:end] + b"\xc0\x0c\x00\x01"
+
+        got = serve(cname_then_a)
+        self.assertEqual(got, (0, ["192.0.2.7"], 2), "CNAME + A 的正常应答要读出地址和记录数")
+        self.assertEqual(self.kind(got), "answer:192.0.2.7")
+        self.assertEqual(self.kind(serve(cut_short)), "unparsed", "读不懂的应答记 unparsed，不能冒充应答码")
+
+
+class OutboundResolve(unittest.TestCase):
+    """出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01；用例在 cases.yaml 的 outbound_resolve，怎么跑的见
+    tools/check_real_routes.py 的 mihomo_outbound_probe、singbox_outbound_probe）。走代理的组换成真的出口（连本机空端口），
+    看出口自己会不会为连接再解析目标、交给谁。mihomo 转发 UDP、经 WireGuard 时都会在本机解析；r13 时 qwen.ai 这类域名
+    因此被交给了国内 DNS，r14 在 nameserver-policy 里加了产品域名那一层。这里核对快照里官方内核的记录和人工期望一致、
+    自检确实看得出那一层；记录对应的是不是现在的配置，由上面 dial_sha256 那两项测试管（这项核对用的就是拨号核对那份配置）。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cases = rd.outbound_cases()
+        cls.official = snapshot()["official"]
+
+    def test_cases_cover_the_point_of_the_check(self):
+        hosts = {c["host"]: c for c in self.cases}
+        self.assertTrue(any(c.get("product") for c in self.cases), "要有“国内域名集合收了、规则交给代理组”的主机")
+        self.assertIn("qwen.ai", hosts)
+        for c in self.cases:
+            self.assertTrue(c.get("why"), c["host"])
+        # 要有对照：国内直连的、默认直连组的（Apple）、产品域名那一层里交给国内 DNS 的（更具体的直连规则）
+        for h in ("www.qq.com", "www.apple.com", "tlu.dl.delivery.mp.microsoft.com"):
+            self.assertEqual(hosts[h]["expect"]["mihomo-wireguard-tcp"], "domestic", h)
+
+    def test_recorded_official_runs_match_the_cases(self):
+        for fam, scen_prefix in (("mihomo", "mihomo-"), ("singbox", "singbox-"), ("singbox112", "singbox-")):
+            rec = self.official[fam].get("outbound")
+            self.assertTrue(rec, f"快照里没有 {fam} 的出站解析记录" + HINT)
+            scens = [s for s in rd.OUTBOUND_SCENARIOS if s.startswith(scen_prefix)]
+            self.assertEqual(sorted(rec), scens, fam + HINT)
+            wrong = [(fam, s, c["host"], c["expect"][s], rec[s].get(c["host"])) for s in scens for c in self.cases
+                     if rec[s].get(c["host"]) != c["expect"][s]]
+            self.assertEqual(wrong, [], "（记录, 场景, 主机, 期望, 官方内核记录）" + HINT)
+
+    def test_mihomo_never_hands_a_proxied_name_to_the_domestic_dns(self):
+        """r14 的目标：名字归走代理组的主机，三种出口下都没有被交给国内 DNS（time.windows.com 在 mihomo 上也没有）。"""
+        rec = self.official["mihomo"]["outbound"]
+        proxied = [c["host"] for c in self.cases if c["expect"]["mihomo-socks5-tcp"] in ("none", "foreign")]
+        self.assertGreaterEqual(len(proxied), 4)
+        for s, got in rec.items():
+            for h in proxied:
+                self.assertNotEqual(got[h], "domestic", f"{s} {h}")
+
+    def test_self_check_sees_the_product_layer(self):
+        """去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard：只有 product 一类变回国内 DNS。"""
+        rec = self.official["mihomo"]
+        without, now = rec["outbound_without_product_layer"], rec["outbound"]["mihomo-wireguard-tcp"]
+        moved = sorted(h for h in now if without[h] != now[h])
+        self.assertEqual(moved, sorted(c["host"] for c in self.cases if c.get("product")))
+        self.assertTrue(all(without[h] == "domestic" for h in moved))
 
 
 if __name__ == "__main__":

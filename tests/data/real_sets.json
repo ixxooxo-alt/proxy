@@ -1,12 +1,12 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
  },
  "consistency": {
   "mihomo": {
-   "consistent": 222359,
+   "consistent": 222361,
    "default_direct": [
     {
      "host": "aaplimg.com",
@@ -287,11 +287,6 @@
      "host": "19.172.in-addr.arpa",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "1drv.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
     },
     {
      "by_ip": true,
@@ -624,55 +619,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "aka.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "api.bilibili.com",
-     "route": "Bilibili 港澳台",
-     "via": "规则的值"
-    },
-    {
-     "host": "app.bilibili.com",
-     "route": "Bilibili 港澳台",
-     "via": "规则的值"
-    },
-    {
-     "host": "applesiri.cn",
-     "route": "Apple AI",
-     "via": "规则的值"
-    },
-    {
-     "host": "apps.mzstatic.com",
-     "route": "Apple AI",
-     "via": "规则的值"
-    },
-    {
      "by_ip": true,
      "host": "asusrouter.com",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "azuremigrate.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "azuremigratetest.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "azurestackhub.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "azurestackhubuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -681,90 +631,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "bangumi.bilibili.com",
-     "route": "Bilibili 港澳台",
-     "via": "规则的值"
-    },
-    {
-     "host": "bilibili.tv",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "biliintl.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "bj1.api.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "cbdstest.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "cn.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "cn.bing.net",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "cn.mm.bing.net",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "collaborate.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "collaborateppe.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "d.f.ip6.arpa",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "dcg.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "ditu.live.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "download.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "download.visualstudio.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "dreamspark.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "dreamsparkuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -773,25 +643,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "gfx.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "google.cn",
-     "route": "Google",
-     "via": "规则的值"
-    },
-    {
      "by_ip": true,
      "host": "hiwifi.com",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "images-amazon.com",
-     "route": "国外默认",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -812,120 +667,15 @@
      "via": "geosite:private"
     },
     {
-     "host": "iq.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "itacademy.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "itacademyuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "lex.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "lexuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "host": "local.adguard.org",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "mbs.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "mpnbenefits.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "mpnbenefitsrtl.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "mpnbenefitsrtluat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "msdn.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "msdprod-ad.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "msproduct.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
      "host": "my.router",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "myvs.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "nico.ms",
-     "route": "日本影音",
-     "via": "规则的值"
-    },
-    {
-     "host": "oemsoc.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "oemsocuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "officecdn.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "officemkt.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "officemktuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "osrelease.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "p.bstarstatic.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -1166,11 +916,6 @@
      "host": "probe-x1.19.172.in-addr.arpa",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "probe-x1.1drv.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
     },
     {
      "by_ip": true,
@@ -1503,90 +1248,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.aka.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.applesiri.cn",
-     "route": "Apple AI",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.apps.mzstatic.com",
-     "route": "Apple AI",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.azuremigrate.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.azuremigratetest.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.azurestackhub.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.azurestackhubuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.b.e.f.ip6.arpa",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "probe-x1.bilibili.tv",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.biliintl.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.bj1.api.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.cbdstest.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.cn.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.cn.bing.net",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.cn.mm.bing.net",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.collaborate.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.collaborateppe.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -1595,61 +1260,16 @@
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.dcg.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.ditu.live.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.download.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.download.visualstudio.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.dreamspark.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.dreamsparkuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.example",
      "route": "国外默认",
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.gfx.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.google.cn",
-     "route": "Google",
-     "via": "规则的值"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.hiwifi.com",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "probe-x1.images-amazon.com",
-     "route": "国外默认",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -1664,115 +1284,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.iq.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.itacademy.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.itacademyuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.lex.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.lexuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.mbs.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.mpnbenefits.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.mpnbenefitsrtl.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.mpnbenefitsrtluat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.msdn.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.msdprod-ad.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.msproduct.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.my.router",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "probe-x1.myvs.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.nico.ms",
-     "route": "日本影音",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.oemsoc.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.oemsocuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.officecdn.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.officemkt.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.officemktuat.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.osrelease.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.p.bstarstatic.com",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -1787,86 +1302,16 @@
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.qwen.ai",
-     "route": "国外默认",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.qwenlm.ai",
-     "route": "国外默认",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.r.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.router.ctc",
      "route": "国外默认",
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.rsm.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.sdx.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.sfx.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "probe-x1.software.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.storecorefulfillment.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.storeedge.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.surface.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.surface.downloads.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.svc.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.test",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "probe-x1.th.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.tiktokrow-cdn.com",
-     "route": "TikTok",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -1880,65 +1325,10 @@
      "via": "geosite:private"
     },
     {
-     "host": "probe-x1.update.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.vlportal.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.volic.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.vscode.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.vz.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.wetv.vip",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.windbg.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "probe-x1.windowsupdate.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "probe-x1.zte.home",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "qwen.ai",
-     "route": "国外默认",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "qwenlm.ai",
-     "route": "国外默认",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "r.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "host": "router.asus.com",
@@ -1958,71 +1348,16 @@
      "via": "geosite:private"
     },
     {
-     "host": "rsm.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "sdx.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
      "by_ip": true,
      "host": "setmeup.arubanetworks.com",
      "route": "国外默认",
      "via": "geosite:private"
     },
     {
-     "host": "sfx.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
-     "host": "software.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "storecorefulfillment.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "storeedge.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "surface.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "surface.downloads.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "svc.ms",
-     "route": "Microsoft",
-     "via": "规则的值"
-    },
-    {
      "by_ip": true,
      "host": "test",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "th.bing.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "tiktokrow-cdn.com",
-     "route": "TikTok",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -2034,51 +1369,6 @@
      "host": "ts.net",
      "route": "国外默认",
      "via": "geosite:private"
-    },
-    {
-     "host": "update.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "upos-hz-mirrorakam.akamaized.net",
-     "route": "Bilibili 港澳台",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "vlportal.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "volic.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "vscode.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "vz.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "wetv.vip",
-     "route": "其他流媒体",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "windbg.download.prss.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
-    },
-    {
-     "host": "windowsupdate.microsoft.com",
-     "route": "Microsoft",
-     "via": "geosite:cn"
     },
     {
      "by_ip": true,
@@ -2099,7 +1389,8 @@
      "via": "geosite:private"
     }
    ],
-   "official_checked": 574,
+   "official_checked": 432,
+   "product_layer_checked": 142,
    "swept": {
     "from_rules": 1577,
     "from_sets": 222689,
@@ -2113,7 +1404,8 @@
      "regex": 1
     }
    },
-   "to_domestic": 222733
+   "to_domestic": 222593,
+   "without_product_dns_rules": 364
   },
   "singbox": {
    "consistent": 17673,
@@ -2223,7 +1515,7 @@
    "to_domestic": 17679
   }
  },
- "generated": "2026-10-06",
+ "generated": "2026-10-07",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -5146,7 +4438,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "6becbefd8dcf1ea5e9a00c5ea2c26fd7c9447e0f9d1e03e1901356a0c51cbbe7",
+   "config_sha256": "a2f89037ab788fc131190554991e939c3d1665a2e5d9bbd97477d8acd51c7625",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -5169,7 +4461,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "10a728a1704986b0081641165c4a21af5a1e715bd1d9f175b912aeb8dbd1cdd9",
+   "dial_sha256": "7e9fc74e3bbdf60179b669d1c300ed6c3352532dab1d3ab9bf3fad7c05b9b24c",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -5222,7 +4514,8 @@
     "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
-    "qwen.ai TXT": "domestic",
+    "qwen.ai TXT": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com TXT": "domestic",
     "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
@@ -5236,7 +4529,8 @@
     "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
-    "qwen.ai TXT": "domestic",
+    "qwen.ai TXT": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com TXT": "domestic",
     "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
@@ -5250,7 +4544,8 @@
     "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
-    "qwen.ai TXT": "domestic",
+    "qwen.ai TXT": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com TXT": "domestic",
     "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
@@ -5264,7 +4559,8 @@
     "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "domestic",
-    "qwen.ai TXT": "domestic",
+    "qwen.ai TXT": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com TXT": "domestic",
     "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
    },
@@ -5278,9 +4574,52 @@
     "never-listed-txt.net TXT": "foreign",
     "printer A": "domestic",
     "printer.lan A": "system",
-    "qwen.ai TXT": "domestic",
+    "qwen.ai TXT": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com TXT": "domestic",
     "www.qq.com TXT": "domestic",
     "www.taobao.com A": "fake-ip"
+   },
+   "outbound": {
+    "mihomo-socks5-tcp": {
+     "chatgpt.com": "none",
+     "download.microsoft.com": "none",
+     "never-listed-site.org": "foreign",
+     "qwen.ai": "none",
+     "time.windows.com": "none",
+     "tlu.dl.delivery.mp.microsoft.com": "domestic",
+     "www.apple.com": "domestic",
+     "www.qq.com": "domestic"
+    },
+    "mihomo-socks5-udp": {
+     "chatgpt.com": "foreign",
+     "download.microsoft.com": "foreign",
+     "never-listed-site.org": "foreign",
+     "qwen.ai": "foreign",
+     "time.windows.com": "foreign",
+     "tlu.dl.delivery.mp.microsoft.com": "domestic",
+     "www.apple.com": "domestic",
+     "www.qq.com": "domestic"
+    },
+    "mihomo-wireguard-tcp": {
+     "chatgpt.com": "foreign",
+     "download.microsoft.com": "foreign",
+     "never-listed-site.org": "foreign",
+     "qwen.ai": "foreign",
+     "time.windows.com": "foreign",
+     "tlu.dl.delivery.mp.microsoft.com": "domestic",
+     "www.apple.com": "domestic",
+     "www.qq.com": "domestic"
+    }
+   },
+   "outbound_without_product_layer": {
+    "chatgpt.com": "foreign",
+    "download.microsoft.com": "domestic",
+    "never-listed-site.org": "foreign",
+    "qwen.ai": "domestic",
+    "time.windows.com": "foreign",
+    "tlu.dl.delivery.mp.microsoft.com": "domestic",
+    "www.apple.com": "domestic",
+    "www.qq.com": "domestic"
    },
    "routes": {
     "0.pool.ntp.org": [
@@ -6324,7 +5663,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "3360da1ebf6d9a024d043f658738d25beb4635a54f16b67b1da31a1d33d2165b",
+   "routing_sha256": "ddb0d5bf50a7fb5384549c022f5d5000e2b6394f59814d9ec3dac179c9705b66",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
@@ -6414,6 +5753,28 @@
     "www.microsoft.com A": "dns-fakeip",
     "www.qianwen.com A": "dns-cn",
     "www.recaptcha.net A": "dns-fakeip"
+   },
+   "outbound": {
+    "singbox-socks-udp": {
+     "chatgpt.com": "none",
+     "download.microsoft.com": "none",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "none",
+     "time.windows.com": "none",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-wireguard-tcp": {
+     "chatgpt.com": "dns-foreign",
+     "download.microsoft.com": "dns-foreign",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "dns-foreign",
+     "time.windows.com": "dns-cn",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    }
    },
    "routes": {
     "0.pool.ntp.org": [
@@ -7548,6 +6909,28 @@
     "www.qianwen.com A": "dns-cn",
     "www.recaptcha.net A": "dns-fakeip"
    },
+   "outbound": {
+    "singbox-socks-udp": {
+     "chatgpt.com": "none",
+     "download.microsoft.com": "none",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "none",
+     "time.windows.com": "none",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-wireguard-tcp": {
+     "chatgpt.com": "dns-foreign",
+     "download.microsoft.com": "dns-foreign",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "dns-foreign",
+     "time.windows.com": "dns-cn",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    }
+   },
    "routes": {
     "0.pool.ntp.org": [
      "rule_set=geosite-geolocation-!cn",
@@ -8653,7 +8036,7 @@
    "geoip-cn": 8045
   }
  },
- "source_version": "2026.10.06-1",
+ "source_version": "2026.10.07-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
