@@ -71,7 +71,8 @@ OUTPUTS = ("loon/loon.conf", "quantumultx/quantumultx.conf", "mihomo/mihomo-prof
            "loon/loon-strict.conf", "quantumultx/quantumultx-strict.conf")
 # 严格版（2026-10-06 起）：（严格版, 同一个 App 的标准版）；以及严格版引用的自有远程规则文件
 STRICT_PAIRS = (("loon/loon-strict.conf", "loon/loon.conf"), ("quantumultx/quantumultx-strict.conf", "quantumultx/quantumultx.conf"))
-OWN_RULE_FILES = ("loon/rules/cn-domains.list", "quantumultx/rules/cn-domains.list", "quantumultx/rules/domain-fallback.list")
+OWN_RULE_FILES = ("loon/rules/cn-domains.list", "quantumultx/rules/cn-domains.list", "quantumultx/rules/cn-domains-max.list",
+                  "quantumultx/rules/domain-fallback.list")      # cn-domains-max.list 是 2026-10-07 加的（待决事项第 19 项）
 MAX_ITEMS = 40          # 每个分段最多列出这么多条，其余只报数量
 MAX_LEN = 220
 

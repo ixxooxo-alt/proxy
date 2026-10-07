@@ -15,7 +15,7 @@ AUTO_SUFFIX = "-auto"                # 严的那条筛选的标签后缀：hk-au
 
 @dataclass
 class NodeFilter:
-    label: str                       # 例如 hk / hk-auto / other / paypal / netflix
+    label: str                       # 例如 hk / hk-auto / other / paypal
     regex: Optional[str]             # 完整的名称筛选正则（地区正则已含提示行排除等全部条件）；固定节点时为 None
     pinned: Optional[str] = None     # 固定节点的完整名称
 
@@ -37,7 +37,7 @@ class GroupSpec:
     members: List[str] = field(default_factory=list)   # 组 / DIRECT / REJECT
     nodes: Optional[NodeFilter] = None                 # 从节点中筛选（与 members 二选一）
     hidden: bool = False
-    role: str = ""                   # business | foreign_default | region_entry | region_mode | other_region | paypal_fixed | netflix_entry
+    role: str = ""                   # business | foreign_default | region_entry | region_mode | other_region | paypal_fixed
     comment: str = ""
     mode: str = ""                   # 地区子组的模式 id
     backup_nodes: Optional[NodeFilter] = None   # 仅 Loon 使用：排在成员组之后的同地区节点（见 emit_loon）
@@ -75,7 +75,6 @@ def build_groups(m: Model, modes: List[str]) -> List[GroupSpec]:
     out: List[GroupSpec] = []
 
     paypal = m.special_entries["paypal_fixed"]
-    netflix = m.special_entries["netflix_entry"]
 
     # 业务组（含国外默认）按 groups.yaml 顺序
     for g in m.groups:
@@ -89,17 +88,6 @@ def build_groups(m: Model, modes: List[str]) -> List[GroupSpec]:
                          pinned=paypal.get("pinned_node_name") or None),
         comment=("固定节点：" + paypal["pinned_node_name"]) if paypal.get("pinned_node_name") else
                 "尚未指定固定节点：在美国节点中手动选一个；被选节点删除后会回到本组第一个美国节点（见已知限制）"))
-
-    if netflix.get("verified_node_regex"):
-        out.append(GroupSpec(
-            name=netflix["name"], kind="fallback", role="netflix_entry",
-            nodes=NodeFilter(label="netflix", regex=netflix["verified_node_regex"]),      # 用户给出的正则，原样使用
-            comment=f"已验证解锁节点（{netflix.get('verified_region', '')}，验证于 {netflix.get('verified_at', '未填写')}）之间故障转移"))
-    else:
-        out.append(GroupSpec(
-            name=netflix["name"], kind="select", role="netflix_entry",
-            members=["国外默认", "日本", "香港", "台湾", "新加坡", "美国", "韩国", "其他地区"],
-            comment="尚无解锁验证记录：暂按地区选择，默认国外默认；普通测速通过不代表解锁"))
 
     # 地区入口
     for r in m.regions:

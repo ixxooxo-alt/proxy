@@ -3,7 +3,7 @@
 # 授权：MIT，Copyright (c) 2018-2019 V2Ray；许可全文见本项目的 source/data/LICENSE-domain-list-community.txt。
 # 展开后 8871 条；正则 3 条、关键词 0 条不收（这两端的域名规则写不了正则，关键词范围太宽）；带 @ads 的条目照收（与 geosite:cn 范围一致）。
 # 去重后后缀 8293 条、精确域名 67 条；再去掉已被清单里别的后缀覆盖的条目（匹配范围不变），剩下后缀 6142 条、精确域名 12 条。
-# 生成时另去掉 22 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 6132 条。
+# 生成时另去掉 21 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 6133 条。
 DOMAIN-SUFFIX,uoj.ac
 DOMAIN-SUFFIX,daogou.ai
 DOMAIN-SUFFIX,doctoryou.ai
@@ -534,6 +534,7 @@ DOMAIN-SUFFIX,alihive.com
 DOMAIN-SUFFIX,aliimg.com
 DOMAIN-SUFFIX,alikmd.com
 DOMAIN-SUFFIX,alikunlun.com
+DOMAIN-SUFFIX,alimama.com
 DOMAIN-SUFFIX,alimebot.com
 DOMAIN-SUFFIX,alimei.com
 DOMAIN-SUFFIX,alimmdn.com

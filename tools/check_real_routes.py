@@ -92,7 +92,7 @@ import build as builder  # noqa: E402
 import dns_route_consistency as drc  # noqa: E402
 import emulate  # noqa: E402  （tests/emulate.py：自制模拟器，这里拿它和官方内核的结果对比）
 import real_data as rd  # noqa: E402
-from generator import emit_singbox  # noqa: E402
+from generator import emit_mihomo, emit_singbox  # noqa: E402
 from generator import strict as strict_mod  # noqa: E402
 from generator.model import build_plan, load  # noqa: E402
 from generator.util import safe_stdout, sha256_text  # noqa: E402
@@ -591,18 +591,37 @@ MIHOMO_DNS_OTHER = ("enable", "ipv6", "enhanced-mode", "fake-ip-range", "fake-ip
 
 
 def _drop_lan_policy(dns: dict) -> None:
+    """把 nameserver-policy 里交给 system 的几条改成交给国内 DNS。r11–r14 只有第一条（局域网后缀）交给 system，那时这里
+    直接删掉它（名字落到 geosite:cn,private 那条，交给国内 DNS）；2026-10-07 起还有不带点的名字（*）和 private 集合两条
+    （待决事项 14 方案二），局域网后缀下的名字大多也在 private 集合里，只删第一条看不出变化，所以三条一起改回国内 DNS。"""
     policy = dns["nameserver-policy"]
     first = next(iter(policy))
     if policy[first] != ["system"]:
         raise KeyError("nameserver-policy 的第一条不是“局域网后缀 → system”")
-    del policy[first]
+    domestic = policy.get("geosite:cn")
+    if not domestic:
+        raise KeyError("nameserver-policy 里没有 geosite:cn 那一条")
+    for k, v in list(policy.items()):
+        if v == ["system"]:
+            policy[k] = list(domestic)
+
+
+def strip_product_layer(policy: dict, model) -> dict:
+    """去掉 nameserver-policy 里“走代理组的产品域名”那一层：只去掉 generator/emit_mihomo.py 的 product_dns_policy 写进去的
+    那些键，局域网后缀、不带点的名字、要真实地址的名单、geosite 几条都不动（2026-10-07 起策略里多了后两样，以前的写法
+    “只留第一条和 geosite 条目”会把它们一起去掉，自检就不只看那一层了）。"""
+    keys = {pattern for pattern, _ in emit_mihomo.product_dns_policy(model, build_plan(model))}
+    missing = sorted(keys - set(policy))
+    if missing:
+        raise KeyError(f"nameserver-policy 里没有产品域名那一层的这些键：{missing[:5]}")
+    return {k: v for k, v in policy.items() if k not in keys}
 
 
 # 自检时从 DNS 段里去掉的东西：名字 → (说明, 怎么去掉)
 MIHOMO_DIAL_WITHOUT = {
     "node-policy": ("proxy-server-nameserver-policy", lambda dns: dns.pop("proxy-server-nameserver-policy")),
     "follow-policy": ("direct-nameserver-follow-policy", lambda dns: dns.pop("direct-nameserver-follow-policy")),
-    "lan-policy": ("nameserver-policy 里局域网后缀那一条", _drop_lan_policy),
+    "lan-policy": ("nameserver-policy 里交给系统 DNS 的几条（局域网后缀、不带点的名字、private 集合；改成国内 DNS）", _drop_lan_policy),
 }
 
 
@@ -814,9 +833,7 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
     orig = yaml.safe_load(config_text)
     dns = conf["dns"]
     if without_product_layer:
-        policy = dns["nameserver-policy"]
-        lan_key = next(iter(policy))
-        dns["nameserver-policy"] = {k: v for k, v in policy.items() if k == lan_key or k.startswith("geosite:")}
+        dns["nameserver-policy"] = strip_product_layer(dns["nameserver-policy"], model)
     kind_of = {"system": "system"}
     for srv in list(model.dns["domestic_doh"]) + list(model.dns["domestic_plain"]):
         kind_of[srv] = "domestic"
@@ -1124,9 +1141,7 @@ def check_consistency(a, model, files, loaded, dns_map) -> tuple:
     # 自检（2026-10-07，r14）：把 nameserver-policy 里“走代理组的产品域名”那一层拿掉（r13 的样子）再扫。走代理组的应该多出一大批；
     # 多出来的这些就是那一层管到的主机，交给官方内核查一次 TXT，现在应该都由境外 DNS 的替身收到
     stripped = yaml.safe_load(core)
-    policy = stripped["dns"]["nameserver-policy"]
-    lan_key = next(iter(policy))
-    stripped["dns"]["nameserver-policy"] = {k: v for k, v in policy.items() if k == lan_key or k.startswith("geosite:")}
+    stripped["dns"]["nameserver-policy"] = strip_product_layer(stripped["dns"]["nameserver-policy"], model)
     fx2 = drc.LiveFixtures("mihomo", loaded["mihomo"], loaded["mihomo_cn_nets"], dns_map, DEFAULT_FOREIGN_IP)
     rec2 = drc.sweep_mihomo(stripped, loaded["mihomo"], fx2, domestic)
     back = sorted({x["host"] for x in rec2["mismatch"]} - {x["host"] for x in rec["mismatch"]})
@@ -1528,7 +1543,7 @@ def main(argv=None) -> int:
                          "核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么："
                          "fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果："
                          "…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 "
-                         "direct-nameserver-follow-policy，…_without_lan_policy 去掉 nameserver-policy 里局域网后缀那一条。"
+                         "direct-nameserver-follow-policy，…_without_lan_policy 把 nameserver-policy 里交给系统 DNS 的几条改成国内 DNS。"
                          "这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。"
                          "每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的"
                          "规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分"

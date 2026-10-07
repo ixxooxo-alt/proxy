@@ -26,12 +26,16 @@ class CursorReport(unittest.TestCase):
         return Counter(x["cat"] for x in self.cursor_rows if x["group"] == group)
 
     def test_requested_migrations_route_to_the_same_group(self):
-        """2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。"""
+        """2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。
+        2026-10-07 按用户的决定改了两处：广告里友盟、阿里妈妈三条整域拦截改成只拦上游标出的子域（待决事项第 7 项）；
+        Apple AI 拿掉三条宽规则（第 8 项）。这六条现在“不同组”，每条都写明了处理（下一项测试核对）。"""
         self.assertEqual(self.cats("Google"), Counter({SAME: 187}))
         self.assertEqual(self.cats("Microsoft"), Counter({SAME: 68}))
-        self.assertEqual(self.cats("广告拦截"), Counter({SAME: 41}))
+        self.assertEqual(self.cats("广告拦截"), Counter({SAME: 38, "不同组": 3}))
         self.assertEqual(self.cats("国内直连"), Counter({CN_ONLY: 70, SAME: 2}))
-        self.assertEqual(self.cats("Apple AI"), Counter({SAME: 17, "已替换": 1}))
+        self.assertEqual(self.cats("Apple AI"), Counter({SAME: 14, "已替换": 1, "不同组": 3}))
+        changed = {x["value"] for x in self.cursor_rows if x["group"] in ("广告拦截", "Apple AI") and x["cat"] == "不同组"}
+        self.assertEqual(changed, {"umeng.com", "umengcloud.com", "alimama.com", "ls.apple.com", "apps.mzstatic.com", "gateway.icloud.com"})
         self.assertIn(("claude.app", SAME), [(x["value"], x["cat"]) for x in self.cursor_rows if x["group"] == "Claude"])
 
     def test_every_difference_has_a_disposition(self):

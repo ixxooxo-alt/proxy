@@ -210,7 +210,7 @@ class AgainstItself(unittest.TestCase):
             self.assertIn("### `loon/loon-strict.conf` 对照 `loon/loon.conf`", out)
             self.assertIn("GEOIP,CN,国内直连,no-resolve", out)
             self.assertIn("domain-fallback.list", out)
-            self.assertEqual(out.count("和 甲 的一模一样。"), 3)
+            self.assertEqual(out.count("和 甲 的一模一样。"), len(cv.OWN_RULE_FILES))      # 2026-10-07 起是 4 个
             self.assertNotIn("严格版没有起作用", out)
 
 
@@ -232,7 +232,7 @@ class StrictSection(unittest.TestCase):
             self.assertEqual(text.count("缺文件，没有比。"), 6, "上一版目录是空的：六份标准版都没法比")
             L = []
             cv.strict_section(L, old, labels, "甲", "乙")
-            self.assertEqual("\n".join(L).count("甲 没有这个文件。"), 3)
+            self.assertEqual("\n".join(L).count("甲 没有这个文件。"), len(cv.OWN_RULE_FILES))
 
 
 if __name__ == "__main__":

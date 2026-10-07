@@ -14,7 +14,9 @@ strict:
   #   own：本项目自己生成的清单（数据在 source/data/cn-domains.txt，源自 domain-list-community 的 cn 列表，含整段 .cn 等顶级域）。
   #   url：直接订阅上游文件。Loon 另订阅 blackmatrix7 的 ChinaMax_Domain.list（只含域名和后缀，mihomo 的 geosite:cn 与它同源）。
   #        Quantumult X 没有只含域名的上游成品：blackmatrix7 给它的 ChinaMax.list 里混着 13 条关键词（stripe、baidu、aliyun 等）
-  #        和 65 条 UA 规则，不能直接订阅，所以 Quantumult X 只用自有清单（见 docs/06 的待决事项）。
+  #        和 65 条 UA 规则，不能直接订阅。2026-10-07 起（待决事项第 19 项，用户选了方案二）由本项目把 Loon 那份只含域名的
+  #        文件按固定快照转成 Quantumult X 的写法，随仓库发布（own: quantumultx/rules/cn-domains-max.list；数据在
+  #        source/data/cn-domains-max.txt，GPL-2.0，见文件头）。它不像 Loon 那样跟着上游自动更新，换快照时重新生成。
   domestic_lists:
     loon:
       - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/ChinaMax/ChinaMax_Domain.list",
@@ -22,6 +24,7 @@ strict:
          source: "blackmatrix7 ChinaMax 的域名部分（按固定快照 51d2e1d 读的：111,277 条，268 条精确域名 + 111,009 条后缀，没有关键词和 IP 规则，不含整段顶级域；文件头写的更新时间是 2026-09-22。客户端订阅的是上游的最新版，内容会变）"}
       - {own: loon/rules/cn-domains.list, tag: 国内域名-自有清单}
     quantumultx:
+      - {own: quantumultx/rules/cn-domains-max.list, tag: 国内域名-ChinaMax}
       - {own: quantumultx/rules/cn-domains.list, tag: 国内域名-自有清单}
   # Quantumult X 的域名兜底：排在全部远程规则的最后（放进本地规则会让全部远程规则失效，见 docs/02）。
   qx_fallback: {own: quantumultx/rules/domain-fallback.list, tag: 域名兜底-不在本机解析}

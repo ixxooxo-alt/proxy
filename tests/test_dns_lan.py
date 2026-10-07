@@ -54,19 +54,21 @@ class LanDns(unittest.TestCase):
             dns = parsed(client)["dns"]
             policy = list(dns["nameserver-policy"].items())
             key, servers = policy[0]
-            # 必须是第一条：mihomo 按书写顺序匹配，geosite:private 也包含 lan / local
+            # 局域网后缀写在第一条（和下面的不带点的名字、产品域名那一层同在一棵域名树里，树里越具体越优先）
             self.assertEqual(key.split(","), ["+." + s for s in self.lan], client)
             self.assertEqual(servers, ["system"], client)
             self.assertTrue(dns.get("direct-nameserver-follow-policy"), f"{client}：DIRECT 连接的解析要跟随策略")
-            for k, v in policy[1:]:
-                self.assertNotIn("system", v)
+            # 交给 system 的只有三条：局域网后缀、不带点的名字（*）、上游 private 集合（2026-10-07 起，待决事项第 14 项方案二）
+            self.assertEqual([k for k, v in policy if "system" in v], [key, "*", "geosite:private"], client)
+            self.assertTrue(all(v == ["system"] for k, v in policy if "system" in v), client)
 
     def test_mihomo_node_servers_in_the_lan_use_system_dns(self):
         """审核 r10 的 R10-F01：mihomo 解析节点自己的服务器地址用 proxy-server-nameserver，它的例外另写在
         proxy-server-nameserver-policy 里，不看 nameserver-policy；direct-nameserver-follow-policy 也只管直连出口。所以：
           1. 两份 mihomo 产物都有 proxy-server-nameserver-policy：局域网后缀（+.x 的写法）和不带点的名字（单独的 *）交给 system；
           2. proxy-server-nameserver 还在、还是国内 DoH——公网域名的节点照旧；respect-rules 和这条策略也都要求它不为空；
-          3. nameserver-policy 里局域网那一条、direct-nameserver-follow-policy 不变（管访问目标的那一半，审核 F04）。
+          3. nameserver-policy 里局域网那一条、direct-nameserver-follow-policy 不变（管访问目标的那一半，审核 F04）；
+             2026-10-07 起访问目标那边也有“不带点的名字 → system”（待决事项第 14 项方案二），写法和节点这边相同。
         期望是按设计人工写的；官方内核的实际拨号结果另在 test_real_data 里对快照核对。"""
         m, _ = model_and_plan()
         suffixes = ",".join("+." + s for s in self.lan)
@@ -77,8 +79,7 @@ class LanDns(unittest.TestCase):
             self.assertTrue(dns["proxy-server-nameserver"], client)
             self.assertTrue(dns["respect-rules"], client)
             self.assertEqual(list(dns["nameserver-policy"].items())[0], (suffixes, ["system"]), client)
-            self.assertNotIn("*", ",".join(dns["nameserver-policy"]),
-                             "访问目标那条策略没有“不带点的名字”这一项（那是另一项已知限制，见 docs/06），不要顺手加上")
+            self.assertEqual(list(dns["nameserver-policy"].items())[1], ("*", ["system"]), client)
             self.assertTrue(dns["direct-nameserver-follow-policy"], client)
 
     def test_mihomo_and_singbox_agree_on_what_a_lan_name_is(self):
@@ -251,7 +252,8 @@ class LanDns(unittest.TestCase):
     def test_mihomo_product_names_go_to_the_foreign_dns(self):
         """GPT 审核 r13 的 R13-F01（待决事项 16，用户 2026-10-07 选了改）：mihomo 转发 UDP、经 WireGuard 这类出口时，会用默认解析器
         在本机解析目标域名，按 nameserver-policy 选服务器。所以 nameserver-policy 上的归类必须和路由一致：
-          1. 第一条是局域网后缀 → system，最后一条是 geosite:cn,private → 国内 DNS，中间只有域名写法（产品域名那一层）；
+          1. 第一条是局域网后缀 → system，接着是不带点的名字（*）→ system、要真实地址的名单 → 国内 DNS；最后两条是
+             geosite:private → system、geosite:cn → 国内 DNS（2026-10-07 待决事项第 14、15 项）；中间只有域名写法（产品域名那一层）；
           2. 每条产品规则（含误杀例外）的值和它的一个子域：路由交给默认走代理的组的，nameserver-policy 交给境外 DNS（和 nameserver
              是同一份）；交给默认直连的组的（国内直连、Apple 那几个组），nameserver-policy 不能交给境外 DNS——mihomo 的直连连接
              也按这份策略解析，交给境外 DNS 会变慢。
@@ -266,10 +268,16 @@ class LanDns(unittest.TestCase):
             conf = parsed(client)
             dns = conf["dns"]
             keys = list(dns["nameserver-policy"])
-            self.assertEqual(keys[-1], "geosite:cn,private", client)
-            self.assertEqual(dns["nameserver-policy"][keys[-1]], list(m.dns["domestic_doh"]), client)
+            self.assertEqual(keys[-2:], ["geosite:private", "geosite:cn"], client)
+            self.assertEqual(dns["nameserver-policy"]["geosite:cn"], list(m.dns["domestic_doh"]), client)
+            self.assertEqual(dns["nameserver-policy"]["geosite:private"], ["system"], client)
             self.assertEqual(dns["nameserver-policy"][keys[0]], ["system"], client)
-            self.assertFalse([k for k in keys[1:-1] if ":" in k or "," in k], f"{client}：中间只能是一条一条的域名写法")
+            self.assertFalse([k for k in keys[1:-2] if ":" in k or "," in k], f"{client}：中间只能是一条一条的域名写法")
+            # 要真实地址的名单：路由固定直连，DNS 交给国内（待决事项第 15 项）
+            for r in plan.real_ip_direct:
+                pat = ("+." + r.value) if r.kind == "suffix" else r.value
+                self.assertEqual(dns["nameserver-policy"].get(pat), list(m.dns["domestic_doh"]), f"{client} {pat}")
+                self.assertIn(f"{'DOMAIN-SUFFIX' if r.kind == 'suffix' else 'DOMAIN'},{r.value},DIRECT", conf["rules"], client)
             foreign = list(m.dns["foreign_doh"])
             self.assertEqual(dns["nameserver"], foreign, client)
             wrong = []

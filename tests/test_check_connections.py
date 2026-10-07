@@ -33,7 +33,7 @@ CONNECTIONS = {"downloadTotal": 1, "uploadTotal": 1, "memory": 0, "connections":
     "metadata": {"network": "tcp", "type": "Tun", "host": "www.netflix.com", "process": "chrome.exe",
                  "destinationIP": "198.18.0.9", "destinationPort": "443"},
     # chains：第一项是节点，最后一项是规则指向的组
-    "chains": ["美国 03", "美国·手动", "美国·手动优先", "美国", "Netflix·解锁入口", "Netflix"],
+    "chains": ["美国 03", "美国·手动", "美国·手动优先", "美国", "Netflix"],
 }]}
 
 

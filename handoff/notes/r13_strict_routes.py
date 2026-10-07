@@ -12,7 +12,11 @@ r13 写进 docs/03、docs/06 第 19 项的“105,446 条（94.8%）只在 Loon �
 每一条的代表主机就是条目本身（“.x.com”这种后缀条目取 x.com），和 r13 那个脚本相同；另外给后缀条目各取一个子域
 （probe-x1.x.com）再算一遍，看结论是否一样。规则顺序的依据和模拟器（tests/emulate.py）相同，是按官方文档的推断，不是 App 实测。
 
-用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r13_strict_routes.py > handoff/notes/r13_strict_routes.out
+用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r13_strict_routes.py [dist 目录] > 输出文件
+  不给 dist 目录时用仓库里现在的 dist/。2026-10-07 跑了两遍（命令见 handoff/release/r14-as-used/README.md）：
+    r13_strict_routes.r13.out  GPT 审的 r13（提交 bf42e8b）的两份严格版——R13-F03 说的就是它；
+    r13_strict_routes.out      r14 的两份严格版：Quantumult X 严格版多订阅了一份上游大清单的副本（待决事项第 19 项方案二）。
+  自有规则文件（dist 下 loon/rules、quantumultx/rules 里的）有哪个就登记哪个；规则顺序、模拟器都用仓库里现在的代码。
 """
 import collections
 import os
@@ -25,6 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, "tests"))
 
 import emulate  # noqa: E402
 import real_data as rd  # noqa: E402
+from generator import strict as strict_mod  # noqa: E402
 
 
 def parents(h):
@@ -89,14 +94,20 @@ def route(h, local, chain, final):
 
 def main():
     bm7 = os.environ["BM7_SRC"]
+    dist = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(ROOT, "dist")
     base = "https://raw.githubusercontent.com/ixxooxo-alt/proxy/main/dist/"
     files = {}
-    for rel in ("loon/rules/cn-domains.list", "quantumultx/rules/cn-domains.list", "quantumultx/rules/domain-fallback.list"):
-        with open(os.path.join(ROOT, "dist", rel), encoding="utf-8") as f:
-            files[base + rel] = f.read()
+    for rel in strict_mod.OWN_FILES:
+        if os.path.exists(os.path.join(dist, rel)):
+            with open(os.path.join(dist, rel), encoding="utf-8") as f:
+                files[base + rel] = f.read()
     emulate.register_own_lists(base, files)
-    loon = emulate.parse_loon(open(os.path.join(ROOT, "dist/loon/loon-strict.conf"), encoding="utf-8").read())
-    qx = emulate.parse_qx(open(os.path.join(ROOT, "dist/quantumultx/quantumultx-strict.conf"), encoding="utf-8").read())
+    loon_text = open(os.path.join(dist, "loon", "loon-strict.conf"), encoding="utf-8").read()
+    head = next(ln for ln in loon_text.splitlines() if "统一源版本" in ln).lstrip("# ").split("；")[0]
+    print(f"配置：{os.path.relpath(dist, ROOT) if dist.startswith(ROOT) else 'dist'}（{head}）；登记的自有规则文件："
+          + "、".join(sorted(u[len(base):] for u in files)))
+    loon = emulate.parse_loon(loon_text)
+    qx = emulate.parse_qx(open(os.path.join(dist, "quantumultx", "quantumultx-strict.conf"), encoding="utf-8").read())
     loon_local = Ordered(local_rules(loon, lambda t: t))
     qx_local = Ordered(local_rules(qx, lambda t: emulate.QX_NORM.get(t, t)))
     loon_chain, qx_chain = remote_chain(loon, bm7), remote_chain(qx, bm7)

@@ -261,14 +261,12 @@ cases:
   - {host: static.zhihu.com, expect: 国内直连,
      per_client: {loon: 国外默认, quantumultx: 国外默认, loon-strict: 国内直连, quantumultx-strict: 国内直连},
      why: "假定这个主机解析到境外 CDN（fixtures 里没列，按境外 IP 算）：标准版 Loon / QX 按解析到的 IP 走国外默认（已知行为，见 source/services/misc.yaml 里国内常用网站的说明）；严格版按域名清单直连，和 mihomo / sing-box 一致"}
-  - {host: time.apple.com, expect: Apple, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "要真实地址的名单（source/project.yaml 的 dns.real_ip）：严格版固定直连。标准版没有专门的规则，跟着 Apple 组"}
-  - {host: time.windows.com, expect: Microsoft, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "同上；标准版跟着 Microsoft 组"}
-  - {host: 0.pool.ntp.org, expect: 国外默认, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "同上；标准版没有规则接住它，落到国外默认"}
-  - {host: id6.me, expect: 国内直连, synthetic: true, per_client: {loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "同上（运营商号码认证）。这一条只在样本数据下跑：样本的广告集合里没有它，看的是“名单里的名字在严格版固定直连”。真实数据下的结果见 real_only 一节"}
+  - {host: time.apple.com, expect: DIRECT,
+     why: "要真实地址的名单（source/project.yaml 的 dns.real_ip）：四端都固定直连。以前只有严格版这样，标准版跟着 Apple 组；2026-10-07 用户定了待决事项第 15 项（方案二），标准版也固定直连"}
+  - {host: time.windows.com, expect: DIRECT, why: "同上；以前标准版跟着 Microsoft 组"}
+  - {host: 0.pool.ntp.org, expect: DIRECT, why: "同上；以前标准版没有规则接住它，落到国外默认"}
+  - {host: id6.me, expect: DIRECT, synthetic: true,
+     why: "同上（运营商号码认证）。这一条只在样本数据下跑：样本的广告集合里没有它。真实数据下的结果见 real_only 一节"}
   - {host: never-listed-site.org, expect: 国外默认, why: "虚构的名字，哪个集合、哪份清单里都没有：各端都落到国外默认。标准版要先解析再判断，严格版不解析"}
 
   # ---------- 2026-10-06 需求补充：Apple Push（推送通知单独一组，默认直连） ----------
@@ -277,6 +275,18 @@ cases:
   - {host: init-p01st.push.apple.com, expect: Apple Push, why: "上游把它标成国内节点（@cn），sing-box 用的国内域名集合里有它：仍然先由这条规则接住"}
   - {host: push.apple.com, expect: Apple Push}
   - {host: xp.apple.com, expect: Apple, why: "对照：别的 apple.com 主机仍归 Apple 组"}
+
+  # ---------- 2026-10-07：用户定的待决事项（第 7、8 项） ----------
+  - {host: aaid.umeng.com, expect: 广告拦截, why: "友盟：上游标了 @ads 的统计子域仍然拦（待决事项第 7 项方案二）"}
+  - {host: msg.umeng.com, expect: 国内直连,
+     why: "友盟其余的主机直连（推送、一键登录等）。Loon / QX 订阅的上游广告列表里有关键词 umeng（名字里带 umeng 就拦）：靠本地的友盟直连规则排在它前面，真实数据下核对"}
+  - {host: umengcloud.com, expect: 国内直连, why: 同上}
+  - {host: alimama.com, expect: 广告拦截, why: "阿里妈妈：只拦上游列出的这台主机本身和它下面的 10 个子域（待决事项第 7 项方案二）"}
+  - {host: acookie.alimama.com, expect: 广告拦截}
+  - {host: gsp-ssl.ls.apple.com, expect: Apple, why: "Apple 地图 / 定位：2026-10-07 起不再整段归 Apple AI（待决事项第 8 项方案二），回到 Apple 组"}
+  - {host: gspe1-ssl.ls.apple.com, expect: Apple AI, why: "上游的 Apple 智能清单列出的这一台仍归 Apple AI"}
+  - {host: apps.mzstatic.com, expect: Apple, why: "App Store 图标与截图：回到 Apple 组（同上）"}
+  - {host: gateway.icloud.com, expect: Apple, why: "CloudKit 内容：回到 Apple 组（同上）"}
 
 # 跟随上游数据的已知行为。这一节不是“应该这样”的期望，是“上游数据现在是这样、用户决定不更正”的记录：
 #   expect 写这个主机按需求本该去哪里，per_client 写某一端因为上游数据实际去了哪里。
@@ -290,12 +300,10 @@ upstream_followed:
 # 只在真实数据下才看得到的行为（2026-10-06）。和 upstream_followed 不同：这里的 expect / per_client 就是现状的如实记录，
 # 样本数据那一遍不跑（样本里没有这些上游条目）。每一条都要在 docs/06 里有对应的说明。
 real_only:
-  - {host: id6.me, expect: 国内直连,
-     per_client: {loon: 广告拦截, quantumultx: 广告拦截, loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "中国电信的号码认证主机，在“要真实地址的名单”里。blackmatrix7 的 AdvertisingLite 把它当广告收了（domain-list-community 的广告集合没有收）：标准版 Loon / QX 上远程广告集合先接住它，被拦；mihomo / sing-box 不拦；严格版里名单固定直连的本地规则排在远程集合之前，直连。标准版这一轮没有改，列为待决事项 18"}
-  - {host: log.cmpassport.com, expect: 国内直连,
-     per_client: {loon: 广告拦截, quantumultx: 广告拦截, loon-strict: DIRECT, quantumultx-strict: DIRECT},
-     why: "中国移动号码认证的日志主机，cmpassport.com 在“要真实地址的名单”里。AdvertisingLite 收了这一个子域：标准版 Loon / QX 拦；sing-box 的国内域名集合收了 cmpassport.com，mihomo 的没有收、靠解析到的国内 IP（假定的解析结果），都是国内直连；严格版固定直连。同属待决事项 18"}
+  - {host: id6.me, expect: DIRECT,
+     why: "中国电信的号码认证主机，在“要真实地址的名单”里。blackmatrix7 的 AdvertisingLite 把它当广告收了（domain-list-community 的广告集合没有收）。以前标准版 Loon / QX 上远程广告集合先接住它、被拦（待决事项 18）；2026-10-07 起四端都有名单的固定直连规则（待决事项 15 方案二），本地规则排在远程广告集合之前，所以各端都是直连"}
+  - {host: log.cmpassport.com, expect: DIRECT,
+     why: "中国移动号码认证的日志主机，cmpassport.com 在“要真实地址的名单”里。AdvertisingLite 收了这一个子域：以前标准版 Loon / QX 拦（待决事项 18）；2026-10-07 起四端都有名单的固定直连规则（待决事项 15 方案二），各端都是直连"}
 
 # sing-box 的 DNS 去向（2026-10-03 审核 F01 的 DNS 部分）。期望按设计人工写出：
 #   按产品规则走代理组的域名，不交给国内 DNS：A 查询给假地址（dns-fakeip），其他类型交给经代理的 dns-foreign；
@@ -369,8 +377,12 @@ mihomo_dns:
   - {host: printer.lan, type: A, expect: system, why: "局域网后缀：nameserver-policy 的第一条"}
   - {host: nas.home.arpa, type: A, expect: system, why: 两级的局域网后缀}
   - {host: www.taobao.com, type: A, expect: fake-ip, why: "对照：普通域名直接给假地址，不向上游查询"}
-  - {host: printer, type: A, expect: domestic, limit: true,
-     why: "已知限制：不带点的名字。上游的 private 集合里有一条匹配“字母开头的单个标签”的正则，查询落到 geosite:cn,private 那条策略，交给国内的公共 DNS（它不认识这个名字）"}
+  - {host: printer, type: A, expect: system,
+     why: "不带点的名字：nameserver-policy 里单独的一个 * 交给系统 DNS（2026-10-07，待决事项第 14 项方案二）。以前它落到 geosite:cn,private 那条策略、交给国内的公共 DNS（公共 DNS 不认识它），当时记为已知限制"}
+  - {host: tplinkwifi.net, type: A, expect: system,
+     why: "路由器管理页面的域名，在上游的 private 集合里：geosite:private 单独一条交给系统 DNS（同上，待决事项第 14 项方案二），只有路由器答得对"}
+  - {host: time.windows.com, type: A, expect: domestic,
+     why: "要真实地址的名单：fake-ip-filter 让它拿真实地址；2026-10-07 起路由固定直连，DNS 也写明交给国内（待决事项第 15 项方案二）。以前它不在国内域名集合里，由境外 DNS 解析"}
   - {host: chatgpt.com, type: A, expect: fake-ip, why: "走代理组的域名：直接给假地址，不向任何上游查询"}
   - {host: api.openai.com, type: HTTPS, expect: empty, why: "HTTPS 类型的查询：内核直接回空应答，不向任何上游查询"}
   - {host: claude.ai, type: TXT, expect: foreign, why: "地址以外的类型才会真的去查：交给境外 DNS"}
@@ -446,23 +458,23 @@ outbound_resolve:
     expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
     why: "Microsoft 组下面更具体的国内直连规则（Windows 更新的下载）：直连，国内 DNS"
   - host: time.windows.com
-    limit: [singbox-wireguard-tcp]
-    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-cn}
-    why: "已知限制（待决事项 15）：sing-box 的 DNS 规则把要真实地址的名单整个交给 dns-cn，路由却归 Microsoft 组；WireGuard 端点按 DNS 规则解析，就问了国内 DNS。mihomo 上这个名字没有交给国内 DNS"
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    why: "要真实地址的名单：2026-10-07 起四端都固定直连（待决事项 15 方案二），由直连出口用国内 DNS 解析。以前路由归 Microsoft 组，sing-box 的 WireGuard 端点按 DNS 规则拿去问了国内 DNS（当时记为已知限制）"
 
 # 国内 DNS 与路由的逐条扫描（2026-10-06；r12 时叫“全集一致性”）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；
 # 现在有的，必须属于下面列出的已知类别。怎么扫的见 tools/dns_route_consistency.py（每个条目取代表主机，不是全部域名）；扫描结果连同官方内核的抽查记在快照的
 # consistency 里，tests/test_real_data.py 逐个核对：每个不一致的主机都能归到某一类，每一类都确实还有主机（没有了就该删掉）。
-# 这些都是现状的记录，不是“应该这样”——标准版这一轮没有改，怎么处理列在 docs/06 的待决事项里。
-#   kind: real_ip     名字在“要真实地址的名单”里（source/project.yaml 的 dns.real_ip），路由没有把它固定为直连
-#   kind: private     名字来自上游的 private 集合（保留后缀、反向解析域、路由器登录域名），路由没有把它固定为直连
+# 这些都是现状的记录，不是“应该这样”；登记过、后来处理掉的类别：
+#   real_ip（sing-box）  名字在“要真实地址的名单”里（source/project.yaml 的 dns.real_ip），路由没有把它固定为直连
+#   private（mihomo）    名字来自上游的 private 集合（保留后缀、反向解析域、路由器登录域名），路由没有把它固定为直连
 # r13 时 mihomo 还有一类 product_cn（上游的国内域名集合收了它，路由靠排在前面的产品规则把它交给代理组；待决事项 16）。
 # r14 在 nameserver-policy 里加了“走代理组的产品域名 → 境外 DNS”一层（GPT 审核 r13 的 R13-F01，用户选了改），这一类没有了。
+# 2026-10-07 以后两端都是空的：用户定了待决事项第 15 项（方案二，名单里的名字四端固定直连）和第 14 项（方案二，mihomo 把
+# private 集合交给系统 DNS），原来的 real_ip（sing-box）、private（mihomo）两类都没有了。以后再出现不一致，先查清是哪一类、
+# 在 docs/06 里写明，再加到这里。
 dns_route_consistency:
-  singbox:
-    - {kind: real_ip, why: "DNS 规则第二条把要真实地址的名单整个交给 dns-cn；其中 time.windows.com 路由归 Microsoft 组，pool.ntp.org 落到国外默认，icitymobile.mobi 没有域名规则、按解析到的 IP 决定。待决事项 15"}
-  mihomo:
-    - {kind: private, why: "nameserver-policy 的 geosite:cn,private 把 private 集合也交给国内 DNS，fake-ip-filter 又让它们拿真实地址；路由上只有局域网后缀固定直连，其余按解析到的 IP 决定。待决事项 14"}
+  singbox: []
+  mihomo: []
 
 # 开启 / 关闭广告规则前后出口必须一致的例外主机
 exception_consistency:
@@ -491,13 +503,13 @@ defaults:
   TikTok: 国外默认
   Twitch: 国外默认
   其他流媒体: 国外默认
-  Netflix: Netflix·解锁入口
+  Netflix: 国外默认               # 需求原文是“Netflix·解锁入口”；2026-10-07 用户定了待决事项第 3 项，按普通分组，入口取消
   Hulu US: 美国
   Hulu Japan: 日本
   Abema: 日本
   DMM: 日本
   日本影音: 日本
-  Bilibili 港澳台: 台湾
+  Bilibili 港澳台: DIRECT          # 需求原文是台湾；2026-10-07 用户定了待决事项第 5 项（方案二），改为默认直连
   Bahamut: 台湾
   Telegram: 国外默认
   X: 国外默认

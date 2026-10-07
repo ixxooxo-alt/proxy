@@ -52,8 +52,9 @@ local_ads:
   - {suffix: ad.games.dmm.com, ev: dlc, note: DMM 游戏广告}
   - {domain: adstudio-assets.scdn.co, ev: dlc, note: Spotify 广告素材}
   - {domain: an.facebook.com, ev: maintainer, note: Meta Audience Network}
-  # 以下 41 条是 Cursor 版的独立广告网络（其 ads-reject.list），2026-09-29 迁入：15 条在 dlc category-ads-all 快照里同值出现，
-  # 17 条只在 blackmatrix7 AdvertisingLite 快照里，9 条两边都没有（证据 cursor-import，单独列在 docs/06）
+  # 以下 38 条是 Cursor 版的独立广告网络（其 ads-reject.list），2026-09-29 迁入：15 条在 dlc category-ads-all 快照里同值出现，
+  # 17 条只在 blackmatrix7 AdvertisingLite 快照里，6 条两边都没有（证据 cursor-import，单独列在 docs/06）。
+  # 原来是 41 条：友盟的两个域名和阿里妈妈三条整域拦截 2026-10-07 改成只拦上游标出的子域，见 local_tracking 最后。
   - {suffix: adcolony.com, ev: dlc, note: 广告 / 跟踪网络}
   - {suffix: adform.net, ev: cursor-import, note: 广告 / 跟踪网络}
   - {suffix: adnxs.com, ev: dlc, note: 广告 / 跟踪网络}
@@ -62,7 +63,6 @@ local_ads:
   - {suffix: adsrvr.org, ev: bm7-snap, note: 广告 / 跟踪网络}
   - {suffix: adtechus.com, ev: dlc, note: 广告 / 跟踪网络}
   - {suffix: advertising.com, ev: bm7-snap, note: 广告 / 跟踪网络}
-  - {suffix: alimama.com, ev: cursor-import, note: 阿里妈妈广告（淘宝联盟推广链接可能受影响）}
   - {suffix: amazon-adsystem.com, ev: dlc, note: 广告 / 跟踪网络}
   - {suffix: casalemedia.com, ev: dlc, note: 广告 / 跟踪网络}
   - {suffix: chartboost.com, ev: bm7-snap, note: 广告 / 跟踪网络}
@@ -92,8 +92,6 @@ local_ads:
   - {suffix: tanx.com, ev: bm7-snap, note: 广告 / 跟踪网络}
   - {suffix: tapjoy.com, ev: bm7-snap, note: 广告 / 跟踪网络}
   - {suffix: teads.tv, ev: cursor-import, note: 广告 / 跟踪网络}
-  - {suffix: umeng.com, ev: cursor-import, note: 友盟统计（也提供推送、一键登录，拦截可能影响部分国内 App 的这些功能）}
-  - {suffix: umengcloud.com, ev: cursor-import, note: 友盟（同上）}
   - {suffix: vungle.com, ev: bm7-snap, note: 广告 / 跟踪网络}
 local_tracking:
   - {suffix: pixel.facebook.com, ev: dlc, note: Meta 像素}
@@ -110,6 +108,41 @@ local_tracking:
   - {suffix: analytics.tiktok.com, ev: dlc, note: TikTok 像素}
   - {domain: bat.bing.com, ev: maintainer, note: Microsoft 广告转化跟踪}
   - {domain: px.ads.linkedin.com, ev: maintainer, note: LinkedIn 转化跟踪}
+  # 友盟、阿里妈妈（2026-10-07，待决事项第 7 项，用户选了方案二）：只拦上游标出的统计 / 广告子域。
+  # 以前按 Cursor 版整域拦截 umeng.com、umengcloud.com、alimama.com，会连推送、一键登录、淘宝联盟链接一起拦掉。
+  # 友盟 18 条：domain-list-community 的 umeng 列表里标了 @ads、在这两个域名下的子域（上游注释掉的 errlog、errnewlog 没有收）。
+  # 友盟其余的主机由 services/misc.yaml 的 umeng 服务交给国内直连——Loon / Quantumult X 订阅的 blackmatrix7 AdvertisingLite
+  # 里有一条关键词规则 umeng（名字里带 umeng 就拦），那两端本地规则先于远程规则，要靠那条规则挡住它。
+  # 阿里妈妈 11 条：blackmatrix7 AdvertisingLite 里 alimama.com 这台主机本身和它下面的 10 个子域（domain-list-community 没有标）。
+  - {suffix: aaid.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: alog.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: alogs.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: alogus.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: ar.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: aspect-upush.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: audid.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: ccs.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: cnlogs.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: new-aaid.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: oc.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: plbslog.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: resolve.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: ulogs.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: utoken.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: alog.umengcloud.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: cnlogs.umengcloud.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {suffix: ulogs.umengcloud.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
+  - {domain: alimama.com, ev: bm7-snap, note: 阿里妈妈（只拦这台主机本身；子域只拦下面这些）}
+  - {suffix: acookie.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: afpeng.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: afpssp.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: afptrack.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: banner.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: c.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: cpc.click.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: p.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: static.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: t.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
 
 # HTTPDNS：不等于广告。是否拦截取决于实际用途、应用能否回退到系统 DNS、拦截后是否可用。
 # 目前没有经过验证的条目，默认不启用。

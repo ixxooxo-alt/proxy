@@ -33,6 +33,10 @@ GOOGLE_SHARED = ("设计差异：本工程把 Google 共享根放在 Google 组�
                  "Gemini API、YouTube 接口等专属主机排在它前面；用户可以整体切换 Google 组")
 
 # Cursor 版条目在本工程里去向不同（或没有专门规则）时的处理说明
+NARROW_AAI = ("拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位、App Store 资源、"
+              "CloudKit 内容回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI")
+NARROW_ADS = ("收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域"
+              "（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机交给国内直连")
 DIFF_NOTES = {
     "cursorvm.com": "Cursor 官方文档写明是 Grok Bot 托管计算机，本工程归远程控制（报告也建议这样挪）",
     "x.ai": "2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为 Grok 组，不再归其他 AI",
@@ -51,11 +55,13 @@ DIFF_NOTES = {
                                  "azureedge.net", "cloudfront.net", "edgesuite.net", "msecnd.net", "windows.net",
                                  "windowsazure.com")},
     "siri": "按 2026-09-29 补充需求，关键词换成 siri.apple.com、siri.com、applesiri.cn 三条后缀",
+    **{v: NARROW_AAI for v in ("ls.apple.com", "apps.mzstatic.com", "gateway.icloud.com")},
+    **{v: NARROW_ADS for v in ("umeng.com", "umengcloud.com", "alimama.com")},
 }
 
 DESIGN = ("设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），"
           "Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06")
-BILI = "保留：需求要求港澳台内容走 Bilibili 港澳台，这些接口主机大陆与港澳台共用、按域名拆不开；代价与切换方法见 docs/06 第 5 项"
+BILI = "保留：需求要求港澳台内容走 Bilibili 港澳台，这些接口主机大陆与港澳台共用、按域名拆不开；这个组 2026-10-07 起默认直连，看港澳台内容时切到台湾（docs/06 第 5 项）"
 MS_FIRST = "保留：Microsoft 第一方域名（必应、Microsoft 账户、静态资源短域），不托管第三方内容；Copilot 的更具体规则排在前面"
 # 报告判为“不该收”的本工程条目
 REJECT_NOTES = {
@@ -72,7 +78,7 @@ REJECT_NOTES = {
     "api.bilibili.com": BILI, "app.bilibili.com": BILI, "bangumi.bilibili.com": BILI,
     "periscope.tv": "保留：域名仍属 X，归 X 组没有副作用（上游 dlc twitter 列表仍收录）",
     "pscp.tv": "保留：域名仍属 X，归 X 组没有副作用（上游 dlc twitter 列表仍收录）",
-    "apple-dns.net": "保留在 Apple 组（2026-09-29 补充需求明确要求）；Apple AI 的 20 条都写在它之前",
+    "apple-dns.net": "保留在 Apple 组（2026-09-29 补充需求明确要求）；Apple AI 的 17 条都写在它之前",
     "ggpht.com": GOOGLE_SHARED, "googleapis.com": GOOGLE_SHARED,
     "googleusercontent.com": GOOGLE_SHARED, "gstatic.com": GOOGLE_SHARED,
     "recaptcha.net": "保留后缀：这是 Google 为访问不了 google.com 的地区准备的 reCAPTCHA 域名，子域都属于 Google；证据标维护者知识",

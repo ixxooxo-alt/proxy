@@ -1,5 +1,5 @@
 # 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
-# 统一源版本 2026.10.07-1；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
+# 统一源版本 2026.10.07-2；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
 # 产物类型：客户端托管版（Clash Verge Rev Windows/macOS、Clash Meta for Android：端口、TUN、控制面由客户端设置）
 # ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。
 
@@ -38,6 +38,15 @@ dns:
   nameserver: &dns-foreign ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query']
   nameserver-policy:
     +.lan,+.local,+.localdomain,+.home.arpa,+.localhost: [system]
+    '*': [system]
+    localhost.ptlogin2.qq.com: &dns-domestic ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+    +.pool.ntp.org: *dns-domestic
+    time.apple.com: *dns-domestic
+    time.windows.com: *dns-domestic
+    +.cmpassport.com: *dns-domestic
+    +.jegotrip.com.cn: *dns-domestic
+    +.icitymobile.mobi: *dns-domestic
+    id6.me: *dns-domestic
     +.ct.sendgrid.net: *dns-foreign
     +.app.link: *dns-foreign
     m.stripe.network: *dns-foreign
@@ -305,10 +314,6 @@ dns:
     +.twitchcdn.net: *dns-foreign
     +.twitchsvc.net: *dns-foreign
     +.ext-twitch.tv: *dns-foreign
-    api.bilibili.com: *dns-foreign
-    app.bilibili.com: *dns-foreign
-    bangumi.bilibili.com: *dns-foreign
-    upos-hz-mirrorakam.akamaized.net: *dns-foreign
     +.gamer.com.tw: *dns-foreign
     +.bahamut.com.tw: *dns-foreign
     bahamut.akamaized.net: *dns-foreign
@@ -476,7 +481,7 @@ dns:
     +.paypal.com: *dns-foreign
     +.paypalobjects.com: *dns-foreign
     +.paypal.me: *dns-foreign
-    +.delivery.mp.microsoft.com: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+    +.delivery.mp.microsoft.com: *dns-domestic
     guzzoni.apple.com: *dns-foreign
     mask-api.fe.apple-dns.net: *dns-foreign
     mask-api.icloud.com: *dns-foreign
@@ -486,11 +491,8 @@ dns:
     +.apple-relay.cloudflare.com: *dns-foreign
     +.apple-relay.fastly-edge.com: *dns-foreign
     +.apple-relay.mask.apple-dns.net: *dns-foreign
-    +.apps.mzstatic.com: *dns-foreign
     +.cp4.cloudflare.com: *dns-foreign
-    +.gateway.icloud.com: *dns-foreign
     +.gspe1-ssl.ls.apple.com: *dns-foreign
-    +.ls.apple.com: *dns-foreign
     +.mask-h2.icloud.com: *dns-foreign
     +.mask.icloud.com: *dns-foreign
     +.smoot.apple.com: *dns-foreign
@@ -778,7 +780,8 @@ dns:
     +.media-amazon.com: *dns-foreign
     +.ssl-images-amazon.com: *dns-foreign
     +.images-amazon.com: *dns-foreign
-    geosite:cn,private: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
+    geosite:private: [system]
+    geosite:cn: ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query']
   direct-nameserver-follow-policy: true
 
 sniffer:
@@ -859,9 +862,10 @@ proxy-groups:
     type: select
     proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/YouTube.png
+  # Netflix：2026-10-07 起按普通分组（待决事项第 3 项）；节点解锁不了时在本组里换地区，或在地区组里换节点
   - name: Netflix
     type: select
-    proxies: [Netflix·解锁入口, 国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
+    proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/Netflix.png
   - name: Disney+
     type: select
@@ -909,10 +913,10 @@ proxy-groups:
     type: select
     proxies: [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/Twitch.png
-  # Bilibili 港澳台：提供香港手动备选
+  # Bilibili 港澳台：默认直连；看港澳台内容时切到台湾（另有香港等手动备选）
   - name: Bilibili 港澳台
     type: select
-    proxies: [台湾, 香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区, DIRECT]
+    proxies: [DIRECT, 台湾, 香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/Bilibili%20%E6%B8%AF%E6%BE%B3%E5%8F%B0.png
   # Bahamut：其他地区可用性按内容实测，不预设香港等效台湾
   - name: Bahamut
@@ -1012,11 +1016,6 @@ proxy-groups:
     filter: &flt-us (?i)^(?:(?!(?!.*(?:🇺🇸|🇺🇲)))(?!(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![🇦-🇿]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?<![🇦-🇿])(?![🇦-🇿]*[\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?:[🇦-🇿][🇦-🇿])*(?!(?![🇺]))🇺[🇲🇸](?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>))))|(?!(?!.*(?:(?!(?![abcdefhijklmnoprstuvw三丹亚亞伊休佛俄克內内凤加匹华印哥圣坦堪夏奥奧安山布希帕广底廣弗得德愛拉新旧明桑檀水沪波洛深港滬爱犹猶盐矽硅納紐維纳纽美聖舊艾芝華菲萨西費费路辛达迈達邁阿雷鳳鹽]))(?:(?![A-Za-z])(?:三藩市|丹佛|亚(?:利桑那|特兰大)|亞(?:利桑那|特蘭大)|伊利(?:諾|诺伊)|休(?:士頓|斯[敦頓顿])|佛(?:利蒙|罗里达|羅里達)|俄(?:亥俄|勒[冈岡])|克(?:利夫兰|里夫蘭)|內華達|内华达|凤凰城|加(?:州|利福尼[亚亞])|匹(?:兹堡|茲堡)|华盛顿|印第安纳波利斯|哥(?:伦布|倫布)|圣(?:何塞|克拉拉|安东尼奥|荷西|路易斯|迭戈)|坦帕|堪(?:萨斯|薩斯)|夏(?:威夷|洛特)|奥(?:兰多|斯汀|马哈)|奧(?:斯汀|蘭多|馬哈)|安克雷奇|山景城|布法罗|希尔斯伯勒|帕洛阿尔托|广美|底特律|廣美|弗(?:吉尼[亚亞]|里蒙特)|得(?:克萨斯|梅因)|德(?:州|克(?:萨斯|薩斯))|愛荷華|拉斯(?:維加斯|维加斯)|新(?:泽西|澤西)|旧金山|明尼阿波利斯|桑尼维尔|檀香山|水牛城|沪美|波(?:士[頓顿]|特[兰蘭])|洛杉[矶磯]|深美|港美|滬美|爱荷华|犹他|猶他|盐湖城|矽谷|硅谷|納什維爾|紐(?:約|澤西)|維吉尼亞|纳什维尔|纽(?:约|泽西|瓦克)|美[东国國東西]|聖(?:何塞|克拉拉|安東尼奧|荷西|路易斯)|舊金山|艾奥瓦|芝加哥|華盛頓|菲尼克斯|萨克拉门托|西雅[图圖]|費(?:城|利蒙)|费(?:城|利蒙)|路易斯维尔|辛辛那提|达拉斯|迈阿密|達拉斯|邁阿密|阿(?:什本|拉斯加)|雷斯顿|鳳凰城|鹽湖城)|(?<![A-Za-z])(?:a(?:laska|merica(?:n)?|nchorage|rizona|shburn|tl(?:anta)?|ustin)|b(?:oston|uffalo)|c(?:alifornia|h(?:arlotte|icago)|incinnati|leveland|o(?:lumbus|uncil[\s_-]?bluffs))|d(?:allas|e(?:nver|s[\s_-]?moines|troit)|fw)|ewr|f(?:lorida|remont)|h(?:awaii|illsboro|o(?:nolulu|uston))|i(?:a[dh]|llinois|ndianapolis|owa)|jfk|kansas[\s_-]?city|l(?:a(?:x|s[\s_-]?vegas)|o(?:s[\s_-]?angeles|uisville))|m(?:i(?:ami|nneapolis)|ountain[\s_-]?view)|n(?:ashville|e(?:vada|w(?:ark|[\s_-]?(?:jersey|york)))|yc)|o(?:hio|maha|r(?:d|egon|lando))|p(?:alo[\s_-]?alto|dx|h(?:x|iladelphia|oenix)|i(?:scataway|ttsburgh)|ortland)|reston|s(?:a(?:cramento|int[\s_-]?louis|lt[\s_-]?lake|n(?:ta[\s_-]?clara|[\s_-]?(?:antonio|diego|francisco|jose)))|e(?:attle|caucus)|fo|ilicon[\s_-]?valley|jc|lc|t(?:\.[\s_-]?louis|erling|[\s_-]?louis)|unnyvale)|t(?:ampa|exas)|u(?:nited[\s_-]?states|s(?:a)?|tah)|virginia|washington)(?![A-Za-z]))|(?!(?![🇦-🇿]))(?<![🇦-🇿])(?:[🇦-🇿][🇦-🇿])*(?!(?![🇺]))🇺[🇲🇸])))(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?:(?!(?![🇦-🇿]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?<![🇦-🇿])(?![🇦-🇿]*[\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?:[🇦-🇿][🇦-🇿])*(?!(?![🇭🇯🇰🇸🇹🇺]))(?:🇭🇰|🇯🇵|🇰🇷|🇸🇬|🇹🇼|🇺[🇲🇸])(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>))|(?!(?![abcdefghijklmnopqrstuv中丹乌以伊俄保克冰加匈南卡卢印吉哈哥回土埃塞墨奥奧委孟寮尼巴希德意愛拉挪捷摩斯新智朝柬欧歐比毛沙法波泰澳烏爱瑞白盧科秘立紐緬约纽缅義老肯芬英荷菲葡蒙西越阿非馬马黎]))(?:(?![A-Za-z])|(?<![A-Za-z]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?:(?![A-Za-z])(?:中[东東]|丹[麥麦]|乌(?:克兰|兹别克|拉圭)|以色列|伊(?:朗|拉克)|俄(?:罗斯|羅斯)|保加利[亚亞]|克罗地亚|冰[岛島]|加拿大|匈牙利|南[美非]|卡(?:達|塔尔)|卢森堡|印[尼度]|吉尔吉斯|哈(?:萨克|薩克)|哥(?:伦比亚|倫比亞|斯达黎加)|回[国國]|土耳其|埃及|塞(?:尔维亚|浦路斯)|墨西哥|奥地利|奧地利|委内瑞拉|孟加拉|寮國|尼(?:日利亚|泊尔)|巴(?:[林西]|基斯坦|拿马)|希[腊臘]|德[国國]|意大利|愛爾蘭|拉(?:美|脱维亚)|挪威|捷克|摩(?:尔多瓦|洛哥)|斯(?:洛(?:伐克|文尼亚)|里兰卡)|新西[兰蘭]|智利|朝[鮮鲜]|柬埔寨|欧洲|歐洲|比利[时時]|毛里求斯|沙特|法[国國]|波[兰蘭]|泰[国國]|澳(?:[洲門门]|大利[亚亞])|烏克蘭|爱(?:尔兰|沙尼亚)|瑞[典士]|白俄罗斯|盧森堡|科威特|秘鲁|立陶宛|紐西蘭|緬甸|约旦|纽西兰|缅甸|義大利|老挝|肯尼亚|芬[兰蘭]|英[国國]|荷[兰蘭]|菲律[宾賓]|葡萄牙|蒙古|西班牙|越南|阿(?:曼|根廷|联酋|聯酋)|非洲|馬來西亞|马(?:尔代夫|来西亚|耳他)|黎巴嫩)|(?<![A-Za-z])(?:a(?:frica|rgentina|ustr(?:alia|ia))|b(?:a(?:hrain|ngladesh)|el(?:arus|gium)|r(?:azil|itain)|ulgaria)|c(?:a(?:mbodia|nada)|entral[\s_-]?america|hile|o(?:lombia|sta[\s_-]?rica)|roatia|yprus|zech(?:ia)?)|denmark|e(?:gypt|ngland|stonia|urope)|f(?:inland|rance)|g(?:ermany|reece)|h(?:olland|ungary)|i(?:celand|nd(?:ia|onesia)|r(?:a[nq]|eland)|srael|taly)|jordan|k(?:azakhstan|enya|uwait|yrgyzstan)|l(?:a(?:os|t(?:in[\s_-]?america|via))|ebanon|ithuania|uxembourg)|m(?:a(?:ca[ou]|l(?:aysia|dives|ta)|uritius)|exico|iddle[\s_-]?east|o(?:ldova|ngolia|rocco)|yanmar)|n(?:e(?:pal|therlands|w[\s_-]?zealand)|igeria|or(?:th[\s_-]?(?:america|korea)|way))|oman|p(?:a(?:kistan|nama)|eru|hilippines|o(?:land|rtugal))|qatar|r(?:omania|ussia)|s(?:audi|erbia|lov(?:akia|enia)|outh[\s_-]?a(?:frica|merica)|pain|ri[\s_-]?lanka|w(?:eden|itzerland))|t(?:hailand|urk(?:ey|iye))|u(?:ae|k(?:raine)?|nited[\s_-]?kingdom|ruguay|zbekistan)|v(?:enezuela|iet(?:nam|[\s_-]?nam)))(?![A-Za-z]))(?![\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>))))(?:(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![abcdfhijklmoprstvwz伊伦伯倫华吉哥圣基墨多奥奧孟巴布开悉斯新曼杜柏河法温溫班米維约维罗羅聖胡苏莫蒙蘇赫迪都里金阿雅雪馬马]))(?:(?![A-Za-z])|(?<![A-Za-z]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?:(?![A-Za-z])(?:伊斯坦(?:堡|布尔)|伦敦|伯力|倫敦|华沙|吉隆坡|哥本哈根|圣(?:保罗|彼得堡)|基辅|墨(?:尔本|爾本)|多(?:伦多|倫多)|奥(?:克兰|斯陆)|奧克蘭|孟[买買]|巴(?:黎|塞罗那)|布(?:拉格|达佩斯|鲁塞尔)|开罗|悉尼|斯德哥尔摩|新德里|曼(?:谷|彻斯特)|杜拜|柏林|河[內内]|法(?:兰克福|蘭克福)|温哥华|溫哥華|班加罗尔|米[兰蘭]|維也納|约翰内斯堡|维也纳|罗马|羅馬|聖保羅|胡志明|苏黎世|莫斯科|蒙特利尔|蘇黎世|赫尔辛基|迪拜|都柏林|里斯本|金边|阿(?:姆斯特丹|布扎比)|雅(?:典|加[达達])|雪梨|馬尼拉|马(?:赛|尼拉|德里))|(?<![A-Za-z])(?:a(?:bu[\s_-]?dhabi|msterdam|thens|uckland)|b(?:a(?:ng(?:alore|kok)|rcelona)|erlin|russels|u(?:charest|dapest|enos[\s_-]?aires))|c(?:airo|openhagen)|d(?:elhi|ub(?:ai|lin))|frankfurt|h(?:anoi|elsinki|o[\s_-]?chi[\s_-]?minh)|istanbul|j(?:akarta|ohannesburg)|k(?:uala[\s_-]?lumpur|yiv)|l(?:isbon|ondon)|m(?:a(?:drid|n(?:chester|ila)|rseille)|elbourne|ilan|o(?:ntreal|scow)|umbai)|oslo|p(?:aris|rague)|rome|s(?:ao[\s_-]?paulo|ofia|tockholm|ydney)|toronto|v(?:ancouver|ienna)|warsaw|zurich)(?![A-Za-z]))(?![\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>)))|(?!(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![ajkstu京南厦台坡川广廈廣新日星杭沪泉深港滬狮獅美臺苏莞蘇閩闽韓韩한]))(?:(?![A-Za-z])|(?<![A-Za-z]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?:(?![A-Za-z])(?:京日|南[韓韩]|厦[台日]|台[湾灣]|坡[县縣]|川日|广[台新日美韩]|廈[台日]|廣[台新日美韓]|新加坡|日本|星加坡|杭日|沪[台新日美韩]|泉日|深[台新日美韓韩]|港[日美韓韩]|滬[台新日美韓]|狮城|獅城|美[东国國東西]|臺灣|苏日|莞日|蘇日|閩台|闽台|韓國|韩国|한국)|(?<![A-Za-z])(?:america(?:n)?|j(?:apan|p(?:n)?)|k(?:r|or(?:ea)?)|s(?:g(?:p)?|ingapore)|t(?:aiwan|w(?:n)?)|u(?:nited[\s_-]?states|s(?:a)?))(?![A-Za-z]))(?![\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>)))))(?:(?!(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![abcdefhijklmnoprstuvw三丹亚亞伊休佛俄克內内凤加匹华印哥圣坦堪夏奥奧安山布希帕广底廣弗得德愛拉新旧明桑檀水沪波洛深港滬爱犹猶盐矽硅納紐維纳纽美聖舊艾芝華菲萨西費费路辛达迈達邁阿雷鳳鹽]))(?:(?![A-Za-z])|(?<![A-Za-z]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?:(?![A-Za-z])(?:三藩市|丹佛|亚(?:利桑那|特兰大)|亞(?:利桑那|特蘭大)|伊利(?:諾|诺伊)|休(?:士頓|斯[敦頓顿])|佛(?:利蒙|罗里达|羅里達)|俄(?:亥俄|勒[冈岡])|克(?:利夫兰|里夫蘭)|內華達|内华达|凤凰城|加(?:州|利福尼[亚亞])|匹(?:兹堡|茲堡)|华盛顿|印第安纳波利斯|哥(?:伦布|倫布)|圣(?:何塞|克拉拉|安东尼奥|荷西|路易斯|迭戈)|坦帕|堪(?:萨斯|薩斯)|夏(?:威夷|洛特)|奥(?:兰多|斯汀|马哈)|奧(?:斯汀|蘭多|馬哈)|安克雷奇|山景城|布法罗|希尔斯伯勒|帕洛阿尔托|广美|底特律|廣美|弗(?:吉尼[亚亞]|里蒙特)|得(?:克萨斯|梅因)|德(?:州|克(?:萨斯|薩斯))|愛荷華|拉斯(?:維加斯|维加斯)|新(?:泽西|澤西)|旧金山|明尼阿波利斯|桑尼维尔|檀香山|水牛城|沪美|波(?:士[頓顿]|特[兰蘭])|洛杉[矶磯]|深美|港美|滬美|爱荷华|犹他|猶他|盐湖城|矽谷|硅谷|納什維爾|紐(?:約|澤西)|維吉尼亞|纳什维尔|纽(?:约|泽西|瓦克)|美[东国國東西]|聖(?:何塞|克拉拉|安東尼奧|荷西|路易斯)|舊金山|艾奥瓦|芝加哥|華盛頓|菲尼克斯|萨克拉门托|西雅[图圖]|費(?:城|利蒙)|费(?:城|利蒙)|路易斯维尔|辛辛那提|达拉斯|迈阿密|達拉斯|邁阿密|阿(?:什本|拉斯加)|雷斯顿|鳳凰城|鹽湖城)|(?<![A-Za-z])(?:a(?:laska|merica(?:n)?|nchorage|rizona|shburn|tl(?:anta)?|ustin)|b(?:oston|uffalo)|c(?:alifornia|h(?:arlotte|icago)|incinnati|leveland|o(?:lumbus|uncil[\s_-]?bluffs))|d(?:allas|e(?:nver|s[\s_-]?moines|troit)|fw)|ewr|f(?:lorida|remont)|h(?:awaii|illsboro|o(?:nolulu|uston))|i(?:a[dh]|llinois|ndianapolis|owa)|jfk|kansas[\s_-]?city|l(?:a(?:x|s[\s_-]?vegas)|o(?:s[\s_-]?angeles|uisville))|m(?:i(?:ami|nneapolis)|ountain[\s_-]?view)|n(?:ashville|e(?:vada|w(?:ark|[\s_-]?(?:jersey|york)))|yc)|o(?:hio|maha|r(?:d|egon|lando))|p(?:alo[\s_-]?alto|dx|h(?:x|iladelphia|oenix)|i(?:scataway|ttsburgh)|ortland)|reston|s(?:a(?:cramento|int[\s_-]?louis|lt[\s_-]?lake|n(?:ta[\s_-]?clara|[\s_-]?(?:antonio|diego|francisco|jose)))|e(?:attle|caucus)|fo|ilicon[\s_-]?valley|jc|lc|t(?:\.[\s_-]?louis|erling|[\s_-]?louis)|unnyvale)|t(?:ampa|exas)|u(?:nited[\s_-]?states|s(?:a)?|tah)|virginia|washington)(?![A-Za-z]))(?![\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>))))|(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![bcfhijknopstwy东中九京仁仙冲千南厦台名嘉坡基埼大将將川广廈廣彰新日星春札杭東柴桃横橫沖沙沪泉深港滬狮獅神福臺苏荃莞葵蘇觀观釜閩闽韓韩首香高서한]))(?:(?![A-Za-z])|(?<![A-Za-z]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?:(?![A-Za-z])(?:东京|中(?:华电信|華電信)|九[龍龙]|京[日都]|仁川|仙台|冲绳|千[叶葉]|南[韓韩]|厦[台日]|台[北南湾灣]|名古屋|嘉[义義]|坡[县縣]|基隆|埼玉|大阪|将军澳|將軍澳|川[崎日]|广[台岛新日韩]|廈[台日]|廣[台島新日韓]|彰化|新(?:[北界竹]|加坡)|日本|星加坡|春川|札幌|杭日|東京|柴[湾灣]|桃[园園]|横[浜滨]|橫濱|沖繩|沙田|沪[台新日韩]|泉日|深[台新日韓韩]|港[日韓韩]|滬[台新日韓]|狮城|獅城|神[戶户]|福[冈岡]|臺[中北南灣]|苏日|荃[湾灣]|莞日|葵涌|蘇日|觀塘|观塘|釜山|閩台|闽台|韓國|韩国|首[尔爾]|香港|高雄|서울|한국)|(?<![A-Za-z])(?:busan|c(?:h(?:anghua|i(?:ayi|ba)|uncheon)|mhk)|fukuoka|h(?:gc|i(?:net|roshima)|k(?:[gt]|bn)?|nd|ong[\s_-]?kong|sinchu)|i(?:cn|ncheon)|j(?:apan|p(?:n)?)|k(?:r|a(?:ohsiung|wasaki)|eelung|ix|o(?:be|r(?:ea)?|wloon)|yoto)|n(?:agoya|rt)|o(?:kinawa|sa(?:ka)?)|pccw|s(?:a(?:itama|pporo)|e(?:ednet|ndai|oul)|g(?:p)?|in(?:gapore)?)|t(?:a(?:i(?:chung|nan|pei|wan)|oyuan)|okyo|pe|w(?:n)?|yo)|wtt|yokohama)(?![A-Za-z])|(?:(?<!香)港(?![日韩韓美]))|(?:台中(?![转轉继繼])))(?![\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>)))))(?!(?:(?!(?:解[鎖锁]|(?<![A-Za-z])unlock)).|(?:解[鎖锁]|(?<![A-Za-z])unlock)[^|｜丨(（\[【)）\]】]*[|｜丨)）\]】])*(?!(?![🇦-🇿]))(?<![经經])(?<![经經][\s_-])(?<![^A-Za-z]via)(?<![^A-Za-z]via[\s_-])(?<!^via)(?<!^via[\s_-])(?<![🇦-🇿])(?![🇦-🇿]*[\s_·・.\x2F—–-]*(?:[轉转]|relay|transit|中[繼继轉转]|入口))(?![^\s|｜丨_-]*[\s_-]*(?:解[鎖锁]|(?<![A-Za-z])unlock))(?:[🇦-🇿][🇦-🇿])*(?!(?:🇨🇳|🇪🇺|🇭🇰|🇯🇵|🇰🇷|🇸🇬|🇹🇼|🇺[🇲🇳🇸]))[🇦-🇿][🇦-🇿](?!.*(?:[→⇒➜➡➔⟶]|\->|\x3D>)))(?!.*(?!(?![剩套距重]))(?:剩(?:余流量|餘流量)|套餐到期|距(?:离下次重置|離下次重置)|重置剩[余餘]))(?![^0-9０-９|｜丨]*(?:(?!(?![QT交公到剩发套官客工已总流电發網總网群訂订过過邮郵重防電頻频]))(?:QQ群|TG群|交流群|公告|到期|剩[余餘]|发布页|套餐|官[網网]|客服|工[单單]|已用|总流量|流量|电报群|發布頁|網[址站]|總流量|网[址站]|群(?:[組组])?|訂閱|订阅|过(?:期|滤掉)|過(?:期|濾掉)|邮箱|郵箱|重置|防失[联聯]|電報群|頻道|频道)|(?!(?![ert]))(?<![A-Za-z])(?:expire|re(?:maining|set)|traffic)[A-Za-z]*)\s*[:：]).*$
     empty-fallback: REJECT
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/PayPal%C2%B7%E7%BE%8E%E5%9B%BD%E5%9B%BA%E5%AE%9A.png
-  # Netflix·解锁入口：尚无解锁验证记录：暂按地区选择，默认国外默认；普通测速通过不代表解锁
-  - name: Netflix·解锁入口
-    type: select
-    proxies: [国外默认, 日本, 香港, 台湾, 新加坡, 美国, 韩国, 其他地区]
-    icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/Netflix%C2%B7%E8%A7%A3%E9%94%81%E5%85%A5%E5%8F%A3.png
   # 香港：地区入口：选择本地区的工作模式，不跨国
   - name: 香港
     type: select
@@ -1449,6 +1448,15 @@ rules:
   - DOMAIN,connectivitycheck.platform.hicloud.com,DIRECT
   - DOMAIN,connect.rom.miui.com,DIRECT
   - DOMAIN,wifi.vivo.com.cn,DIRECT
+  # ==== 2b 要真实地址的名单（fake-ip-filter 里的那几个）：固定直连，DNS 也交给国内（见 dns 段） ====
+  - DOMAIN,localhost.ptlogin2.qq.com,DIRECT
+  - DOMAIN-SUFFIX,pool.ntp.org,DIRECT
+  - DOMAIN,time.apple.com,DIRECT
+  - DOMAIN,time.windows.com,DIRECT
+  - DOMAIN-SUFFIX,cmpassport.com,DIRECT
+  - DOMAIN-SUFFIX,jegotrip.com.cn,DIRECT
+  - DOMAIN-SUFFIX,icitymobile.mobi,DIRECT
+  - DOMAIN,id6.me,DIRECT
   # ==== 3a 广告误杀例外：按没有广告规则时的业务目标放行 ====
   - DOMAIN-SUFFIX,ct.sendgrid.net,国外默认
   - DOMAIN-SUFFIX,app.link,国外默认
@@ -1485,7 +1493,6 @@ rules:
   - DOMAIN-SUFFIX,adsrvr.org,广告拦截
   - DOMAIN-SUFFIX,adtechus.com,广告拦截
   - DOMAIN-SUFFIX,advertising.com,广告拦截
-  - DOMAIN-SUFFIX,alimama.com,广告拦截
   - DOMAIN-SUFFIX,amazon-adsystem.com,广告拦截
   - DOMAIN-SUFFIX,casalemedia.com,广告拦截
   - DOMAIN-SUFFIX,chartboost.com,广告拦截
@@ -1515,8 +1522,6 @@ rules:
   - DOMAIN-SUFFIX,tanx.com,广告拦截
   - DOMAIN-SUFFIX,tapjoy.com,广告拦截
   - DOMAIN-SUFFIX,teads.tv,广告拦截
-  - DOMAIN-SUFFIX,umeng.com,广告拦截
-  - DOMAIN-SUFFIX,umengcloud.com,广告拦截
   - DOMAIN-SUFFIX,vungle.com,广告拦截
   - DOMAIN-SUFFIX,pixel.facebook.com,广告拦截
   - DOMAIN-SUFFIX,analytics.facebook.com,广告拦截
@@ -1532,6 +1537,35 @@ rules:
   - DOMAIN-SUFFIX,analytics.tiktok.com,广告拦截
   - DOMAIN,bat.bing.com,广告拦截
   - DOMAIN,px.ads.linkedin.com,广告拦截
+  - DOMAIN-SUFFIX,aaid.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,alog.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,alogs.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,alogus.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,ar.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,aspect-upush.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,audid.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,ccs.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,cnlogs.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,new-aaid.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,oc.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,plbslog.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,resolve.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,ulogs.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,utoken.umeng.com,广告拦截
+  - DOMAIN-SUFFIX,alog.umengcloud.com,广告拦截
+  - DOMAIN-SUFFIX,cnlogs.umengcloud.com,广告拦截
+  - DOMAIN-SUFFIX,ulogs.umengcloud.com,广告拦截
+  - DOMAIN,alimama.com,广告拦截
+  - DOMAIN-SUFFIX,acookie.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,afpeng.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,afpssp.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,afptrack.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,banner.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,c.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,cpc.click.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,p.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,static.alimama.com,广告拦截
+  - DOMAIN-SUFFIX,t.alimama.com,广告拦截
   # ==== 3c 广告集合（远程数据） ====
   - GEOSITE,category-ads-all,广告拦截
   # ==== 4-5 产品专属、共享依赖与厂商规则（更具体的规则在前，由生成器排序） ====
@@ -2068,6 +2102,9 @@ rules:
   # -- vendor_cn_cdn --
   - DOMAIN-SUFFIX,windowsupdate.com,国内直连
   - DOMAIN-SUFFIX,delivery.mp.microsoft.com,国内直连
+  # -- umeng --
+  - DOMAIN-SUFFIX,umeng.com,国内直连
+  - DOMAIN-SUFFIX,umengcloud.com,国内直连
   # -- cn_common --
   - DOMAIN-SUFFIX,10010.com,国内直连
   - DOMAIN-SUFFIX,12306.cn,国内直连
@@ -2149,11 +2186,8 @@ rules:
   - DOMAIN-SUFFIX,apple-relay.cloudflare.com,Apple AI
   - DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Apple AI
   - DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net,Apple AI
-  - DOMAIN-SUFFIX,apps.mzstatic.com,Apple AI
   - DOMAIN-SUFFIX,cp4.cloudflare.com,Apple AI
-  - DOMAIN-SUFFIX,gateway.icloud.com,Apple AI
   - DOMAIN-SUFFIX,gspe1-ssl.ls.apple.com,Apple AI
-  - DOMAIN-SUFFIX,ls.apple.com,Apple AI
   - DOMAIN-SUFFIX,mask-h2.icloud.com,Apple AI
   - DOMAIN-SUFFIX,mask.icloud.com,Apple AI
   - DOMAIN-SUFFIX,smoot.apple.com,Apple AI

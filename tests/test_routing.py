@@ -71,36 +71,42 @@ class RoutingCases(unittest.TestCase):
                         failures.append(f"[{client}] {h}: 期望 {want}，实际 {got}")
         self.assertFalse(failures, "\n" + "\n".join(failures[:40]))
 
-    # 需求补充（2026-09-29）：Apple AI 照搬 Cursor 版 18 条，关键词 siri 换成最后三条具体主机名
+    # 需求补充（2026-09-29）：Apple AI 照搬 Cursor 版 18 条，关键词 siri 换成最后三条具体主机名；
+    # 2026-10-07 用户定了待决事项第 8 项（方案二）：放宽“不增不减”，拿掉 ls.apple.com、apps.mzstatic.com、gateway.icloud.com 三条宽规则
     APPLE_AI_EXPECTED = [
         ("domain", "guzzoni.apple.com"), ("domain", "mask-api.fe.apple-dns.net"), ("domain", "mask-api.icloud.com"),
         ("domain", "mask-t.apple-dns.net"), ("domain", "mask.apple-dns.net"),
         ("suffix", "apple-relay.apple.com"), ("suffix", "apple-relay.cloudflare.com"), ("suffix", "apple-relay.fastly-edge.com"),
-        ("suffix", "apple-relay.mask.apple-dns.net"), ("suffix", "apps.mzstatic.com"), ("suffix", "cp4.cloudflare.com"),
-        ("suffix", "gateway.icloud.com"), ("suffix", "gspe1-ssl.ls.apple.com"), ("suffix", "ls.apple.com"),
+        ("suffix", "apple-relay.mask.apple-dns.net"), ("suffix", "cp4.cloudflare.com"),
+        ("suffix", "gspe1-ssl.ls.apple.com"),
         ("suffix", "mask-h2.icloud.com"), ("suffix", "mask.icloud.com"), ("suffix", "smoot.apple.com"),
         ("suffix", "siri.apple.com"), ("suffix", "siri.com"), ("suffix", "applesiri.cn"),
     ]
+    NARROWED = {("suffix", "ls.apple.com"), ("suffix", "apps.mzstatic.com"), ("suffix", "gateway.icloud.com")}
+    # 普通苹果地址仍归 Apple；后三个是 2026-10-07 拿掉的三条宽规则管过的主机，现在回到 Apple（默认直连）
     ORDINARY_APPLE = ["apple.com", "www.apple.com", "icloud.com", "www.icloud.com", "p00-ckdatabase.icloud.com",
-                      "time.apple-dns.net", "is1-ssl.mzstatic.com", "gs-loc.apple.com", "apps.apple.com", "itunes.apple.com"]
+                      "time.apple-dns.net", "is1-ssl.mzstatic.com", "gs-loc.apple.com", "apps.apple.com", "itunes.apple.com",
+                      "gsp-ssl.ls.apple.com", "apps.mzstatic.com", "gateway.icloud.com"]
 
     SIRI_REPLACEMENTS = {("suffix", "siri.apple.com"), ("suffix", "siri.com"), ("suffix", "applesiri.cn")}
 
     def test_apple_ai_matches_cursor_baseline(self):
-        """与对照报告明细（docs/evidence/cursor-对照明细.csv）里 Cursor 版的 18 条逐条相同，唯一差别是关键词 siri 换成三条后缀。"""
+        """与对照报告明细（docs/evidence/cursor-对照明细.csv）里 Cursor 版的 18 条相比，只有两处差别：关键词 siri 换成三条后缀；
+        2026-10-07 按用户的决定拿掉三条宽规则（待决事项第 8 项）。"""
         kind = {"完整域名": "domain", "域名后缀": "suffix", "关键词": "keyword"}
         with open(os.path.join(ROOT, "docs", "evidence", "cursor-对照明细.csv"), encoding="utf-8") as f:
             base = {(kind[r["规则类型"]], r["规则值"]) for r in csv.DictReader(f)
                     if r["分流"] == "Apple AI" and r["本仓库有"] == "是"}
         self.assertEqual(len(base), 18)
-        self.assertEqual(base - {("keyword", "siri")}, set(self.APPLE_AI_EXPECTED) - self.SIRI_REPLACEMENTS)
-        self.assertEqual(len(self.APPLE_AI_EXPECTED), 17 + len(self.SIRI_REPLACEMENTS))
+        self.assertLessEqual(self.NARROWED, base)
+        self.assertEqual(base - {("keyword", "siri")} - self.NARROWED, set(self.APPLE_AI_EXPECTED) - self.SIRI_REPLACEMENTS)
+        self.assertEqual(len(self.APPLE_AI_EXPECTED), 17 - len(self.NARROWED) + len(self.SIRI_REPLACEMENTS))
 
     def test_apple_ai_before_apple(self):
         """Apple AI 的全部地址在四端都先命中 Apple AI；普通苹果地址仍命中 Apple；不再有关键词规则误伤 siriusxm.com。"""
         m, plan = model_and_plan()
         rules = [(r.kind, r.value) for s in m.services if s.id == "apple_ai" for r in s.rules]
-        self.assertEqual(rules, self.APPLE_AI_EXPECTED, "Apple AI 规则必须与需求给定的清单一致（不增不减）")
+        self.assertEqual(rules, self.APPLE_AI_EXPECTED, "Apple AI 规则必须与上面的清单一致（需求给定的 18 条，按用户的决定去掉三条宽规则）")
         self.assertFalse([r for s in m.services for r in s.rules if r.kind == "keyword"], "不应再有关键词规则")
         fx = emulate.Fixtures({"dns": {}, "geoip": {"cn": []}, "geosite": {}, "ad_list": []}, ads_on=True)
         failures = []

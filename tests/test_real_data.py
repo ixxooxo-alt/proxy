@@ -350,9 +350,9 @@ class SingboxDns(unittest.TestCase):
     def test_proxied_hosts_never_go_to_domestic_dns(self):
         """对每个“期望走代理组”的主机（来自全部用例和排除项）：A 查询得到假地址，其他类型交给经代理的 DNS。
         样本和真实成员关系各查一遍。
-        已知的例外只有一类（2026-10-06 逐条扫描查出来的，待决事项 15）：“要真实地址的名单”里的名字。DNS 规则的第二条
-        把这份名单整个交给 dns-cn，而其中几个名字的路由不是直连（time.windows.com 归 Microsoft 组、pool.ntp.org 落到国外默认、
-        time.apple.com 归默认直连的 Apple 组）。这里如实核对它们现在确实交给 dns-cn——哪天改了，这里和 docs/06 一起改。"""
+        r12–r14 有一类已知的例外（2026-10-06 逐条扫描查出来的，待决事项 15）：“要真实地址的名单”里的名字，DNS 规则把它们
+        交给 dns-cn，路由却不是直连。2026-10-07 用户选了方案二，四端都把这份名单固定直连，这一类没有了：期望走代理组的主机里
+        不应再有名单里的名字（有的话说明名单和路由又不一致了，这里和 docs/06 一起看）。"""
         m, _ = model_and_plan()
         names = [(r.get("suffix"), r.get("domain")) for r in m.dns["real_ip"]]
 
@@ -377,8 +377,8 @@ class SingboxDns(unittest.TestCase):
                         failures.append(f"[{client}，{label}] {p['host']}（→ {p['expect']['singbox']}）：A → {a}，HTTPS → {other}")
         self.assertGreater(checked, 600)
         self.assertFalse(failures, "\n" + "\n".join(failures[:40]))
-        self.assertEqual(sorted(known), ["0.pool.ntp.org", "time.apple.com", "time.windows.com"],
-                         "“走代理组、名字却交给国内 DNS”的用例主机变了：对照 cases.yaml 的 dns_route_consistency 和 docs/06")
+        self.assertEqual(sorted(known), [],
+                         "期望走代理组的主机里又出现了“要真实地址的名单”里的名字：对照 cases.yaml 的 dns_route_consistency 和 docs/06")
 
     def test_dns_layers_follow_most_specific_rule(self):
         """DNS 上的产品规则和路由用同一条“更具体优先”：逐条规则取代表主机，DNS 归类要等于路由归类。"""
@@ -422,7 +422,8 @@ class MihomoDial(unittest.TestCase):
 
     def test_dns_cases_match_recorded_official_core(self):
         """期望在 cases.yaml 的 mihomo_dns（人工写的）：局域网后缀下的名字交给系统 DNS；普通域名给假地址、不向上游查询。
-        标了 limit 的是已知限制的现状（不带点的名字交给了国内的公共 DNS），同样要和记录一致——文档里是照这个写的。"""
+        标了 limit 的是已知限制的现状，同样要和记录一致。r12–r14 有一条（不带点的名字交给了国内的公共 DNS）；2026-10-07 用户
+        定了待决事项第 14 项（方案二），不带点的名字和 private 集合交给系统 DNS，现在没有标 limit 的了。"""
         self.assertGreaterEqual(sum(c["expect"] == "system" for c in self.dns), 2)
         self.assertTrue(any(c["expect"] == "fake-ip" for c in self.dns), "要有一条对照：普通域名不向上游查询")
         self.assertIn("dns", self.rec, "快照里没有 mihomo 的 DNS 去向记录" + HINT)
@@ -430,8 +431,9 @@ class MihomoDial(unittest.TestCase):
         wrong = [(k, c["expect"], self.rec["dns"][k]) for k, c in zip(self.dns_keys, self.dns) if self.rec["dns"][k] != c["expect"]]
         self.assertEqual(wrong, [], "（用例, 期望, 官方内核记录）" + HINT)
         limits = [c for c in self.dns if c.get("limit")]
-        self.assertEqual([(c["host"], c["type"], c["expect"]) for c in limits], [("printer", "A", "domestic")],
-                         "已知限制的现状变了：docs/03、docs/06 里“不带点的名字”那一条要跟着改")
+        self.assertEqual([(c["host"], c["type"], c["expect"]) for c in limits], [], "又出现了已知限制：docs/03、docs/06 要写明")
+        for k, want in (("printer A", "system"), ("tplinkwifi.net A", "system"), ("time.windows.com A", "domestic")):
+            self.assertEqual(self.rec["dns"][k], want, k)
         # r13 时 qwen.ai 的 TXT 查询交给国内 DNS（待决事项 16）；r14 起产品域名那一层把它交给境外 DNS（R13-F01，用户选了改）
         self.assertEqual(self.rec["dns"]["qwen.ai TXT"], "foreign")
         self.assertFalse(set(self.dns_keys) & set(self.dial_keys))
@@ -440,7 +442,8 @@ class MihomoDial(unittest.TestCase):
         """快照里另有三组自检的记录，各从 DNS 段里去掉一样东西再跑同一批用例：
           去掉 proxy-server-nameserver-policy        → 只有“节点服务器是局域网名字”的几条变回国内 DNS；
           去掉 direct-nameserver-follow-policy       → 只有“直连目标是局域网名字”的那条变回国内 DNS；
-          去掉 nameserver-policy 里局域网后缀那一条  → 设备查询局域网名字、直连局域网目标变回国内 DNS，节点的不变。
+          nameserver-policy 里交给系统 DNS 的几条改成国内 DNS（局域网后缀、不带点的名字、private 集合；2026-10-07 以前只有
+          局域网后缀那一条，自检是把它删掉）→ 设备查询局域网名字、直连局域网目标变回国内 DNS，节点的不变。
         这说明核对看得见它要防的错误，也说明三处各管各的：审核 r10 指出的正是“只写了第三处，以为节点也管到了”。"""
         lan = {kind: [k for k, c in zip(self.dial_keys, self.dial) if c["kind"] == kind and c["expect"] == "system"]
                for kind in ("node", "direct")}
@@ -519,8 +522,9 @@ class StrictWithRealSets(unittest.TestCase):
 class RealOnlyCases(unittest.TestCase):
     def test_real_only_cases_come_from_upstream_data(self):
         """cases.yaml 的 real_only 要名副其实。现在两条是同一件事：blackmatrix7 的 AdvertisingLite 收了“要真实地址的名单”里的
-        主机，domain-list-community 的广告集合没有收——所以标准版 Loon / Quantumult X 拦、mihomo / sing-box 不拦。
-        上游改掉以后重新生成快照，这里会失败：把那一条连同 docs/06 的说明一起删掉。"""
+        主机，domain-list-community 的广告集合没有收。r12–r14 时标准版 Loon / Quantumult X 因此拦了它们（待决事项 18）；
+        2026-10-07 起四端都把名单固定直连（待决事项 15 方案二），本地规则排在远程广告集合之前，各端都是直连（期望写的就是 DIRECT）。
+        这里核对“真实的广告集合里确实有它们”——上游改掉以后重新生成快照，这里会失败：把那一条连同 docs/06 的说明一起删掉。"""
         m, _ = model_and_plan()
         snap = snapshot()
         names = [(r.get("suffix"), r.get("domain")) for r in m.dns["real_ip"]]
@@ -532,8 +536,8 @@ class RealOnlyCases(unittest.TestCase):
             for fam in ("loon", "quantumultx"):
                 ads = [x["url"] for x in m.adblock["remote_lists"][fam]]
                 self.assertTrue(any(u in rec[fam] for u in ads), f"{fam}：真实的广告集合里已经没有 {host} 了" + HINT)
-                self.assertEqual(c["per_client"][fam], "广告拦截")
-                self.assertEqual(c["per_client"][fam + "-strict"], "DIRECT")
+            self.assertEqual(c["expect"], "DIRECT")
+            self.assertNotIn("per_client", c, "四端都固定直连，不该再有哪一端不同")
             self.assertNotIn("category-ads-all", rec["mihomo"])
             self.assertNotIn("geosite-category-ads-all", rec["singbox"])
             self.assertTrue(c.get("why"))
@@ -635,7 +639,8 @@ class DnsRouteConsistency(unittest.TestCase):
     def test_sweep_covered_the_full_sets(self):
         sizes = self.snap["sizes"]
         mi = self.cons["mihomo"]["swept"]
-        self.assertEqual(mi["sets"], {"cn": sizes["mihomo"]["cn"], "private": sizes["mihomo_dns_only"]["private"]})
+        # 2026-10-07 起 private 集合交给系统 DNS（待决事项 14 方案二），不再是“名字会交给国内 DNS”的集合，不扫
+        self.assertEqual(mi["sets"], {"cn": sizes["mihomo"]["cn"]})
         self.assertGreater(mi["from_sets"], sizes["mihomo"]["cn"], "后缀条目除了本身还要取一个子域")
         self.assertGreater(mi["from_rules"], 500)
         for key in ("singbox", "singbox112"):
@@ -668,7 +673,7 @@ class DnsRouteConsistency(unittest.TestCase):
                 self.assertRegex(x["why"], r"待决事项 \d+", f"{fam} {x['kind']}：每一类都要指到 docs/06 的待决事项")
 
     def test_default_direct_groups_are_what_they_say(self):
-        """归“默认直连、可以切换”的组的主机：那个组的首选确实是 DIRECT（现在只有 Apple 几个组）。默认状态下它们是一致的；
+        """归“默认直连、可以切换”的组的主机：那个组的首选确实是 DIRECT（Apple 那几个组，2026-10-07 起还有 Bilibili 港澳台）。默认状态下它们是一致的；
         用户把组切到代理以后，这些名字就变成“国内 DNS 解析、走代理”——docs/06 里写了。"""
         defaults = CASES["defaults"]
         for key, rec in self.cons.items():
@@ -677,16 +682,18 @@ class DnsRouteConsistency(unittest.TestCase):
 
     def test_singbox_and_mihomo_both_have_the_product_layer(self):
         """两个内核的 DNS 上都有“走代理组的产品域名先判断”一层：sing-box 一直在 DNS 规则里；mihomo 是 r14 在 nameserver-policy 里加的
-        （2026-10-07，GPT 审核 r13 的 R13-F01，待决事项 16 用户选了改）。所以 sing-box 的不一致只剩“要真实地址的名单”，
-        mihomo 的只剩 private 集合那一类，“国内域名集合里走代理的产品域名”（r13 时 mihomo 有 142 个代表主机）一个都没有了。
-        另外，快照里记着 sing-box 的自检：把那一层拿掉再扫，走代理组的主机会多出一大批。"""
+        （2026-10-07，GPT 审核 r13 的 R13-F01，待决事项 16 用户选了改）。同一天用户又定了第 15 项（名单固定直连）、第 14 项
+        （mihomo 的 private 集合交给系统 DNS），sing-box 的“要真实地址的名单”、mihomo 的 private 集合两类也没有了：
+        两端“名字交给国内 DNS、连接走代理组”的代表主机都应该是 0 个。
+        另外，快照里记着两端的自检：把产品域名那一层拿掉再扫，走代理组的主机会多出一大批。"""
         sb = self.cons["singbox"]
-        self.assertLessEqual(len(sb["mismatch"]), 20)
+        self.assertEqual(sb["mismatch"], [])
+        self.assertEqual(self.cons["singbox112"]["mismatch"], [])
         self.assertGreater(sb["without_product_dns_rules"], len(sb["mismatch"]) + 20)
         mi = self.cons["mihomo"]["mismatch"]
         kinds = [self.kind_of("mihomo", x) for x in mi]
         self.assertEqual(kinds.count("product_cn"), 0, "mihomo 上又出现了“名字交给国内 DNS、规则交给代理组”的产品域名")
-        self.assertGreater(kinds.count("private"), 50)
+        self.assertEqual(mi, [])
         # mihomo 的自检：拿掉产品域名那一层再扫，多出来的就是这一层管到的主机，它们都交给官方内核查过 TXT（都由境外 DNS 收到）
         self.assertGreater(self.cons["mihomo"]["without_product_dns_rules"], len(mi) + 50)
         self.assertEqual(self.cons["mihomo"]["product_layer_checked"], self.cons["mihomo"]["without_product_dns_rules"] - len(mi))

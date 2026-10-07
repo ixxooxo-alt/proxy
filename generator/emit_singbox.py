@@ -181,8 +181,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
                 if hit:
                     ob["default"] = hit[0]
             outbounds.append(ob)
-        elif g.kind in ("url-test", "fallback"):
-            # fallback 仅出现在“已验证的 Netflix 解锁入口”：sing-box 无 fallback，用同一批已验证节点间的 urltest 近似
+        elif g.kind == "url-test":
             outbounds.append({"type": "urltest", "tag": g.name, "outbounds": members,
                               "url": hc["url_https"], "interval": f"{hc['interval_s']}s",
                               "tolerance": hc["tolerance_ms"], "idle_timeout": "30m",
@@ -224,6 +223,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
         {"domain_suffix": list(p["lan"]["domain_suffix"]), "action": "resolve", "server": LOCAL_DNS_TAG},
     ]
     rules += _chunk(plan.lan, target_map)
+    rules += _chunk(plan.real_ip_direct, target_map)    # 要真实地址的名单：DNS 规则交给 dns-cn，连接也固定直连（待决事项第 15 项）
     rules += _chunk(plan.exceptions, target_map)
     rules += _chunk(plan.ads_local, target_map)
     for x in m.adblock["remote_lists"]["singbox"]:

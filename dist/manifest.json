@@ -1,38 +1,40 @@
 {
-  "generator_version": "1.6.0",
-  "source_version": "2026.10.07-1",
+  "generator_version": "1.7.0",
+  "source_version": "2026.10.07-2",
   "docs_checked": "2026-09-23",
-  "source_sha256": "a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc",
+  "source_sha256": "c2efc8ffd4519f5bf9e4c36b10068b2a94494ba3d70269865ece76b85af7106b",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
-    "ads_local": 71,
-    "product": 851,
+    "ads_local": 97,
+    "product": 850,
     "service_ip": 14,
     "product_by_client": {
-      "mihomo": 851,
-      "singbox": 851,
-      "loon": 781,
-      "quantumultx": 781
+      "mihomo": 850,
+      "singbox": 850,
+      "loon": 780,
+      "quantumultx": 780
     },
     "strict_real_ip_direct": 8,
     "strict_cn_domains": {
-      "loon": 6132,
-      "quantumultx": 6132
-    }
+      "loon": 6133,
+      "quantumultx": 6133
+    },
+    "strict_qx_max_domains": 111182
   },
   "outputs": {
-    "loon/loon-strict.conf": "30e79487c65643a16df2ea1513fb871048d3c180cc7f5bef9890e37c9eda01a2",
-    "loon/loon.conf": "479bacae3326694d075335d4fc852c47d59f35d650f764f4b266afe87af1529c",
-    "loon/rules/cn-domains.list": "09c986cd9866c8ad2dacebf895c43dbd71a3180f8226ca9ff9a30b622dc04775",
-    "mihomo/mihomo-core.yaml": "a2f89037ab788fc131190554991e939c3d1665a2e5d9bbd97477d8acd51c7625",
-    "mihomo/mihomo-profile.yaml": "e56f071b7baf370e7a3f1becbe1e8197345e3797f47cd1cb52bca3e5681e1c1e",
-    "quantumultx/quantumultx-strict.conf": "2dc0a6a3ef971e9da5fdf2ff68f6cb6bb938973d84b8e10e4795a42ab9b5ac59",
-    "quantumultx/quantumultx.conf": "c67d576d042b2896eee6eea9d75fbb1bf0c1ac456769cbcf6bb4aadef4e6ed1e",
-    "quantumultx/rules/cn-domains.list": "20be6de9679baa6c71a808d1be3669ea9178b3dde0b9625f3415d88f737fc0c1",
+    "loon/loon-strict.conf": "149e438b68948985aac5529edd757d7d689b613cd178ccaa79f5dbed5259d113",
+    "loon/loon.conf": "a34bb327a17d756bf3d8367cb15bff70ead8b00080d5727889c5a022605ca9ca",
+    "loon/rules/cn-domains.list": "6eb4bb905e39cea3a8b38c05c3a136031f326c02b9dc6293c02101293afeb7bd",
+    "mihomo/mihomo-core.yaml": "c1c4881570f2377e33ac4687a32c19b355d86e61a13e3abcb07482a7707a5126",
+    "mihomo/mihomo-profile.yaml": "899b72419387d5a444a0d44ed9d7c51682230a122d5e5ba6bd2558f5fe5db898",
+    "quantumultx/quantumultx-strict.conf": "f76d8f39c0b565cef628ef7685d974dc6d841c836f5fe491ee550d568b83e7d2",
+    "quantumultx/quantumultx.conf": "7035a0a3d15f2645563e39da639333cc2e26db767e8997233d6a15cb0d6c1f03",
+    "quantumultx/rules/cn-domains-max.list": "58a34b26d9c8e240d92611b1cfd8256178d54cbde7d4d19a70fa06091a380ed1",
+    "quantumultx/rules/cn-domains.list": "d4f8bebf36d4ec3c67126b8fea6ea1ec57ccfa08c6e98ae99694f53b03983a74",
     "quantumultx/rules/domain-fallback.list": "c15975930f5d0e8097dd7d9330ca24b29438d07c7374eca5beb90e47b685e4c6",
-    "sing-box/sing-box-1.12.json": "306d345435055671ea340765a08629055296fb8fe969f6c9fcdea4b8bb4c74ac",
-    "sing-box/sing-box-1.14.json": "1ff196ea1d9880d628c8197412413ab10f6bff90fed46ebd90f25cd0f89828f3"
+    "sing-box/sing-box-1.12.json": "04007aaf91c653e2e8fc9d5a7b8167e727072357445b10e03fd05b3f212bee22",
+    "sing-box/sing-box-1.14.json": "ccd000134c4d0b468dfd711b58da7428ac24cfab9e14292139ba4cc73e8a1b4f"
   },
   "targets": {
     "mihomo": {

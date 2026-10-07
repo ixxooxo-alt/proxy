@@ -9,9 +9,13 @@
 自有远程规则文件（生成在 dist/ 下，随仓库发布，配置里按 strict.publish_base 引用）：
   loon/rules/cn-domains.list            国内域名清单，Loon 的规则文件写法（类型,值）
   quantumultx/rules/cn-domains.list     同一份清单，Quantumult X 的写法（类型,值,策略）
+  quantumultx/rules/cn-domains-max.list 上游大清单（blackmatrix7 的 ChinaMax_Domain.list）的副本，Quantumult X 的写法；
+                                        2026-10-07 起（待决事项第 19 项方案二），Loon 严格版直接订阅上游的那一份，Quantumult X
+                                        没有能直接订阅的只含域名的版本，所以由本项目转好、随仓库发布（GPL-2.0，见数据文件头）
   quantumultx/rules/domain-fallback.list  Quantumult X 的域名兜底：一条 HOST-KEYWORD,.（官方 sample.conf 给的写法，
                                           注释原文：“skip the DNS query for all the non-matched hosts”）
-清单数据在 source/data/cn-domains.txt，由 tools/update_cn_list.py 从 domain-list-community 的固定快照生成。
+清单数据在 source/data/cn-domains.txt，由 tools/update_cn_list.py 从 domain-list-community 的固定快照生成；
+大清单副本的数据在 source/data/cn-domains-max.txt，由同一个工具从 blackmatrix7 的固定快照照录。
 """
 from __future__ import annotations
 
@@ -19,10 +23,13 @@ import os
 from typing import List, Tuple
 
 CN_DATA_REL = "source/data/cn-domains.txt"
+MAX_DATA_REL = "source/data/cn-domains-max.txt"
+MAX_LICENSE_REL = "source/data/LICENSE-ios_rule_script.txt"
 LOON_CN_REL = "loon/rules/cn-domains.list"
 QX_CN_REL = "quantumultx/rules/cn-domains.list"
+QX_MAX_REL = "quantumultx/rules/cn-domains-max.list"
 QX_FALLBACK_REL = "quantumultx/rules/domain-fallback.list"
-OWN_FILES = (LOON_CN_REL, QX_CN_REL, QX_FALLBACK_REL)
+OWN_FILES = (LOON_CN_REL, QX_CN_REL, QX_MAX_REL, QX_FALLBACK_REL)
 # Quantumult X 的远程规则文件里每行要带一个策略名；配置里用 force-policy 指定了真正的策略，官方 sample.conf 写明
 # 这时文件里的策略会被忽略。这里写内置策略：万一 force-policy 没有生效，国内清单仍是直连、兜底仍是走代理而不是本机解析。
 QX_INLINE_DIRECT = "direct"
@@ -44,18 +51,18 @@ def parse_cn_domains(text: str) -> Tuple[List[str], List[str]]:
     return suffix, full
 
 
-def load_cn_domains(root: str) -> Tuple[List[str], List[str]]:
-    with open(os.path.join(root, *CN_DATA_REL.split("/")), encoding="utf-8") as f:
+def load_cn_domains(root: str, rel: str = CN_DATA_REL) -> Tuple[List[str], List[str]]:
+    with open(os.path.join(root, *rel.split("/")), encoding="utf-8") as f:
         return parse_cn_domains(f.read())
 
 
-HEADER_KEPT = ("# 来源：", "# 授权：", "# 展开后", "# 去重后", "# 写法不合规")
+HEADER_KEPT = ("# 来源：", "# 授权：", "# 展开后", "# 去重后", "# 写法不合规", "# 条目 ")
 
 
-def data_header(root: str) -> List[str]:
+def data_header(root: str, rel: str = CN_DATA_REL) -> List[str]:
     """数据文件头部讲来源、快照、授权、条数的几行，原样带进生成的规则文件（讲数据文件自身写法的那一行不带）。"""
     out = []
-    with open(os.path.join(root, *CN_DATA_REL.split("/")), encoding="utf-8") as f:
+    with open(os.path.join(root, *rel.split("/")), encoding="utf-8") as f:
         for raw in f:
             if not raw.startswith("#"):
                 break
@@ -68,7 +75,7 @@ def own_url(m, rel: str) -> str:
     return m.strict["publish_base"] + rel
 
 
-def cn_entries(m, plan, family: str) -> Tuple[List[str], List[str], int]:
+def cn_entries(m, plan, family: str, data=None) -> Tuple[List[str], List[str], int]:
     """这一端的自有清单里实际写出的条目：(后缀, 精确域名, 去掉了几条)。
     去掉的是已经被这一端【本地规则】覆盖的条目（例如清单里的 qwen.ai：本地规则把它交给国外默认）。两端都是本地规则优先于
     远程规则，这些条目本来就不会生效；去掉以后，“清单里有、本地规则另有安排”的域名走哪里，不再依赖两类规则谁先谁后
@@ -84,7 +91,7 @@ def cn_entries(m, plan, family: str) -> Tuple[List[str], List[str], int]:
             return True
         return exact and value in by_exact
 
-    suffix, full = m.cn_domains
+    suffix, full = m.cn_domains if data is None else data
     kept_s = [x for x in suffix if not covered(x, False)]
     kept_f = [x for x in full if not covered(x, True)]
     return kept_s, kept_f, len(suffix) + len(full) - len(kept_s) - len(kept_f)
@@ -108,6 +115,21 @@ def qx_cn_list(m, plan) -> str:
     suffix, full, dropped = cn_entries(m, plan, "quantumultx")
     L = ["# Quantumult X 严格版用的国内域名清单（策略由配置里的 force-policy= 指定，行内的策略名会被忽略）。由统一源生成，请勿手工修改。"]
     L += _cn_header(m, dropped, len(suffix) + len(full))
+    L += [f"HOST-SUFFIX,{s},{QX_INLINE_DIRECT}" for s in suffix]
+    L += [f"HOST,{d},{QX_INLINE_DIRECT}" for d in full]
+    return "\n".join(L) + "\n"
+
+
+def max_entries(m, plan) -> Tuple[List[str], List[str], int]:
+    """Quantumult X 严格版的大清单副本里实际写出的条目：同样去掉已被本地规则覆盖的（理由见 cn_entries）。"""
+    return cn_entries(m, plan, "quantumultx", m.max_domains)
+
+
+def qx_max_list(m, plan) -> str:
+    suffix, full, dropped = max_entries(m, plan)
+    L = ["# Quantumult X 严格版用的上游国内域名大清单（策略由配置里的 force-policy= 指定，行内的策略名会被忽略）。由统一源生成，请勿手工修改。"]
+    L += m.max_data_header + [
+        f"# 生成时另去掉 {dropped} 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 {len(suffix) + len(full)} 条。"]
     L += [f"HOST-SUFFIX,{s},{QX_INLINE_DIRECT}" for s in suffix]
     L += [f"HOST,{d},{QX_INLINE_DIRECT}" for d in full]
     return "\n".join(L) + "\n"

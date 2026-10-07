@@ -56,7 +56,7 @@ evidence:
     note: "和 apple-ent-net 是同一页（“在企业网络中使用 Apple 产品”，2026-10-06 查阅时页面写的发布日期是 2026-08-07）。“Apple Push Notifications”一节：*.push.apple.com，TCP 443、80、5223、2197，iOS / iPadOS / tvOS / macOS / visionOS，用途 Push notifications。同日另查阅 https://support.apple.com/102266 （发布日期 2023-08-22）：设备用 TCP 5223 连接 APNs，443 用于激活、以及连不上 5223 时的退路；建议放行整个 17.0.0.0/8；443 的连接可以经过不解密的代理"
   apple-ai-req:
     kind: requirement
-    note: 需求补充（2026-09-29）：Apple AI 组照搬 Cursor 版 18 条规则（Cursor 版的 rules/apple-ai/APPLE_AI_18.list，“基线不得删除或改写”；逐条见对照明细副本 docs/evidence/cursor-对照明细.csv），关键词 siri 改为具体主机名；本登记只用于官方文档和上游快照里都没有同值依据的条目
+    note: 需求补充（2026-09-29）：Apple AI 组照搬 Cursor 版 18 条规则（Cursor 版的 rules/apple-ai/APPLE_AI_18.list，“基线不得删除或改写”；逐条见对照明细副本 docs/evidence/cursor-对照明细.csv），关键词 siri 改为具体主机名；2026-10-07 用户放宽了“不增不减”，拿掉 ls.apple.com、apps.mzstatic.com、gateway.icloud.com 三条宽规则（待决事项第 8 项）；本登记只用于官方文档和上游快照里都没有同值依据的条目
   google-supported-domains:
     kind: official
     url: https://www.google.com/supported_domains

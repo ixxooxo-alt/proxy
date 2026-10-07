@@ -20,8 +20,6 @@ class LocalOverrides(unittest.TestCase):
         local = {
             "special_entries": {
                 "paypal_fixed": {"pinned_node_name": "美国 PayPal 专用 (01)"},
-                "netflix_entry": {"verified_node_regex": "^(日本 03|日本 05)$", "verified_region": "jp",
-                                  "verified_at": "2026-09-30"},
             },
             "extra_services": [{"id": "my_company", "group": "DIRECT", "title": "公司内网",
                                 "rules": [{"suffix": "corp.example.com", "ev": "my-note"}]}],
@@ -35,7 +33,7 @@ class LocalOverrides(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.dir)
 
-    def test_pinned_paypal_and_verified_netflix(self):
+    def test_pinned_paypal(self):
         conf = yaml.safe_load(emit_mihomo.build(self.m, self.p, "profile"))
         g = {x["name"]: x for x in conf["proxy-groups"]}
         rx = g["PayPal·美国固定"]["filter"]
@@ -45,14 +43,24 @@ class LocalOverrides(unittest.TestCase):
         for bad in (",", '"', "`", " "):
             self.assertNotIn(bad, rx, "固定节点的正则也要能原样写进 Loon / QX 的一行")
         self.assertEqual(g["PayPal·美国固定"]["empty-fallback"], "REJECT", "固定节点被删除时明确失败")
-        self.assertEqual(g["Netflix·解锁入口"]["type"], "fallback")
-        self.assertEqual(g["Netflix·解锁入口"]["filter"], "^(日本 03|日本 05)$")
         loon = emit_loon.build(self.m, self.p)
         self.assertIn(f'F-PAYPAL = NameRegex, FilterKey = "{rx}"', loon)
         self.assertIn("PayPal·美国固定 = select,F-PAYPAL", loon)
-        self.assertIn("Netflix·解锁入口 = fallback,F-NETFLIX", loon)
         qx = emit_qx.build(self.m, self.p)
-        self.assertIn("available=Netflix·解锁入口, server-tag-regex=^(日本 03|日本 05)$", qx)
+        self.assertIn("PayPal·美国固定", qx)
+        # 2026-10-07 起没有 Netflix·解锁入口了（待决事项第 3 项）：Netflix 按普通分组
+        self.assertNotIn("Netflix·解锁入口", loon + qx)
+        self.assertEqual(g["Netflix"]["proxies"][0], "国外默认")
+
+    def test_old_netflix_entry_in_local_yaml_is_explained(self):
+        """以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时
+        要明确报错、告诉用户删掉，不能悄悄忽略、也不能报一个看不懂的 KeyError。"""
+        path = os.path.join(self.dir, "source", "local.yaml")
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.safe_dump({"special_entries": {"netflix_entry": {"verified_node_regex": "^(日本 03)$"}}}, f, allow_unicode=True)
+        with self.assertRaises(Exception) as cm:
+            load(self.dir)
+        self.assertIn("Netflix·解锁入口”取消了", str(cm.exception))
 
     def test_extra_local_rules_route(self):
         conf = yaml.safe_load(emit_mihomo.build(self.m, self.p, "profile"))
@@ -74,7 +82,7 @@ class ReducedModes(unittest.TestCase):
             m = load(d)
             p = build_plan(m)
             conf = emulate.parse_loon(emit_loon.build(m, p))
-            self.assertEqual(len(conf["groups"]), 70)       # 82 个组去掉六个地区各两种模式（2026-10-06 加 Apple Push 之前是 81 → 69）
+            self.assertEqual(len(conf["groups"]), 69)       # 81 个组去掉六个地区各两种模式（2026-10-07 去掉 Netflix·解锁入口之前是 82 → 70）
             self.assertEqual(conf["groups"]["香港"]["members"], ["香港·手动优先", "香港·手动", "香港·自动"])
         finally:
             shutil.rmtree(d)

@@ -223,6 +223,8 @@ def build_rules_text(m: Model, plan: Plan) -> List[str]:
 
     section("2 局域网、内网与系统联网检测（固定直连）")
     emit(plan.lan)
+    section("2b 要真实地址的名单（fake-ip-filter 里的那几个）：固定直连，DNS 也交给国内（见 dns 段）")
+    emit(plan.real_ip_direct, by_service=False)
     section("3a 广告误杀例外：按没有广告规则时的业务目标放行")
     emit(plan.exceptions, by_service=False)
     section("3b 自有广告 / 跟踪拦截")
@@ -293,10 +295,20 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     foreign = list(dns["foreign_doh"])          # nameserver 和产品域名那一层共用这一个列表：写出来是 &dns-foreign / *dns-foreign
     domestic_layer = list(dns["domestic_doh"])  # 被更宽的代理规则覆盖的直连规则共用：&dns-domestic / *dns-domestic
     _DnsDumper.ANCHORS = {tuple(foreign): "dns-foreign", tuple(domestic_layer): "dns-domestic"}
-    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"]}
+    # 局域网后缀和不带点的名字（nas、printer）交给系统 DNS：公共 DNS 不可能认识它们（2026-10-07，待决事项第 14 项方案二：
+    # 以前不带点的名字被交给国内的公共 DNS，解析不了）。节点自己的服务器地址另由 proxy-server-nameserver-policy 管，写法相同。
+    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"], DOTLESS_NAME: ["system"]}
+    # 要真实地址的名单：路由上固定直连（2b），直连就用国内 DNS 的结果（2026-10-07，待决事项第 15 项）
+    for r in plan.real_ip_direct:
+        policy[("+." + r.value) if r.kind == "suffix" else r.value] = domestic_layer
     for pattern, to_foreign in product_dns_policy(m, plan):
+        if pattern in policy:
+            raise ValueError(f"nameserver-policy 里 {pattern} 写了两次：要真实地址的名单和产品规则重复了")
         policy[pattern] = foreign if to_foreign else domestic_layer
-    policy["geosite:cn,private"] = list(dns["domestic_doh"])
+    # 上游 private 集合（反向解析域、test / internal 这类保留后缀、tplinkwifi.net 这类路由器管理域名）也交给系统 DNS，
+    # 只有路由器才答得对（待决事项第 14 项方案二）；写在 geosite:cn 之前（geosite 条目按书写顺序）。
+    policy["geosite:private"] = ["system"]
+    policy["geosite:cn"] = list(dns["domestic_doh"])
     dns_block = {
         "dns": {
             "enable": True,
@@ -312,9 +324,9 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
             "proxy-server-nameserver-policy": node_server_dns_policy(p["lan"]["domain_suffix"]),
             "direct-nameserver": list(dns["domestic_doh"]),
             "nameserver": foreign,
-            # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字）；接着是走代理组的产品域名那一层
-            # （product_dns_policy）；geosite:cn,private 放在最后：geosite 条目按书写顺序匹配，相邻的普通域名写法合成一棵
-            # 域名树、越具体的越优先。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这份策略，
+            # 局域网后缀、不带点的名字交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字）；要真实地址的名单交给国内 DNS；
+            # 接着是走代理组的产品域名那一层（product_dns_policy）；最后是 geosite:private（系统 DNS）、geosite:cn（国内 DNS）：
+            # geosite 条目按书写顺序匹配，相邻的普通域名写法合成一棵域名树、越具体的越优先。direct-nameserver-follow-policy 让 DIRECT 连接的解析也走这份策略，
             # 否则 DIRECT 出站会直接用 direct-nameserver（公共 DoH）。与 sing-box / Loon / QX 的做法一致。
             # 这些管的是“访问的目标”；节点自己的服务器地址另由上面的 proxy-server-nameserver-policy 管。
             "nameserver-policy": policy,

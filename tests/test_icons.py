@@ -33,9 +33,10 @@ PUBLISHED = {
     "香港·手动优先": BASE + "%E9%A6%99%E6%B8%AF%C2%B7%E6%89%8B%E5%8A%A8%E4%BC%98%E5%85%88.png",
 }
 WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict")
-# Loon / Quantumult X / mihomo 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 2 个
-# + 地区入口 7 个 + 六个地区各 5 个模式组 30 个。增减策略组时要同时改这里
-GROUPS = 82
+# Loon / Quantumult X / mihomo 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 1 个
+# （PayPal·美国固定；Netflix·解锁入口 2026-10-07 取消，待决事项第 3 项）+ 地区入口 7 个 + 六个地区各 5 个模式组 30 个。
+# 增减策略组时要同时改这里
+GROUPS = 81
 
 
 def icons_in(client: str, source: str = None) -> dict:
@@ -131,8 +132,8 @@ class Icons(unittest.TestCase):
         self.assertFalse(set(ic["pending"]) & set(ic["available"]))
         self.assertLessEqual(set(ic["pending"]), used)
         self.assertLessEqual(used, set(ic["available"]) | set(ic["pending"]))
-        self.assertEqual(sorted(set(ic["available"]) - used), ["DIRECT", "REJECT", "无可用节点"],
-                         "icons.yaml 的说明里写着：图标仓库里多出来、没有用到的只有这三张")
+        self.assertEqual(sorted(set(ic["available"]) - used), ["DIRECT", "Netflix·解锁入口", "REJECT", "无可用节点"],
+                         "icons.yaml 的说明里写着：图标仓库里多出来、没有用到的只有这四张")
         self.assertEqual(len(ic["available"]), len(set(ic["available"])))
 
     def test_a_group_whose_icon_is_not_uploaded_yet_can_be_registered_as_pending(self):

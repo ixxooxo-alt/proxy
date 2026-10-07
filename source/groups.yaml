@@ -4,7 +4,8 @@
 #   default: 首次默认出口（放在成员第一位；用户手动改过后，客户端保存用户选择，更新配置不覆盖）
 #   options: standard  = [国外默认, 香港, 日本, 韩国, 台湾, 新加坡, 美国, 其他地区, DIRECT]（去掉与 default 重复的一项）
 #   options: 显式列表
-# 引用规则：业务组只能引用地区入口、国外默认、明确规定的专用入口（PayPal·美国固定、Netflix·解锁入口）、DIRECT / REJECT。
+# 引用规则：业务组只能引用地区入口、国外默认、明确规定的专用入口（PayPal·美国固定）、DIRECT / REJECT。
+# （以前还有 Netflix·解锁入口：2026-10-07 用户定了待决事项第 3 项，Netflix 按普通分组，这个入口取消了。）
 
 # 显示顺序即配置中的顺序
 groups:
@@ -26,7 +27,8 @@ groups:
 
   # ---------- 流媒体 ----------
   - {name: YouTube,     category: 流媒体, default: 国外默认, options: standard}
-  - {name: Netflix,     category: 流媒体, default: Netflix·解锁入口, options: standard}
+  - {name: Netflix,     category: 流媒体, default: 国外默认, options: standard,
+     note: 2026-10-07 起按普通分组（待决事项第 3 项）；节点解锁不了时在本组里换地区，或在地区组里换节点}
   - {name: Disney+,     category: 流媒体, default: 国外默认, options: standard}
   - {name: Max,         category: 流媒体, default: 国外默认, options: standard, note: 服务已于 2025 年改回 HBO Max，组名沿用需求中的 Max}
   - {name: Prime Video, category: 流媒体, default: 国外默认, options: standard}
@@ -38,8 +40,10 @@ groups:
   - {name: Spotify,     category: 流媒体, default: 国外默认, options: standard}
   - {name: TikTok,      category: 流媒体, default: 国外默认, options: standard}
   - {name: Twitch,      category: 流媒体, default: 国外默认, options: standard}
-  - {name: Bilibili 港澳台, category: 流媒体, default: 台湾, options: [香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区, DIRECT],
-     note: 提供香港手动备选}
+  # Bilibili 港澳台：需求原文默认台湾；2026-10-07 用户定了待决事项第 5 项（方案二），默认改成直连——这个组里的接口主机
+  # （api / app.bilibili.com）大陆 B 站也在用，默认走台湾会让平时刷大陆 B 站也绕台湾。要看港澳台内容时把它切到台湾。
+  - {name: Bilibili 港澳台, category: 流媒体, default: DIRECT, options: [台湾, 香港, 国外默认, 日本, 韩国, 新加坡, 美国, 其他地区],
+     note: 默认直连；看港澳台内容时切到台湾（另有香港等手动备选）}
   - {name: Bahamut,     category: 流媒体, default: 台湾, options: standard, note: 其他地区可用性按内容实测，不预设香港等效台湾}
   - {name: 其他流媒体,  category: 流媒体, default: 国外默认, options: standard, residual: true, note: 不含上面已独立的流媒体}
 
@@ -84,10 +88,3 @@ special_entries:
     # 此时被选节点删除后客户端会回到美国组第一个节点（同国，但不是固定节点）——见已知限制。
     pinned_node_name: ""
     region: us
-  netflix_entry:
-    name: Netflix·解锁入口
-    # 经实测可解锁的节点名称正则（同一国家）。留空表示尚无验证记录：
-    # 此时入口退化为地区选择，默认国外默认，并在配置注释中标明“未验证解锁”。
-    verified_node_regex: ""
-    verified_region: ""        # 例如 jp；只允许同国已验证节点之间故障转移
-    verified_at: ""            # 验证时间，写入产物注释

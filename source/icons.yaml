@@ -33,6 +33,7 @@ icons:
   # 图标仓库 256px/ 目录里现有的图（文件名去掉 .png）。公开配置里的每个策略组都必须能在这里找到自己的图，
   # 否则生成时报错——组改了名而图没跟上时，宁可报错也不要悄悄少一个图标。
   # DIRECT、REJECT、无可用节点 三张图标仓库里有，但它们不是策略组，哪个客户端都没有地方写，所以没有用到。
+  # Netflix·解锁入口 这张 2026-10-07 起也没有用到：那个入口取消了（Netflix 按普通分组，待决事项第 3 项）。
   # Apple Push 这一张不在图标仓库公布的地址清单（icon-urls.json，仍是 v1.0.0 时的 84 项）里，图标仓库是在 README 里单独给的链接。
   available: [
     "Abema", "Apple", "Apple AI", "Apple Music／TV", "Apple Push", "Bahamut", "Bilibili 港澳台", "Claude", "Copilot", "DIRECT", "DMM",

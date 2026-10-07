@@ -307,7 +307,8 @@ def check_own_lists(files: Dict[str, str]) -> List[str]:
         return [[x.strip() for x in ln.split(",")] for ln in files[rel].splitlines() if ln.strip() and not ln.startswith("#")]
 
     for rel, allowed, fields in ((strict_mod.LOON_CN_REL, {"DOMAIN", "DOMAIN-SUFFIX"}, 2),
-                                 (strict_mod.QX_CN_REL, {"HOST", "HOST-SUFFIX"}, 3)):
+                                 (strict_mod.QX_CN_REL, {"HOST", "HOST-SUFFIX"}, 3),
+                                 (strict_mod.QX_MAX_REL, {"HOST", "HOST-SUFFIX"}, 3)):
         if rel not in files:
             continue
         rules = rules_of(rel)

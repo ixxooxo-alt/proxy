@@ -12,7 +12,7 @@ import yaml
 from . import regions as region_rules
 from . import strict as strict_mod
 from .util import (BANNED_SHARED_SUFFIXES, GOOGLE_SHARED_ROOTS, Rule, cidr_covers, covers,
-                   rule_matches_host, valid_cidr, valid_domain, check_regex_line_safe)
+                   rule_matches_host, valid_cidr, valid_domain)
 
 SERVICE_FILES = ["ai.yaml", "streaming.yaml", "social.yaml", "misc.yaml", "bigtech.yaml"]
 STANDARD_OPTIONS = ["国外默认", "香港", "日本", "韩国", "台湾", "新加坡", "美国", "其他地区", "DIRECT"]
@@ -89,6 +89,9 @@ class Model:
     strict: dict = field(default_factory=dict)           # 严格版的设定（source/strict.yaml 的 strict 一节）
     cn_domains: Tuple[List[str], List[str]] = field(default_factory=lambda: ([], []))   # 国内域名清单：(后缀, 精确域名)
     cn_data_header: List[str] = field(default_factory=list)    # 清单数据文件头部讲来源与授权的几行
+    # Quantumult X 严格版的上游大清单副本（2026-10-07，待决事项第 19 项）：(后缀, 精确域名) 与文件头
+    max_domains: Tuple[List[str], List[str]] = field(default_factory=lambda: ([], []))
+    max_data_header: List[str] = field(default_factory=list)
     _node_rx: Optional[Tuple[Dict[str, str], Dict[str, str]]] = field(default=None, repr=False, compare=False)
 
     # 便捷访问
@@ -201,7 +204,7 @@ STRICT_KEYS = {"publish_base", "domestic_lists", "qx_fallback"}
 STRICT_LIST_KEYS = {"url", "own", "tag", "ev", "source"}
 # 严格版只给这两端生成；各端能引用的自有清单文件
 STRICT_CLIENTS = ("loon", "quantumultx")
-STRICT_OWN_CN = {"loon": strict_mod.LOON_CN_REL, "quantumultx": strict_mod.QX_CN_REL}
+STRICT_OWN_CN = {"loon": {strict_mod.LOON_CN_REL}, "quantumultx": {strict_mod.QX_CN_REL, strict_mod.QX_MAX_REL}}
 # 图标地址要原样写进 Loon / Quantumult X 的一行：不能有逗号、空格、引号、反引号这些会被当成分隔符的字符
 _ICON_BASE_RX = re.compile(r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]*/$")
 _ICON_EXT_RX = re.compile(r"^\.[A-Za-z0-9]{2,5}$")
@@ -284,8 +287,8 @@ def _check_strict(st: dict, evidence: dict) -> List[str]:
                 errors.append(f"strict.yaml {where}：url 必须是 https:// 地址，且不含逗号、空格、引号：{url!r}")
             if e.get("ev") not in evidence:
                 errors.append(f"strict.yaml {where} {url}：证据 {e.get('ev')!r} 未登记")
-        elif "own" in e and where in STRICT_OWN_CN and e["own"] != STRICT_OWN_CN[where]:
-            errors.append(f"strict.yaml {where}：own 只能是 {STRICT_OWN_CN[where]}")
+        elif "own" in e and where in STRICT_OWN_CN and e["own"] not in STRICT_OWN_CN[where]:
+            errors.append(f"strict.yaml {where}：own 只能是 {' / '.join(sorted(STRICT_OWN_CN[where]))}")
     tags = [(c, e.get("tag")) for c, e in entries if isinstance(e, dict)]
     for client in STRICT_CLIENTS:
         mine = [t for c, t in tags if c.startswith(client)]
@@ -318,6 +321,21 @@ def _check_cn_domains(cn: Tuple[List[str], List[str]]) -> List[str]:
     if "cn" not in sset:
         errors.append(f"{strict_mod.CN_DATA_REL}：没有整段 cn——严格版要靠它把没有单独列出的 .cn 域名交给国内直连")
     del every
+    return errors
+
+
+def _check_max_domains(mx: Tuple[List[str], List[str]]) -> List[str]:
+    """source/data/cn-domains-max.txt：上游大清单的副本，由 tools/update_cn_list.py --bm7 照录（与快照是否一致由那个工具核对）。"""
+    suffix, full = mx
+    errors: List[str] = []
+    rel = strict_mod.MAX_DATA_REL
+    if len(suffix) < 50000:
+        errors.append(f"{rel}：后缀只有 {len(suffix)} 条，不像上游那份十几万条的大清单")
+    bad = [d for d in list(suffix) + list(full) if not valid_domain(d)]
+    if bad:
+        errors.append(f"{rel}：有 {len(bad)} 条不是合法域名，例如 {bad[:5]}")
+    if len(set(suffix)) != len(suffix) or len(set(full)) != len(full):
+        errors.append(f"{rel}：有重复的条目")
     return errors
 
 
@@ -402,6 +420,11 @@ def load(root: str, include_local: bool = True) -> Model:
             for entry in s.get("rules", []) or []:
                 schema_errors += _unknown(f"local.yaml {s.get('id')} 规则 {entry}", entry, set(RULE_KINDS) | RULE_EXTRA_KEYS)
         for key, over in (local.get("special_entries") or {}).items():
+            if key not in special:
+                schema_errors.append(f"local.yaml 的 special_entries.{key} 不认识" + (
+                    "：Netflix 2026-10-07 起按普通分组，“Netflix·解锁入口”取消了（docs/06 第 3 项），请删掉这一段"
+                    if key == "netflix_entry" else ""))
+                continue
             special[key] = {**special[key], **over}
         for s in local.get("extra_services") or []:
             rules = []
@@ -449,13 +472,20 @@ def load(root: str, include_local: bool = True) -> Model:
         schema_errors += _check_cn_domains(cn_domains)
     except OSError as e:
         schema_errors.append(f"读不到国内域名清单 {strict_mod.CN_DATA_REL}（{e}）：用 tools/update_cn_list.py 生成")
+    max_domains, max_header = ([], []), []
+    try:
+        max_domains = strict_mod.load_cn_domains(root, strict_mod.MAX_DATA_REL)
+        max_header = strict_mod.data_header(root, strict_mod.MAX_DATA_REL)
+        schema_errors += _check_max_domains(max_domains)
+    except OSError as e:
+        schema_errors.append(f"读不到上游大清单的副本 {strict_mod.MAX_DATA_REL}（{e}）：用 tools/update_cn_list.py --bm7 生成")
     if schema_errors:
         raise SourceError("统一源校验失败：\n  - " + "\n  - ".join(schema_errors))
     has_local = include_local and os.path.exists(local_path)
     model = Model(root=root, project=project, groups=groups, special_entries=special,
                   evidence=evidence, services=services, adblock=adblock, region_spec=region_spec,
                   icons=icons, icons_strict=not has_local, strict=strict_conf,
-                  cn_domains=cn_domains, cn_data_header=cn_header)
+                  cn_domains=cn_domains, cn_data_header=cn_header, max_domains=max_domains, max_data_header=max_header)
     validate(model)
     return model
 
@@ -468,7 +498,7 @@ def validate(m: Model) -> None:
     errors: List[str] = []
     names = set(m.group_names)
     region_names = set(m.region_names)
-    special_names = {m.special_entries["paypal_fixed"]["name"], m.special_entries["netflix_entry"]["name"]}
+    special_names = {m.special_entries["paypal_fixed"]["name"]}
     referable = names | region_names | special_names | BUILTIN
 
     # 组成员只能引用地区入口、国外默认、专用入口、DIRECT/REJECT
@@ -484,17 +514,10 @@ def validate(m: Model) -> None:
     if len(names) != len(m.groups):
         errors.append("存在重名策略组")
 
-    # 专用入口：PayPal 固定入口所在地区必须存在；用户给的已验证节点正则要能写进 Loon / QX 的一行里
+    # 专用入口：PayPal 固定入口所在地区必须存在
     region_ids = {r["id"] for r in m.regions}
     if m.special_entries["paypal_fixed"].get("region") not in region_ids:
         errors.append(f"PayPal 固定入口的 region {m.special_entries['paypal_fixed'].get('region')!r} 不是已有地区")
-    rx = m.special_entries["netflix_entry"].get("verified_node_regex")
-    if rx:
-        try:
-            check_regex_line_safe(rx)
-            re.compile(rx)
-        except (ValueError, re.error) as e:
-            errors.append(f"Netflix 已验证节点正则无效：{e}")
 
     # 服务与规则
     seen: Dict[Tuple[str, str], Rule] = {}
@@ -649,8 +672,9 @@ class Plan:
     product: List[Rule]        # 第 4–5 阶段：产品专属 + 共享依赖 / 厂商规则（已排序）
     service_ip: List[Rule]     # 第 7 阶段：服务专属 IP（no-resolve，已排序）
     service_clients: Dict[str, Tuple[str, ...]] = field(default_factory=dict)   # 只生成到部分客户端的服务
-    # 严格版（Loon / Quantumult X）多出的一段：要真实地址的名单里，标准版没有固定直连规则的那些名字。
-    # 这些名字必须先在本机解析（解析发生在选出口之前），所以严格版把它们固定成直连，不让“国内 DNS 解析 + 代理出口”出现
+    # 要真实地址的名单里、局域网规则还没有管到的那些名字，四端（标准版、严格版）都固定直连。
+    # 这些名字必须先在本机由国内 DNS 解析（解析发生在选出口之前），固定直连以后不会出现“国内 DNS 解析 + 代理出口”。
+    # 以前只有 Loon / Quantumult X 的严格版这样做；2026-10-07 用户定了待决事项第 15 项（方案二），四端的标准版也这样做
     real_ip_direct: List[Rule] = field(default_factory=list)
 
     def emitted_to(self, rule: Rule, family: str) -> bool:
@@ -667,7 +691,7 @@ class Plan:
     def intended_target(self, host: str, family: Optional[str] = None) -> Optional[str]:
         """按语义阶段求一个主机名的预期目标（不含远程集合；远程集合在测试里用样本模拟）。
         family 给出时只看该客户端族实际写出的产品规则（例如国内常用网站只写进 mihomo / sing-box）。"""
-        for stage in (self.lan, self.exceptions, self.ads_local):
+        for stage in (self.lan, self.real_ip_direct, self.exceptions, self.ads_local):
             for r in stage:
                 if rule_matches_host(r.kind, r.value, host):
                     return r.target
@@ -698,7 +722,7 @@ def build_plan(m: Model) -> Plan:
         value = str(x[kind]).lower()
         if (kind, value) not in lan_keys:
             real_ip_direct.append(Rule(kind, value, "DIRECT", "lan", "real_ip", "maintainer",
-                                       "要真实地址的名单：解析在选出口之前，严格版固定直连", i))
+                                       "要真实地址的名单：解析在选出口之前，固定直连", i))
 
     product_all = [r for s in m.services if s.group != "DIRECT" for r in s.rules if r.stage == "product"]
     service_ip = [r for s in m.services if s.group != "DIRECT" for r in s.rules if r.stage == "service_ip"]

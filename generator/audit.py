@@ -185,8 +185,8 @@ def _strict_section(m: Model, plan: Plan) -> list:
     L.append(f"**域名兜底**（只有 Quantumult X 严格版）：`dist/{fb['own']}`，只有一条规则 `HOST-KEYWORD,{strict_mod.FALLBACK_KEYWORD},{strict_mod.QX_INLINE_PROXY}`，"
              "在配置里排在全部远程规则的最后，由 `force-policy` 交给“国外默认”。写法出自官方 sample.conf。")
     L.append("")
-    L.append("**要真实地址的名单固定直连**（两端严格版的本地规则；名单在 `source/project.yaml` 的 `dns.real_ip`，"
-             "其中局域网后缀和系统联网检测本来就固定直连，下面是其余的）：")
+    L.append("**要真实地址的名单固定直连**（四个客户端的标准版和严格版都有，2026-10-07 起；以前只有两端的严格版。"
+             "名单在 `source/project.yaml` 的 `dns.real_ip`，其中局域网后缀和系统联网检测本来就固定直连，下面是其余的）：")
     L.append("")
     for r in plan.real_ip_direct:
         L.append(f"- `{r.value}`（{KIND_ZH[r.kind]}）")

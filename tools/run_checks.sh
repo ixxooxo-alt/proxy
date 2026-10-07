@@ -9,7 +9,7 @@
 #   MIHOMO_SRC / SINGBOX_SRC     上游源码检出目录（tools/verify_with_upstream_source.py）
 #   DLC_SRC / BM7_SRC            规则上游快照检出目录，必须是 source/evidence.yaml 登记的提交（tools/check_upstream_evidence.py）。
 #                                给了 DLC_SRC 时另外核对严格版的国内域名清单（source/data/cn-domains.txt）确实是按这个快照生成的、
-#                                没有手改过（tools/update_cn_list.py --check）
+#                                没有手改过（tools/update_cn_list.py --check；给了 BM7_SRC 时连同上游大清单的副本）
 #   ICON_REPO                    图标仓库（source/icons.yaml 里登记的那个）的检出目录：核对配置里写的每个图标在仓库里都有（tools/check_icons.py）
 #   SRS_DIR                      sing-box 远程规则集的 .srs 文件所在目录。与 MIHOMO_BIN / SINGBOX_BIN / GEODATA_DIR / BM7_SRC
 #                                都给了时，用官方内核和这些真实数据核对路由与 DNS 去向（tools/check_real_routes.py）；
@@ -101,7 +101,10 @@ if [ -n "${DLC_SRC:-}" ] && [ -n "${BM7_SRC:-}" ]; then
 fi
 
 if [ -n "${DLC_SRC:-}" ]; then
-  run_step "严格版国内域名清单核对" docs/evidence/cn-list-check.log python3 tools/update_cn_list.py --dlc "$DLC_SRC" --check
+  # 给了 BM7_SRC 时一并核对 Quantumult X 严格版用的上游大清单副本（2026-10-07 起）
+  args=(--dlc "$DLC_SRC")
+  [ -n "${BM7_SRC:-}" ] && args+=(--bm7 "$BM7_SRC")
+  run_step "严格版国内域名清单核对" docs/evidence/cn-list-check.log python3 tools/update_cn_list.py "${args[@]}" --check
 fi
 
 echo

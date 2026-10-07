@@ -111,6 +111,19 @@ services:
       - {suffix: windowsupdate.com, ev: maintainer, note: Windows 更新}
       - {suffix: delivery.mp.microsoft.com, ev: maintainer, note: Windows / 商店分发，比 microsoft.com 更具体，先匹配}
 
+  # ---------- 友盟+（统计、推送、一键登录等 SDK 的服务方）：直连 ----------
+  # 2026-10-07 用户定了待决事项第 7 项（方案二）：友盟只拦上游标出的统计 / 广告子域（adblock.yaml 的 local_tracking），
+  # 其余主机直连。四端都写：Loon / Quantumult X 订阅的 blackmatrix7 AdvertisingLite 里有关键词规则 umeng（名字里带 umeng
+  # 就拦），那两端本地规则先于远程规则，要靠这两条本地规则把上游没有标的友盟主机挡在关键词规则之前；mihomo / sing-box
+  # 上它们本来也会被 GEOSITE,cn 交给国内直连，写进去结果相同。
+  - id: umeng
+    group: 国内直连
+    title: 友盟+（推送、一键登录等；统计 / 广告子域另行拦截）
+    upstream: {dlc: [umeng]}
+    rules:
+      - {suffix: umeng.com, ev: dlc}
+      - {suffix: umengcloud.com, ev: dlc}
+
   # ---------- 国内常用网站：从 Cursor 版迁入的 72 条国内域名作补充（bilibili.com、b23.tv 已在哔哩哔哩通用里，不重复写） ----------
   # 全部在 domain-list-community 快照展开后的 geosite:cn 里同值出现。
   # 只生成到 mihomo / sing-box：这两端广告拦截排在这些规则之前，写进去没有副作用（本来也会被 GEOSITE,cn 命中）。

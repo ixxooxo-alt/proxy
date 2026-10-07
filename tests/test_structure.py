@@ -6,6 +6,8 @@ import unittest
 from urllib.parse import urlparse
 
 from helpers import CLIENT_FILES, LOON_CLIENTS, QX_CLIENTS, ROOT, build, family, load_yaml, model_and_plan, outputs, parsed, text
+from generator import strict as strict_mod
+from generator.util import valid_domain
 
 CASES = load_yaml("cases.yaml")
 REGIONS = ["香港", "日本", "韩国", "台湾", "新加坡", "美国"]
@@ -191,8 +193,18 @@ class Structure(unittest.TestCase):
                               f"{rel} 出现未登记的外部地址 {u}")
                 if host == "raw.githubusercontent.com":
                     self.assertTrue(urlparse(u).path.startswith(allowed_repos), f"{rel} 引用了没有登记的仓库 {u}")
+            scan = t
+            if rel in strict_mod.OWN_FILES:
+                # 自有规则文件：每行规则只有“类型,域名[,策略]”。域名本身可能带这些字样（上游大清单里有 passwordkeyboard.com），
+                # 所以规则行改为核对写法（第二段必须是合法域名，域名兜底那一条是“.”），只扫注释行
+                for ln in t.splitlines():
+                    if ln and not ln.startswith("#"):
+                        parts = ln.split(",")
+                        self.assertIn(len(parts), (2, 3), f"{rel}：{ln}")
+                        self.assertTrue(valid_domain(parts[1]) or parts[1] == strict_mod.FALLBACK_KEYWORD, f"{rel}：{ln}")
+                scan = "\n".join(ln for ln in t.splitlines() if ln.startswith("#"))
             for bad in ("password", "uuid", "ca-p12", "ca-passphrase", "token="):
-                self.assertNotIn(bad, t.lower(), f"{rel} 含敏感字段 {bad}")
+                self.assertNotIn(bad, scan.lower(), f"{rel} 含敏感字段 {bad}")
         for client in CLIENT_FILES:
             if client.startswith(("mihomo", "loon", "quantumultx")):
                 self.assertIn("REPLACE-ME.invalid", text(client))
@@ -281,7 +293,9 @@ class Structure(unittest.TestCase):
             c = parsed(client)
             self.assertIn("GEOSITE,cn,国内直连", c["rules"], client)
             policy = [k for k in c["dns"]["nameserver-policy"] if k.startswith("geosite:")]
-            self.assertEqual(policy, ["geosite:cn,private"], client)
+            # 2026-10-07 起 private 单独一条交给系统 DNS（待决事项第 14 项方案二），国内 DNS 那一条只剩 cn
+            self.assertEqual(policy, ["geosite:private", "geosite:cn"], client)
+            self.assertEqual(c["dns"]["nameserver-policy"]["geosite:private"], ["system"], client)
         self.assertEqual(sorted(parsed("mihomo-core")["geox-url"]), ["asn", "geoip", "geosite", "mmdb"])
 
     def test_line_formats(self):

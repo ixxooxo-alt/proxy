@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异一两分钟（共 104 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异两三分钟（共 115 个，可以分两批同时跑）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -115,7 +115,8 @@ cases = [
     ("M10 byteoversea.com 放回 TikTok", [("source/services/streaming.yaml", lambda s: s.replace("      - {suffix: tiktok.com,", "      - {suffix: byteoversea.com, ev: dlc}\n      - {suffix: tiktok.com,", 1))], "byteoversea"),
     # ---- 2026-09-30 审核修复（Astra r5）----
     ("M11 mihomo 去掉局域网后缀的系统 DNS（F04）", [("generator/emit_mihomo.py", lambda s: s.replace(
-        '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"]}\n', "    policy = {}\n", 1))], "nameserver"),
+        '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"], DOTLESS_NAME: ["system"]}\n',
+        '    policy = {DOTLESS_NAME: ["system"]}\n', 1))], "nameserver"),
     ("M12 graph.instagram.com 放回自有拦截（F05）", [("source/adblock.yaml", lambda s: re.sub(
         r"  - \{suffix: graph\.instagram\.com, ev: meta-ig-api,[^\n]*\n", "", s, count=1).replace(
         "local_tracking:\n", "local_tracking:\n  - {suffix: graph.instagram.com, ev: dlc, note: x}\n", 1))], "graph.instagram.com"),
@@ -308,10 +309,10 @@ cases = [
         "tag={fb['tag']}, force-policy=国外默认, update-interval=86400", "tag={fb['tag']}, force-policy=国内直连, update-interval=86400", 1))], "国外默认"),
     ("M83 域名兜底文件里的关键词不是“.”（只接住含 com 的域名）", [("generator/strict.py", lambda s: s.replace(
         'FALLBACK_KEYWORD = "."', 'FALLBACK_KEYWORD = "com"', 1))], "HOST-KEYWORD"),
-    ("M84 Loon 严格版：“要真实地址的名单”不固定直连（time.apple.com 又跟着 Apple 组）", [("generator/emit_loon.py", lambda s: s.replace(
-        "        emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
-    ("M85 Quantumult X 严格版：“要真实地址的名单”不固定直连", [("generator/emit_qx.py", lambda s: s.replace(
-        "        emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
+    ("M84 Loon：“要真实地址的名单”不固定直连（time.apple.com 又跟着 Apple 组；2026-10-07 起标准版、严格版都有这一段）", [("generator/emit_loon.py", lambda s: s.replace(
+        "    emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
+    ("M85 Quantumult X：“要真实地址的名单”不固定直连（同上）", [("generator/emit_qx.py", lambda s: s.replace(
+        "    emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "DIRECT"),
     ("M86 自有清单不去掉已被本地规则覆盖的条目（qwen.ai 又出现在国内清单里）", [("generator/strict.py", lambda s: s.replace(
         "    kept_s = [x for x in suffix if not covered(x, False)]\n", "    kept_s = list(suffix)\n", 1))], "qwen.ai"),
     ("M87 标准版被牵连：Loon 标准版的 GEOIP,CN 也带上了 no-resolve（标准版不再靠解析认国内网站）", [("generator/emit_loon.py", lambda s: s.replace(
@@ -328,8 +329,10 @@ cases = [
         '    rules.append({"action": "resolve", "server": "dns-foreign"})', '    rules.append({"action": "resolve", "server": "dns-cn"})', 1))], "重新运行"),
     ("M93 “境外 DNS 不应答”那一遍不再包含没被接住的域名（那一遍等于什么也没证明）", [("tools/real_data.py", lambda s: s.replace(
         'SILENT_KINDS = ("proxied", "unlisted")', 'SILENT_KINDS = ("proxied",)', 1))], "重新运行"),
-    ("M94 逐条扫描：把 sing-box 那一类已知的不一致从清单里拿掉（扫出来的主机没有归属）", [("tests/cases.yaml", lambda s: s.replace(
-        "    - {kind: real_ip, why:", "    - {kind: something_else, why:", 1))], "已知类别"),
+    # M94 r12–r14 是“把 sing-box 那一类已知的不一致从清单里拿掉”。2026-10-07 那一类处理掉了（待决事项 15、14），清单是空的，
+    # 改成反方向：登记一类已经没有主机的不一致（处理掉的类别忘了从登记里删）
+    ("M94 逐条扫描：登记了一类已经没有主机的不一致（处理掉的类别没从清单里删）", [("tests/cases.yaml", lambda s: s.replace(
+        "  singbox: []\n", "  singbox:\n    - {kind: real_ip, why: \"已经处理掉的一类，待决事项 15\"}\n", 1))], "已知类别"),
     ("M95 去掉 Apple Push 的规则（推送又跟着 Apple 组）", [("source/services/bigtech.yaml", drop_service("apple_push"))], "Apple Push"),
     ("M96 Apple Push 的默认出口改成国外默认（需求是默认直连，需要时手动切）", [("source/groups.yaml", lambda s: s.replace(
         "  - {name: Apple Push,     category: 大厂, default: DIRECT, options: [国外默认, 香港,",
@@ -352,7 +355,9 @@ cases = [
          "                    i += data[i] + 1\n                i += 1\n", 1))], "CNAME + A 的正常应答要读出地址和记录数"),
     ("M102 mihomo：nameserver-policy 里又没有“走代理组的产品域名 → 境外 DNS”那一层（r13 的样子：UDP、WireGuard 时这类名字交给国内 DNS）",
      [("generator/emit_mihomo.py", lambda s: s.replace(
-         "    for pattern, to_foreign in product_dns_policy(m, plan):\n        policy[pattern] = foreign if to_foreign else domestic_layer\n",
+         "    for pattern, to_foreign in product_dns_policy(m, plan):\n        if pattern in policy:\n"
+         "            raise ValueError(f\"nameserver-policy 里 {pattern} 写了两次：要真实地址的名单和产品规则重复了\")\n"
+         "        policy[pattern] = foreign if to_foreign else domestic_layer\n",
          "", 1))], "默认走代理"),
     ("M103 mihomo：产品域名那一层把默认直连的组（Apple 那几个）也交给境外 DNS（直连时会拿境外 DNS 的结果）",
      [("generator/emit_mihomo.py", lambda s: s.replace(
@@ -363,6 +368,36 @@ cases = [
          "    def _search(self, node: dict, parts: List[str]):\n        if not parts:\n",
          '    def _search(self, node: dict, parts: List[str]):\n        if parts and node.get("") is not None:\n'
          '            return node[""].get(None)\n        if not parts:\n', 1))], "b.a.com"),
+    # ---- 2026-10-07：用户把待决事项一次定下来以后（第 5、7、8、14、15、19 项；docs/06）----
+    ("M105 sing-box：“要真实地址的名单”不固定直连（time.windows.com 又跟着 Microsoft 组；待决事项 15）",
+     [("generator/emit_singbox.py", lambda s: s.replace(
+         "    rules += _chunk(plan.real_ip_direct, target_map)    # 要真实地址的名单：DNS 规则交给 dns-cn，连接也固定直连（待决事项第 15 项）\n",
+         "", 1))], "time.windows.com"),
+    ("M106 mihomo：“要真实地址的名单”不固定直连（待决事项 15）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        "    emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "time.windows.com"),
+    ("M107 mihomo：要真实地址的名单路由直连了，DNS 却没写明交给国内（又落到默认的境外 DNS；待决事项 15）",
+     [("generator/emit_mihomo.py", lambda s: s.replace(
+         "    for r in plan.real_ip_direct:\n        policy[(\"+.\" + r.value) if r.kind == \"suffix\" else r.value] = domestic_layer\n",
+         "", 1))], "localhost.ptlogin2.qq.com"),
+    ("M108 mihomo：不带点的名字又交给国内的公共 DNS（nameserver-policy 里没有 *；待决事项 14）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"], DOTLESS_NAME: ["system"]}\n',
+        '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"]}\n', 1))], "'*'"),
+    ("M109 mihomo：private 集合又和 cn 合在一起交给国内 DNS（待决事项 14）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '    policy["geosite:private"] = ["system"]\n    policy["geosite:cn"] = list(dns["domestic_doh"])\n',
+        '    policy["geosite:cn,private"] = list(dns["domestic_doh"])\n', 1))], "geosite:private"),
+    ("M110 Quantumult X 严格版没有订阅上游大清单的副本（待决事项 19）", [("source/strict.yaml", lambda s: s.replace(
+        "      - {own: quantumultx/rules/cn-domains-max.list, tag: 国内域名-ChinaMax}\n", "", 1))], "cn-domains-max"),
+    ("M111 上游大清单副本的数据文件被手改（少了一条，文件头的条数对不上）", [("source/data/cn-domains-max.txt", lambda s: s.replace(
+        "\n.0.zone\n", "\n", 1))], "111008"),
+    ("M112 去掉友盟的直连规则（Loon / QX 上友盟又被上游的关键词 umeng 整个拦掉；待决事项 7）",
+     [("source/services/misc.yaml", drop_service("umeng"))], "msg.umeng.com"),
+    ("M113 友盟上游标了 @ads 的子域漏了一条（aaid.umeng.com 不再被拦；待决事项 7）", [("source/adblock.yaml", lambda s: s.replace(
+        "  - {suffix: aaid.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}\n", "", 1))], "aaid.umeng.com"),
+    ("M114 Bilibili 港澳台的默认出口又改回台湾（待决事项 5）", [("source/groups.yaml", lambda s: s.replace(
+        "default: DIRECT, options: [台湾, 香港, 国外默认,", "default: 台湾, options: [DIRECT, 香港, 国外默认,", 1))], "Bilibili 港澳台"),
+    ("M115 Apple AI 又整段收了 ls.apple.com（Apple 地图 / 定位又走美国；待决事项 8）", [("source/services/bigtech.yaml", lambda s: s.replace(
+        "      - {suffix: mask-h2.icloud.com,", "      - {suffix: ls.apple.com, ev: apple-ai-req, note: x}\n      - {suffix: mask-h2.icloud.com,", 1))],
+     "gsp-ssl.ls.apple.com"),
 ]
 
 

@@ -1,14 +1,10 @@
 # 用户本地覆盖示例：复制为 source/local.yaml 后生效（local.yaml 不应分享或提交）。
 # 这里的内容与统一源默认值分离，更新统一源时不会被覆盖；生成器同样会校验它。
 
-# 固定节点 / 已验证解锁节点（与你的订阅相关，属于个人数据）
+# PayPal 的固定节点（与你的订阅相关，属于个人数据）
 special_entries:
   paypal_fixed:
     pinned_node_name: ""            # 例：填入订阅里某个美国节点的完整名称
-  netflix_entry:
-    verified_node_regex: ""         # 例：'^(日本 03|日本 05)$'，只填实测解锁的同国节点
-    verified_region: ""             # 例：jp
-    verified_at: ""                 # 例：2026-09-30
 
 # 节点名称分地区的本地补充（某家机场特有的写法；只进 dist/private/，不进公开产物）
 # 先运行 python3 tools/check_node_names.py 节点名.txt，看哪些节点没认出来或分错了，再在这里补。

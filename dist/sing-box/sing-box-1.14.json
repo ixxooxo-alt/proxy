@@ -273,7 +273,6 @@
       "type": "selector",
       "tag": "Netflix",
       "outbounds": [
-        "Netflix·解锁入口",
         "国外默认",
         "香港",
         "日本",
@@ -284,7 +283,7 @@
         "其他地区",
         "DIRECT"
       ],
-      "default": "Netflix·解锁入口"
+      "default": "国外默认"
     },
     {
       "type": "selector",
@@ -466,6 +465,7 @@
       "type": "selector",
       "tag": "Bilibili 港澳台",
       "outbounds": [
+        "DIRECT",
         "台湾",
         "香港",
         "国外默认",
@@ -473,10 +473,9 @@
         "韩国",
         "新加坡",
         "美国",
-        "其他地区",
-        "DIRECT"
+        "其他地区"
       ],
-      "default": "台湾"
+      "default": "DIRECT"
     },
     {
       "type": "selector",
@@ -800,21 +799,6 @@
     },
     {
       "type": "selector",
-      "tag": "Netflix·解锁入口",
-      "outbounds": [
-        "国外默认",
-        "日本",
-        "香港",
-        "台湾",
-        "新加坡",
-        "美国",
-        "韩国",
-        "其他地区"
-      ],
-      "default": "国外默认"
-    },
-    {
-      "type": "selector",
       "tag": "香港",
       "outbounds": [
         "香港·自动",
@@ -1059,6 +1043,21 @@
         "outbound": "DIRECT"
       },
       {
+        "domain": [
+          "localhost.ptlogin2.qq.com",
+          "time.apple.com",
+          "time.windows.com",
+          "id6.me"
+        ],
+        "domain_suffix": [
+          "pool.ntp.org",
+          "cmpassport.com",
+          "jegotrip.com.cn",
+          "icitymobile.mobi"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
         "domain_suffix": [
           "ct.sendgrid.net",
           "app.link",
@@ -1119,7 +1118,6 @@
           "adsrvr.org",
           "adtechus.com",
           "advertising.com",
-          "alimama.com",
           "amazon-adsystem.com",
           "casalemedia.com",
           "chartboost.com",
@@ -1149,8 +1147,6 @@
           "tanx.com",
           "tapjoy.com",
           "teads.tv",
-          "umeng.com",
-          "umengcloud.com",
           "vungle.com",
           "pixel.facebook.com",
           "analytics.facebook.com",
@@ -1159,7 +1155,35 @@
           "graph.whatsapp.net",
           "analytics-alv.google.com",
           "browser.events.data.msn.com",
-          "analytics.tiktok.com"
+          "analytics.tiktok.com",
+          "aaid.umeng.com",
+          "alog.umeng.com",
+          "alogs.umeng.com",
+          "alogus.umeng.com",
+          "ar.umeng.com",
+          "aspect-upush.umeng.com",
+          "audid.umeng.com",
+          "ccs.umeng.com",
+          "cnlogs.umeng.com",
+          "new-aaid.umeng.com",
+          "oc.umeng.com",
+          "plbslog.umeng.com",
+          "resolve.umeng.com",
+          "ulogs.umeng.com",
+          "utoken.umeng.com",
+          "alog.umengcloud.com",
+          "cnlogs.umengcloud.com",
+          "ulogs.umengcloud.com",
+          "acookie.alimama.com",
+          "afpeng.alimama.com",
+          "afpssp.alimama.com",
+          "afptrack.alimama.com",
+          "banner.alimama.com",
+          "c.alimama.com",
+          "cpc.click.alimama.com",
+          "p.alimama.com",
+          "static.alimama.com",
+          "t.alimama.com"
         ],
         "domain": [
           "adstudio-assets.scdn.co",
@@ -1169,7 +1193,8 @@
           "bloodhound.spotify.com",
           "copilot-telemetry-service.githubusercontent.com",
           "bat.bing.com",
-          "px.ads.linkedin.com"
+          "px.ads.linkedin.com",
+          "alimama.com"
         ],
         "action": "reject"
       },
@@ -1858,6 +1883,8 @@
         "domain_suffix": [
           "windowsupdate.com",
           "delivery.mp.microsoft.com",
+          "umeng.com",
+          "umengcloud.com",
           "10010.com",
           "12306.cn",
           "126.com",
@@ -1944,11 +1971,8 @@
           "apple-relay.cloudflare.com",
           "apple-relay.fastly-edge.com",
           "apple-relay.mask.apple-dns.net",
-          "apps.mzstatic.com",
           "cp4.cloudflare.com",
-          "gateway.icloud.com",
           "gspe1-ssl.ls.apple.com",
-          "ls.apple.com",
           "mask-h2.icloud.com",
           "mask.icloud.com",
           "smoot.apple.com",
@@ -2703,11 +2727,8 @@
               "apple-relay.cloudflare.com",
               "apple-relay.fastly-edge.com",
               "apple-relay.mask.apple-dns.net",
-              "apps.mzstatic.com",
               "cp4.cloudflare.com",
-              "gateway.icloud.com",
               "gspe1-ssl.ls.apple.com",
-              "ls.apple.com",
               "mask-h2.icloud.com",
               "mask.icloud.com",
               "smoot.apple.com",

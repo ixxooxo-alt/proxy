@@ -3,9 +3,13 @@
 
 services:
   # ---------- Apple AI（需求补充 2026-09-29）----------
-  # 照搬 Cursor 版 18 条（对照报告“Apple AI”一节，副本在 docs/evidence/cursor-对照报告.md），匹配类型不改；
-  # 唯一改动是关键词 siri 换成具体主机名（见最后三条）。
-  # 本服务写在 apple 之前：生成器保持服务顺序，并让更具体的规则先于更宽的规则，所以四端产物里这 20 条全部写在
+  # 来自 Cursor 版 18 条（对照报告“Apple AI”一节，副本在 docs/evidence/cursor-对照报告.md），匹配类型不改；
+  # 改动两处：关键词 siri 换成具体主机名（见最后三条）；2026-10-07 用户定了待决事项第 8 项（方案二），放宽需求里的
+  # “不增不减”，拿掉三条宽规则 ls.apple.com、apps.mzstatic.com、gateway.icloud.com——它们分别管 Apple 地图 / 定位、
+  # App Store 图标与截图、CloudKit 内容，跟着本组走美国会让这些在国内变慢。上游 domain-list-community 的 apple-intelligence
+  # 列表在 ls.apple.com 下只列了 gspe1-ssl.ls.apple.com（下面单独一条，保留）；另外两条没有找到 Apple 智能用到它们的依据，
+  # 整条拿掉，回到 Apple 组（默认直连）。
+  # 本服务写在 apple 之前：生成器保持服务顺序，并让更具体的规则先于更宽的规则，所以四端产物里这 17 条全部写在
   # Apple 组第一条（apple.com）之前。tests/test_routing.py::test_apple_ai_before_apple 同时检查书写位置和逐条命中。
   - id: apple_ai
     group: Apple AI
@@ -21,11 +25,8 @@ services:
       - {suffix: apple-relay.cloudflare.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
       - {suffix: apple-relay.fastly-edge.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
       - {suffix: apple-relay.mask.apple-dns.net, ev: apple-ai-req, note: 上游 dlc apple-intelligence 只有同名精确主机}
-      - {suffix: apps.mzstatic.com, ev: apple-ai-req, note: App Store 图标与截图等资源，会随本组走所选地区}
       - {suffix: cp4.cloudflare.com, ev: apple-ent-net, note: Private Cloud Compute 中继}
-      - {suffix: gateway.icloud.com, ev: apple-ent-net, note: 官方写的用途是 CloudKit 内容（含 XProtect 更新、语音控制资源），不专属 AI；按基线保留}
       - {suffix: gspe1-ssl.ls.apple.com, ev: apple-ai-req, note: 上游 dlc apple-intelligence 有同名精确主机，注明影响 eSIM 地区判断、中国版 Apple 地图等}
-      - {suffix: ls.apple.com, ev: apple-ai-req, note: Apple 地图与定位服务的全部子域，会随本组走所选地区}
       - {suffix: mask-h2.icloud.com, ev: apple-ent-net, note: iCloud 专用代理}
       - {suffix: mask.icloud.com, ev: apple-ent-net, note: iCloud 专用代理}
       - {suffix: smoot.apple.com, ev: apple-ent-net, note: 搜索服务（Siri、Spotlight、查询、Safari 等），官方写作 *.smoot.apple.com}
@@ -36,8 +37,9 @@ services:
     notes: >
       关键词 siri 原本还能覆盖“名字里带 siri、但不在 siri.apple.com 之下”的 Apple 主机。两个上游快照和 Apple 官方文档里
       目前没有这样的主机；以后如果出现，只能靠关键词或新增具体主机名覆盖，届时单独补。
-      ls.apple.com、apps.mzstatic.com、gateway.icloud.com 不只服务 Apple 智能：Apple 地图 / 定位、App Store 资源、
-      CloudKit 内容也会跟着本组走美国等所选地区。
+      2026-10-07 以前还有 ls.apple.com、apps.mzstatic.com、gateway.icloud.com 三条宽规则（Apple 地图 / 定位、App Store 资源、
+      CloudKit 内容也跟着本组走美国），按用户的决定拿掉了（待决事项第 8 项）。gspe1-ssl.ls.apple.com 仍归本组：上游列表注明
+      它还影响国内设备的 eSIM 地区判断、中国版 Apple 地图等。
 
   - id: apple_media
     group: Apple Music/TV

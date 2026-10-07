@@ -42,11 +42,11 @@ def own_rules(rel):
 
 
 class StrictOutputs(unittest.TestCase):
-    def test_twelve_public_outputs(self):
+    def test_thirteen_public_outputs(self):
         files = outputs()
         want = set(CLIENT_FILES.values()) | set(strict_mod.OWN_FILES) | {"manifest.json"}
         self.assertEqual(set(files), want)
-        self.assertEqual(len(files), 12)
+        self.assertEqual(len(files), 13)          # 2026-10-07 多了 Quantumult X 严格版的上游大清单副本（待决事项第 19 项）
 
     def test_standard_configs_do_not_use_any_strict_part(self):
         """标准版不引用自有远程规则文件、不订阅国内域名集合；Loon 标准版的 GEOIP,CN 仍然会解析（没有 no-resolve）。"""
@@ -77,8 +77,8 @@ class StrictOutputs(unittest.TestCase):
             strict_rules = [norm(x) for x in b[rule_sec[0]]]
             it = iter(strict_rules)
             self.assertTrue(all(x in it for x in std_rules), f"{strict} 的本地规则少了标准版里的某一条，或者顺序变了")
-            added = len(strict_rules) - len(std_rules)
-            self.assertEqual(added, len(model_and_plan()[1].real_ip_direct), f"{strict} 多出来的本地规则应该只有“要真实地址的名单”那几条")
+            # 2026-10-07 起“要真实地址的名单”的固定直连标准版也有（待决事项第 15 项方案二），本地规则两份一样多
+            self.assertEqual(len(strict_rules), len(std_rules), f"{strict} 的本地规则应该和标准版一样多（只有 Loon 的 IP 规则多了 no-resolve）")
 
     def test_manifest_records_the_strict_outputs(self):
         import json
@@ -91,6 +91,7 @@ class StrictOutputs(unittest.TestCase):
         self.assertEqual(man["rule_counts"]["strict_cn_domains"],
                          {"loon": len(own_rules(strict_mod.LOON_CN_REL)), "quantumultx": len(own_rules(strict_mod.QX_CN_REL))},
                          "manifest 里记的是两份自有清单各自实际写出的条数")
+        self.assertEqual(man["rule_counts"]["strict_qx_max_domains"], len(own_rules(strict_mod.QX_MAX_REL)))
 
 
 class LoonStrict(unittest.TestCase):
@@ -140,8 +141,10 @@ class QuantumultXStrict(unittest.TestCase):
         m, _ = model_and_plan()
         remote = self.conf["remote"]
         ads = [x["url"] for x in m.adblock["remote_lists"]["quantumultx"]]
-        self.assertEqual([r["url"] for r in remote], ads + [own_url(strict_mod.QX_CN_REL), own_url(strict_mod.QX_FALLBACK_REL)])
-        self.assertEqual([r["policy"] for r in remote], ["广告拦截"] * len(ads) + ["国内直连", "国外默认"])
+        # 广告集合 → 上游大清单的副本（2026-10-07 起，和 Loon 严格版订阅的同一份数据）→ 自有清单 → 域名兜底
+        self.assertEqual([r["url"] for r in remote],
+                         ads + [own_url(strict_mod.QX_MAX_REL), own_url(strict_mod.QX_CN_REL), own_url(strict_mod.QX_FALLBACK_REL)])
+        self.assertEqual([r["policy"] for r in remote], ["广告拦截"] * len(ads) + ["国内直连", "国内直连", "国外默认"])
         self.assertTrue(all(r["enabled"].strip() == "true" for r in remote))
         for line in sections("quantumultx-strict")["filter_remote"]:
             self.assertNotIn("inserted-resource", line)
@@ -205,8 +208,9 @@ class StrictBehaviour(unittest.TestCase):
                 self.assertEqual(route(strict, emulate.Conn(ip=ip), fx), want, f"{strict} {ip}")
 
     def test_real_ip_names_route_direct(self):
+        """要真实地址的名单：严格版一直固定直连；2026-10-07 起标准版也是（待决事项第 15 项方案二），这里一起看。"""
         fx = emulate.Fixtures(FIX)
-        for client in STRICT_CLIENTS:
+        for client in STRICT_CLIENTS + ("loon", "quantumultx"):
             for h in REAL_IP_NAMES:
                 trace = {}
                 self.assertEqual(route(client, emulate.Conn(host=h), fx, trace=trace), "DIRECT", f"{client} {h}")
@@ -246,13 +250,25 @@ class StrictBehaviour(unittest.TestCase):
         for rel in (strict_mod.LOON_CN_REL, strict_mod.QX_CN_REL):
             self.assertFalse([ln for ln in own_rules(rel) if ",qwen.ai" in ln or ",qwenlm.ai" in ln], rel)
 
-    def test_loon_also_uses_the_larger_upstream_list(self):
-        """Loon 严格版多订阅一份上游的大清单（blackmatrix7 ChinaMax_Domain）；Quantumult X 没有只含域名的上游成品，只有自有清单。
-        只在大清单里的域名：Loon 严格版直连，Quantumult X 严格版走国外默认（已知差异，docs/06）。"""
+    def test_both_use_the_larger_upstream_list(self):
+        """Loon 严格版直接订阅上游的大清单（blackmatrix7 ChinaMax_Domain）；Quantumult X 没有只含域名的上游成品，2026-10-07 起
+        订阅本项目按固定快照转好的同一份数据的副本（待决事项第 19 项方案二；以前只有自有清单，只在大清单里的国内网站走国外默认）。
+        样本数据下 Loon 那份用的是样本，Quantumult X 这份是真实内容，所以各看各的：Loon 看样本里的主机，Quantumult X 看副本里
+        只在大清单、不在自有清单里的条目。两份是不是同一份数据由 tools/update_cn_list.py --bm7 --check 核对，
+        真实数据下两端的结果由 tests/test_real_data.py 核对。"""
         fx = emulate.Fixtures(FIX)
-        host = "www.only-in-chinamax-sample.com"
-        self.assertEqual(route("loon-strict", emulate.Conn(host=host), fx), "国内直连")
-        self.assertEqual(route("quantumultx-strict", emulate.Conn(host=host), fx), "国外默认")
+        self.assertEqual(route("loon-strict", emulate.Conn(host="www.only-in-chinamax-sample.com"), fx), "国内直连")
+        m, plan = model_and_plan()
+        suffix, full, _ = strict_mod.max_entries(m, plan)
+        own = set(strict_mod.cn_entries(m, plan, "quantumultx")[0])
+        only = [s for s in suffix if s not in own][::2000]
+        self.assertGreater(len(only), 40)
+        fx0 = emulate.Fixtures(EMPTY)
+        bad = [f"{h} → {got}" for s in only for h in (s, "probe-x1." + s)
+               for got in [route("quantumultx-strict", emulate.Conn(host=h), fx0)] if got != "国内直连"]
+        self.assertEqual(bad, [])
+        for d in full[:20]:
+            self.assertEqual(route("quantumultx-strict", emulate.Conn(host=d), fx0), "国内直连", d)
 
     def test_quantumultx_known_gaps_are_as_documented(self):
         """docs/06 写的两处限制，在模拟器里确实如此：
@@ -334,6 +350,29 @@ class OwnLists(unittest.TestCase):
                 self.assertIsNotNone(most_specific(local, d), f"{d} 被去掉了，但没有本地规则接住它")
             self.assertIn("qwen.ai", gone)
             self.assertIn(f"共 {len(lines)} 条", outputs()[rel])
+
+    def test_max_copy_is_the_upstream_list_minus_locally_covered_entries(self):
+        """Quantumult X 严格版的上游大清单副本（2026-10-07，待决事项第 19 项）：数据文件头写明来源、快照、GPL-2.0；
+        生成的规则文件 = 数据减去已被本地规则覆盖的条目；许可全文在 source/data/LICENSE-ios_rule_script.txt。"""
+        m, plan = model_and_plan()
+        suffix, full = m.max_domains
+        self.assertGreater(len(suffix), 100000)
+        with open(os.path.join(ROOT, *strict_mod.MAX_DATA_REL.split("/")), encoding="utf-8") as f:
+            head = "\n".join(ln for ln in f.read().splitlines() if ln.startswith("#"))
+        self.assertIn(m.evidence["bm7-snap"]["snapshot"], head, "数据文件头里的快照提交要和 source/evidence.yaml 登记的一致")
+        self.assertIn("GPL-2.0", head)
+        self.assertIn(f"后缀 {len(suffix)} 条、精确域名 {len(full)} 条", head)
+        with open(os.path.join(ROOT, *strict_mod.MAX_LICENSE_REL.split("/")), encoding="utf-8") as f:
+            self.assertIn("GNU GENERAL PUBLIC LICENSE", f.read())
+        kept_s, kept_f, dropped = strict_mod.max_entries(m, plan)
+        lines = own_rules(strict_mod.QX_MAX_REL)
+        self.assertEqual(lines, [f"HOST-SUFFIX,{x},direct" for x in kept_s] + [f"HOST,{x},direct" for x in kept_f])
+        self.assertEqual(dropped, len(suffix) + len(full) - len(lines))
+        self.assertLess(dropped, 200, "被本地规则覆盖而去掉的应该只是少数")
+        out_head = "\n".join(ln for ln in outputs()[strict_mod.QX_MAX_REL].splitlines() if ln.startswith("#"))
+        for needle in ("blackmatrix7/ios_rule_script", "GPL-2.0", "LICENSE-ios_rule_script.txt", f"共 {len(lines)} 条"):
+            self.assertIn(needle, out_head)
+        self.assertNotIn("统一源版本", out_head)
 
     def test_list_headers_carry_source_and_license(self):
         for rel in (strict_mod.LOON_CN_REL, strict_mod.QX_CN_REL):

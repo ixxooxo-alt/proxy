@@ -31,7 +31,7 @@ from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.6.0"
+GENERATOR_VERSION = "1.7.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -45,6 +45,7 @@ PUBLIC_OUTPUTS = {
     "quantumultx/quantumultx-strict.conf": lambda m, p: emit_qx.build(m, p, strict=True),
     strict.LOON_CN_REL: strict.loon_cn_list,
     strict.QX_CN_REL: strict.qx_cn_list,
+    strict.QX_MAX_REL: strict.qx_max_list,
     strict.QX_FALLBACK_REL: strict.qx_fallback_list,
 }
 PRIVATE_NOTE = "本目录包含你的订阅链接、节点凭据或个人覆盖（local.yaml），只用于导入自己的设备，不要上传、提交或发给别人。\n"
@@ -69,6 +70,8 @@ def render_public(model, plan, root: str = ROOT) -> dict:
             "strict_real_ip_direct": len(plan.real_ip_direct),
             "strict_cn_domains": {f: len(strict.cn_entries(model, plan, f)[0]) + len(strict.cn_entries(model, plan, f)[1])
                                   for f in ("loon", "quantumultx")},
+            # Quantumult X 严格版的上游大清单副本实际写出的条数（2026-10-07 起）
+            "strict_qx_max_domains": len(strict.max_entries(model, plan)[0]) + len(strict.max_entries(model, plan)[1]),
         },
         "outputs": {path: sha256_text(text) for path, text in sorted(files.items())},
         "targets": model.project["targets"],

@@ -143,9 +143,8 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
 
     L.append("# ==== 2 局域网、内网与系统联网检测（固定直连） ====")
     emit(plan.lan)
-    if strict:
-        L.append("# ==== 2b 要真实地址的名单（[general] 的 dns_exclusion_list）：这些名字先在本机解析、再选出口，严格版固定直连 ====")
-        emit(plan.real_ip_direct, by_service=False)
+    L.append("# ==== 2b 要真实地址的名单（[general] 的 dns_exclusion_list）：这些名字先在本机由国内 DNS 解析、再选出口，所以固定直连 ====")
+    emit(plan.real_ip_direct, by_service=False)
     L.append("# ==== 3a 广告误杀例外：按业务目标放行 ====")
     emit(plan.exceptions, by_service=False)
     L.append("# ==== 3b 自有广告 / 跟踪拦截 ====")
