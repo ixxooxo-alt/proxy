@@ -6,237 +6,238 @@ socks5                 TCP
     qwen.ai        → none
     chatgpt.com    → none
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:50322
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:50322
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:50322
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:50322
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:39931
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:39931
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:39931
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:39931
 socks5                 UDP（目标写域名）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:40282
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:40282
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:40282
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:40282
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:40491
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:40491
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:40491
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:40491
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:40282
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:40282
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:40282
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:40282
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:40491
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:40491
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:40491
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:40491
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:51529
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:51529
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:51529
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:51529
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:59132
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:59132
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:59132
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:59132
 socks5                 UDP（目标是假地址）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:50894
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:50894
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:50894
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:50894
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:35412
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:35412
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:35412
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:35412
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:50894
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:50894
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:50894
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:50894
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:35412
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:35412
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:35412
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:35412
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:46760
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:46760
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:46760
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:46760
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:50757
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:50757
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:50757
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:50757
 shadowsocks            TCP
     qwen.ai        → none
     chatgpt.com    → none
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:41220
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:41220
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:41220
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:41220
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:40687
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:40687
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:40687
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:40687
 shadowsocks            UDP（目标写域名）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:45949
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:45949
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:45949
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:45949
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:49868
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:49868
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:49868
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:49868
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:45949
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:45949
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:45949
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:45949
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:49868
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:49868
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:49868
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:49868
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:46026
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:46026
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:46026
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:46026
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:59889
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:59889
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:59889
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:59889
 shadowsocks            UDP（目标是假地址）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:58959
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:58959
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:58959
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:58959
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:36219
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:36219
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:36219
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:36219
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:58959
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:58959
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:58959
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:58959
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:36219
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:36219
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:36219
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:36219
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:43570
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:43570
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:43570
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:43570
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:54761
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:54761
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:54761
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:54761
 trojan                 UDP（目标写域名）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:56615
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:56615
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:56615
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:56615
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:59069
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:59069
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:59069
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:59069
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:56615
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:56615
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:56615
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:56615
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:59069
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:59069
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:59069
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:59069
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:44841
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:44841
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:44841
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:44841
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:58777
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:58777
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:58777
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:58777
 wireguard              TCP
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:59057
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:59057
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:59057
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:59057
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:48295
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:48295
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:48295
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:48295
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:59057
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:59057
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:59057
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:59057
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:48295
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:48295
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:48295
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:48295
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:38916
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:38916
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:38916
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:38916
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:45489
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:45489
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:45489
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:45489
 wireguard              UDP（目标写域名）
     qwen.ai        → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:51405
-        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:51405
-        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:51405
-        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:51405
+        日志：[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:37805
+        日志：[DNS] qwen.ai --> [] AAAA from udp://127.0.0.1:37805
+        日志：[DNS] resolve qwen.ai A from udp://127.0.0.1:37805
+        日志：[DNS] qwen.ai --> [127.0.0.1] A from udp://127.0.0.1:37805
     chatgpt.com    → foreign（查询类型 A/AAAA）
-        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:51405
-        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:51405
-        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:51405
-        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:51405
+        日志：[DNS] resolve chatgpt.com A from udp://127.0.0.1:37805
+        日志：[DNS] resolve chatgpt.com AAAA from udp://127.0.0.1:37805
+        日志：[DNS] chatgpt.com --> [] AAAA from udp://127.0.0.1:37805
+        日志：[DNS] chatgpt.com --> [127.0.0.1] A from udp://127.0.0.1:37805
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:37079
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:37079
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:37079
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:37079
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:38968
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:38968
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:38968
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:38968
 wireguard+remote-dns   TCP
     qwen.ai        → none
         日志：[DNS] resolve qwen.ai A from udp://1.1.1.1:53
         日志：[DNS] resolve qwen.ai AAAA from udp://1.1.1.1:53
+        日志：[DNS] resolve qwen.ai A from udp://1.1.1.1:53
     chatgpt.com    → none
+        日志：[DNS] resolve chatgpt.com AAAA from udp://1.1.1.1:53
         日志：[DNS] resolve chatgpt.com A from udp://1.1.1.1:53
-        日志：[DNS] resolve chatgpt.com AAAA from udp://1.1.1.1:53
-        日志：[DNS] resolve chatgpt.com AAAA from udp://1.1.1.1:53
+        日志：[DNS] resolve chatgpt.com A from udp://1.1.1.1:53
     www.qq.com     → domestic（查询类型 A/AAAA）
-        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:59961
-        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:59961
-        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:59961
-        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:59961
+        日志：[DNS] resolve www.qq.com A from udp://127.0.0.1:45343
+        日志：[DNS] resolve www.qq.com AAAA from udp://127.0.0.1:45343
+        日志：[DNS] www.qq.com --> [] AAAA from udp://127.0.0.1:45343
+        日志：[DNS] www.qq.com --> [127.0.0.1] A from udp://127.0.0.1:45343
 
 sing-box：sing-box version 1.14.1；sing-box-1.14.json 的 DNS 规则和路由规则原样；dns-cn / dns-foreign / dns-local 换成本机替身；默认直连的组仍直连，其余策略组都换成测试出站。
 
 socks                  TCP
     qwen.ai          → none
-        日志：INFO[0000] [3974714775 301ms] outbound/socks[测试出站]: outbound connection to qwen.ai:443
-        日志：ERROR[0000] [3974714775 301ms] connection: open connection to qwen.ai:443 using outbound/selector[国外默认]: dial tcp 127.0.0.1:57293: connect: connection refused
+        日志：INFO[0000] [1209644335 301ms] outbound/socks[测试出站]: outbound connection to qwen.ai:443
+        日志：ERROR[0000] [1209644335 301ms] connection: open connection to qwen.ai:443 using outbound/selector[国外默认]: dial tcp 127.0.0.1:35445: connect: connection refused
     chatgpt.com      → none
-        日志：INFO[0000] [1570214772 301ms] outbound/socks[测试出站]: outbound connection to chatgpt.com:443
-        日志：ERROR[0000] [1570214772 301ms] connection: open connection to chatgpt.com:443 using outbound/selector[OpenAI]: dial tcp 127.0.0.1:57293: connect: connection ref
+        日志：INFO[0000] [1148126437 301ms] outbound/socks[测试出站]: outbound connection to chatgpt.com:443
+        日志：ERROR[0000] [1148126437 301ms] connection: open connection to chatgpt.com:443 using outbound/selector[OpenAI]: dial tcp 127.0.0.1:35445: connect: connection ref
     www.qq.com       → dns-cn（查询类型 A）
-        日志：INFO[0001] [2768163193 300ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
-        日志：DEBUG[0001] [2768163193 300ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0001] [2768163193 301ms] dns: exchanged www.qq.com NOERROR 60
+        日志：INFO[0001] [3234081972 300ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
+        日志：DEBUG[0001] [3234081972 300ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0001] [3234081972 301ms] dns: exchanged www.qq.com NOERROR 60
     time.windows.com → dns-cn（查询类型 A）
-        日志：INFO[0001] [1638502013 300ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
-        日志：DEBUG[0001] [1638502013 300ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0001] [1638502013 302ms] dns: exchanged time.windows.com NOERROR 60
+        日志：INFO[0001] [3731475415 301ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
+        日志：DEBUG[0001] [3731475415 301ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0001] [3731475415 301ms] dns: exchanged time.windows.com NOERROR 60
 socks                  UDP（目标写域名）
     qwen.ai          → none
-        日志：INFO[0000] [872206458 1ms] outbound/socks[测试出站]: outbound packet connection to qwen.ai:443
+        日志：INFO[0000] [2848854594 1ms] outbound/socks[测试出站]: outbound packet connection to qwen.ai:443
     chatgpt.com      → none
-        日志：INFO[0004] [3097783753 1ms] outbound/socks[测试出站]: outbound packet connection to chatgpt.com:443
+        日志：INFO[0004] [1057132782 1ms] outbound/socks[测试出站]: outbound packet connection to chatgpt.com:443
     www.qq.com       → dns-cn（查询类型 A）
-        日志：DEBUG[0008] [2867190900 0ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0008] [2867190900 1ms] dns: exchanged www.qq.com NOERROR 60
-        日志：DEBUG[0008] [2867190900 1ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0008] [831584325 0ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0008] [831584325 1ms] dns: exchanged www.qq.com NOERROR 60
+        日志：DEBUG[0008] [831584325 1ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
     time.windows.com → dns-cn（查询类型 A）
-        日志：DEBUG[0012] [3576589024 0ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0012] [3576589024 1ms] dns: exchanged time.windows.com NOERROR 60
-        日志：DEBUG[0012] [3576589024 1ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0012] [844649020 1ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0012] [844649020 1ms] dns: exchanged time.windows.com NOERROR 60
+        日志：DEBUG[0012] [844649020 1ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
 shadowsocks            TCP
     qwen.ai          → none
-        日志：INFO[0000] [4183379691 301ms] outbound/shadowsocks[测试出站]: outbound connection to qwen.ai:443
-        日志：ERROR[0000] [4183379691 301ms] connection: open connection to qwen.ai:443 using outbound/selector[国外默认]: dial tcp 127.0.0.1:45827: connect: connection refused
+        日志：INFO[0000] [3844648391 301ms] outbound/shadowsocks[测试出站]: outbound connection to qwen.ai:443
+        日志：ERROR[0000] [3844648391 301ms] connection: open connection to qwen.ai:443 using outbound/selector[国外默认]: dial tcp 127.0.0.1:48249: connect: connection refused
     chatgpt.com      → none
-        日志：INFO[0000] [1534089229 301ms] outbound/shadowsocks[测试出站]: outbound connection to chatgpt.com:443
-        日志：ERROR[0000] [1534089229 301ms] connection: open connection to chatgpt.com:443 using outbound/selector[OpenAI]: dial tcp 127.0.0.1:45827: connect: connection ref
+        日志：INFO[0000] [1916419492 301ms] outbound/shadowsocks[测试出站]: outbound connection to chatgpt.com:443
+        日志：ERROR[0000] [1916419492 301ms] connection: open connection to chatgpt.com:443 using outbound/selector[OpenAI]: dial tcp 127.0.0.1:48249: connect: connection ref
     www.qq.com       → dns-cn（查询类型 A）
-        日志：INFO[0001] [1735601239 300ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
-        日志：DEBUG[0001] [1735601239 300ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0001] [1735601239 301ms] dns: exchanged www.qq.com NOERROR 60
+        日志：INFO[0001] [1940992928 301ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
+        日志：DEBUG[0001] [1940992928 302ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0001] [1940992928 302ms] dns: exchanged www.qq.com NOERROR 60
     time.windows.com → dns-cn（查询类型 A）
-        日志：INFO[0001] [3508888561 300ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
-        日志：DEBUG[0001] [3508888561 300ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0001] [3508888561 301ms] dns: exchanged time.windows.com NOERROR 60
+        日志：INFO[0001] [2824533537 301ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
+        日志：DEBUG[0001] [2824533537 301ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0001] [2824533537 301ms] dns: exchanged time.windows.com NOERROR 60
 shadowsocks            UDP（目标写域名）
     qwen.ai          → none
-        日志：INFO[0000] [3740437968 1ms] outbound/shadowsocks[测试出站]: outbound packet connection to qwen.ai:443
-        日志：INFO[0000] [3740437968 1ms] outbound/shadowsocks[测试出站]: outbound packet connection to qwen.ai:443
+        日志：INFO[0000] [683335629 9ms] outbound/shadowsocks[测试出站]: outbound packet connection to qwen.ai:443
+        日志：INFO[0000] [683335629 9ms] outbound/shadowsocks[测试出站]: outbound packet connection to qwen.ai:443
     chatgpt.com      → none
-        日志：INFO[0004] [286399905 1ms] outbound/shadowsocks[测试出站]: outbound packet connection to chatgpt.com:443
-        日志：INFO[0004] [286399905 1ms] outbound/shadowsocks[测试出站]: outbound packet connection to chatgpt.com:443
+        日志：INFO[0004] [633262832 0ms] outbound/shadowsocks[测试出站]: outbound packet connection to chatgpt.com:443
+        日志：INFO[0004] [633262832 0ms] outbound/shadowsocks[测试出站]: outbound packet connection to chatgpt.com:443
     www.qq.com       → dns-cn（查询类型 A）
-        日志：DEBUG[0008] [1705588864 0ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0008] [1705588864 5ms] dns: exchanged www.qq.com NOERROR 60
-        日志：DEBUG[0008] [1705588864 5ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0008] [2529990182 3ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0008] [2529990182 3ms] dns: exchanged www.qq.com NOERROR 60
+        日志：DEBUG[0008] [2529990182 3ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
     time.windows.com → dns-cn（查询类型 A）
-        日志：DEBUG[0012] [1221484566 1ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0012] [1221484566 1ms] dns: exchanged time.windows.com NOERROR 60
-        日志：DEBUG[0012] [1221484566 1ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0012] [2972500752 0ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0012] [2972500752 0ms] dns: exchanged time.windows.com NOERROR 60
+        日志：DEBUG[0012] [2972500752 0ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
 wireguard              TCP
     qwen.ai          → dns-foreign（查询类型 A）
-        日志：INFO[0000] [616100265 301ms] endpoint/wireguard[测试出站]: outbound connection to qwen.ai:443
-        日志：DEBUG[0000] [616100265 301ms] dns: lookup domain qwen.ai
-        日志：DEBUG[0000] [616100265 301ms] dns: exchanged qwen.ai NOERROR 60
+        日志：INFO[0000] [2177348055 301ms] endpoint/wireguard[测试出站]: outbound connection to qwen.ai:443
+        日志：DEBUG[0000] [2177348055 301ms] dns: lookup domain qwen.ai
+        日志：DEBUG[0000] [2177348055 301ms] dns: exchanged qwen.ai NOERROR 60
     chatgpt.com      → dns-foreign（查询类型 A）
-        日志：INFO[0004] [1525327839 301ms] endpoint/wireguard[测试出站]: outbound connection to chatgpt.com:443
-        日志：DEBUG[0004] [1525327839 301ms] dns: lookup domain chatgpt.com
-        日志：DEBUG[0004] [1525327839 301ms] dns: exchanged chatgpt.com NOERROR 60
+        日志：INFO[0004] [2667915873 301ms] endpoint/wireguard[测试出站]: outbound connection to chatgpt.com:443
+        日志：DEBUG[0004] [2667915873 301ms] dns: lookup domain chatgpt.com
+        日志：DEBUG[0004] [2667915873 302ms] dns: exchanged chatgpt.com NOERROR 60
     www.qq.com       → dns-cn（查询类型 A）
-        日志：INFO[0008] [1484604843 301ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
-        日志：DEBUG[0008] [1484604843 301ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0008] [1484604843 301ms] dns: exchanged www.qq.com NOERROR 60
+        日志：INFO[0008] [1499206289 301ms] outbound/direct[DIRECT]: outbound connection to www.qq.com:443
+        日志：DEBUG[0008] [1499206289 301ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0008] [1499206289 302ms] dns: exchanged www.qq.com NOERROR 60
     time.windows.com → dns-cn（查询类型 A）
-        日志：INFO[0008] [1096381606 301ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
-        日志：DEBUG[0008] [1096381606 301ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0008] [1096381606 301ms] dns: exchanged time.windows.com NOERROR 60
+        日志：INFO[0008] [3504103080 300ms] outbound/direct[DIRECT]: outbound connection to time.windows.com:443
+        日志：DEBUG[0008] [3504103080 300ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0008] [3504103080 301ms] dns: exchanged time.windows.com NOERROR 60
 wireguard              UDP（目标写域名）
     qwen.ai          → dns-foreign（查询类型 A）
-        日志：INFO[0000] [82060225 0ms] endpoint/wireguard[测试出站]: outbound packet connection to qwen.ai:443
-        日志：DEBUG[0000] [82060225 0ms] dns: lookup domain qwen.ai
-        日志：DEBUG[0000] [82060225 1ms] dns: exchanged qwen.ai NOERROR 60
+        日志：INFO[0000] [1763697401 1ms] endpoint/wireguard[测试出站]: outbound packet connection to qwen.ai:443
+        日志：DEBUG[0000] [1763697401 1ms] dns: lookup domain qwen.ai
+        日志：DEBUG[0000] [1763697401 1ms] dns: exchanged qwen.ai NOERROR 60
     chatgpt.com      → dns-foreign（查询类型 A）
-        日志：INFO[0004] [1036641315 0ms] endpoint/wireguard[测试出站]: outbound packet connection to chatgpt.com:443
-        日志：DEBUG[0004] [1036641315 0ms] dns: lookup domain chatgpt.com
-        日志：DEBUG[0004] [1036641315 1ms] dns: exchanged chatgpt.com NOERROR 60
+        日志：INFO[0004] [1552884829 0ms] endpoint/wireguard[测试出站]: outbound packet connection to chatgpt.com:443
+        日志：DEBUG[0004] [1552884829 0ms] dns: lookup domain chatgpt.com
+        日志：DEBUG[0004] [1552884829 1ms] dns: exchanged chatgpt.com NOERROR 60
     www.qq.com       → dns-cn（查询类型 A）
-        日志：DEBUG[0008] [4268558816 0ms] dns: lookup domain www.qq.com
-        日志：DEBUG[0008] [4268558816 1ms] dns: exchanged www.qq.com NOERROR 60
-        日志：DEBUG[0008] [4268558816 1ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0008] [3190980555 1ms] dns: lookup domain www.qq.com
+        日志：DEBUG[0008] [3190980555 2ms] dns: exchanged www.qq.com NOERROR 60
+        日志：DEBUG[0008] [3190980555 2ms] dns: exchanged A www.qq.com. 60 IN A 127.0.0.1
     time.windows.com → dns-cn（查询类型 A）
-        日志：DEBUG[0012] [3973051804 1ms] dns: lookup domain time.windows.com
-        日志：DEBUG[0012] [3973051804 1ms] dns: exchanged time.windows.com NOERROR 60
-        日志：DEBUG[0012] [3973051804 1ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
+        日志：DEBUG[0012] [471206788 0ms] dns: lookup domain time.windows.com
+        日志：DEBUG[0012] [471206788 1ms] dns: exchanged time.windows.com NOERROR 60
+        日志：DEBUG[0012] [471206788 1ms] dns: exchanged A time.windows.com. 60 IN A 127.0.0.1
 
 说明：none 只说明这条路径上没有查询；测试节点连不出去，所以看不到节点真正连通以后的行为。
