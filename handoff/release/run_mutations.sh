@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# 变异检查分两批（单数编号、双数编号）同时在后台跑，日志写到工作目录。
+# 变异检查分几批（缺省两批：单数编号、双数编号）同时在后台跑，日志写到工作目录。
 # r12 有 98 类，两批并行大约 80 分钟；一类一两分钟，M45 要等满 5 分钟。
+# 2026-10-07（r14）：115 类，一类约 4 分钟（测试本身变慢了：一遍约 230 秒），两批要将近 4 小时；
+# 机器有 4 个核时用 MUT_BATCHES=3 分三批（编号除以 3 的余数分组），约 2.5 小时，留一个核给 run_checks.sh。
 #
-# 用法：bash handoff/release/run_mutations.sh [工作目录] [只跑这些编号…]
-#   工作目录缺省 ~/proxy-work/mut（在仓库以外）。不带编号时跑全部。
+# 用法：[MUT_BATCHES=2|3|4] bash handoff/release/run_mutations.sh [工作目录] [只跑这些编号…]
+#   工作目录缺省 ~/proxy-work/mut（在仓库以外）。不带编号时跑全部。日志是 mut-A-…、mut-B-…（三批时还有 mut-C-…）。
 # 开始前它会记下开始时间（UTC）和代码状态哈希。跑的过程中不要改 build.py、generator/、source/、tests/、tools/：
 # 改了，这一轮结果就作废，要重新定稿、从头再跑。只改 docs/、README、PROJECT_STATE.md、00-审核说明.md 没有关系。
 #
@@ -26,14 +28,20 @@ sys.path.insert(0, "tools")
 import check_mutations as m
 print("\n".join(c[0].split()[0] for c in m.cases))')
 if [ "$#" -gt 0 ]; then ids=("$@"); else ids=("${known[@]}"); fi
-A=(); B=()
+NB="${MUT_BATCHES:-2}"
+case "$NB" in 2|3|4) ;; *) echo "MUT_BATCHES 只能是 2、3、4：$NB" >&2; exit 2 ;; esac
+A=(); B=(); C=(); D=()
 for id in "${ids[@]}"; do
   if ! printf '%s\n' "${known[@]}" | grep -qx -- "$id"; then
     echo "没有这个编号：$id（现在有 ${known[0]} … ${known[-1]}，共 ${#known[@]} 类）" >&2
     exit 2
   fi
   n="${id#M}"
-  if (( n % 2 )); then A+=("$id"); else B+=("$id"); fi
+  if [ "$NB" = 2 ]; then
+    if (( n % 2 )); then A+=("$id"); else B+=("$id"); fi
+  else
+    case $(( n % NB )) in 1) A+=("$id") ;; 2) B+=("$id") ;; 0) if [ "$NB" = 3 ]; then C+=("$id"); else D+=("$id"); fi ;; 3) C+=("$id") ;; esac
+  fi
 done
 python3 tools/check_mutations.py --check-edits >/dev/null || { echo "有变异的改动套不到当前代码上：先运行 python3 tools/check_mutations.py --check-edits 看是哪几个" >&2; exit 1; }
 
@@ -43,5 +51,7 @@ bash handoff/release/code_state.sh > "$OUT/code-state-$seg.txt"
 python3 -c 'import json; print(json.load(open("dist/manifest.json", encoding="utf-8"))["source_sha256"])' > "$OUT/digest-$seg.txt"
 if [ "${#A[@]}" -gt 0 ]; then nohup python3 tools/check_mutations.py "${A[@]}" > "$OUT/mut-A-$seg.log" 2>&1 & fi
 if [ "${#B[@]}" -gt 0 ]; then nohup python3 tools/check_mutations.py "${B[@]}" > "$OUT/mut-B-$seg.log" 2>&1 & fi
-echo "已在后台启动：单数 ${#A[@]} 类 → $OUT/mut-A-$seg.log；双数 ${#B[@]} 类 → $OUT/mut-B-$seg.log"
+if [ "${#C[@]}" -gt 0 ]; then nohup python3 tools/check_mutations.py "${C[@]}" > "$OUT/mut-C-$seg.log" 2>&1 & fi
+if [ "${#D[@]}" -gt 0 ]; then nohup python3 tools/check_mutations.py "${D[@]}" > "$OUT/mut-D-$seg.log" 2>&1 & fi
+echo "已在后台启动（$NB 批）：A ${#A[@]} 类、B ${#B[@]} 类、C ${#C[@]} 类、D ${#D[@]} 类 → $OUT/mut-?-$seg.log"
 echo "开始时间（UTC）$(cat "$OUT/mut-start-$seg.txt")；代码状态 $(cat "$OUT/code-state-$seg.txt")"

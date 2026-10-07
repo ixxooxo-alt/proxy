@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异两三分钟（共 115 个，可以分两批同时跑）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 115 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。

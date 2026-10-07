@@ -7,19 +7,19 @@
 
 1. 改 `source/`（规则、分组、DNS），需要时改 `generator/`、`tests/`、`tools/`。
    - 版本号：`source/project.yaml` 的 `source_version`（改了规则数据就递增，`年.月.日-序号`）；`build.py` 的 `GENERATOR_VERSION`（改了生成器就递增）。
-   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r14）。r13 没有改规则数据和生成器，统一源版本和生成器版本都没有动——只改测试、工具、文档时不用递增；r14 改了生成器（mihomo 的 DNS 段），两个版本号都递增了（统一源 2026.10.07-1、生成器 1.6.0），和 r11 的做法一样：产物变了就递增统一源版本，用户看配置头上的版本就知道换了一版。
+   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r14）。r13 没有改规则数据和生成器，统一源版本和生成器版本都没有动——只改测试、工具、文档时不用递增；r14 改了生成器和规则数据（mihomo 的 DNS 段，加上使用者 2026-10-07 定下的各项），两个版本号都递增了（统一源 2026.10.07-2、生成器 1.7.0；只做了前一半、没有交付的那一次用过 2026.10.07-1 / 1.6.0，号不再复用），和 r11 的做法一样：产物变了就递增统一源版本，用户看配置头上的版本就知道换了一版。
 2. `python3 build.py`，`python3 -m unittest discover -s tests`。
 3. 改了规则、DNS、出站，或者换了上游数据：重新生成快照
    `python3 tools/check_real_routes.py --mihomo "$MIHOMO_BIN" --singbox "$SINGBOX_BIN" --singbox-112 "$SINGBOX112_BIN" --geodata-dir "$GEODATA_DIR" --srs-dir "$SRS_DIR" --bm7 "$BM7_SRC" --dlc "$DLC_SRC" --geodata-origin "$GEODATA_ORIGIN" --srs-origin "$SRS_ORIGIN" --bm7-origin "$BM7_ORIGIN" --write-snapshot`
-   （约 5–7 分钟）。不重新生成的话，“记录对应现在的配置”那两项测试会失败——这是故意的：`tests/data/real_sets.json` 里是官方内核的实际结果，配置变了它就过期。有不符合时工具拒绝写快照，先看清楚是配置错了还是期望该改。
-   其他会写文件的工具：`tools/check_upstream_evidence.py --dlc … --bm7 … --write`（规则证据变了）、`tools/update_cn_list.py --dlc …`（换了 domain-list-community 快照）、`tools/check_cursor_report.py --write`。
+   （r12 时约 5–7 分钟，r14 约 15 分钟）。不重新生成的话，“记录对应现在的配置”那两项测试会失败——这是故意的：`tests/data/real_sets.json` 里是官方内核的实际结果，配置变了它就过期。有不符合时工具拒绝写快照，先看清楚是配置错了还是期望该改。
+   其他会写文件的工具：`tools/check_upstream_evidence.py --dlc … --bm7 … --write`（规则证据变了）、`tools/update_cn_list.py --dlc … --bm7 …`（换了 domain-list-community 或 blackmatrix7 快照；r14 起它也生成 Quantumult X 用的大清单副本）、`tools/check_cursor_report.py --write`。
 4. 新行为配测试；每修一类错，在 `tools/check_mutations.py` 里加一个把它改回去的变异（`Mnn`），`python3 tools/check_mutations.py --check-edits` 确认每个变异都还套得上当前代码。
 5. 写文档（见 `CLAUDE.md` 里各文件的分工）。还没跑出来的数字先写占位符 `⟦名字⟧`，最后由核对脚本填，不要先估一个数写上去。
 
 ## 二、定稿，跑全部检查
 
 6. **定稿**：代码不再改了，记下代码状态哈希：`bash handoff/release/code_state.sh`。从这里到打包，`build.py`、`generator/`、`source/`、`tests/`、`tools/`、`.gitignore` 一个字都不能动；动了就重新定稿，后面全部重来（r12 定稿了三次）。
-7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟）。等它的时候可以写文档。
+7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 115 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时）。等它的时候可以写文档。
    云端机器闲置会被回收，后台进程跟着没了、日志还在：把剩下的编号再跑一段（脚本开头有说明）。
 8. 变异跑完以后：`bash tools/run_checks.sh`（7–10 分钟；重写 `docs/evidence/*.log`）。最后一行必须是“全部检查通过。”。
 9. **版本对比**（旧版本从 git 里检出来，见 `handoff/README.md` 第 2 节）：
@@ -42,9 +42,9 @@
 | 文件 | 作用 | 状态 |
 |---|---|---|
 | `code_state.sh` | 算代码状态哈希 | 通用。2026-10-06 在 r12 的工程目录上算出的值与 r12 定稿时记录的相同 |
-| `run_mutations.sh` | 后台分两批跑变异检查，记开始时间和代码状态 | 通用。2026-10-06 在全新的克隆里用两类变异（M97、M98）试过，都被发现；r12 当时是手敲的同样两条命令 |
+| `run_mutations.sh` | 后台分几批（缺省两批；2026-10-07 起可以 `MUT_BATCHES=3` 或 `4`）跑变异检查，记开始时间和代码状态 | 通用。2026-10-06 在全新的克隆里用两类变异（M97、M98）试过，都被发现；r12 当时是手敲的同样两条命令 |
 | `pack.py` | 打交付包 | 通用。2026-10-06 在 r12 的工程目录上重打，与发出去的包逐字节相同 |
 | `verify_package.sh` | 解包核对 | 通用。2026-10-06 用它核对过 r12 的包（加 `--without-handoff`）：逐文件相同、244 项测试通过、扫描没有命中 |
 | `r12-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r12 汇总变异日志、写 `mutations.log`、核对文档数字用的脚本 | **原样存档，不能直接用**：里面的类数、日志文件名、数字、说明文字都是 r12 的，路径假定日志和它放在同一个目录。当作下一版的样子来改 |
 | `r13-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r13 用的同样三个脚本（日志目录作为参数传入，代码状态从 `run_mutations.sh` 写的文件读） | 同上，原样存档；下一版照着改类数、数字和说明文字 |
-| `r14-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r14 用的同样三个脚本（照 r13 的改：类数 104、新的用例和数字、出站时的解析） | 同上，原样存档 |
+| `r14-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r14 用的同样三个脚本（照 r13 的改：类数 115、三批日志、新的用例和数字、出站时的解析、使用者 2026-10-07 定下的各项） | 同上，原样存档 |
