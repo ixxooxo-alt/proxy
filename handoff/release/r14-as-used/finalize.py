@@ -1,5 +1,5 @@
 """把文档里的占位符 ⟦…⟧ 换成最终运行得到的数字，并核对文档里写的数字和日志、产物一致（r14 用的；照 r13-as-used/finalize.py 改的）。
-r14 合了两件事：GPT 对 r13 的审核，和使用者 2026-10-07 一次定下的待决事项；代码定稿四次，只有最后一次（06:48）算数。
+r14 合了两件事：GPT 对 r13 的审核，和使用者 2026-10-07 一次定下的待决事项；代码定稿五次，只有最后一次（07:51）算数。
 数字都从日志和产物里读。用法（在工程根目录）：python3 handoff/release/r14-as-used/finalize.py <变异日志目录> [--dry]"""
 import datetime, json, os, re, subprocess, sys
 
@@ -7,8 +7,8 @@ D = os.path.abspath(sys.argv[1])
 dry = "--dry" in sys.argv
 ev = "docs/evidence"
 RUN_DAY = "2026-10-07"
-DIGEST = "1d622d292456c650fc95bef7327fb9a92b9dd74cf7b66ff200c2798a663c83dc"     # r14：生成器 1.7.0、统一源 2026.10.07-2
-N_TESTS, N_MUT, N_MIHOMO_DNS = "258", 117, "15"
+DIGEST = "f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc"     # r14：生成器 1.7.0、统一源 2026.10.07-2
+N_TESTS, N_MUT, N_MIHOMO_DNS = "259", 118, "15"
 ENV = "Python：Python 3.13.16，PyYAML：6.0.1"
 R13 = "bf42e8b"                                                                   # GPT 审的 r13（只改文档的那次提交，配置与 4510096 相同）
 W = os.path.expanduser("~/proxy-work")
@@ -23,10 +23,10 @@ man = json.load(open("dist/manifest.json", encoding="utf-8"))
 digest = man["source_sha256"]
 assert man["source_version"] == "2026.10.07-2" and man["generator_version"] == "1.7.0", man
 assert digest == DIGEST, digest
-freeze = read(f"{W}/freeze14d-time.txt").strip()                                  # 定稿时记下的时间（UTC）
+freeze = read(f"{W}/freeze14e-time.txt").strip()                                  # 定稿时记下的时间（UTC）
 state = subprocess.run(["bash", "handoff/release/code_state.sh"], capture_output=True, text=True, check=True).stdout.strip()
-assert state == read(f"{W}/freeze14d-state.txt").strip(), "代码在定稿之后变过"
-assert freeze == "2026-10-07 06:48:37", freeze
+assert state == read(f"{W}/freeze14e-state.txt").strip(), "代码在定稿之后变过"
+assert freeze == "2026-10-07 07:51:08", freeze
 
 # 每份日志开头：统一源摘要是当前的、退出码 0、运行环境和日期；记下开始时间和文件时间
 LOGS = ("tests.log", "icu-check.log", "official-check.log", "real-route-check.log", "upstream-field-check.log",
@@ -241,7 +241,8 @@ NEW_TESTS = {"M101": "test_names_ending_in_a_pointer_after_labels_are_read", "M1
              "M108": "test_mihomo_sends_lan_suffixes_to_system_dns_first", "M109": "test_mihomo_sends_lan_suffixes_to_system_dns_first",
              "M110": "test_both_use_the_larger_upstream_list", "M111": "test_max_copy_is_the_upstream_list_minus_locally_covered_entries",
              "M114": "test_defaults", "M115": "test_apple_ai_before_apple",
-             "M116": "test_change_that_only_reorders_an_item_says_so", "M117": "test_rule_list_doc_counts_each_own_list_from_its_own_data"}
+             "M116": "test_change_that_only_reorders_an_item_says_so", "M117": "test_rule_list_doc_counts_each_own_list_from_its_own_data",
+             "M118": "test_domestic_direct_is_fixed"}
 for name, test in [("M91", "test_mihomo_unmatched_names_ask_only_the_foreign_doh"), ("M92", "test_singbox_unmatched_names_ask_only_dns_foreign"),
                    ("M99", "test_singbox_unmatched_names_ask_only_dns_foreign"), ("M100", "test_each_kind_of_reply_is_told_apart")] + list(NEW_TESTS.items()):
     l = next(x for x in mut.splitlines() if x.startswith(f"[发现] {name} "))
@@ -266,7 +267,7 @@ mut_cell = (f"{N_MUT} 类全部被发现，都是 r14 定稿（{freeze[:16]} UTC
             "`test_mihomo_product_names_go_to_the_foreign_dns` 发现；M104（核对工具按“第一条命中”查）由 `test_policy_lookup_follows_mihomos_domain_trie` 发现。"
             "你定下的各项对应的 M105–M115，各由对应的测试发现（例如 M108、M109 由 `test_mihomo_sends_lan_suffixes_to_system_dns_first`，M110 由 `test_both_use_the_larger_upstream_list`，"
             "M114 由 `test_defaults`，M115 由 `test_apple_ai_before_apple`）；出版本时查出的 M116、M117 分别由 `test_change_that_only_reorders_an_item_says_so`、"
-            "`test_rule_list_doc_counts_each_own_list_from_its_own_data` 发现。"
+            "`test_rule_list_doc_counts_each_own_list_from_its_own_data` 发现；你下午定的第 17 项对应的 M118（“国内直连”又能切到国外默认）由 `tests/test_structure.py` 的 `test_domestic_direct_is_fixed` 发现。"
             "M45（回溯失控）只跑专门针对它的那一项测试：这种错误会让别的用到正则的测试卡住而不是报错，"
             "那一项把匹配放在带超时的子进程里，等满 5 分钟后失败并给出提示。" + PARTIAL_TEXT + "其余由对应的测试发现，每一类的失败项见日志")
 
@@ -298,7 +299,7 @@ for p in ("handoff/notes/r13_review_probes.r13.out", "handoff/notes/r13_review_p
           "handoff/notes/r13_strict_routes.out", "handoff/notes/r14_policy_order.out"):
     mt = datetime.datetime.fromtimestamp(os.path.getmtime(p), datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     assert mt > freeze, (p, mt)
-pt = read(f"{W}/probe14d-time.txt").split("\n")
+pt = read(f"{W}/probe14e-time.txt").split("\n")
 probe_window = f"（{pt[0].split()[-1][:5]}–{pt[1].split()[-1][:5]} UTC）"
 assert pt[0].split()[-2] == RUN_DAY and pt[0].split()[-1] > freeze[11:], pt
 r13p, r14p = parse_probe(p13), parse_probe(p14)
@@ -402,17 +403,17 @@ if dry:
     sys.exit(0)
 assert not left
 # 文档里的关键数字和这一版的说法
-for p, needles in (("README.md", ["tests-258%20passing", "258 automated tests", "2026.10.07-2", "This is r14", "625 hand-labelled", "12–16 KB",
+for p, needles in (("README.md", ["tests-259%20passing", "259 automated tests", "2026.10.07-2", "This is r14", "625 hand-labelled", "12–16 KB",
                                   "43 service groups", "81 policy groups", "269 targets", "loon-strict.conf", "15 on mihomo", "561 community-sourced"]),
-                   ("README.zh-CN.md", ["自动测试 258 项", "2026.10.07-2", "（r14：处理 GPT 对 r13 的审核", "625 个人工写期望", "2283 个假节点",
+                   ("README.zh-CN.md", ["自动测试 259 项", "2026.10.07-2", "（r14：处理 GPT 对 r13 的审核", "625 个人工写期望", "2283 个假节点",
                                         "每条 12–16 KB", "81 个策略组", "269 个目标", "mihomo 15 条", "r14 两个内核都是 0 个", "Python 3.13.16",
                                         "561 条社区来源规则"]),
-                   ("PROJECT_STATE.md", ["258 项", "r14：统一源 2026.10.07-2", "生成器 1.7.0", "T25 第 9 轮", "T27 使用者 2026-10-07", "117 类全部被发现",
-                                         "第 17 项等用户选", "11. Stash"]),
-                   ("00-审核说明.md", ["247 → 258 项", "100 → 117 类", "12 → 15 条", "sing-box 5 → 0，mihomo 364 → 0", "注入 117 类", "都在 2026-10-07（UTC）",
+                   ("PROJECT_STATE.md", ["259 项", "r14：统一源 2026.10.07-2", "生成器 1.7.0", "T25 第 9 轮", "T27 使用者 2026-10-07", "118 类全部被发现",
+                                         "第 21 项等用户选", "11. Stash"]),
+                   ("00-审核说明.md", ["247 → 259 项", "100 → 118 类", "12 → 15 条", "sing-box 5 → 0，mihomo 364 → 0", "注入 118 类", "都在 2026-10-07（UTC）",
                                        "handoff/notes/r14_policy_order.out", "732 条", "公开产物 12 → 13 个"]),
-                   ("docs/05-验收记录.md", ["258 项全部通过", "注入 117 类错误", "2026.10.07-2（r14", "Python 3.13.16，PyYAML 6.0.1", "2283 个假节点",
-                                            "860 个 120 / 400 个字符", f"{fields} 个字段", "269 个目标", "06:48 定稿", state, "mihomo 15 条",
+                   ("docs/05-验收记录.md", ["259 项全部通过", "注入 118 类错误", "2026.10.07-2（r14", "Python 3.13.16，PyYAML 6.0.1", "2283 个假节点",
+                                            "860 个 120 / 400 个字符", f"{fields} 个字段", "269 个目标", "07:51 定稿", state, "mihomo 15 条",
                                             f"`tests/test_real_data.py`，{per_file['test_real_data']} 项", f"`tests/test_strict.py`，{per_file['test_strict']} 项",
                                             f"`tests/test_compare_versions.py`，{per_file['test_compare_versions']} 项",
                                             "google.cn` AAAA → 空应答", "222,353 个里走代理组的 0 个", "官方内核核对了其中 214 个",
@@ -428,19 +429,20 @@ for p, needles in (("README.md", ["tests-258%20passing", "258 automated tests", 
                                             "187 条 IP 段", "现在 732 条", "111,047 条", "6,133 条", "653 个后缀", "289 条用例和排除项"]),
                    ("docs/06-已知限制与待决事项.md", ["## 2026-10-07 你定下的事项", "| 14 | 不带点的名字", "| 20 | Quantumult X 的 `[dns]` 要不要加 `no-system`",
                                                     "## 2026-10-07（r13）：处理 GPT 对 r12 的审核时新写明的限制", "105,317 条", "870 条服务规则",
-                                                    "自有拦截另有 97 条", "48 个广告条目", "| 17 | 把“国内直连”组切到“国外默认”以后"]),
-                   ("docs/08-外部审核记录.md", ["## 第 9 轮", "247 → 258 项", "100 → 117 类", "docs/evidence/gpt-r13/", "r14_policy_order.out",
+                                                    "自有拦截另有 97 条", "48 个广告条目", "| 17 | 把“国内直连”组切到“国外默认”以后", "| 21 | 默认直连、可以切到代理的组"]),
+                   ("docs/08-外部审核记录.md", ["## 第 9 轮", "247 → 259 项", "100 → 118 类", "docs/evidence/gpt-r13/", "r14_policy_order.out",
                                               "## 第 8 轮：2026-10-06，GPT 审核 r12（交付包）", "## 第 7 轮：2026-10-06，GPT 对做法的两段意见",
                                               "交付的 r14 是 732 条", "2,241 个主机", "269 个目标"]),
                    ("docs/09-真机验收操作清单.md", ["DNS 覆写", "## 1b. 严格版", "| 13. 换个网络再看一次（可选）", "Mac 上开着虚拟网卡时一定要试这一下",
                                                    "courier-push-apple.com.akadns.net", "对应统一源 2026.10.07-2", "81 个策略组", "111,182 条"]),
                    ("docs/01-导入、更新、诊断与回滚.md", ["DNS 覆写", "v1.19.20", "## 每个客户端要手动确认的开关（2026-10-06）", "f250126", "2001:2::",
                                                         "2026.10.07-2", "81 个策略组", "--bm7"]),
-                   ("docs/07-需求对照.md", ["### 2026-10-07（GPT 审核 r13 之后，r14）", "### 2026-10-07（r14 交付之前：待决事项一次定下来）", "cd63eba", "49 个"]),
+                   ("docs/07-需求对照.md", ["### 2026-10-07（GPT 审核 r13 之后，r14）", "### 2026-10-07（r14 交付之前：待决事项一次定下来）", "### 2026-10-07 下午（r14 交付之前：第 17 项定下", "cd63eba", "49 个"]),
                    ("docs/00-需求原文.md", ["在已经完成的基础上继续", "按这个做", "## 补充（2026-10-07，GPT 审核 r12 之后，对话中给出，照录）",
                                            "先读 CLAUDE.md 和 handoff/README.md，照里面说的搭好检查环境并确认全部检查通过。",
                                            "改 另外新增一个需求 stash 配置文件 你可以弄好 clah 再写 stash 的配置 两者接近",
-                                           "## 补充（2026-10-07，r14 交付之前：待决事项一次定下来，对话中给出，照录）"])):
+                                           "## 补充（2026-10-07，r14 交付之前：待决事项一次定下来，对话中给出，照录）",
+                                           "## 补充（2026-10-07，r14 交付之前：第 17 项定下", "默认的国内域名哪个国内直连直接写死"])):
     s = read(p)
     for n in needles:
         assert n in s, (p, n)
