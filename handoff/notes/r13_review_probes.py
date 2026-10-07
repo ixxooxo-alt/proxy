@@ -297,7 +297,8 @@ def main():
     config_text = open(mihomo_path, encoding="utf-8").read()
     head = next(ln for ln in config_text.splitlines() if ln.startswith("# 统一源版本"))
     # 统一源版本以配置文件头上写的为准（下一行）：跑 r13 的配置时，工程本身已经是 r14
-    print(f"mihomo：{os.path.basename(binary)}；geodata：{os.environ.get('GEODATA_ORIGIN', geodata)}")
+    ver = subprocess.run([binary, "-v"], capture_output=True, text=True).stdout.splitlines()[0]
+    print(f"mihomo：{ver}；geodata：{os.environ.get('GEODATA_ORIGIN', geodata)}")
     print(f"配置：{os.path.relpath(mihomo_path, ROOT) if mihomo_path.startswith(ROOT) else os.path.basename(mihomo_path)}"
           f"（{head.lstrip('# ')}）的规则和 DNS 段原样；三类 DNS 换成本机替身；默认直连的组仍直连，其余策略组都换成测试节点。")
     print("结果：收到这个名字查询的替身（system / domestic / foreign），none = 三类替身都没有收到。\n")
@@ -318,7 +319,8 @@ def main():
             for ln in r["log"]:
                 print(f"        日志：{ln[:160]}")
     sb_bin, srs_dir = os.environ["SINGBOX_BIN"], os.environ["SRS_DIR"]
-    print(f"\nsing-box：{os.path.basename(sb_bin)}；{os.path.basename(singbox_path)} 的 DNS 规则和路由规则原样；"
+    sb_ver = subprocess.run([sb_bin, "version"], capture_output=True, text=True).stdout.splitlines()[0]
+    print(f"\nsing-box：{sb_ver}；{os.path.basename(singbox_path)} 的 DNS 规则和路由规则原样；"
           f"dns-cn / dns-foreign / dns-local 换成本机替身；默认直连的组仍直连，其余策略组都换成测试出站。\n")
     for kind, transport in (("socks", "tcp"), ("socks", "udp-domain"), ("shadowsocks", "tcp"), ("shadowsocks", "udp-domain"),
                             ("wireguard", "tcp"), ("wireguard", "udp-domain")):

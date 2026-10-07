@@ -305,7 +305,7 @@ dns:
 
 - mihomo v1.19.31 的 `adapter/outbound/base.go` 有一个 `ResolveUDP`：目标还没解析时，用默认解析器在本机解析。socks5、shadowsocks、shadowsocksr、trojan、vmess、vless、hysteria、hysteria2、tuic、snell、anytls、mieru 等出口转发 UDP 前都先调用它（各自的 `ListenPacketContext`）。也就是说，**经普通的代理节点转发 UDP 也一样**——浏览器访问支持 HTTP/3 的网站时用的 QUIC 就是 UDP。WireGuard、OpenVPN、Masque 这类按 IP 转发的出口，连 TCP 也要在本机解析（`wireguard.go` 的 `DialContext`）。只有少数出口能配“远程解析”（WireGuard 的 `remote-dns-resolve` + `dns`，节点上的设置，订阅里的节点一般不带）。
 - 官方内核实测（一次性核对 `handoff/notes/r13_review_probes.r13.out`，r13 的配置）：走代理的组换成 SOCKS5、Shadowsocks、Trojan 或 WireGuard 出口（都连本机空端口），`qwen.ai` 走 TCP 经 SOCKS5、Shadowsocks 时没有被解析；走 UDP（SOCKS5、Shadowsocks 试了目标写域名和目标是假地址两种，Trojan 试了目标写域名）、经 WireGuard（TCP、UDP）时，它的 A、AAAA 查询都由国内 DNS 的替身收到。`chatgpt.com` 这类普通境外域名本来就问境外 DNS，不受影响。
-- sing-box 1.14.1、1.12.0 实测：SOCKS、Shadowsocks 出口把域名原样交给节点（TCP、UDP 都是），不解析；WireGuard 端点按 DNS 规则解析（`protocol/wireguard/endpoint.go`），DNS 规则里有“走代理组的产品域名先判断”一层，`qwen.ai` 交给 `dns-foreign`。只有待决事项第 15 项那几个名字（`time.windows.com` 等，DNS 规则写明交给 `dns-cn`、路由却走代理组）经 WireGuard 端点时交给 `dns-cn`。
+- sing-box 实测（1.14.1：SOCKS、Shadowsocks 的 TCP、UDP 和 WireGuard 端点，一次性核对；1.12.0：只有固定核对里的 SOCKS 走 UDP、WireGuard 端点走 TCP）：SOCKS、Shadowsocks 出口把域名原样交给节点，不解析；WireGuard 端点按 DNS 规则解析（`protocol/wireguard/endpoint.go`），DNS 规则里有“走代理组的产品域名先判断”一层，`qwen.ai` 交给 `dns-foreign`。只有待决事项第 15 项那几个名字（`time.windows.com` 等，DNS 规则写明交给 `dns-cn`、路由却走代理组）经 WireGuard 端点时交给 `dns-cn`。
 - Loon、Quantumult X：没有能运行的内核，转发 UDP 时会不会在本机解析目标，官方文档没有写，不知道。
 
 **r14 的改动**（待决事项第 16 项，你 2026-10-07 选了“改”；生成器 1.6.0，统一源 2026.10.07-1）：mihomo 的 `nameserver-policy` 在“局域网后缀 → `system`”之后、`geosite:cn,private` 之前，加一条一条的产品域名：

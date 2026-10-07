@@ -1,5 +1,5 @@
-"""把汇总好的变异结果写成 docs/evidence/mutations.log（r13 用的；照 r12-as-used/write_mutlog.py 改的）。
-用法（在工程根目录，先跑 assemble.py）：python3 handoff/release/r13-as-used/write_mutlog.py <日志目录> <定稿时间，如 "2026-10-06 17:40">"""
+"""把汇总好的变异结果写成 docs/evidence/mutations.log（r14 用的；照 r13-as-used/write_mutlog.py 改的）。
+用法（在工程根目录，先跑 assemble.py）：python3 handoff/release/r14-as-used/write_mutlog.py <日志目录> <定稿时间，如 "2026-10-07 02:05">"""
 import json, os, sys
 
 D = os.path.abspath(sys.argv[1])
@@ -7,11 +7,11 @@ FROZEN = sys.argv[2]
 res = json.load(open(os.path.join(D, "mut-result.json"), encoding="utf-8"))
 lines = open(os.path.join(D, "mut-lines.txt"), encoding="utf-8").read().rstrip("\n").split("\n")
 N = res["n"]
-assert len(lines) == N == 100, (len(lines), N)
+assert len(lines) == N == 104, (len(lines), N)
 segs = res["segments"]
 full, partial = res["full"], res["partial"]
 notes_partial = "；".join(f"Ran {k} tests 的几类（{'、'.join(v)}）" for k, v in sorted(partial.items(), key=lambda kv: int(kv[0])))
-odd, even = "M1 M3 … M99", "M2 M4 … M100"
+odd, even = "M1 M3 … M103", "M2 M4 … M104"
 if len(segs) == 1:
     when = f"运行时间（UTC）：{segs[0]['start']} 开始，两批并行，{segs[0]['end']} 结束。一次跑完，中间没有中断。"
     cmd = f"命令：python3 tools/check_mutations.py {odd} 和 python3 tools/check_mutations.py {even}（handoff/release/run_mutations.sh）"
@@ -26,7 +26,7 @@ solo = res["fresh"]["solo"]
 head = [
     when,
     f"Python：{res['python']}，PyYAML：{res['pyyaml']}",
-    f"统一源摘要：{res['digest']}（与 r12 相同：这一版没有改 source/、generator/、build.py）。"
+    f"统一源摘要：{res['digest']}（r14：统一源 2026.10.07-1、生成器 1.6.0）。"
     f"代码状态哈希 {res['state']}：运行开始和结束时相同，与 {FROZEN} UTC 定稿时记下的相同"
     "（source/、generator/、tests/、tools/、build.py、.gitignore 的合并哈希，handoff/release/code_state.sh）",
     cmd,
@@ -36,15 +36,13 @@ head = [
     "      M45（回溯失控）只跑专门针对它的那一项测试（见脚本开头的说明）：那一项把匹配放在带超时的子进程里，等满 300 秒后失败。",
     "      “未见预期信息”只表示输出里没有脚本预设的那个关键字（" + ("、".join(res["not_seen"]) or "这次没有") + "），失败项本身是对的。",
     "      M21 那一行有两个 FAILED：前一个是被测的检查脚本自己打印的，后一个才是这次测试运行的结果。",
-    "      这次是 100 类：r12 的 98 类，加上这一轮新增的 M99（sing-box 的境外 DNS 不再经“国外默认”发出）、M100（核对工具又只读 A 记录、",
-    "      按“没有 A 记录”判空应答）。M94 只改了名字里的“全集一致性”→“逐条扫描”，注入的错误没有变；M3、M8、M12、M27 和 drop_loon_domain_list",
-    "      把 re.sub 的 count 改成关键字写法（Python 3.13 对位置参数报弃用警告），注入的错误没有变。",
+    "      这次是 104 类：r13 的 100 类，加上这一轮新增的 M101（核对工具又只在名字的第一个字节看压缩指针）、M102（mihomo 的",
+    "      nameserver-policy 又没有走代理组的产品域名那一层）、M103（那一层把默认直连的组也交给境外 DNS）、M104（核对工具查 nameserver-policy",
+    "      时按“第一条命中”而不是 mihomo 的域名树）。M11、M91 的改法跟着新代码换了写法（改的位置变了，注入的错误没有变）。",
     "      只靠“记录对应现在的配置”那两项（规则与 DNS 两段的摘要、拨号摘要）发现的有 " + (str(len(solo)) + " 类：" + "、".join(solo) if solo else "0 类") + "。",
-    "      r12 时有 2 类（M91、M92）只靠这两项发现；这一轮补了静态断言（tests/test_dns_lan.py 的 test_mihomo_unmatched_names_ask_only_the_foreign_doh、",
-    "      test_singbox_unmatched_names_ask_only_dns_foreign），它们现在由这两项直接发现，M99 也是。",
-    f"      运行环境和 r12 不同：这一轮是新的云端会话，Python 3.13.16（r12 是 3.11.17），官方程序和上游数据按 handoff/setup_env.sh 登记的版本和校验值重新取回。",
-    f"      代码只定稿过一次（{FROZEN} UTC）。定稿之前，M91、M92、M99、M100 在接近定稿的代码上各单独试跑过（都被发现；M100 当时“未见预期信息”，",
-    "      之后给那两处断言加了说明文字），那几次的输出不在这份日志里。",
+    f"      运行环境和 r13 相同：同一个云端会话，Python 3.13.16，官方程序和上游数据是 handoff/setup_env.sh 登记的那一批。",
+    f"      代码只定稿过一次（{FROZEN} UTC）。定稿之前，M11、M91、M101–M104 在接近定稿的代码上各单独试跑过（都被发现，都见到预期信息），",
+    "      那几次的输出不在这份日志里。",
     "",
 ]
 out = "\n".join(head + lines + ["", f"合计 {N}/{N} 被发现"]) + "\n"

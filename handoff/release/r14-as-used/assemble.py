@@ -1,12 +1,12 @@
-"""变异运行的日志汇总（r13 用的；照 r12-as-used/assemble.py 改的），写出 mut-result.json、mut-lines.txt 到日志目录。
-用法（在工程根目录）：python3 handoff/release/r13-as-used/assemble.py <日志目录>
+"""变异运行的日志汇总（r14 用的；照 r13-as-used/assemble.py 改的），写出 mut-result.json、mut-lines.txt 到日志目录。
+用法（在工程根目录）：python3 handoff/release/r14-as-used/assemble.py <日志目录>
 日志目录里要有 segments.json：[{"start": "mut-start-<段>.txt", "code_state": "code-state-<段>.txt", "logs": ["mut-A-<段>.log", "mut-B-<段>.log"]}, …]
 （文件都是 handoff/release/run_mutations.sh 写的）。只有最后一段要求两份日志都有“合计”行（前面的段是被打断的）。
 没跑完、有没被发现的、代码在运行期间（或各段之间）变过，都会直接报错。"""
 import collections, datetime, json, os, re, subprocess, sys
 
 D = os.path.abspath(sys.argv[1])
-N = 100
+N = 104
 segs = json.load(open(os.path.join(D, "segments.json"), encoding="utf-8"))
 state = subprocess.run(["bash", "handoff/release/code_state.sh"], capture_output=True, text=True, check=True).stdout.strip()
 for seg in segs:
@@ -77,6 +77,6 @@ for k, v in partial.items():
 for name in not_seen:
     l = next(x for x in lines if x.startswith(f"[发现] {name} "))
     print("未见预期信息：", l[:300])
-for name in ["M91", "M92", "M99", "M100"]:
+for name in ["M91", "M92", "M99", "M100", "M101", "M102", "M103", "M104"]:
     l = next(x for x in lines if x.startswith(f"[发现] {name} "))
     print(l[:600])
