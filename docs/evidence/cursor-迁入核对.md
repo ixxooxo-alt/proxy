@@ -50,17 +50,17 @@ Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box） 70�
 | 其他 AI | 域名后缀 | `grok.com` | 一致 | Grok | 2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为 Grok 组，不再归其他 AI |
 | 其他 AI | 域名后缀 | `x.ai` | 一致 | Grok | 2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为 Grok 组，不再归其他 AI |
 | Apple AI | 关键词 | `siri` | 该收 | Apple AI（三条后缀） | 按 2026-09-29 补充需求，关键词换成 siri.apple.com、siri.com、applesiri.cn 三条后缀 |
-| Apple AI | 域名后缀 | `apps.mzstatic.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位、App Store 资源、CloudKit 内容回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI |
-| Apple AI | 域名后缀 | `gateway.icloud.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位、App Store 资源、CloudKit 内容回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI |
-| Apple AI | 域名后缀 | `ls.apple.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位、App Store 资源、CloudKit 内容回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI |
+| Apple AI | 域名后缀 | `apps.mzstatic.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 App Store 图标与截图等资源回到 Apple 组（默认直连） |
+| Apple AI | 域名后缀 | `gateway.icloud.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 CloudKit 内容（含 XProtect 更新、语音控制资源）回到 Apple 组（默认直连） |
+| Apple AI | 域名后缀 | `ls.apple.com` | 该收 | Apple | 拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI |
 | YouTube | 完整域名 | `www.youtubeeducation.com` | 该收 | 兜底 | 未收录，落入国外默认（YouTube 组默认也是国外默认） |
 | YouTube | 完整域名 | `youtubeeducation.com` | 该收 | 兜底 | 未收录，落入国外默认（YouTube 组默认也是国外默认） |
 | Meta 社交 | 域名后缀 | `instagr.am` | 该收 | 兜底 | Instagram 短链接，未收录，落入国外默认 |
 | Reddit | 域名后缀 | `redditinc.com` | 该收 | 兜底 | 公司官网，按采纳原则不收，落入国外默认 |
 | GitHub | 域名后缀 | `github.io` | 该收 | 兜底 | GitHub Pages 托管第三方站点，按共享托管根域不收（见 github 服务的 shared_excluded），落入国外默认 |
-| 广告拦截 | 域名后缀 | `alimama.com` | 该收 | 广告拦截 / 兜底 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机交给国内直连 |
-| 广告拦截 | 域名后缀 | `umeng.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机交给国内直连 |
-| 广告拦截 | 域名后缀 | `umengcloud.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机交给国内直连 |
+| 广告拦截 | 域名后缀 | `alimama.com` | 该收 | 广告拦截 / 兜底 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机和它的 10 个子域，其余子域按普通的国内网站处理 |
+| 广告拦截 | 域名后缀 | `umeng.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml） |
+| 广告拦截 | 域名后缀 | `umengcloud.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml） |
 | 共享基础设施 | 域名后缀 | `akamai.net` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |
 | 共享基础设施 | 域名后缀 | `akamaihd.net` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |
 | 共享基础设施 | 域名后缀 | `akamaized.net` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |

@@ -351,6 +351,21 @@ class OwnLists(unittest.TestCase):
             self.assertIn("qwen.ai", gone)
             self.assertIn(f"共 {len(lines)} 条", outputs()[rel])
 
+    def test_rule_list_doc_counts_each_own_list_from_its_own_data(self):
+        """docs/04 的严格版一节：每份自有规则文件的条数按它自己的数据算。2026-10-07 加大清单副本时，那一行一度写成了
+        自有清单的条数（6121 / 12 / 21），出版本前核对生成的文档时发现的。"""
+        from generator import audit
+        m, plan = model_and_plan()
+        lines = audit.render_audit(m, plan).splitlines()
+        for rel, (suffix, full, dropped) in ((strict_mod.QX_MAX_REL, strict_mod.max_entries(m, plan)),
+                                            (strict_mod.QX_CN_REL, strict_mod.cn_entries(m, plan, "quantumultx")),
+                                            (strict_mod.LOON_CN_REL, strict_mod.cn_entries(m, plan, "loon"))):
+            line = [ln for ln in lines if ln.startswith("- ") and f"`dist/{rel}`" in ln]
+            self.assertEqual(len(line), 1, rel)
+            self.assertIn(f"后缀 {len(suffix)} 条、精确域名 {len(full)} 条", line[0], rel)
+            self.assertIn(f"另有 {dropped} 条", line[0], rel)
+        self.assertGreater(len(strict_mod.max_entries(m, plan)[0]), 100000)
+
     def test_max_copy_is_the_upstream_list_minus_locally_covered_entries(self):
         """Quantumult X 严格版的上游大清单副本（2026-10-07，待决事项第 19 项）：数据文件头写明来源、快照、GPL-2.0；
         生成的规则文件 = 数据减去已被本地规则覆盖的条目；许可全文在 source/data/LICENSE-ios_rule_script.txt。"""

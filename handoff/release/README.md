@@ -19,7 +19,7 @@
 ## 二、定稿，跑全部检查
 
 6. **定稿**：代码不再改了，记下代码状态哈希：`bash handoff/release/code_state.sh`。从这里到打包，`build.py`、`generator/`、`source/`、`tests/`、`tools/`、`.gitignore` 一个字都不能动；动了就重新定稿，后面全部重来（r12 定稿了三次）。
-7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 116 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时）。等它的时候可以写文档。
+7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 117 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时）。等它的时候可以写文档。
    云端机器闲置会被回收，后台进程跟着没了、日志还在：把剩下的编号再跑一段（脚本开头有说明）。
 8. 变异跑完以后：`bash tools/run_checks.sh`（7–10 分钟；重写 `docs/evidence/*.log`）。最后一行必须是“全部检查通过。”。
 9. **版本对比**（旧版本从 git 里检出来，见 `handoff/README.md` 第 2 节）：
@@ -47,4 +47,4 @@
 | `verify_package.sh` | 解包核对 | 通用。2026-10-06 用它核对过 r12 的包（加 `--without-handoff`）：逐文件相同、244 项测试通过、扫描没有命中 |
 | `r12-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r12 汇总变异日志、写 `mutations.log`、核对文档数字用的脚本 | **原样存档，不能直接用**：里面的类数、日志文件名、数字、说明文字都是 r12 的，路径假定日志和它放在同一个目录。当作下一版的样子来改 |
 | `r13-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r13 用的同样三个脚本（日志目录作为参数传入，代码状态从 `run_mutations.sh` 写的文件读） | 同上，原样存档；下一版照着改类数、数字和说明文字 |
-| `r14-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r14 用的同样三个脚本（照 r13 的改：类数 116、三批日志、新的用例和数字、出站时的解析、使用者 2026-10-07 定下的各项） | 同上，原样存档 |
+| `r14-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r14 用的同样三个脚本（照 r13 的改：类数 117、三批日志、新的用例和数字、出站时的解析、使用者 2026-10-07 定下的各项） | 同上，原样存档 |

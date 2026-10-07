@@ -33,10 +33,14 @@ GOOGLE_SHARED = ("设计差异：本工程把 Google 共享根放在 Google 组�
                  "Gemini API、YouTube 接口等专属主机排在它前面；用户可以整体切换 Google 组")
 
 # Cursor 版条目在本工程里去向不同（或没有专门规则）时的处理说明
-NARROW_AAI = ("拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 Apple 地图 / 定位、App Store 资源、"
-              "CloudKit 内容回到 Apple 组（默认直连）；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI")
+NARROW_AAI = "拿掉（2026-10-07，用户定了待决事项第 8 项方案二：放宽“不增不减”）：这条宽规则管的 {}回到 Apple 组（默认直连）{}"
+AAI_WHAT = {"ls.apple.com": ("Apple 地图 / 定位", "；Apple 智能用到的 gspe1-ssl.ls.apple.com 仍单独归 Apple AI"),
+            "apps.mzstatic.com": ("App Store 图标与截图等资源", ""),
+            "gateway.icloud.com": ("CloudKit 内容（含 XProtect 更新、语音控制资源）", "")}
 NARROW_ADS = ("收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域"
-              "（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机交给国内直连")
+              "（source/adblock.yaml 的 local_tracking 最后）；")
+NARROW_UMENG = NARROW_ADS + "友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml）"
+NARROW_ALIMAMA = NARROW_ADS + "阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机和它的 10 个子域，其余子域按普通的国内网站处理"
 DIFF_NOTES = {
     "cursorvm.com": "Cursor 官方文档写明是 Grok Bot 托管计算机，本工程归远程控制（报告也建议这样挪）",
     "x.ai": "2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为 Grok 组，不再归其他 AI",
@@ -55,8 +59,9 @@ DIFF_NOTES = {
                                  "azureedge.net", "cloudfront.net", "edgesuite.net", "msecnd.net", "windows.net",
                                  "windowsazure.com")},
     "siri": "按 2026-09-29 补充需求，关键词换成 siri.apple.com、siri.com、applesiri.cn 三条后缀",
-    **{v: NARROW_AAI for v in ("ls.apple.com", "apps.mzstatic.com", "gateway.icloud.com")},
-    **{v: NARROW_ADS for v in ("umeng.com", "umengcloud.com", "alimama.com")},
+    **{v: NARROW_AAI.format(*w) for v, w in AAI_WHAT.items()},
+    **{v: NARROW_UMENG for v in ("umeng.com", "umengcloud.com")},
+    "alimama.com": NARROW_ALIMAMA,
 }
 
 DESIGN = ("设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），"

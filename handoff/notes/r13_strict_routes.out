@@ -1,0 +1,40 @@
+配置：dist（统一源版本 2026.10.07-2）；登记的自有规则文件：loon/rules/cn-domains.list、quantumultx/rules/cn-domains-max.list、quantumultx/rules/cn-domains.list、quantumultx/rules/domain-fallback.list
+Loon 严格版订阅的上游国内域名集合：ChinaMax_Domain.list（blackmatrix7 快照 blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
+条目 111277 条（后缀 111009，精确 268，关键词 0）
+Loon 严格版远程规则顺序：AdvertisingLite.list → AdvertisingLite_Domain.list → ChinaMax_Domain.list → cn-domains.list → FINAL 国外默认
+Quantumult X 严格版远程规则顺序：AdvertisingLite.list → cn-domains-max.list → cn-domains.list → domain-fallback.list → final 国外默认
+
+代表主机 = 条目本身：两端各自交给哪个组（Loon 严格版 / Quantumult X 严格版）
+  国内直连 / 国内直连：111047 条（99.79%）　例：0.zone、00.net、000.link、000000.net
+  广告拦截 / 广告拦截：150 条（0.13%）　例：0ka.com、112wan.com、217wo.com、23txt.com
+  Microsoft / Microsoft：54 条（0.05%）　例：azuremigrate.download.prss.microsoft.com、azuremigratetest.download.prss.microsoft.com、azurestackhub.download.prss.microsoft.com、azurestackhubuat.download.prss.microsoft.com
+  Google / Google：10 条（0.01%）　例：beacons.gcp.gvt2.com、beacons.gvt2.com、beacons2.gvt2.com、beacons3.gvt2.com
+  其他流媒体 / 其他流媒体：5 条（0.00%）　例：bilibili.tv、biliintl.com、iq.com、p.bstarstatic.com
+  国外默认 / 国外默认：5 条（0.00%）　例：images-amazon.com、qwen.ai、qwenlm.ai、images-cn-8.ssl-images-amazon.com
+  Apple / Apple：3 条（0.00%）　例：aaplimg.com、me.com、mzstatic.com
+  DIRECT / direct：1 条（0.00%）　例：cn.pool.ntp.org
+  TikTok / TikTok：1 条（0.00%）　例：tiktokrow-cdn.com
+  Bilibili 港澳台 / Bilibili 港澳台：1 条（0.00%）　例：upos-hz-mirrorakam.akamaized.net
+  按命中的那一层分（Loon / Quantumult X）：
+    ChinaMax_Domain.list / cn-domains-max.list：111032 条
+    AdvertisingLite_Domain.list / AdvertisingLite.list：97 条
+    本地规则 / 本地规则：96 条
+    AdvertisingLite.list / AdvertisingLite.list：52 条
+
+后缀条目改用一个子域（probe-x1.条目）：两端各自交给哪个组（Loon 严格版 / Quantumult X 严格版）
+  国内直连 / 国内直连：111119 条（99.86%）　例：probe-x1.0.zone、probe-x1.00.net、probe-x1.000.link、probe-x1.000000.net
+  广告拦截 / 广告拦截：79 条（0.07%）　例：probe-x1.112wan.com、probe-x1.99youmeng.com、probe-x1.adsmogo.com、probe-x1.adsmogo.mobi
+  Microsoft / Microsoft：54 条（0.05%）　例：probe-x1.azuremigrate.download.prss.microsoft.com、probe-x1.azuremigratetest.download.prss.microsoft.com、probe-x1.azurestackhub.download.prss.microsoft.com、probe-x1.azurestackhubuat.download.prss.microsoft.com
+  Google / Google：10 条（0.01%）　例：beacons.gcp.gvt2.com、beacons.gvt2.com、beacons2.gvt2.com、beacons3.gvt2.com
+  其他流媒体 / 其他流媒体：5 条（0.00%）　例：probe-x1.bilibili.tv、probe-x1.biliintl.com、probe-x1.iq.com、probe-x1.p.bstarstatic.com
+  国外默认 / 国外默认：5 条（0.00%）　例：probe-x1.images-amazon.com、probe-x1.qwen.ai、probe-x1.qwenlm.ai、images-cn-8.ssl-images-amazon.com
+  Apple / Apple：3 条（0.00%）　例：probe-x1.aaplimg.com、probe-x1.me.com、probe-x1.mzstatic.com
+  DIRECT / direct：1 条（0.00%）　例：probe-x1.cn.pool.ntp.org
+  TikTok / TikTok：1 条（0.00%）　例：probe-x1.tiktokrow-cdn.com
+  按命中的那一层分（Loon / Quantumult X）：
+    ChinaMax_Domain.list / cn-domains-max.list：111104 条
+    本地规则 / 本地规则：95 条
+    AdvertisingLite.list / AdvertisingLite.list：52 条
+    AdvertisingLite_Domain.list / AdvertisingLite.list：26 条
+
+说明：只看域名规则；规则顺序按 tests/emulate.py（依据官方文档的推断）。“国外默认”是策略组，默认走代理。

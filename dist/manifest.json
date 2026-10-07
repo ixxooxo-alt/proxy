@@ -2,7 +2,7 @@
   "generator_version": "1.7.0",
   "source_version": "2026.10.07-2",
   "docs_checked": "2026-09-23",
-  "source_sha256": "894911aa81bc85acc0a0e774676e329de92d14136ad3bae5087235b7f4d6fa53",
+  "source_sha256": "1d622d292456c650fc95bef7327fb9a92b9dd74cf7b66ff200c2798a663c83dc",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,

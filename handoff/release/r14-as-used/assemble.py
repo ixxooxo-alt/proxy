@@ -6,7 +6,7 @@
 import collections, datetime, json, os, re, subprocess, sys
 
 D = os.path.abspath(sys.argv[1])
-N = 116
+N = 117
 segs = json.load(open(os.path.join(D, "segments.json"), encoding="utf-8"))
 state = subprocess.run(["bash", "handoff/release/code_state.sh"], capture_output=True, text=True, check=True).stdout.strip()
 for seg in segs:
@@ -77,6 +77,6 @@ for k, v in partial.items():
 for name in not_seen:
     l = next(x for x in lines if x.startswith(f"[发现] {name} "))
     print("未见预期信息：", l[:300])
-for name in ["M91", "M92", "M99", "M100", "M101", "M102", "M103", "M104", "M105", "M108", "M109", "M110", "M116"]:
+for name in ["M91", "M92", "M99", "M100", "M101", "M102", "M103", "M104", "M105", "M108", "M109", "M110", "M116", "M117"]:
     l = next(x for x in lines if x.startswith(f"[发现] {name} "))
     print(l[:600])

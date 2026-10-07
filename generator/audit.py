@@ -145,8 +145,8 @@ def _strict_section(m: Model, plan: Plan) -> list:
     st = m.strict
     suffix, full = m.cn_domains
     L = ["## 严格版（Loon / Quantumult X）用到的清单", ""]
-    L.append("严格版只在这两端各多生成一份配置（`loon-strict.conf`、`quantumultx-strict.conf`），标准版不用下面这些。"
-             "做法与限制见 `docs/03`“严格版”一节和 `docs/06`。")
+    L.append("严格版只在这两端各多生成一份配置（`loon-strict.conf`、`quantumultx-strict.conf`）。标准版不用下面的国内域名清单和域名兜底；"
+             "最后的“要真实地址的名单固定直连”2026-10-07 起四个客户端的标准版也有。做法与限制见 `docs/03`“严格版”一节和 `docs/06`。")
     L.append("")
     L.append("**国内域名清单**（远程规则，排在广告集合之后，交给“国内直连”）：")
     for client in ("loon", "quantumultx"):
@@ -154,9 +154,14 @@ def _strict_section(m: Model, plan: Plan) -> list:
             if x.get("url"):
                 L.append(f"- {client}：{x['url']}（证据 `{x.get('ev', '')}`）—— {x.get('source', '')}")
             else:
-                kept_s, kept_f, dropped = strict_mod.cn_entries(m, plan, client)
-                L.append(f"- {client}：`dist/{x['own']}`（自有清单，随本项目生成和发布，配置里引用的地址是 {strict_mod.own_url(m, x['own'])}）——"
-                         f"后缀 {len(kept_s)} 条、精确域名 {len(kept_f)} 条；数据文件里另有 {dropped} 条已被这一端的本地规则覆盖，没有写进去")
+                # 2026-10-07 起 Quantumult X 还有一份上游大清单的副本：它的条数要按它自己的数据算（以前这里一律按自有清单算，
+                # 副本那一行写成了自有清单的条数）
+                is_max = x["own"] == strict_mod.QX_MAX_REL
+                kept_s, kept_f, dropped = strict_mod.max_entries(m, plan) if is_max else strict_mod.cn_entries(m, plan, client)
+                what = "上游大清单的副本" if is_max else "自有清单"
+                data = strict_mod.MAX_DATA_REL if is_max else strict_mod.CN_DATA_REL
+                L.append(f"- {client}：`dist/{x['own']}`（{what}，随本项目生成和发布，配置里引用的地址是 {strict_mod.own_url(m, x['own'])}）——"
+                         f"后缀 {len(kept_s)} 条、精确域名 {len(kept_f)} 条；数据文件 `{data}` 里另有 {dropped} 条已被这一端的本地规则覆盖，没有写进去")
     L.append("")
     L.append(f"自有清单的数据在 `{strict_mod.CN_DATA_REL}`（后缀 {len(suffix)} 条、精确域名 {len(full)} 条），"
              "由 `tools/update_cn_list.py` 从固定快照生成，文件头照录如下：")
@@ -172,6 +177,15 @@ def _strict_section(m: Model, plan: Plan) -> list:
     local = {c: [r for r in plan.lan + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(c)
                  if r.kind in ("domain", "suffix")] for c in ("loon", "quantumultx")}
     from .model import most_specific
+    mx_s, mx_f = m.max_domains
+    L.append(f"上游大清单的副本（只有 Quantumult X 严格版用，2026-10-07 起，待决事项第 19 项）的数据在 `{strict_mod.MAX_DATA_REL}`"
+             f"（后缀 {len(mx_s)} 条、精确域名 {len(mx_f)} 条），由同一个工具从 blackmatrix7 的固定快照照录，文件头照录如下：")
+    L.append("")
+    for line in m.max_data_header:
+        L.append("> " + line.lstrip("# ").strip())
+    L.append("")
+    L.append("副本里已被本地规则覆盖的条目也不写进规则文件，道理和下面的自有清单相同；条数见上面的列表，条目太多，这里不逐条列出。")
+    L.append("")
     L.append("已被本地规则覆盖、没有写进自有清单的条目（本地规则优先于远程规则，它们的去向由本地规则决定）：")
     L.append("")
     L.append("| 条目 | 本地规则把它交给 |")

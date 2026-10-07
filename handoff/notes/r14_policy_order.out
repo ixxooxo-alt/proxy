@@ -1,0 +1,12 @@
+配置：dist/mihomo/mihomo-core.yaml（统一源版本 2026.10.07-2）
+nameserver-policy：745 个键，普通域名写法 747 条；比较的主机 2241 个
+
+1. 交付的书写顺序：域名树和“第一条命中”结果不同的主机 0 个
+
+2. 把普通域名写法的先后倒过来：域名树的结果变了的 0 个；“第一条命中”的结果变了的 4 个
+    a.b.delivery.mp.microsoft.com：倒过来以前 国内，倒过来以后 境外
+    delivery.mp.microsoft.com：倒过来以前 国内，倒过来以后 境外
+    probe-x1.delivery.mp.microsoft.com：倒过来以前 国内，倒过来以后 境外
+    time.windows.com：倒过来以前 国内，倒过来以后 境外
+
+说明：mihomo 不看这些写法的先后（v1.19.31 dns/resolver.go 的 makePolicy、component/trie/domain.go；读源码得到）。

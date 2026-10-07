@@ -7,7 +7,7 @@ r14 前后定稿过三次，只有最后一次的结果算数（`docs/05`“已�
 
 - 02:05 定稿的是只做了审核那一半的生成器 1.6.0（文件 `~/proxy-work/freeze14-*.txt`、变异日志 `~/proxy-work/mut14/`）。变异检查跑到一半，使用者让我先把待决事项一次定完，那一版没有交付。
 - 06:20 定稿的是 1.7.0（`freeze14b-*.txt`、`mut14b/`）。变异检查开始几分钟后，我在版本对比报告里发现只换了先后的条目不写改了什么（变异 M116 那一处），停下来改 `tools/compare_versions.py`。
-- ⟦FREEZE_HM⟧ 定稿的是交付的这一版（`freeze14c-*.txt`、`mut14c/`），下面的命令都是这一次的。
+- 06:29 定稿的是交付的这一版（`freeze14c-*.txt`、`mut14c/`），下面的命令都是这一次的。
 
 1. **定稿**：代码状态哈希写进 `~/proxy-work/freeze14c-state.txt`（`bash handoff/release/code_state.sh` 的输出），时间写进 `~/proxy-work/freeze14c-time.txt`。
 2. **变异检查**：`MUT_BATCHES=3 bash handoff/release/run_mutations.sh ~/proxy-work/mut14c`（三批：编号除以 3 余 1、余 2、整除）。它写下 `mut-start-<段>.txt`、`code-state-<段>.txt`、三批的日志 `mut-A-…`、`mut-B-…`、`mut-C-…`。
