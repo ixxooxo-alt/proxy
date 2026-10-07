@@ -78,7 +78,8 @@ groups:
 
   # ---------- 基础 ----------
   - {name: 广告拦截, category: 基础, default: REJECT, options: [DIRECT]}
-  - {name: 国内直连, category: 基础, default: DIRECT, options: [国外默认]}
+  - {name: 国内直连, category: 基础, default: DIRECT, options: [],
+     note: 固定直连、不能切换（2026-10-07 用户定了待决事项第 17 项，方案二；以前还能切到国外默认）}
 
 # 专用入口（不直接铺满节点给业务组，而是独立筛选）
 special_entries:

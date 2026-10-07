@@ -1016,9 +1016,10 @@ proxy-groups:
     type: select
     proxies: [REJECT, DIRECT]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/%E5%B9%BF%E5%91%8A%E6%8B%A6%E6%88%AA.png
+  # 国内直连：固定直连、不能切换（2026-10-07 用户定了待决事项第 17 项，方案二；以前还能切到国外默认）
   - name: 国内直连
     type: select
-    proxies: [DIRECT, 国外默认]
+    proxies: [DIRECT]
     icon: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/%E5%9B%BD%E5%86%85%E7%9B%B4%E8%BF%9E.png
   # PayPal·美国固定：尚未指定固定节点：在美国节点中手动选一个；被选节点删除后会回到本组第一个美国节点（见已知限制）
   - name: PayPal·美国固定

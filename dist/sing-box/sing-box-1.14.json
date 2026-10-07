@@ -785,8 +785,7 @@
       "type": "selector",
       "tag": "国内直连",
       "outbounds": [
-        "DIRECT",
-        "国外默认"
+        "DIRECT"
       ],
       "default": "DIRECT"
     },

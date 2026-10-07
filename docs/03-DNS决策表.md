@@ -267,7 +267,7 @@ dns:
 | 上游的国内域名集合收了、路由靠产品规则交给代理组的域名（**r14 已改，这一类没有了**） | r13 时 mihomo 的 142 个代表主机：`qwen.ai`、`google.cn`、`aka.ms` 等几个 `.ms` 域名、`bilibili.tv`、`download.microsoft.com` 这一批微软下载主机、B 站港澳台用的几个接口主机等 | r13 的 `nameserver-policy` 里只有“国内域名集合 → 国内 DNS”，没有 sing-box 那样“走代理组的产品域名先判断”的一层 | r12、r13 写的是“按交付的原始配置，只影响地址以外的查询类型（TXT、SRV），连接本身不解析，影响面很窄”——**说错了**（GPT 审核 r13 的 R13-F01）：设备查 A 得到假地址、AAAA / HTTPS 是空应答这一半是对的（2026-10-07 一次性核对过，GPT 也独立复测过）；但 mihomo 转发 UDP（例如浏览器的 QUIC）时、经 WireGuard 这类出口时，会在本机用这份策略解析目标域名，这些名字就交给了国内 DNS（官方内核实测，`handoff/notes/r13_review_probes.r13.out`）。r14 按你的决定在 `nameserver-policy` 里加了“走代理组的产品域名 → 境外 DNS”一层（最后一节），这一类没有了 | 第 16 项（已改，r14） |
 | 上游 `private` 集合里的名字 | mihomo 的 222 个代表主机：反向解析域（`10.in-addr.arpa` 这类，190 个）、保留后缀（`test`、`invalid`、`internal`、`example`）、路由器登录域名（`tplinkwifi.net`、`router.asus.com` 等） | `nameserver-policy` 的那一条写的是 `geosite:cn,private`，`fake-ip-filter` 又让它们拿真实地址；路由上只有局域网后缀固定直连 | 这些名字本来就该由路由器回答，交给国内的公共 DNS 多半解析不到或者解析错。和“不带点的名字”是同一个原因 | 第 14 项（2026-10-07 已改：你选了方案二，mihomo 上交给系统 DNS，这一类没有了） |
 
-另有一条不在扫描范围里、但性质相同的已知限制：四个客户端的“国内直连”都是可以切换的组（直连 / 国外默认，默认直连）。把它切到“国外默认”以后，sing-box 仍然先按 DNS 规则把国内域名集合里的域名交给 `dns-cn` 解析，再把连接交给代理（`docs/06` 待决事项第 17 项）；mihomo 上经 SOCKS 这类出口的 TCP 连接不在本机解析，但转发 UDP、经 WireGuard 时会，名字按 `geosite:cn` 交给国内 DNS（机制见最后一节；“国内直连”切到代理这种情况按源码推断，没有单独实测——r13 这里写的是“mihomo 上被域名规则接住的部分不在本机解析”，没有考虑出口自己的解析）；Loon / Quantumult X 上被域名规则接住的部分不在本机解析。
+另有一条不在扫描范围里、但性质相同的已知限制，**2026-10-07 起没有了**：你定了待决事项第 17 项方案二，“国内直连”固定直连、组里只剩 DIRECT。以前的情况留作记录——四个客户端的“国内直连”都是可以切换的组（直连 / 国外默认，默认直连）。把它切到“国外默认”以后，sing-box 仍然先按 DNS 规则把国内域名集合里的域名交给 `dns-cn` 解析，再把连接交给代理（`docs/06` 待决事项第 17 项）；mihomo 上经 SOCKS 这类出口的 TCP 连接不在本机解析，但转发 UDP、经 WireGuard 时会，名字按 `geosite:cn` 交给国内 DNS（机制见最后一节；“国内直连”切到代理这种情况按源码推断，没有单独实测——r13 这里写的是“mihomo 上被域名规则接住的部分不在本机解析”，没有考虑出口自己的解析）；Loon / Quantumult X 上被域名规则接住的部分不在本机解析。
 
 **这些核对没有覆盖的**
 
@@ -317,7 +317,7 @@ dns:
 - 交给默认直连的组的（国内直连、Apple、Apple Music/TV、Apple Push，2026-10-07 起还有 Bilibili 港澳台）不放进去：mihomo 的直连连接也按这份策略解析（`direct-nameserver-follow-policy`），放进去的话，Apple 默认直连时会拿境外 DNS 的结果、可能连到远的服务器。例外是被更宽的“走代理”规则包住的直连规则，要写明交给国内 DNS，否则会被外面那一条盖住——现在只有一条：Microsoft 下面的 `delivery.mp.microsoft.com`（Windows 更新的下载）。sing-box 那边把 Apple 那几个组也算作“走代理”的一类，是因为它的直连出站另由国内 DNS 解析（`default_domain_resolver`），和 mihomo 不同。
 - 为什么一条一条地写、写在 `geosite:` 前面：mihomo 把相邻的普通域名写法合成一棵域名树，树里越具体的越优先、不看先后（v1.19.31 `dns/resolver.go` 的 `makePolicy`、`component/trie/domain.go`），和路由规则“更具体的优先”一致；`geosite:` 的条目各自单独、按书写顺序，所以这一层要在 `geosite:private`、`geosite:cn` 之前（r13 时这两个集合合成一条 `geosite:cn,private`）。核对工具的逐条扫描以前按“第一条命中”模拟，r14 改成按域名树算（`tools/dns_route_consistency.py` 的 `DomainTrie`）。
 
-**代价**：这些组你手动切成直连时（例如把 Microsoft 切成 DIRECT 下载更新），它们的名字也由境外 DNS 解析，可能连到离你远的服务器、变慢——sing-box 现在就是这样（DNS 在连接之前就判断完了，见 `docs/06` 待决事项第 17 项那一类）。默认状态下不影响国内网站。
+**代价**：这些组你手动切成直连时（例如把 Microsoft 切成 DIRECT 下载更新），它们的名字也由境外 DNS 解析，可能连到离你远的服务器、变慢。默认状态下不影响国内网站。sing-box 上没有这个代价：设备查地址（A / AAAA）时只拿到假地址，连接进来以后内核把假地址换回域名（v1.14.1 `route/route.go`），组切成直连时由直连出站用 `route.default_domain_resolver`（`dns-cn`）解析——和上面“sing-box：拨号时的解析不看 DNS 规则”一节是同一条路（按源码和那一节的实测推断，“走代理的组切成直连”这种情况没有单独实测）。交付前自查时改正：这里原来写的是“sing-box 现在就是这样（DNS 在连接之前就判断完了）”，说反了——DNS 在连接之前判断完、拿不回来的，是“国内直连”这类给真实地址的名字（待决事项第 17 项那一类），不是给假地址的这些。
 
 **核对**（都在 `tools/check_real_routes.py`，结果在 `docs/evidence/real-route-check.log`、快照的 `outbound`）：
 
@@ -327,6 +327,6 @@ dns:
 
 **仍然没有覆盖的**
 
-- 默认直连的组你手动切到代理以后（例如把 Apple 切到某个地区、把 Bilibili 港澳台切到台湾），它们的名字仍按 `geosite:cn` 交给国内 DNS——转发 UDP、经 WireGuard 时同样会被国内 DNS 看到。和待决事项第 17 项（“国内直连”切到代理）是同一类：DNS 不会跟着组的选择变。
+- 默认直连的组你手动切到代理以后（例如把 Apple 切到某个地区、把 Bilibili 港澳台切到台湾），它们的名字仍按 `geosite:cn` 交给国内 DNS——转发 UDP、经 WireGuard 时同样会被国内 DNS 看到。mihomo 的 DNS 不会跟着组的选择变：每个域名用哪个 DNS 是配置里固定的，直连连接的解析要么和 `nameserver-policy` 共用同一份、要么完全不看（v1.19.31 `dns/resolver.go`），没有按组的开关。要不要把这几个组的名字改交境外 DNS（代价是平时直连也用境外的结果、可能变慢），是待决事项第 21 项，等你选。sing-box 上会跟着变：这几个组在 DNS 规则里给假地址，直连时由直连出站用 `dns-cn` 解析。以前这里还提到同一类的待决事项第 17 项（“国内直连”切到代理）：2026-10-07 你定了方案二，“国内直连”固定直连、不能再切，那种情况不会再出现。
 - 上游 `private` 集合里的名字（待决事项第 14 项）、sing-box 的“要真实地址的名单”（第 15 项）不归这一层管，你 2026-10-07 另外定了改法（“走代理的域名不交给国内 DNS”一节最后那张表）。
 - 核对用的是本机的代理端口，不是 TUN；真实节点、真实网络没有试。Loon、Quantumult X 的情况不知道（上面）。

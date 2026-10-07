@@ -65,6 +65,12 @@ class Structure(unittest.TestCase):
                     continue
                 self.assertEqual(gs[name]["members"][0], want, f"{client} {name} 默认值")
 
+    def test_domestic_direct_is_fixed(self):
+        """“国内直连”固定直连、不能切换（2026-10-07 用户定了待决事项第 17 项，方案二；以前还能切到国外默认）：
+        四端都还有这个组（规则照旧交给它），组里只有 DIRECT。"""
+        for client in CLIENT_FILES:
+            self.assertEqual(groups_of(client)["国内直连"]["members"], ["DIRECT"], client)
+
     def test_region_entries(self):
         for client in CLIENT_FILES:
             gs = groups_of(client)
