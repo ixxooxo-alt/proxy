@@ -169,5 +169,5 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
    - 第 19 项：`tools/update_cn_list.py --bm7` 把 blackmatrix7 的 `ChinaMax_Domain.list` 照录到 `source/data/cn-domains-max.txt`（许可 `source/data/LICENSE-ios_rule_script.txt`），生成 `dist/quantumultx/rules/cn-domains-max.list`。换 blackmatrix7 快照时要重新生成这一份（`--check` 会报不一致）。`generator/model.py` 校验这份数据（≥50,000 条后缀、写法合规、无重复）。
    - 第 7 项：友盟、阿里妈妈改成只拦上游标出的子域（`adblock.yaml` 的 `local_tracking` 最后），另加服务 `umeng`（`services/misc.yaml`，国内直连）挡住 Loon / Quantumult X 上游广告列表里的关键词 `umeng`。
    - 第 8 项：Apple AI 去掉三条宽规则；第 5 项：Bilibili 港澳台默认 DIRECT；第 3 项：去掉 `special_entries.netflix_entry` 和 Netflix·解锁入口（`local.yaml` 里还有这一段时生成报错）。
-   - 测试一遍从约 140 秒变成约 230 秒（大清单副本让严格版的测试和模拟器慢了），变异一类约 4 分钟；`handoff/release/run_mutations.sh` 现在可以 `MUT_BATCHES=3` 分三批跑。变异 104 → 115 类（M105–M115）。
+   - 测试一遍从约 140 秒变成约 230 秒（大清单副本让严格版的测试和模拟器慢了），变异一类约 4 分钟；`handoff/release/run_mutations.sh` 现在可以 `MUT_BATCHES=3` 分三批跑。变异 104 → 116 类（M105–M115 对应这些决定；M116 是出版本时查出的版本对比报告的缺陷：只换了先后的条目只写一个空的“改动 X：”，`tools/compare_versions.py` 修了）。
    - 还没定的：第 17 项（用户问指哪些组，我答了只指“国内直连”，等他选）。Stash 的文档站仍被挡着，等用户放行或同意用别的公开资料。

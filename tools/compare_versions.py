@@ -418,6 +418,16 @@ def _token_diff(a: str, b: str) -> str:
     def part(verb, items):
         return f"{verb} `{_short('，'.join(items))}`" if items else ""
 
+    if not gone and not come and ta != tb:
+        # 片段一样、只是先后变了（例如策略组换了第一项、也就是默认出口：2026-10-07 的 Bilibili 港澳台）。以前这里什么都不写，
+        # 报告里只剩一个空的“改动 X：”。只列出前后不同的那一段
+        i = 0
+        while ta[i] == tb[i]:
+            i += 1
+        j = 0
+        while ta[len(ta) - 1 - j] == tb[len(tb) - 1 - j]:
+            j += 1
+        return f"顺序改了：原来 `{_short('，'.join(ta[i:len(ta) - j]))}`，现在 `{_short('，'.join(tb[i:len(tb) - j]))}`"
     return "；".join(x for x in (part("去掉", gone), part("加上", come)) if x)
 
 
@@ -542,7 +552,9 @@ def outputs_section(L, old_dir, labels, old_label, new_label):
           "sing-box 按 DNS 服务器、DNS 规则、路由规则、规则集、出站与策略组、其余设置。节点筛选正则换成了标记："
           f"`<筛选：上一版 hk>` / `<筛选：上一版严 hk>` 是 {old_label} 的（{old_label} 每个地区只有一条筛选时没有后一种），"
           f"`<筛选：宽 hk>` / `<筛选：严 hk>` 是 {new_label} 的两条。很多条目改法相同、只是各自的地区或各自的地址不同时，"
-          "合并成一条，写成“各自的地区”“各自的地址”。“顺序”指两版都有的条目，先后是否相同。", ""]
+          "合并成一条，写成“各自的地区”“各自的地址”。“顺序”指两版都有的条目，先后是否相同。"
+          "规则这类没有名字的条目，一条删除和一条新增文字很像时会配成一条“改动”显示（标题后面带“…”），只是为了紧凑："
+          "配成一对不代表一条规则改成了另一条，按后面的“去掉 / 加上”读。", ""]
     seen = {}
     for rel in OUTPUTS:
         a, b = os.path.join(old_dir, "dist", rel), os.path.join(ROOT, "dist", rel)

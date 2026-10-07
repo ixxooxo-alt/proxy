@@ -69,6 +69,13 @@ class Units(unittest.TestCase):
         rows, _ = self.diff(LOON_OLD, swapped)
         self.assertEqual(rows["Rule"], ([], [], [], False), "两条规则换了先后：没有新增和删除，但顺序变了")
 
+    def test_change_that_only_reorders_an_item_says_so(self):
+        """策略组只换了成员的先后（2026-10-07 的 Bilibili 港澳台：默认出口从台湾改成 DIRECT）：以前报告里只有一个空的“改动 X：”。"""
+        old = "B 组 = select,台湾,香港,国外默认,DIRECT,img-url = https://x.example/b.png"
+        new = "B 组 = select,DIRECT,台湾,香港,国外默认,img-url = https://x.example/b.png"
+        self.assertEqual(cv._token_diff(old, new), "顺序改了：原来 `台湾，香港，国外默认，DIRECT`，现在 `DIRECT，台湾，香港，国外默认`")
+        self.assertEqual(cv._token_diff(old, old.replace("香港", "日本")), "去掉 `香港`；加上 `日本`")
+
     def test_identical_text_has_no_rows(self):
         rows, same = self.diff(LOON_OLD, LOON_OLD)
         self.assertEqual(rows, {})
