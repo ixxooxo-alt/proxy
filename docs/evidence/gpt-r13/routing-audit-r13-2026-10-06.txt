@@ -1,0 +1,254 @@
+分流配置 r13 指定分支审核报告
+
+审核对象：https://github.com/ixxooxo-alt/proxy/tree/claude/r12-gpt-review-handling-q4onlv
+固定提交：bf42e8ba94ceb1405f2868b269756fc06e09aef5
+审核日期：2026-10-06 UTC（北京时间 2026-10-07）
+统一源：2026.10.06-1；生成器：1.5.0。
+
+先读了根目录 00-审核说明.md，按其中的范围及“在 GitHub 上审、用 PR 提交”要求审核。审的是上述分支，没有修改或发布 main。当前没有可用的 GitHub 写入接口，本次采用说明明确允许的审核报告方式，没有开 PR，也没有修改仓库文件。
+
+一、结论
+
+没有发现 r13 新增的配置语法回归。12 个公开产物确实与 r12 逐字节相同，生成一致性、247 项单元测试、mihomo 和 sing-box 官方程序检查均通过。
+
+确认 4 项问题：
+1. 中等／条件性安全或泄漏：mihomo 选择默认设置的 WireGuard 出口时，普通连接也可能把 qwen.ai 的 A/AAAA 查询发给国内 DNS。“只影响 TXT 等非地址查询、连接本身不解析”的说明不成立，现有拒绝出口测试覆盖不到这个阶段。
+2. 低／文档不符：把配置里的 system 解析器与内核全局 SystemResolver 的 114.114.114.114、8.8.8.8 兜底混为一谈。
+3. 低／文档不符：105,446 是两个覆盖检查都没接住的条目数，不是严格的“Loon 直连、QX 代理”差异数；漏扣远程广告规则。
+4. 低／核对工具错误：dns_exchange 仍不能解析“普通标签 + 压缩指针”的合法记录名，会把正常的 CNAME+A 应答误报为 rcode--1。
+
+第 1 项是已有配置在特定出口下的行为，不是 r13 修改配置造成的；第 4 项也是原有解析循环遗留的问题。第 2、3 项涉及 r13 新加入或强化的文字结论。
+
+二、确认的问题及依据
+
+R13-F01：WireGuard 出口会触发目标域名解析，影响不只限于 TXT/SRV
+类别：安全或泄漏、文档不符。严重程度：中等，触发条件明确。
+
+位置：
+- generator/emit_mihomo.py 第 238–240 行：nameserver-policy 仅有局域网例外和 geosite:cn,private → 国内 DNS。
+- docs/03-DNS决策表.md 第 260 行：“只影响地址以外的查询类型”“连接本身不解析”。
+- docs/06-已知限制与待决事项.md 第 22 行，待决事项 16：同样的影响范围说明。
+- tests/cases.yaml 第 422 行，product_cn 的 why。
+- tools/check_real_routes.py 第 598–602、659–662 行：代理策略组在核对时换成 REJECT。
+
+为什么不成立：
+DNS 监听端口返回 fake-ip，不等于所有代理协议建立连接时都不用解析目标。WireGuard 是 IP 隧道出口。mihomo v1.19.31 的 WireGuard 在目标还没有真实 IP、又没有配置专用远程解析器时，会使用 resolver.DefaultResolver 解析目标域名。qwen.ai 的连接虽然已由产品规则分到“国外默认”，DNS 策略仍会命中 geosite:cn，使用国内 DNS。
+
+官方依据：
+- https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/wireguard.go
+  第 87–88 行：remote-dns-resolve、dns 选项。
+  第 508–520 行：只有 remote-dns-resolve 为 true 且 dns 非空，才构造专用解析器。
+  第 794–810 行：DialContext 对未解析目标使用默认解析器；UDP 对应分支在第 839 行附近。
+- https://wiki.metacubex.one/config/proxies/wg/
+  官方说明 remote-dns-resolve 默认 false，dns 与它配套使用。
+
+本轮复现：
+- 官方 mihomo v1.19.31，使用本分支生成的 mihomo-core.yaml，保留原有路由及 DNS 策略结构。
+- 按工程现有探针方法，把 system／国内／境外 DNS 分别替换成三个本机 UDP 替身；A 只答 127.0.0.1，其他类型回空。
+- 关闭 TUN、系统代理和外部控制端口，只在本机监听代理端口。
+- 将“国外默认”固定到一个测试出口；分别运行 SOCKS5 对照和 WireGuard。测试服务器都是 127.0.0.1 的空端口，WireGuard 使用临时随机测试密钥，不读取真实订阅。
+- 经代理端口请求 CONNECT qwen.ai:443，保持连接供内核进入拨号阶段。
+
+只统计 qwen.ai 的结果：
+SOCKS5：system 无查询；国内 DNS 无查询；境外 DNS 无查询。
+WireGuard（未设 remote-dns-resolve/dns）：system 无查询；国内 DNS 收到 A 和 AAAA；境外 DNS 无查询。
+
+WireGuard 内核日志顺序：
+[DNS] resolve qwen.ai A from udp://127.0.0.1:<国内替身端口>
+[DNS] resolve qwen.ai AAAA from udp://127.0.0.1:<国内替身端口>
+[DNS] qwen.ai --> [127.0.0.1] A ...
+之后才出现 WireGuard 握手及本机端口拒绝。
+
+这证明的是目标查询进入了国内 DNS 路径；实验未向真实国内 DNS 发送该查询，也没有声称完成了 WireGuard 联网。未查看用户的真实节点，因此不表示用户当前一定受影响。
+
+现有测试为什么看不到：
+代理组换成 REJECT 后，目标匹配规则便结束了；新增的静态断言约束默认 DNS 和 resolve 动作，同样没有运行 WireGuard 的出站解析。因此这类测试中 qwen.ai 的 none 只能说明该测试路径没有查询，不能推广到所有代理出口。
+
+建议：
+1. 先更正文档、待决事项 16 和 cases.yaml 的影响说明，明确区分“设备向 DNS 端口查询”与“代理出站为连接解析目标”。
+2. 增加一条实际 WireGuard 出站的本机探针，用 SOCKS5 作对照；保留 DNS 去向观测，即使握手失败也能验证此路径。
+3. 如果选择解决此问题，再按待决事项 16 的第二方案，从统一源／生成器为代理产品域名生成优先于 geosite:cn 的境外 DNS 策略，并核对重叠、长度、实际解析及故障行为。另一种节点级方案是正确配置 WireGuard 的远程 DNS，须同时验证其可达性和传输路径。
+4. 不能只打开 respect-rules 或更换图标来解决；前者控制 DNS 连接怎么出站，不会自动把目标域名重新归到境外 DNS。
+
+对我上一轮审核的更正：此前对 142 个域名查询结果的观察，只能证明 DNS 前端行为。我认可“连接本身不解析”的概括过宽，应以本次条件说明为准。
+
+R13-F02：system 的内置兜底归属读错
+类别：文档不符。严重程度：低。
+
+位置：
+- docs/03-DNS决策表.md 第 146、286 行。
+- docs/06-已知限制与待决事项.md 第 202 行。
+- docs/08-外部审核记录.md 第 540 行，第 8 轮对第 11 点的答复。
+- 根目录 00-审核说明.md，“本轮改了什么”第 4 项。
+
+错误说法：配置中的 system 从系统读不到 DNS 时，自动使用 114.114.114.114 和 8.8.8.8。
+
+源码实际分两条构造路径：
+1. dns/util.go 第 127–128 行：配置项 system 通过 newSystemClient() 创建实例。
+2. dns/system.go 第 62–65 行：newSystemClient() 只初始化 dnsClients，未设置 defaultNS。
+3. 同文件第 68–73 行：包初始化时另建一个实例，给它设置 114.114.114.114:53、8.8.8.8:53，再放进全局 resolver.SystemResolver。
+4. 同文件第 32–41 行：只有当前实例的 defaultNS 非空才会用该兜底。配置创建的实例并不满足这个条件。
+
+依据：
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/util.go
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/system.go
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/system_common.go
+https://github.com/MetaCubeX/mihomo/blob/v1.19.31/component/resolver/resolver.go
+
+建议改成：
+“配置中的 system 使用内核读取的系统 DNS，不保证是家庭路由器。v1.19.31 全局 SystemResolver 另有内置公共 DNS 兜底，但不能把该行为套到 nameserver-policy／proxy-server-nameserver-policy 中配置的 system 实例。后者在没有可用系统 DNS 时，不因这段 defaultNS 代码而自动查询这两个公共地址。”
+
+保留两个独立事实：
+- 系统本身配置的是公共 DNS 时，system 确实可能查询该公共 DNS。
+- Clash Verge Rev 在 macOS 上改系统 DNS、该设置如何被内核读到，是另一条路径；这个推断不会因为修正上述构造路径而自动被否定。
+
+本项根据固定版本源码确认；没有修改宿主机的系统 DNS，也没有把源码分析写成 macOS 真机实测。
+
+R13-F03：105,446 条覆盖缺口被写成了实际路由差异
+类别：文档不符。严重程度：低。
+
+位置：
+- handoff/notes/qx_strict_coverage.py 第 55–65、72 行。
+- docs/03-DNS决策表.md 第 195 行。
+- docs/06-已知限制与待决事项.md 第 25 行，待决事项 19。
+- 根目录 00-审核说明.md，“本轮改了什么”第 5 项。
+
+脚本计算了：
+111,277 条 ChinaMax 域名条目
+减去 5,753 条自有清单覆盖
+减去 78 条 QX 本地域名规则覆盖
+得到 105,446 条。
+
+上述算术可以复现；问题在于脚本没有读取远程广告资源，却把余数直接标成“Loon 严格版直连、QX 严格版走代理”。两端都把远程广告资源排在国内域名资源之前。
+
+具体反例（与仓库相同的 blackmatrix7 快照 51d2e1dd8429a91be575157d6f8ed051c93559f8）：
+- ChinaMax_Domain.list 第 10134 行含 .afp.adchina.com；它被覆盖脚本计入 105,446。
+- Loon AdvertisingLite_Domain.list 第 1454 行含 .adchina.com。
+- QX AdvertisingLite.list 第 25205 行含 HOST-SUFFIX,adchina.com,AdvertisingLite。
+- 两个配置都把相应资源的策略设为“广告拦截”。此例按项目采用的规则顺序应由两端广告组接走，不是“一端国内直连、另一端国外默认”。
+
+本轮只用“两端广告后缀都覆盖”的保守条件，就在脚本余数里找到了 20 个条目；例子还有 api.anythinktech.com、app-measurement.com、cm.ipinyou.com 等。没有将 105,446−20 当成新的完整差异数，因为还需要处理精确规则、关键词、其他规则和代表主机的语义。
+
+依据：
+本分支 dist/loon/loon-strict.conf 第 1221–1225 行；
+本分支 dist/quantumultx/quantumultx-strict.conf 第 124–128 行。
+https://github.com/blackmatrix7/ios_rule_script/blob/51d2e1dd8429a91be575157d6f8ed051c93559f8/rule/Loon/ChinaMax/ChinaMax_Domain.list
+https://github.com/blackmatrix7/ios_rule_script/blob/51d2e1dd8429a91be575157d6f8ed051c93559f8/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list
+https://github.com/blackmatrix7/ios_rule_script/blob/51d2e1dd8429a91be575157d6f8ed051c93559f8/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list
+
+建议最小修正：
+把脚本及文档的 105,446 定义为“自有国内清单及 QX 本地域名规则未覆盖的上游条目数，尚未扣除远程广告等更早规则”，不要称为实际分流差异。若要报路由差异，须分别按两端完整规则路径计算，并明确使用的代表主机。
+
+这项反例不推翻“QX 严格版国内清单覆盖较少”的总体判断；20 条也不足以改变按一位小数显示的 94.8%。需要修正的是精确数字的含义，不能据此换算用户实际访问中有多少比例会走代理。
+
+R13-F04：DNS 记录名的混合压缩形式仍解析失败
+类别：核对工具错误／改进建议。严重程度：低。
+
+位置：tools/check_real_routes.py 第 207–214 行；tests/test_real_data.py 的 ProbeReplyParsing 未覆盖此种记录名。
+
+原因：
+当前循环只在记录名第一个字节检查压缩指针；进入普通标签分支后，把后续每个字节都当成标签长度。因此“cdn + 指向 example.com 的指针”中的 0xc0 会被当成长度 192，发生越界，返回 (-1, [], 0)。reply_kind 继而显示 rcode--1。
+
+这不是畸形报文。RFC 1035 第 4.1.4 节允许标签序列以压缩指针结束：
+https://www.rfc-editor.org/rfc/rfc1035.html#section-4.1.4
+
+本轮本机 UDP 复现：
+问题：www.example.com，类型 A。
+正常应答：RCODE=0，ANCOUNT=2。
+第 1 条：www.example.com CNAME cdn.example.com。
+第 2 条：cdn.example.com A 192.0.2.7。
+第 2 条的 owner 编码为 03 63 64 6e c0 10；0x10 指向问题区的 example.com。
+
+期望 dns_exchange：(0, ['192.0.2.7'], 2)
+实际 dns_exchange：(-1, [], 0)
+实际 reply_kind：rcode--1
+
+建议：
+提取跳过 DNS 名字的函数，在每个标签边界判断：零表示结束；高两位等于 11 时占两个字节并结束当前名字；否则按普通标签推进。此工具只需跳过记录名，不必为了定位后面的 TYPE/CLASS 去展开指针内容。补一条 CNAME+A 的混合压缩样例即可。
+
+本项没有证据表明当前固定探针结果因此错误：现有替身答复和 fake-ip 应答大多用完整指针，刚好绕过了问题。它也不会改变四端生成配置。r13 对 AAAA／非地址记录误判为空的修复仍然成立，但不能表述为解析器已覆盖所有合法 DNS 答复。
+
+三、本轮通过的检查
+
+1. 分支及产物
+- HEAD 固定为 bf42e8ba94ceb1405f2868b269756fc06e09aef5。
+- 12 个公开 dist 文件与上一轮 r12 副本逐字节相同。
+- python3 build.py --check 通过。
+- 仓库工作树未修改。
+
+2. 单元测试
+python3 -m unittest discover -s tests -v
+结果：Ran 247 tests in 94.902s；OK。
+
+3. 官方程序检查
+python3 tools/check_official.py \
+  --mihomo <官方 mihomo v1.19.31> \
+  --singbox <官方 sing-box v1.14.1> \
+  --singbox-112 <官方 sing-box v1.12.0> \
+  --geodata-dir <登记的数据目录>
+
+结果：全部符合预期。
+- 两份 mihomo 配置语法检查通过。
+- sing-box 1.14 配置、1.12 兼容配置及测试节点组合，在对应官方程序上通过 check。
+- 故意损坏配置的自检按预期失败。
+- mihomo 合成节点分组：2,283 个基础样本、2,306 个含本地补充样本，均与手写期望一致。
+
+4. 独立核对 142 个 product_cn 代表主机的 DNS 前端答复
+没有使用工程的 dns_exchange／reply_kind 来认定空应答，而是另写报文读取函数核对 RCODE、ANCOUNT、记录类型和 A／AAAA 数据；仅复用工程启动内核、替换 DNS、记录替身查询的框架。
+
+交付原始配置，142×3 次查询：
+- A：142 个正常应答，各 1 条 A，均为 fake-ip 地址。
+- AAAA：142 个正常应答，ANCOUNT 全为 0。
+- HTTPS：142 个正常应答，ANCOUNT 全为 0。
+- 三类 DNS 替身均未收到这些目标查询。
+
+模拟 Clash Verge Rev v2.5.7 开 TUN 且 IPv6 可用：
+- 按其 use_tun 行为加 dns.ipv6=true、fake-ip-range6=2001:2::/64。
+- 使用 mihomo 支持的 SKIP_SYSTEM_IPV6_CHECK=1 模拟内核的 IPv6 条件，未修改宿主机接口。
+- 142 个 AAAA 查询均有 1 条 AAAA，地址落在 2001:2::/64，替身未收到目标查询。
+- 这是内核配置模拟，不是 Clash Verge Rev GUI 或 macOS 真机测试。
+
+所以：r13 修复了原工具把 AAAA 答复看漏的问题，独立复测支持修正后的原始配置结论。我的 r12 复测使用过旧工具，那份证据本身不能排除“实际上拿到了 AAAA”；本轮独立读取补上了这部分验证。
+
+5. 固定数据标识
+geosite.dat SHA-256：c7d7f1a5d15344b2fb97fb9f08f999c16d19e0b63b5b3a9a13b97a97e52b9dbd
+geoip.dat SHA-256：391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd
+geoip.metadb SHA-256：68dda901d6030dc43ec238efe31dae514c53a66f79fca2fa3999b66485e4f8b0
+blackmatrix7：51d2e1dd8429a91be575157d6f8ed051c93559f8。
+
+四、审核重点的其余答复
+
+1. 新增静态断言
+tests/test_dns_lan.py 第 184–226 行准确约束了当前设计的默认 DNS／默认 resolve：mihomo 境外 nameserver、respect-rules、无 fallback；sing-box 通用 resolve 的服务器和位置、局域网专用 resolve、dns-foreign 的 detour 和 DNS final。没有把局域网那条错误要求成境外 DNS。
+这些是有价值的回归约束，但没有覆盖代理协议内部的解析，不能替代 R13-F01 的出站探针。
+
+2. Clash Verge Rev 的两处收窄
+v2.5.7 enhance/mod.rs 的 gui_tun_keys 只收 GUI 配置中实际存在的有关字段，另加 enable；因此“GUI 优先有条件”的更正有源码依据。
+use_tun 的 fake-ip／IPv6 条件、缺失时补 fake-ip-range6 的说法，也与源码相符，并有上面的内核模拟支持。
+依据：https://github.com/clash-verge-rev/clash-verge-rev/blob/v2.5.7/src-tauri/src/enhance/mod.rs
+https://github.com/clash-verge-rev/clash-verge-rev/blob/v2.5.7/src-tauri/src/enhance/tun.rs
+
+3. Mac 局域网解析与 dhcp 候选
+“macOS 的系统 DNS 设置会影响 system 实际查询对象”仍应保留；“这一运行组合必定导致局域网名称外发且失败”需要 macOS 上核对最终配置、系统实际 DNS 及请求路径。
+dhcp://en0 是 mihomo 官方列出的语法，可以作为真机验证候选；不能因此直接宣布它能修复所有 Mac／公司网络场景，接口、DHCP DNS 内容和运行权限仍需实际验证。知道内网 DNS 地址时，也可针对局域网后缀测试显式指定该 DNS。两种方式均不应未经验证改成通用默认值。
+依据：https://wiki.metacubex.one/config/dns/type/
+
+4. Loon／Quantumult X 严格版
+本轮仍未取得足以确认所有非 A／AAAA 查询处理的官方说明或真机数据。保留“未验证”的状态合理，不能用 DNS-over-HTTPS 传输的说明替代 DNS 的 HTTPS 记录类型行为。
+QX 兜底位于远程末尾的既有依据、国内资源与广告资源的先后，应继续按 docs/09 验收。本轮没有新的证据要求改变这些取舍；R13-F03 只纠正数量含义。
+查阅入口：https://nsloon.app/docs/DNS/
+https://raw.githubusercontent.com/crossutility/Quantumult-X/master/sample.conf
+
+5. Apple Push 的 CNAME 别名
+本轮没有找到足以要求把那三个 akadns.net 别名加入分流的具体命中路径。按原始请求主机分流的场景下，仅在 DNS 答复中出现别名，不代表路由匹配对象就变成该别名。维持暂不添加的处理合理；Loon／QX 的相应结论仍应保留推断标记。若真实请求直接访问这些名字，再凭连接日志处理。
+
+6. 没有重复报的已知限制
+远程规则仍引用 main、严格版尚未随 main 发布、用户待决的 15–20 项、上游不锁版本、GUI／真机验收边界，说明已经明确，本轮不把它们重新算作新增错误。
+
+五、验证边界与处理顺序
+
+本轮没有运行完整 100 类变异检查，也没有重新运行全部逐条扫描；没有把历史日志计为本轮实测。sing-box 的本轮结论限于官方 check 和静态／单元测试，未取得新的完整运行时 DNS 证据。Loon、QX、macOS 和真实机场出口未做真机验证。
+
+建议先处理 R13-F01 的风险说明和实际出站测试，再修正 system 的源码解读；压缩名解析与覆盖统计均可分别作为小范围独立提交。是否改变待决事项 16 的生产 DNS 策略，仍应按用户已确定的取舍决定。修复时从 source／generator 改动并重新生成，历史 evidence 日志和原始需求不应改写。
+
+本报告确认的是上述固定提交及固定数据下的结果，不构成“四端所有 DNS 路径均不泄漏”的证明。
