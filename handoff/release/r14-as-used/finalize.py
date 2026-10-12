@@ -62,7 +62,8 @@ for t in ("test_mihomo_unmatched_names_ask_only_the_foreign_doh", "test_singbox_
           "test_both_use_the_larger_upstream_list", "test_thirteen_public_outputs",
           # 出版本时查出的两处缺陷
           "test_change_that_only_reorders_an_item_says_so", "test_rule_list_doc_counts_each_own_list_from_its_own_data"):
-    assert re.search(rf"^{t} \(.*\) \.\.\. ok$", tests, re.M), t
+    # 测试带说明文字时，unittest -v 把“... ok”写在说明的那一行，不在名字那一行；整体是 OK（上面已经断言），这里只核对它们确实跑了
+    assert re.search(rf"^{t} \(test_\w+\.\w+\.{t}\)", tests, re.M), t
 for gone in ("test_singbox_and_mihomo_differ_as_documented", "test_pinned_paypal_and_verified_netflix", "test_twelve_public_outputs",
              "test_loon_also_uses_the_larger_upstream_list"):
     assert not re.search(rf"^{gone} \(", tests, re.M), gone
@@ -96,7 +97,7 @@ assert "disallow empty `proxy-server-nameserver` when `proxy-server-nameserver-p
 rr = read(f"{ev}/real-route-check.log")
 assert f"用例与排除项共 289 条，不同的目标 269 个；DNS 去向用例 sing-box 22 条、mihomo {N_MIHOMO_DNS} 条，拨号解析用例 sing-box 12 条、mihomo 12 条" in rr
 assert rr.count("[符合] 路由 269 条") == 3 and rr.count("[符合] DNS 去向 22 条") == 2 and rr.count(f"[符合] DNS 去向 {N_MIHOMO_DNS} 条") == 1, "real-route-check.log"
-assert rr.count("[符合] 连接时的解析 12 条") == 3 and rr.count("只有它管的这几条变了，这一处仍然需要") == 2 and rr.count("这两处修正仍然需要") == 2
+assert rr.count("[符合] 连接时的解析 12 条") == 3 and rr.count("只有它管的这几条变了，这一处仍然需要") == 3 and rr.count("这两处修正仍然需要") == 2
 assert rr.count("[符合] 境外 DNS 不应答") == 3
 assert rr.count(f"连接 6 条、查询 {N_MIHOMO_DNS} 条，收到查询的替身与正常那一遍完全相同；其中 5 条只有境外替身收到") == 1
 assert rr.count("连接 6 条、查询 22 条，收到查询的替身与正常那一遍完全相同；其中 6 条只有境外替身收到") == 2
@@ -260,9 +261,10 @@ for i in list(range(71, N_MUT + 1)):
 assert "DeprecationWarning" not in mut
 partial_names = sorted(x for v in res["partial"].values() for x in v)
 print("部分运行的：", res["partial"], "；未见预期信息：", res["not_seen"])
-assert partial_names == sorted(["M6", "M9", "M31", "M89", "M90", "M111"]), res["partial"]
-PARTIAL_TEXT = ("“恢复关键词 siri”“azure.com 放回 Microsoft”“用回肯定前瞻”、国内域名清单数据文件被改坏的两类（M89、M90）和大清单副本的数据文件被手改（M111）"
-                "由统一源校验直接拒绝（生成器不肯生成，测试大面积报错）；"
+assert partial_names == sorted(["M6", "M9", "M31", "M89", "M90"]), res["partial"]
+PARTIAL_TEXT = ("“恢复关键词 siri”“azure.com 放回 Microsoft”“用回肯定前瞻”、国内域名清单数据文件被改坏的两类（M89、M90）"
+                "由统一源校验直接拒绝（生成器不肯生成，测试大面积报错）；大清单副本的数据文件被手改（M111）生成时没有拦住，"
+                "由 `tests/test_strict.py` 的 `test_max_copy_is_the_upstream_list_minus_locally_covered_entries` 发现；"
                 "严格版的结构被改坏的几类（M76–M78、M80–M82）和“清空 `proxy-server-nameserver`”被写盘前的检查拦住，生成流程的那批测试因此失败，同时另有路由用例失败；"
                 "“图标登记里漏了 Apple Push”在生成时直接报错；")
 mut_cell = (f"{N_MUT} 类全部被发现，都是 r14 定稿（{freeze[:16]} UTC）以后在上面这个摘要、这个代码状态的代码上跑的（{window}）。"
@@ -311,7 +313,7 @@ assert pt[0].split()[-2] == RUN_DAY and pt[0].split()[-1] > freeze[11:], pt
 r13p, r14p = parse_probe(p13), parse_probe(p14)
 assert set(r13p) == set(r14p) and len(r13p) == 16, sorted(r13p)
 resolving = [k for k in r13p if k[0] == "mihomo" and (k[2] != "TCP" or k[1] == "wireguard") and k[1] != "wireguard+remote-dns"]
-assert len(resolving) == 8, resolving                                    # UDP 7 种 + WireGuard 的 TCP
+assert len(resolving) == 7, resolving      # UDP 6 种（SOCKS5、Shadowsocks 各两种目标写法，Trojan、WireGuard 各一种）+ WireGuard 的 TCP
 for k in resolving:
     assert r13p[k] == {"qwen.ai": "domestic", "chatgpt.com": "foreign", "www.qq.com": "domestic"}, (k, r13p[k])
     assert r14p[k] == {"qwen.ai": "foreign", "chatgpt.com": "foreign", "www.qq.com": "domestic"}, (k, r14p[k])
@@ -327,7 +329,7 @@ probe_cell = ("r13 的配置（`r13_review_probes.r13.out`）：走代理的组�
               "走 UDP（目标写域名、目标是假地址两种）、换成 Trojan 走 UDP、换成 WireGuard 走 TCP 和 UDP 时，`qwen.ai` 的 A、AAAA 查询都由国内 DNS 的替身收到——"
               "WireGuard 的那两种与审核报告一致，UDP 的那几种是核实时自查出来的；WireGuard 打开 `remote-dns-resolve`（查询走隧道）时三类替身都没有收到。"
               "`chatgpt.com` 在会解析的那几种里都问境外，`www.qq.com`（直连）都问国内。"
-              "**这一版的配置**（`r13_review_probes.out`）：同样那 8 种会解析的情况，`qwen.ai` 都只问境外 DNS，其余结果不变。"
+              "**这一版的配置**（`r13_review_probes.out`）：同样那 7 种会解析的情况，`qwen.ai` 都只问境外 DNS，其余结果不变。"
               "sing-box 1.14.1：SOCKS、Shadowsocks 的 TCP、UDP 都没有解析走代理的名字；WireGuard 端点走 TCP、UDP 时 `qwen.ai`、`chatgpt.com` 问 `dns-foreign`；"
               "`time.windows.com` 在 r13 的配置里经 WireGuard 端点问 `dns-cn`、经 SOCKS / Shadowsocks 没有解析（路由走 Microsoft 组；待决事项第 15 项），"
               "这一版里它固定直连，各种出口下都由直连出站问 `dns-cn`")
@@ -453,6 +455,7 @@ for p, needles in (("README.md", ["tests-259%20passing", "259 automated tests", 
     for n in needles:
         assert n in s, (p, n)
 # 旧的说法不应再作为现状出现（历史记录里的除外，逐个看过）
+# docs/00 里的“82 个策略组”是 r12 时的记录（docs/00 只追加，不改写）
 HIST = ["docs/00-需求原文.md", "docs/08-外部审核记录.md"]
 stale = {"247 项全部通过": [], "注入 100 类": [], "注入 104 类": [], "tests-247": [], "tests-254": [], "自动测试 247 项": [], "自动测试 254 项": [],
          "247 automated": [], "254 automated": [], "确认 247 项通过": [], "确认 254 项通过": [],
@@ -466,7 +469,7 @@ stale = {"247 项全部通过": [], "注入 100 类": [], "注入 104 类": [], 
          "（系统 DNS，即路由器": ["docs/08-外部审核记录.md"], "系统 DNS（路由器 / 公司内网的 DNS）": [], "写在配置文件里不起作用，只能在这里开": [],
          "境外 DNS 连不上时，内核没有转去问": ["docs/08-外部审核记录.md"], "只能在 App 里开**": [],
          "没有逐行比过": ["docs/08-外部审核记录.md"],
-         "82 个策略组": ["docs/08-外部审核记录.md"], "Netflix 默认“Netflix·解锁入口”": [], "需求决定项 20 项": [], "第 15、17–20 项还没有答复": []}
+         "82 个策略组": ["docs/08-外部审核记录.md", "docs/00-需求原文.md"], "Netflix 默认“Netflix·解锁入口”": [], "需求决定项 20 项": [], "第 15、17–20 项还没有答复": []}
 for p in files:
     s = read(p)
     for k, allowed in stale.items():
