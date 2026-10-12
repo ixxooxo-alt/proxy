@@ -13,6 +13,7 @@ r14 前后定稿过五次，只有最后一次的结果算数（`docs/05`“已�
 
 1. **定稿**：代码状态哈希写进 `~/proxy-work/freeze14e-state.txt`（`bash handoff/release/code_state.sh` 的输出），时间写进 `~/proxy-work/freeze14e-time.txt`。
 2. **变异检查**：`MUT_BATCHES=3 bash handoff/release/run_mutations.sh ~/proxy-work/mut14e`（三批：编号除以 3 余 1、余 2、整除）。它写下 `mut-start-<段>.txt`、`code-state-<段>.txt`、三批的日志 `mut-A-…`、`mut-B-…`、`mut-C-…`。
+   第一段（2026-10-07 07:52 开始）跑到 86 类时工作环境被回收（09:55 前后）。2026-10-12 重新启动以后，先核对代码状态哈希、Python / PyYAML / ICU 的版本、`~/proxy-vendor/SOURCES.txt` 里 12 个文件的 SHA-256 和 5 个源码目录的提交号，再只带剩下的编号跑第二段：`MUT_BATCHES=3 bash handoff/release/run_mutations.sh ~/proxy-work/mut14e M86 M88 M89 … M118`（32 类，日志 `mut-?-20261012T060938Z.log`）。
 3. 变异跑完：在 `~/proxy-work/mut14e/segments.json` 里每一段写一项（`{"start": …, "code_state": …, "logs": [三份日志]}`），然后 `python3 handoff/release/r14-as-used/assemble.py ~/proxy-work/mut14e`（写出 `mut-result.json`、`mut-lines.txt`）。
 4. **全部检查**：`bash tools/run_checks.sh`，最后一行“全部检查通过。”。
 5. **版本对比**：r13 从 git 取到仓库以外 `mkdir -p ~/proxy-work/r13 && git archive bf42e8b | tar -x -C ~/proxy-work/r13`（r7 用以前取出的 `~/proxy-work/r7`，来自 `baseline-r7` 分支），然后

@@ -6,7 +6,8 @@ import datetime, json, os, re, subprocess, sys
 D = os.path.abspath(sys.argv[1])
 dry = "--dry" in sys.argv
 ev = "docs/evidence"
-RUN_DAY = "2026-10-07"
+RUN_DAY = "2026-10-07"                                                            # 全部检查、一次性核对、快照都在这一天
+MUT_DAYS = ("2026-10-07", "2026-10-12")      # 变异检查分两段：10-07 那段被工作环境回收打断，10-12 重启以后接着跑剩下的
 DIGEST = "f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc"     # r14：生成器 1.7.0、统一源 2026.10.07-2
 N_TESTS, N_MUT, N_MIHOMO_DNS = "259", 118, "15"
 ENV = "Python：Python 3.13.16，PyYAML：6.0.1"
@@ -195,16 +196,19 @@ assert cmp13.count("逐字节相同。") == 0, cmp13.count("逐字节相同。")
 assert cmp13.count("和 r13 的一模一样。") == 1                                         # 只有域名兜底文件
 assert "规则这类没有名字的条目，一条删除和一条新增文字很像时会配成一条“改动”显示" in cmp13
 assert not re.search(r"^- 改动 `[^`]*`：\s*$", cmp13, re.M), "还有说不出改了什么的“改动”"
-for needle in ("大小：252,962 → 280,143 字节。", "大小：253,145 → 280,326 字节。", "大小：240,438 → 241,811 字节。", "大小：403,167 → 404,473 字节。",
-               "大小：78,487 → 79,156 字节。", "大小：78,513 → 79,182 字节。", "大小：242,175 → 243,143 字节。", "大小：405,351 → 406,450 字节。",
-               "**Proxy Group**：新增 0 条，删除 1 条，改动 2 条；两版都有的条目顺序不变。",
+for needle in ("大小：252,962 → 280,272 字节。", "大小：253,145 → 280,455 字节。", "大小：240,438 → 241,939 字节。", "大小：403,167 → 404,459 字节。",
+               "大小：78,487 → 79,132 字节。", "大小：78,513 → 79,158 字节。", "大小：242,175 → 243,271 字节。", "大小：405,351 → 406,436 字节。",
+               "**Proxy Group**：新增 0 条，删除 1 条，改动 3 条；两版都有的条目顺序不变。", "- 改动 `国内直连`：去掉 `国外默认`",
+               "**policy**：新增 0 条，删除 1 条，改动 3 条；两版都有的条目顺序不变。", "- 改动 `static=国内直连`：去掉 `国外默认`",
+               "**策略组（proxy-groups）**：新增 0 条，删除 1 条，改动 3 条；两版都有的条目顺序不变。", "- 改动 `国内直连`：去掉 `\"国外默认\"`",
+               "**出站与策略组（outbounds）**：新增 0 条，删除 1 条，改动 3 条；两版都有的条目顺序不变。",
                "- 改动 `Bilibili 港澳台`：顺序改了：原来 `台湾，香港，国外默认，日本，韩国，新加坡，美国，其他地区，DIRECT`，现在 `DIRECT，台湾，香港，国外默认，日本，韩国，新加坡，美国，其他地区`",
                "**Rule**：新增 36 条，删除 3 条，改动 3 条；两版都有的条目顺序不变。", "**Rule**：新增 28 条，删除 3 条，改动 3 条；两版都有的条目顺序不变。",
                "**DNS（dns）**：新增 0 条，删除 0 条，改动 1 条；两版都有的条目顺序不变。", "- 改动 `nameserver-policy`：",
                "**路由规则（route.rules）**：新增 1 条，删除 0 条，改动 3 条；两版都有的条目顺序不变。",
                "- 改动 `product-proxied`：去掉 `\"rules\": \"<domain_suffix 656 条、domain 108 条>\"`；加上 `\"rules\": \"<domain_suffix 653 条、domain 108 条>\"`",
                "**filter_remote**：新增 1 条，删除 0 条，改动 0 条；两版都有的条目顺序不变。",
-               "## 六、严格版", "大小：标准版 241,811 字节，严格版 243,143 字节", "大小：标准版 404,473 字节，严格版 406,450 字节",
+               "## 六、严格版", "大小：标准版 241,939 字节，严格版 243,271 字节", "大小：标准版 404,459 字节，严格版 406,436 字节",
                "- 新增：`GEOIP,CN,国内直连,no-resolve`", "- 删除：`GEOIP,CN,国内直连`",
                "`loon/rules/cn-domains.list`：165,629 字节，规则 6,133 条（DOMAIN 12、DOMAIN-SUFFIX 6,121）。和 r13 相比：新增 1 条、删除 0 条。",
                "`quantumultx/rules/cn-domains.list`：196,326 字节，规则 6,133 条（HOST 12、HOST-SUFFIX 6,121）。和 r13 相比：新增 1 条、删除 0 条。",
@@ -227,13 +231,15 @@ assert res["digest"] == digest and res["n"] == N_MUT and res["python"] == "Pytho
 assert res["full"] == N_TESTS, res["full"]
 assert res["state"] == state
 segs = res["segments"]
-assert all(s["start"].startswith(RUN_DAY) and s["end"].startswith(RUN_DAY) for s in segs), segs
+assert [s["start"][:10] for s in segs] == list(MUT_DAYS) and [s["end"][:10] for s in segs] == list(MUT_DAYS), segs
 assert all(s["start"] > freeze for s in segs), (segs, freeze)
 if len(segs) == 1:
     window = f"三批并行，{segs[0]['start'][11:16]}–{segs[0]['end'][11:16]} UTC，一次跑完"
 else:
-    window = "三批并行，分 " + str(len(segs)) + " 段：" + "；".join(
-        f"{s['start'][11:16]}–{s['end'][11:16]} UTC 跑完 {len(s['ids'])} 类" for s in segs) + "；前面的段被工作环境重启打断，段与段之间代码没有改动"
+    window = ("三批并行，分 " + str(len(segs)) + " 段：" + "；".join(
+        f"{s['start'][:10]} {s['start'][11:16]}–{s['end'][11:16]} UTC 跑完 {len(s['ids'])} 类" for s in segs) + "；"
+              "前面的段被工作环境回收打断（正在跑的那几类没有留下结果，在后一段里从头重跑），段与段之间代码没有改动；"
+              "后一段开始前重新核对过运行环境：Python、PyYAML、ICU 的版本，官方程序和上游数据的 SHA-256、上游源码的提交号，都和前一段相同")
 fresh = res["fresh"]
 assert fresh["solo"] == [], fresh
 NEW_TESTS = {"M101": "test_names_ending_in_a_pointer_after_labels_are_read", "M102": "test_mihomo_product_names_go_to_the_foreign_dns",
@@ -362,15 +368,15 @@ order_cell = ("配置里 `nameserver-policy` 的 745 个键（普通域名写法
 values = {"ICU_TIME": icu_time, "LONG_TIME": long_time, "FIELDS": fields, "MUT_CELL": mut_cell, "PROBE_CELL": probe_cell, "ORDER_CELL": order_cell,
           "STRICT_CELL": strict_cell, "tests_n": N_TESTS, "mut_n": str(N_MUT), "mihomo_dns_n": N_MIHOMO_DNS, "code_state": state,
           "freeze_utc": freeze[:16], "mut_window": window, "checks_window": checks_window, "probe_window": probe_window,
-          "run_window": f"{RUN_DAY}（UTC）", "run_day_en": RUN_DAY}
+          "run_window": f"{MUT_DAYS[0]} 和 {MUT_DAYS[1]}（UTC）", "run_day_en": f"{MUT_DAYS[0]} and {MUT_DAYS[1]}"}
 
 # 产物大小、摘要与文档里写的一致
 sizes = {rel: os.path.getsize(os.path.join("dist", rel)) for rel in man["outputs"]}
 assert (sizes["loon/loon.conf"], sizes["quantumultx/quantumultx.conf"], sizes["mihomo/mihomo-profile.yaml"], sizes["mihomo/mihomo-core.yaml"],
-        sizes["sing-box/sing-box-1.14.json"], sizes["sing-box/sing-box-1.12.json"]) == (241811, 404473, 280143, 280326, 79156, 79182), sizes
+        sizes["sing-box/sing-box-1.14.json"], sizes["sing-box/sing-box-1.12.json"]) == (241939, 404459, 280272, 280455, 79132, 79158), sizes
 assert (sizes["loon/loon-strict.conf"], sizes["quantumultx/quantumultx-strict.conf"], sizes["loon/rules/cn-domains.list"],
         sizes["quantumultx/rules/cn-domains.list"], sizes["quantumultx/rules/cn-domains-max.list"],
-        sizes["quantumultx/rules/domain-fallback.list"]) == (243143, 406450, 165629, 196326, 3520993, 629), sizes
+        sizes["quantumultx/rules/domain-fallback.list"]) == (243271, 406436, 165629, 196326, 3520993, 629), sizes
 doc05 = read("docs/05-验收记录.md")
 for rel, v in man["outputs"].items():
     sha = v["sha256"] if isinstance(v, dict) else v
@@ -410,7 +416,7 @@ for p, needles in (("README.md", ["tests-259%20passing", "259 automated tests", 
                                         "561 条社区来源规则"]),
                    ("PROJECT_STATE.md", ["259 项", "r14：统一源 2026.10.07-2", "生成器 1.7.0", "T25 第 9 轮", "T27 使用者 2026-10-07", "118 类全部被发现",
                                          "第 21 项等用户选", "11. Stash"]),
-                   ("00-审核说明.md", ["247 → 259 项", "100 → 118 类", "12 → 15 条", "sing-box 5 → 0，mihomo 364 → 0", "注入 118 类", "都在 2026-10-07（UTC）",
+                   ("00-审核说明.md", ["247 → 259 项", "100 → 118 类", "12 → 15 条", "sing-box 5 → 0，mihomo 364 → 0", "注入 118 类", "都在 2026-10-07 和 2026-10-12（UTC）",
                                        "handoff/notes/r14_policy_order.out", "732 条", "公开产物 12 → 13 个"]),
                    ("docs/05-验收记录.md", ["259 项全部通过", "注入 118 类错误", "2026.10.07-2（r14", "Python 3.13.16，PyYAML 6.0.1", "2283 个假节点",
                                             "860 个 120 / 400 个字符", f"{fields} 个字段", "269 个目标", "07:51 定稿", state, "mihomo 15 条",

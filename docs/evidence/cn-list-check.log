@@ -1,8 +1,10 @@
-运行时间（UTC）：2026-10-07 02:04:57
+运行时间（UTC）：2026-10-07 08:24:31
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc
-命令：python3 tools/update_cn_list.py --dlc /root/proxy-vendor/src/domain-list-community --check
+统一源摘要：f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc
+命令：python3 tools/update_cn_list.py --dlc /root/proxy-vendor/src/domain-list-community --bm7 /root/proxy-vendor/src/bm7 --check
 
 source/data/cn-domains.txt 与按固定快照重新生成的逐字节相同：后缀 6142 条、精确域名 12 条（快照 c1c2cf0d，2026-09-22）
 source/data/LICENSE-domain-list-community.txt 与上游的 LICENSE 相同
+source/data/cn-domains-max.txt 与按固定快照重新生成的逐字节相同：后缀 111009 条、精确域名 268 条（快照 51d2e1dd，2026-09-21）
+source/data/LICENSE-ios_rule_script.txt 与上游的 LICENSE 相同（GPL-2.0）
 退出码：0

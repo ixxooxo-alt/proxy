@@ -1,12 +1,12 @@
-运行时间（UTC）：2026-10-07 02:04:54
+运行时间（UTC）：2026-10-07 08:24:27
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：a72e446d96b6c83c9858f4b5ecb482ed1787ac55a5e0a64e2fa94f18380f1acc
+统一源摘要：f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc
 命令：python3 tools/check_upstream_evidence.py --dlc /root/proxy-vendor/src/domain-list-community --bm7 /root/proxy-vendor/src/bm7
 
 dlc 快照：c1c2cf0d252871e8739747714df06e8d2671f72f（2026-09-22T19:29:39+08:00）
 bm7 快照：51d2e1dd8429a91be575157d6f8ed051c93559f8（2026-09-21T21:38:01+00:00）
-核对域名规则 857 条，社区来源 559 条；产品规则下的上游广告条目 30 条；更宽的广告条目 0 条
-按证据与结果：apple-ai-req/covered 5，apple-ent-net/absent 2，apple-ent-net/covered 2，apple-ent-net/narrower 2，apple-ent-net/same 4，apple-push-net/covered 1，bm7-snap/same 27，claude-desktop-net/absent 1，claude-desktop-net/same 1，claude-net/same 6，cursor-net/absent 2，cursor-net/same 3，cursor-signin/absent 2，dlc/covered 9，dlc/same 523，gca-net/same 2，gemini-api/narrower 1，gemini-api/same 1，gh-agent-allowlist/absent 7，gh-agent-allowlist/covered 3，gh-agent-allowlist/same 2，ghcopilot-net/absent 2，ghcopilot-net/same 3，github-runner-net/same 1，google-supported-domains/same 187，m365-endpoints/absent 15，m365-endpoints/covered 6，m365-endpoints/same 10，maintainer/absent 19，maintainer/covered-aggregate 1，maintainer/narrower 1，openai-net/absent 1，openai-net/same 5
+核对域名规则 856 条，社区来源 561 条；产品规则下的上游广告条目 48 条；更宽的广告条目 0 条
+按证据与结果：apple-ai-req/covered 3，apple-ent-net/absent 1，apple-ent-net/covered 2，apple-ent-net/narrower 2，apple-ent-net/same 4，apple-push-net/covered 1，bm7-snap/same 27，claude-desktop-net/absent 1，claude-desktop-net/same 1，claude-net/same 6，cursor-net/absent 2，cursor-net/same 3，cursor-signin/absent 2，dlc/covered 9，dlc/same 525，gca-net/same 2，gemini-api/narrower 1，gemini-api/same 1，gh-agent-allowlist/absent 7，gh-agent-allowlist/covered 3，gh-agent-allowlist/same 2，ghcopilot-net/absent 2，ghcopilot-net/same 3，github-runner-net/same 1，google-supported-domains/same 187，m365-endpoints/absent 15，m365-endpoints/covered 6，m365-endpoints/same 10，maintainer/absent 19，maintainer/covered-aggregate 1，maintainer/narrower 1，openai-net/absent 1，openai-net/same 5
 归属差异：`copilot.cloud.microsoft`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
 归属差异：`copilot.com`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
 归属差异：`copilot.microsoft.com`：本项目归 Copilot（microsoft_copilot）；上游列表 `bing` 对应本项目的 microsoft
