@@ -9,8 +9,8 @@
 
 1. `CLAUDE.md`（根目录）：一直有效的约定、各目录放什么。
 2. `PROJECT_STATE.md`：做完了什么、哪些还没验证、下一步。
-3. `docs/06-已知限制与待决事项.md` 开头那张表：等使用者决定的事（2026-10-07 他把当时的第 1–20 项一次定了，定下的在第二张表；还挂着的只有几项）。
-4. `docs/08-外部审核记录.md` 最后两轮：最近的审核意见是怎么核实、怎么处理的——下一轮照这个样子做。最近一轮（第 10 轮，r15）还剩待决事项第 21 项等使用者选。
+3. `docs/06-已知限制与待决事项.md` 开头那张表：等使用者决定的事（2026-10-07 他把当时的第 1–20 项一次定了，2026-10-13 定了第 21 项，定下的在后面两张表；还挂着的只有几项，要先有真机上的现象或机场的节点名）。
+4. `docs/08-外部审核记录.md` 最后两轮：最近的审核意见是怎么核实、怎么处理的——下一轮照这个样子做。
 5. `00-审核说明.md`：最新一版改了什么、请审核方重点看哪里，以及能运行的检查命令。
 6. 这份说明的第 7 节起：交接时的补充和之后每一版的补充（第 10–12 节），是上面这些文件里还没有的。
 
@@ -177,7 +177,7 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 
 1. **做了什么**：r14 的变异检查被工作环境回收打断，10-12 重启以后接着跑完、交付（`3f45668`）。使用者把分支交给 GPT 审，10-13 上传了报告（原文 `docs/evidence/gpt-r14/`），按第 6 节处理，记在 `docs/08` 第 10 轮：两处问题（R14-F01、R14-F02）、三条建议（S01–S03）、两处证据等级的更正都属实，都改了。生成器 1.8.0，统一源 2026.10.13-1；变异 118 → 122 类（M119–M122）。
 2. **S01 带出来的核对方式**：出站核对的 SOCKS 出口现在连本机的 SOCKS5 接收端（`tools/check_real_routes.py` 的 `Socks5Recorder`，只记录不转发），DNS 替身给每个要核对的主机答一个不同的 `127.0.1.N`（`_PerHostLoopback`），接收端收到 IP 也认得回主机。`tests/cases.yaml` 里 `received` 的取值是 `domain` / `ip` / `domain+ip` / `-`（没收到）；sing-box 那一格按版本写（`{"1.14": "-", "1.12": domain}`）——1.14.1 经 SOCKS 转发 UDP、目标是域名的包没有发出（内核日志 `unsupported address`），原因没有查到底。以后换 sing-box 版本，这一格可能会变：变了就如实改期望、写进 `docs/06`，不要为了让测试通过去改核对方式。内核日志里出现 `operation not permitted`（审核方的沙箱里直连 UDP 被挡过）时核对工具报错、不记成结果。
-3. **第 21 项还挂着**（三个方案，`docs/06` 第 21 项）。mihomo 直连用 `direct-nameserver` 那个解析器（`direct-nameserver-follow-policy` 开着时也看 `nameserver-policy`），代理转发 UDP、经 WireGuard 用默认解析器；方案 ③ 就是利用这一点：`direct-nameserver: [system]`、`direct-nameserver-follow-policy: false`，再把默认直连组的名字放进境外那一层。一次性复现在 `handoff/notes/r14_review_probes.*`。使用者选了以后：选 ② 是把这几个组放进 `generator/emit_mihomo.py` 的 `product_dns_policy`（现在按“默认走代理”筛）；选 ③ 建议做成 `source/local.yaml` 里的开关（只进私密产物），要动 `emit_mihomo.py` 和 `generator/model.py` 对 `local.yaml` 的校验，加测试和变异；两种都要改 `tests/cases.yaml` 的 `outbound_switched` 期望，重新生成快照。
+3. **第 21 项：使用者 2026-10-13 选了 ① 维持现状**（“21 维持现状”；`docs/06`“2026-10-13 你定下的事项”），配置不改。mihomo 直连用 `direct-nameserver` 那个解析器（`direct-nameserver-follow-policy` 开着时也看 `nameserver-policy`），代理转发 UDP、经 WireGuard 用默认解析器；方案 ③ 就是利用这一点：`direct-nameserver: [system]`、`direct-nameserver-follow-policy: false`，再把默认直连组的名字放进境外那一层。一次性复现在 `handoff/notes/r14_review_probes.*`。以后要改的话：选 ② 是把这几个组放进 `generator/emit_mihomo.py` 的 `product_dns_policy`（现在按“默认走代理”筛）；选 ③ 建议做成 `source/local.yaml` 里的开关（只进私密产物），要动 `emit_mihomo.py` 和 `generator/model.py` 对 `local.yaml` 的校验，加测试和变异；两种都要改 `tests/cases.yaml` 的 `outbound_switched` 期望，重新生成快照。
 4. **默认直连的组切到代理以后**现在是固定核对（`outbound_switched`）：核对时 `switch_default_direct=True`，把第一个成员是 DIRECT 的组换成测试节点。mihomo 上不在 `geosite:cn` 的名字（`www.apple.com`）跟着换，在的（`api.bilibili.com`、`www.apple.com.cn`）不跟着换。
 5. **S02、S03**：核对工具的域名树按内核的规则检查写法（`tools/dns_route_consistency.py` 的 `valid_and_split`，`DomainTrie.insert` 不再去掉首尾空白）；以后 `nameserver-policy` 里出现新写法，先确认内核接受。大清单副本的文件头写明本项目的改动（`generator/strict.py` 的 `MAX_CONVERTED_ON`、`GPL2_URL`，`tools/update_cn_list.py` 的 `render_max`）；生成的规则文件故意不写版本号（内容没变就逐字节不变，客户端不用重新下载）。
 6. **Stash 还没有写**：使用者 10-12 说“如果能读到的话先不写，等到审核意见改过来，你完成最终版再写”。10-13 他发来另一个模型从 stash.wiki 下载的页面（zip，44 页），我放在仓库以外的 `~/proxy-vendor/src/stash-docs-2026-10-13/`，核对过（每页的校验值都对、没有失败页）。**下一个会话没有这个目录**：要用的话请使用者再发一次那个 zip，或者在云端环境的网络设置里放行 `stash.wiki`。写的时候在文档里注明资料来源（他人代下载，不是从官方站直接取的）。
