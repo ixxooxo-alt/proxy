@@ -8,8 +8,8 @@ tests/test_routing.py 里的“国内域名集合”“广告集合”只是 tes
 三样东西互相核对，期望都是人工写的（tests/cases.yaml、统一源里排除项的 to）。cases.yaml 的 upstream_followed
 一节记的是“跟随上游数据的已知行为”（上游数据是这样、决定不更正），real_only 一节记的是“只在真实数据下才看得到的行为”，
 都只在这里核对，同样参加下面三项：
-  1. 模拟器按真实成员关系算出的结果 = 人工期望（四个客户端的六份标准版产物，加 Loon / Quantumult X 的两份严格版）；
-  2. 模拟器的结果 = 官方内核的记录（mihomo、sing-box；Loon / Quantumult X 没有可以在电脑上跑的官方内核）；
+  1. 模拟器按真实成员关系算出的结果 = 人工期望（五个客户端的七份标准版产物，加 Loon / Quantumult X / Stash 的三份严格版）；
+  2. 模拟器的结果 = 官方内核的记录（mihomo、sing-box；Loon / Quantumult X / Stash 没有可以在电脑上跑的官方内核）；
   3. 官方内核的记录 = 人工期望。
 加了新的用例或排除项、或者改了规则让某个主机的去向变了，都要重新生成快照，否则这里会失败并提示。
 解析结果仍是假定的（fixtures.yaml 的 dns；没列出的按境外 IP 算）：没有命中任何域名规则的主机，真实去向取决于当时解析到的 IP。
@@ -21,6 +21,8 @@ tests/test_routing.py 里的“国内域名集合”“广告集合”只是 tes
     cases.yaml 里列出的已知类别；
   - Loon 严格版订阅的国内域名集合（blackmatrix7 ChinaMax_Domain）的成员关系。严格版引用的自有远程规则文件不在快照里，
     模拟器直接用这次生成的内容。
+2026-10-13 起另有 stash 一类：Stash 没有能运行的内核，只有第 1 项。它用自带的 GEOSITE（domain-list-community），快照里用
+SagerNet 由同一来源转换的 .srs 近似（版本可能不同）；严格版订阅的 blackmatrix7 ChinaMax_Domain_For_Clash.txt 按真实文件记录。
 """
 import copy
 import json
@@ -30,8 +32,8 @@ import unittest
 
 import yaml
 
-from helpers import (CLIENT_FILES, LOON_CLIENTS, QX_CLIENTS, ROOT, STRICT_CLIENTS, emulate, family, is_strict, load_yaml,
-                     model_and_plan, parsed, route, text)
+from helpers import (CLIENT_FILES, LOON_CLIENTS, LQ_STRICT_OF, QX_CLIENTS, ROOT, STASH_CLIENTS, STRICT_CLIENTS, STRICT_OF,
+                     emulate, family, is_strict, load_yaml, model_and_plan, parsed, route, text)
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import real_data as rd  # noqa: E402
@@ -98,8 +100,18 @@ class SnapshotCoverage(unittest.TestCase):
             urls = {r["url"] for client in clients for r in parsed(client)["remote"] if not r["url"].startswith(base)}
             self.assertEqual(sorted(urls), sorted(self.snap["sizes"][fam]), fam + HINT)
             self.assertEqual(sorted(urls), sorted(rd.upstream_remote_lists(self.m)[fam]))
-        own = {r["url"] for client in STRICT_CLIENTS for r in parsed(client)["remote"] if r["url"].startswith(base)}
+        own = {r["url"] for client in LQ_STRICT_OF.values() for r in parsed(client)["remote"] if r["url"].startswith(base)}
         self.assertEqual(own, set(emulate.OWN_LISTS), "严格版引用的自有远程规则文件都要登记给模拟器")
+        # Stash（2026-10-13）：GEOSITE 集合就是快照里 stash 一类记的那几个；rule-providers 的地址就是快照里记了成员关系的那几个，
+        # 而且不引用本项目自己的文件
+        for client in STASH_CLIENTS:
+            geosite = [ln.split(",")[1] for ln in parsed(client)["rules"] if ln.startswith("GEOSITE,")]
+            self.assertEqual(sorted(geosite), sorted(rd.STASH_SETS), client)
+        urls = {rp["url"] for client in STASH_CLIENTS for rp in (parsed(client).get("rule-providers") or {}).values()}
+        self.assertEqual(sorted(urls), sorted(self.snap["sizes"]["stash"]), "stash" + HINT)
+        self.assertEqual(sorted(urls), sorted(rd.upstream_remote_lists(self.m)["stash"]))
+        self.assertFalse([u for u in urls if u.startswith(base)])
+        self.assertEqual(sorted(self.snap["sizes"]["stash_geosite"]), sorted(rd.STASH_SETS), HINT)
 
     def test_loon_ad_list_has_its_domain_part(self):
         """blackmatrix7 把 Loon 版的 AdvertisingLite 拆成两个文件：只订阅 .list 的话只有关键词和 IP 段，
@@ -124,6 +136,18 @@ class SnapshotCoverage(unittest.TestCase):
         self.assertFalse([x for x in self.m.strict["domestic_lists"]["quantumultx"] if x.get("url")],
                          "Quantumult X 严格版现在只用自有清单；要订阅上游文件得先把它记进快照")
 
+    def test_stash_strict_domestic_list_is_recorded(self):
+        """Stash 严格版订阅的上游国内域名清单（2026-10-13）：Clash 的 domain 写法，只有“+.后缀”和精确域名两种行，
+        没有读不了的行（以“.”“*”开头的写法各家解释不一样，出现了要先看清楚）；规模在十万条以上；含整段 .ms（见 docs/06）。"""
+        urls = [x["url"] for x in self.m.strict["domestic_lists"]["stash"]]
+        self.assertEqual(len(urls), 1)
+        info = self.snap["sizes"]["stash"][urls[0]]
+        self.assertGreater(info["domain"] + info["suffix"], 100000)
+        self.assertEqual((info["keyword"], info["ip"], info["ignored"]), (0, 0, {}),
+                         "这份清单里出现了“+.后缀”和精确域名以外的写法：要先确认 Stash 怎么解释再用")
+        self.assertIn("ChinaMax_Domain_For_Clash.txt", self.snap["sources"]["stash"])
+        self.assertIn(urls[0], self.snap["hosts"]["example.ms"]["stash"], "上游这份清单里有整段 .ms" + HINT)
+
 
 class RealRoutes(unittest.TestCase):
     def setUp(self):
@@ -136,7 +160,7 @@ class RealRoutes(unittest.TestCase):
         self.assertGreaterEqual(sum(1 for p in self.probes if p["src"].endswith("的排除项")), 40, "统一源里写了去向的排除项")
 
     def test_expectations_hold_with_real_sets(self):
-        """全部用例与“写了去向的排除项”，在真实集合成员关系下，六份标准版产物和两份严格版都符合人工期望。"""
+        """全部用例与“写了去向的排除项”，在真实集合成员关系下，七份标准版产物和三份严格版都符合人工期望。"""
         failures = []
         for client in CLIENT_FILES:
             fx = fx_for(client)
@@ -351,7 +375,7 @@ class SingboxDns(unittest.TestCase):
         """对每个“期望走代理组”的主机（来自全部用例和排除项）：A 查询得到假地址，其他类型交给经代理的 DNS。
         样本和真实成员关系各查一遍。
         r12–r14 有一类已知的例外（2026-10-06 逐条扫描查出来的，待决事项 15）：“要真实地址的名单”里的名字，DNS 规则把它们
-        交给 dns-cn，路由却不是直连。2026-10-07 用户选了方案二，四端都把这份名单固定直连，这一类没有了：期望走代理组的主机里
+        交给 dns-cn，路由却不是直连。2026-10-07 用户选了方案二，四端都把这份名单固定直连（2026-10-13 加的 Stash 也是），这一类没有了：期望走代理组的主机里
         不应再有名单里的名字（有的话说明名单和路由又不一致了，这里和 docs/06 一起看）。"""
         m, _ = model_and_plan()
         names = [(r.get("suffix"), r.get("domain")) for r in m.dns["real_ip"]]
@@ -504,14 +528,14 @@ class StrictWithRealSets(unittest.TestCase):
 
     def test_standard_configs_do_resolve_unlisted_hosts(self):
         """对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。"""
-        for client in ("loon", "quantumultx"):
+        for client in STRICT_OF:
             hosts = self.resolved_hosts(client)
-            self.assertGreater(len(hosts), 20, client)
+            self.assertGreater(len(hosts), 10 if client == "stash" else 20, client)
             self.assertIn("never-listed-site.org", hosts)
 
     def test_where_strict_and_standard_differ(self):
         """真实数据下，严格版和同一个 App 的标准版去向不同的主机，只有用例里写明的那些（per_client 里给严格版单独写了期望的）。"""
-        for std, strict in (("loon", "loon-strict"), ("quantumultx", "quantumultx-strict")):
+        for std, strict in STRICT_OF.items():
             a, b = fx_for(std), fx_for(strict)
             differ = sorted({p["host"] or p["ip"] for p in self.probes if route(std, conn(p), a) != route(strict, conn(p), b)})
             declared = sorted({p["host"] or p["ip"] for p in self.probes if p["expect"][strict] != p["expect"][std]})
@@ -523,7 +547,7 @@ class RealOnlyCases(unittest.TestCase):
     def test_real_only_cases_come_from_upstream_data(self):
         """cases.yaml 的 real_only 要名副其实。现在两条是同一件事：blackmatrix7 的 AdvertisingLite 收了“要真实地址的名单”里的
         主机，domain-list-community 的广告集合没有收。r12–r14 时标准版 Loon / Quantumult X 因此拦了它们（待决事项 18）；
-        2026-10-07 起四端都把名单固定直连（待决事项 15 方案二），本地规则排在远程广告集合之前，各端都是直连（期望写的就是 DIRECT）。
+        2026-10-07 起四端都把名单固定直连（待决事项 15 方案二；2026-10-13 加的 Stash 也是），本地规则排在远程广告集合之前，各端都是直连（期望写的就是 DIRECT）。
         这里核对“真实的广告集合里确实有它们”——上游改掉以后重新生成快照，这里会失败：把那一条连同 docs/06 的说明一起删掉。"""
         m, _ = model_and_plan()
         snap = snapshot()
@@ -537,7 +561,7 @@ class RealOnlyCases(unittest.TestCase):
                 ads = [x["url"] for x in m.adblock["remote_lists"][fam]]
                 self.assertTrue(any(u in rec[fam] for u in ads), f"{fam}：真实的广告集合里已经没有 {host} 了" + HINT)
             self.assertEqual(c["expect"], "DIRECT")
-            self.assertNotIn("per_client", c, "四端都固定直连，不该再有哪一端不同")
+            self.assertNotIn("per_client", c, "各端都固定直连，不该再有哪一端不同")
             self.assertNotIn("category-ads-all", rec["mihomo"])
             self.assertNotIn("geosite-category-ads-all", rec["singbox"])
             self.assertTrue(c.get("why"))

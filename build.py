@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""从统一源生成四个客户端的配置。
+"""从统一源生成五个客户端的配置（mihomo、sing-box、Loon、Quantumult X，2026-10-13 起还有 Stash）。
 
 用法：
   python3 build.py                         生成公开产物到 dist/（订阅为占位符，可分享）
@@ -26,12 +26,12 @@ import sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from generator import emit_loon, emit_mihomo, emit_qx, emit_singbox, nodes as nodeconv, regions, strict, verify  # noqa: E402
+from generator import emit_loon, emit_mihomo, emit_qx, emit_singbox, emit_stash, nodes as nodeconv, regions, strict, verify  # noqa: E402
 from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.8.0"
+GENERATOR_VERSION = "1.9.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -40,9 +40,12 @@ PUBLIC_OUTPUTS = {
     "sing-box/sing-box-1.12.json": lambda m, p: emit_singbox.build(m, p, "1.12"),
     "loon/loon.conf": lambda m, p: emit_loon.build(m, p),
     "quantumultx/quantumultx.conf": lambda m, p: emit_qx.build(m, p),
-    # 严格版（2026-10-06）：只有 Loon / Quantumult X 各多一份，连同它们引用的自有远程规则文件。说明见 generator/strict.py
+    # 严格版（2026-10-06）：Loon / Quantumult X 各多一份，连同它们引用的自有远程规则文件。说明见 generator/strict.py
     "loon/loon-strict.conf": lambda m, p: emit_loon.build(m, p, strict=True),
     "quantumultx/quantumultx-strict.conf": lambda m, p: emit_qx.build(m, p, strict=True),
+    # Stash（2026-10-13，r16）：标准版和严格版，都只引用上游数据（GEOSITE、blackmatrix7），不另生成规则文件。说明见 generator/emit_stash.py
+    "stash/stash.yaml": lambda m, p: emit_stash.build(m, p),
+    "stash/stash-strict.yaml": lambda m, p: emit_stash.build(m, p, strict=True),
     strict.LOON_CN_REL: strict.loon_cn_list,
     strict.QX_CN_REL: strict.qx_cn_list,
     strict.QX_MAX_REL: strict.qx_max_list,
@@ -65,7 +68,7 @@ def render_public(model, plan, root: str = ROOT) -> dict:
             "product": len(plan.product),
             "service_ip": len(plan.service_ip),
             # 部分服务只写进某些客户端（例如国内常用网站不写进 Loon / QX，原因见 docs/06）
-            "product_by_client": {f: len(plan.product_for(f)) for f in ("mihomo", "singbox", "loon", "quantumultx")},
+            "product_by_client": {f: len(plan.product_for(f)) for f in ("mihomo", "singbox", "loon", "quantumultx", "stash")},
             # 严格版多出的一段：要真实地址的名单里补的固定直连规则；自有国内域名清单各端实际写出的条数
             "strict_real_ip_direct": len(plan.real_ip_direct),
             "strict_cn_domains": {f: len(strict.cn_entries(model, plan, f)[0]) + len(strict.cn_entries(model, plan, f)[1])
@@ -228,6 +231,8 @@ def main(argv=None, root: str = ROOT) -> int:
             # 严格版也各出一份带订阅的；它们引用的自有远程规则文件是公开产物里那几个（按 strict.publish_base 的地址）
             private["loon-strict.conf"] = emit_loon.build(pmodel, pplan, subs, strict=True)
             private["quantumultx-strict.conf"] = emit_qx.build(pmodel, pplan, subs, strict=True)
+            private["stash.yaml"] = emit_stash.build(pmodel, pplan, subs)
+            private["stash-strict.yaml"] = emit_stash.build(pmodel, pplan, subs, strict=True)
         if a.singbox_nodes or a.singbox_sub_url:
             if a.singbox_nodes:
                 with open(a.singbox_nodes, encoding="utf-8") as f:
@@ -250,7 +255,7 @@ def main(argv=None, root: str = ROOT) -> int:
             private["sing-box-节点转换报告.txt"] = "\n".join(lines) + "\n"
             print(f"sing-box：转换 {len(converted)}/{len(proxies)} 个节点；{len(empty)} 个组没有节点。"
                   "详情见 sing-box-节点转换报告.txt")
-            # 这份订阅里每个节点按名称进了哪个地区组（四个客户端用的是同一套规则；只用到节点名称）
+            # 这份订阅里每个节点按名称进了哪个地区组（各客户端用的是同一套规则；只用到节点名称）
             names = list(dict.fromkeys(str(p["name"]) for p in proxies if isinstance(p, dict) and p.get("name") is not None))
             rep_lines, stats = regions.render_report(pmodel.region_spec, names, show_all=True)
             private["节点分组报告.txt"] = "\n".join(rep_lines) + "\n"

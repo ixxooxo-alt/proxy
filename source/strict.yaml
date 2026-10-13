@@ -1,7 +1,9 @@
-# 严格版：只给 Loon / Quantumult X 各多生成一份配置（loon-strict.conf、quantumultx-strict.conf）。标准版不受这个文件影响。
+# 严格版：给 Loon / Quantumult X / Stash 各多生成一份配置（loon-strict.conf、quantumultx-strict.conf、stash-strict.yaml；
+# Stash 是 2026-10-13 加的）。标准版不受这个文件影响。
 #
-# 要解决的事：这两端填的是国内 DNS。标准版里，没有命中任何域名规则的域名要先在本机解析、再按 IP 判断走哪里，
-#             所以出口是代理的连接，域名也被国内 DNS 看到了。这两端的官方文档里没有“让 DNS 查询经代理发出”的选项。
+# 要解决的事：这几端填的是国内 DNS。标准版里，没有命中任何域名规则的域名要先在本机解析、再按 IP 判断走哪里，
+#             所以出口是代理的连接，域名也被国内 DNS 看到了。Loon、Quantumult X 的官方文档里没有“让 DNS 查询经代理发出”的选项；
+#             Stash 有（dns.follow-rule），没有采用，原因见 generator/emit_stash.py 和 docs/03 的 Stash 一节。
 # 做法：      先按域名认出国内网站（下面的国内域名清单）交给“国内直连”；其余域名不在本机解析，直接交给“国外默认”；
 #             原本就是 IP 的连接照旧按 IP 规则判断（局域网、服务专属 IP、国内 IP）。
 # 代价：      清单里没有的国内网站会走代理（能打开，会慢）。详见 docs/03“严格版”一节与 docs/06。
@@ -26,5 +28,14 @@ strict:
     quantumultx:
       - {own: quantumultx/rules/cn-domains-max.list, tag: 国内域名-ChinaMax}
       - {own: quantumultx/rules/cn-domains.list, tag: 国内域名-自有清单}
+    # Stash（2026-10-13 加的）：自有清单的来源（domain-list-community 的 cn）就是 Stash 自带的 GEOSITE,cn，标准版、严格版都用它，
+    #   所以这里不再引用自有清单；另外直接订阅 blackmatrix7 给 Clash 的只含域名的版本（ChinaMax_Domain_For_Clash.txt：
+    #   后缀写成 +.example.com，按 Stash 文档的写法既含它本身也含子域）。配置里用 rule-providers 引用、交给“国内直连”，
+    #   排在 GEOSITE,geolocation-!cn 之后——只接住两个 GEOSITE 集合都没收的域名。这份文件里有整段的 .ms
+    #   （和 mihomo 的国内域名集合一样，2026-10-04 用户定的是跟随上游），没被前面规则接住的 .ms 域名在 Stash 严格版上直连。
+    stash:
+      - {url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt",
+         tag: 国内域名-ChinaMax, ev: bm7,
+         source: "blackmatrix7 ChinaMax 给 Clash 的域名部分（按固定快照 51d2e1d 读的：111,328 条，268 条精确域名 + 111,060 条后缀，没有关键词和 IP 规则；和 Loon 那份不同，含 51 个整段顶级域：.cn、.ms、.wang、.baidu 等；文件头写的更新时间是 2026-09-22。客户端订阅的是上游的最新版，内容会变）"}
   # Quantumult X 的域名兜底：排在全部远程规则的最后（放进本地规则会让全部远程规则失效，见 docs/02）。
   qx_fallback: {own: quantumultx/rules/domain-fallback.list, tag: 域名兜底-不在本机解析}

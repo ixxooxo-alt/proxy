@@ -19,7 +19,7 @@ def groups_of(client):
     """统一成 {组名: {"type":..., "members":[...], "raw":...}}"""
     c = parsed(client)
     out = {}
-    if client.startswith("mihomo"):
+    if client.startswith(("mihomo", "stash")):
         for g in c["proxy-groups"]:
             out[g["name"]] = {"type": g["type"], "members": g.get("proxies", []), "raw": g}
     elif client.startswith("singbox"):
@@ -67,7 +67,7 @@ class Structure(unittest.TestCase):
 
     def test_domestic_direct_is_fixed(self):
         """“国内直连”固定直连、不能切换（2026-10-07 用户定了待决事项第 17 项，方案二；以前还能切到国外默认）：
-        四端都还有这个组（规则照旧交给它），组里只有 DIRECT。"""
+        各端（2026-10-13 起含 Stash）都还有这个组（规则照旧交给它），组里只有 DIRECT。"""
         for client in CLIENT_FILES:
             self.assertEqual(groups_of(client)["国内直连"]["members"], ["DIRECT"], client)
 
@@ -97,6 +97,12 @@ class Structure(unittest.TestCase):
             for g in parsed(client)["proxy-groups"]:
                 if g.get("include-all-providers"):
                     self.assertEqual(g.get("empty-fallback"), "REJECT", g["name"])
+        # Stash 没有 empty-fallback：按节点筛选的组都要有 filter（不然 include-all 会把全部节点和占位节点都收进来），
+        # 筛选正好选中自己地区的占位节点由 tests/test_stash.py 核对
+        for client in ("stash", "stash-strict"):
+            for g in parsed(client)["proxy-groups"]:
+                if g.get("include-all"):
+                    self.assertIn("filter", g, g["name"])
 
     def test_manual_first_semantics(self):
         """手动优先·自动兜底 = 故障转移组，成员依次为 手动、自动（同地区）。
@@ -104,7 +110,7 @@ class Structure(unittest.TestCase):
         附带节点可保证那种情况下该组不为空，且仍只含同地区节点。附带的是严的那条（F-XX-AUTO）：
         这条退路是客户端自己选节点，说不清落地的节点不能进。"""
         codes = {"香港": "HK", "日本": "JP", "韩国": "KR", "台湾": "TW", "新加坡": "SG", "美国": "US"}
-        for client in ("mihomo-profile",) + LOON_CLIENTS + QX_CLIENTS:
+        for client in ("mihomo-profile", "stash", "stash-strict") + LOON_CLIENTS + QX_CLIENTS:
             gs = groups_of(client)
             for r in REGIONS:
                 g = gs[f"{r}·手动优先"]
@@ -137,9 +143,15 @@ class Structure(unittest.TestCase):
         g = [x for x in parsed("mihomo-profile")["proxy-groups"] if x["name"] == "PayPal·美国固定"][0]
         self.assertTrue(g.get("include-all-providers"))
         self.assertIn("filter", g)
+        for client in ("stash", "stash-strict"):
+            g = [x for x in parsed(client)["proxy-groups"] if x["name"] == "PayPal·美国固定"][0]
+            self.assertTrue(g.get("include-all"), client)
+            self.assertIn("filter", g, client)
 
     def test_final_is_foreign_default(self):
         self.assertEqual(parsed("mihomo-profile")["rules"][-1], "MATCH,国外默认")
+        for client in ("stash", "stash-strict"):
+            self.assertEqual(parsed(client)["rules"][-1], "MATCH,国外默认", client)
         self.assertEqual(parsed("singbox-1.14")["route"]["final"], "国外默认")
         for client in LOON_CLIENTS + QX_CLIENTS:
             self.assertEqual(parsed(client)["final"], "国外默认", client)
@@ -157,7 +169,7 @@ class Structure(unittest.TestCase):
                         continue
                     self.assertIn(mem, known, f"{client} 组 {name} 引用了不存在的 {mem}")
             # 规则目标
-            if client.startswith("mihomo"):
+            if client.startswith(("mihomo", "stash")):
                 targets = {r.split(",")[2] if not r.startswith("MATCH") else r.split(",")[1] for r in parsed(client)["rules"]}
             elif client.startswith("singbox"):
                 targets = {r["outbound"] for r in parsed(client)["route"]["rules"] if "outbound" in r}
@@ -218,7 +230,7 @@ class Structure(unittest.TestCase):
             for bad in ("password", "uuid", "ca-p12", "ca-passphrase", "token="):
                 self.assertNotIn(bad, scan.lower(), f"{rel} 含敏感字段 {bad}")
         for client in CLIENT_FILES:
-            if client.startswith(("mihomo", "loon", "quantumultx")):
+            if client.startswith(("mihomo", "loon", "quantumultx", "stash")):
                 self.assertIn("REPLACE-ME.invalid", text(client))
 
     def test_mihomo_flavors_and_control_plane(self):

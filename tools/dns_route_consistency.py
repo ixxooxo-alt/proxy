@@ -177,7 +177,12 @@ class DomainTrie:
       查找时从顶级域往下走，能往下走就先往下（更具体的优先）：下一级精确的标签 > 这一级的 * > 这一级的“.”（全部子域）。
     和写的先后无关；同一个写法写两次，后写的覆盖先写的。
     写法和查的名字都先按内核的规则检查（valid_and_split）：插入不合格的写法报错（内核加载配置时同样报错），查不合格的名字
-    返回 None（内核的 Search 同样当作没有命中）。只在本项目用到的写法上和内核核对过（tests/test_dns_lan.py）。"""
+    返回 None（内核的 Search 同样当作没有命中）。只在本项目用到的写法上和内核核对过（tests/test_dns_lan.py）。
+    search 模拟的是“设备发来的 DNS 查询”这条路，不是单独的 Search：内核先用 dns/util.go 的 msgToDomain 去掉名字末尾的点
+    （strings.TrimRight，几个点都去掉，和这里的 rstrip(".") 相同），再查域名树；直接调内核的 Search 时，末尾带点的名字是不合格的。
+    （2026-10-13，GPT 审核 r15 指出以前的说法容易读成“和内核 Search 逐字相同”；审核报告说内核只去掉一个根点，按 v1.19.31
+    的源码是全部去掉。）另外，valid_and_split 只在本项目用到的 ASCII 写法上和内核一致：Python 和 Go 对“空白”“转小写”的
+    Unicode 定义有边缘差异（审核举的例子：U+001C、U+0130），任意 Unicode 输入不保证逐字相同。"""
 
     def __init__(self):
         self.root: dict = {}

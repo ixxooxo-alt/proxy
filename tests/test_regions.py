@@ -6,7 +6,7 @@
   2. tests/data/cldr_tz_names.json：CLDR 的全部国家 / 地区名（英文、简体、繁体）和时区库的城市名，按国家代码判断归属；
   3. 词表自身：每个词单独出现时必须归它所在的地区。
 被检查的有三样：拼出来的两套正则（宽的给手动组，严的给自动 / 故障转移 / 负载均衡）、逐步判断的实现、
-四个客户端产物里实际写出的筛选。
+各客户端产物里实际写出的筛选（2026-10-13 起含 Stash）。
 ICU（推断 Loon / Quantumult X 用的引擎）与 mihomo 官方内核上的对比分别在 tools/check_icu.py、tools/check_official.py。"""
 import contextlib
 import io
@@ -181,7 +181,7 @@ class HandWrittenExpectations(unittest.TestCase):
 
 
 class GeneratedConfigs(unittest.TestCase):
-    """四个客户端产物里写出的筛选，就是词表拼出来的那几条正则：手动组用宽的，自动 / 故障转移 / 负载均衡用严的。"""
+    """各客户端产物里写出的筛选，就是词表拼出来的那几条正则：手动组用宽的，自动 / 故障转移 / 负载均衡用严的。"""
     AUTO_MODES = ("自动", "故障转移", "负载均衡")
 
     def setUp(self):
@@ -242,6 +242,24 @@ class GeneratedConfigs(unittest.TestCase):
             # 宽的那条：美国的被 PayPal 固定入口和“美国·手动”共用，其余只用一次
             self.assertEqual((raw.count("&flt-us "), raw.count("*flt-us\n")), (1, 1))
             self.assertEqual(raw.count("&flt-hk "), 0)
+
+    def test_stash(self):
+        """Stash（2026-10-13）：和 mihomo 用同一条正则，同一条只写一次（YAML 锚点 / 别名）；两份产物的组相同。"""
+        for client in ("stash", "stash-strict"):
+            g = {x["name"]: x for x in parsed(client)["proxy-groups"]}
+            for gid in SIX:
+                self.assertEqual(g[f"{NAME[gid]}·手动"]["filter"], self.rx[gid])
+                for suffix in self.AUTO_MODES:
+                    self.assertEqual(g[f"{NAME[gid]}·{suffix}"]["filter"], self.strict[gid], suffix)
+            self.assertEqual(g["其他地区"]["filter"], self.rx["other"])
+            self.assertEqual(g["PayPal·美国固定"]["filter"], self.rx["us"])
+            raw = text(client)
+            for gid in SIX:
+                self.assertEqual(raw.count(f"&flt-{gid}-auto "), 1, gid)
+                self.assertEqual(raw.count(f"*flt-{gid}-auto\n"), 2, gid)
+                self.assertEqual(raw.count(self.strict[gid]), 1)
+                self.assertEqual(raw.count(self.rx[gid]), 1)
+            self.assertEqual((raw.count("&flt-us "), raw.count("*flt-us\n")), (1, 1))
 
     def test_singbox_groups_nodes_at_build_time(self):
         e, auto = expected(), expected_auto()
@@ -932,7 +950,9 @@ class LocalNodeNames(unittest.TestCase):
         for getter, pub, priv in ((loon_us, "loon/loon.conf", "private/loon.conf"),
                                   (qx_us, "quantumultx/quantumultx.conf", "private/quantumultx.conf"),
                                   (mihomo_us, "mihomo/mihomo-profile.yaml", "private/mihomo-profile.yaml"),
-                                  (mihomo_us, "mihomo/mihomo-core.yaml", "private/mihomo-core.yaml")):
+                                  (mihomo_us, "mihomo/mihomo-core.yaml", "private/mihomo-core.yaml"),
+                                  (mihomo_us, "stash/stash.yaml", "private/stash.yaml"),
+                                  (mihomo_us, "stash/stash-strict.yaml", "private/stash-strict.yaml")):
             public, private = getter(os.path.join(out, pub)), getter(os.path.join(out, priv))
             for n in ("STL 01", "圣路易 02", '怪名字, "带" 符号=`1`'):
                 self.assertFalse(public.search(n), f"{pub} 不应受 local.yaml 影响：{n}")

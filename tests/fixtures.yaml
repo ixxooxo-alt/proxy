@@ -27,8 +27,9 @@ geoip:
   cn: [1.2.4.0/24, 110.242.0.0/16, 223.5.5.0/24, 119.29.29.0/24, 36.110.0.0/16, '240e::/20']
 geosite:
   # qwen.ai、recaptcha.net、music.apple.com、qianwen.com、tongyi.com 取自真实的国内域名集合：
-  # 走代理组的域名落在国内域名集合里时，路由和 sing-box 的 DNS 都要靠排在前面的规则处理（审核 F01）
-  cn: [cn, baidu.com, qq.com, bilibili.com, qwen.ai, recaptcha.net, music.apple.com, qianwen.com, tongyi.com]
+  # 走代理组的域名落在国内域名集合里时，路由和 sing-box 的 DNS 都要靠排在前面的规则处理（审核 F01）。
+  # ithome.com 也取自真实集合（2026-10-13 加的）：它不在国内补充规则里，Stash 严格版不解析，只能靠这个集合认出来
+  cn: [cn, baidu.com, qq.com, bilibili.com, qwen.ai, recaptcha.net, music.apple.com, qianwen.com, tongyi.com, ithome.com]
   geolocation-!cn: [wikipedia.org]
   private: [lan, local]
   category-ads-all: [doubleclick.net, googlesyndication.com, ct.sendgrid.net, s.youtube.com, tracker.twimg.com, adservice.google.com, app.link,

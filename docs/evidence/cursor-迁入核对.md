@@ -1,13 +1,13 @@
 # Cursor 版迁入核对（自动生成，请勿手改）
 
-由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.13-1` 计算每条规则的去向。
-“去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box”那一类。
+由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.13-2` 计算每条规则的去向。
+“去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box / Stash”那一类（Stash 是 2026-10-13 加的，规则和 mihomo 相同）。
 
 ## 一、Cursor 版的规则在本工程里进哪个组
 
-Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box） 70，无专门规则 18，不同组 15，已替换 1。
+Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box / Stash） 70，无专门规则 18，不同组 15，已替换 1。
 
-| 分流 | 同组 | 同组（只写进 mihomo / sing-box） | 已替换 | 不同组 | 无专门规则 |
+| 分流 | 同组 | 同组（只写进 mihomo / sing-box / Stash） | 已替换 | 不同组 | 无专门规则 |
 |---|---|---|---|---|---|
 | OpenAI | 6 |  |  |  |  |
 | Claude | 6 |  |  |  |  |
@@ -78,7 +78,7 @@ Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box） 70�
 | 共享基础设施 | 域名后缀 | `windows.net` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |
 | 共享基础设施 | 域名后缀 | `windowsazure.com` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |
 
-“同组（只写进 mihomo / sing-box）”是国内常用网站：Loon / QX 不写这些规则，由 `GEOIP,CN` 兜底直连，原因见 `docs/06`。
+“同组（只写进 mihomo / sing-box / Stash）”是国内常用网站：Loon / QX 不写这些规则，由 `GEOIP,CN` 兜底直连，原因见 `docs/06`。
 
 ## 二、报告判为“不该收”的本工程条目
 
@@ -113,7 +113,7 @@ Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box） 70�
 | Microsoft | 域名后缀 | `live.com` | 仍在（microsoft → Microsoft） | 保留：Microsoft 第一方域名（必应、Microsoft 账户、静态资源短域），不托管第三方内容；Copilot 的更具体规则排在前面 | 过宽。本仓库已有 login.live.com、oneclient.sfx.ms 等 endpoints 精确主机，整段 live.com / *.ms 短域会卷进未审计子域。 |
 | Microsoft | 域名后缀 | `sfx.ms` | 仍在（microsoft → Microsoft） | 保留：Microsoft 第一方域名（必应、Microsoft 账户、静态资源短域），不托管第三方内容；Copilot 的更具体规则排在前面 | 过宽。本仓库已有 login.live.com、oneclient.sfx.ms 等 endpoints 精确主机，整段 live.com / *.ms 短域会卷进未审计子域。 |
 | GitHub | 域名后缀 | `collector.github.com` | 仍在（误杀例外 → GitHub） | 保留为误杀例外：mihomo / sing-box 用的 category-ads-all 会拦它，GitHub 官方 Copilot 放行清单要求放行 | GitHub 官方 Copilot 允许表有这台遥测主机，但本仓库 github.com 后缀已经把它归到 GitHub。单独再写一条只有在引入会拦截它的广告集合时才需要，作为误杀例外而不是新分流。 |
-| 广告拦截 | 域名集合 | `category-ads-all` | 设计差异 | 设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 不要把整份 geosite 抄进本仓库生成器。本仓库 DNS/规则政策写明不发 geosite（空工作目录没有 geo 库，且上游含关键词规则）。另一版在 mihomo/sing-box 用它做远程集合是另一套设计。 |
-| 国内直连 | 地理 IP | `CN` | 设计差异 | 设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库写明国内 IP 段没有可靠到能编进规则的源，不用 GEOIP 冒充。另一版把它当兜底。 |
-| 国内直连 | 域名集合 | `cn` | 设计差异 | 设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库明确不用 geosite:cn 代替审计过的后缀，也不把整份国内域名表抄进来。 |
-| 国外默认 | 域名集合 | `geolocation-!cn` | 设计差异 | 设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库未命中规则用 MATCH/FINAL 到国外默认，不需要再加 geolocation-!cn。该集合含宽规则，且本仓库不发 geosite。 |
+| 广告拦截 | 域名集合 | `category-ads-all` | 设计差异 | 设计差异：本工程在 mihomo / sing-box / Stash 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 不要把整份 geosite 抄进本仓库生成器。本仓库 DNS/规则政策写明不发 geosite（空工作目录没有 geo 库，且上游含关键词规则）。另一版在 mihomo/sing-box 用它做远程集合是另一套设计。 |
+| 国内直连 | 地理 IP | `CN` | 设计差异 | 设计差异：本工程在 mihomo / sing-box / Stash 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库写明国内 IP 段没有可靠到能编进规则的源，不用 GEOIP 冒充。另一版把它当兜底。 |
+| 国内直连 | 域名集合 | `cn` | 设计差异 | 设计差异：本工程在 mihomo / sing-box / Stash 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库明确不用 geosite:cn 代替审计过的后缀，也不把整份国内域名表抄进来。 |
+| 国外默认 | 域名集合 | `geolocation-!cn` | 设计差异 | 设计差异：本工程在 mihomo / sing-box / Stash 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06 | 本仓库未命中规则用 MATCH/FINAL 到国外默认，不需要再加 geolocation-!cn。该集合含宽规则，且本仓库不发 geosite。 |

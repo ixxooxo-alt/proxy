@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""看一批节点名各自会被分到哪个地区组、为什么（Loon、Quantumult X、Clash、sing-box 四端用的是同一套规则）。
+"""看一批节点名各自会被分到哪个地区组、为什么（Loon、Quantumult X、Clash、sing-box、Stash 用的是同一套规则）。
 
 用法：
   python3 tools/check_node_names.py 节点名.txt            每行一个节点名

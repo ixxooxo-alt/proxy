@@ -20,15 +20,18 @@ import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SNAPSHOT = os.path.join(ROOT, "tests", "data", "real_sets.json")
-FAMILIES = ("mihomo", "singbox", "loon", "quantumultx")
-# Loon / Quantumult X 另有严格版（2026-10-06）。它和标准版订阅的上游数据算在同一类里（成员快照按类记录），
-# 但期望可以不同：用例的 per_client 里可以单独写 loon-strict / quantumultx-strict，没写时跟同一类的标准版。
-STRICT_KEYS = {"loon-strict": "loon", "quantumultx-strict": "quantumultx"}
+FAMILIES = ("mihomo", "singbox", "loon", "quantumultx", "stash")
+# Loon / Quantumult X 另有严格版（2026-10-06），Stash 也有（2026-10-13）。它和标准版订阅的上游数据算在同一类里（成员快照按类记录），
+# 但期望可以不同：用例的 per_client 里可以单独写 loon-strict / quantumultx-strict / stash-strict，没写时跟同一类的标准版。
+STRICT_KEYS = {"loon-strict": "loon", "quantumultx-strict": "quantumultx", "stash-strict": "stash"}
 EXPECT_KEYS = FAMILIES + tuple(STRICT_KEYS)
 # 各端配置里引用的集合（改了配置引用的集合，这里和快照都要跟着改；测试会检查两边一致）
 MIHOMO_SETS = ("category-ads-all", "cn", "geolocation-!cn")
 SINGBOX_SETS = ("geosite-category-ads-all", "geosite-cn", "geosite-geolocation-!cn")
 SINGBOX_IP_SETS = ("geoip-cn",)
+# Stash 配置里引用的 GEOSITE 集合。Stash 用自带的 domain-list-community 数据（官方文档），首次用到时下载，版本这里拿不到；
+# 成员关系用 SagerNet 由同一来源转换的 .srs（sing-box 那一类用的同一批文件）近似，记在快照的 stash 一类下
+STASH_SETS = ("category-ads-all", "cn", "geolocation-!cn")
 
 
 def sha256_file(path: str) -> str:
@@ -281,6 +284,33 @@ def read_rule_list(path: str) -> RuleList:
     return rl
 
 
+def read_clash_domain_text(path: str) -> RuleList:
+    """Clash / Stash 的 domain 行为、text 格式的规则集合（Stash 严格版订阅的 ChinaMax_Domain_For_Clash.txt）：每行一个，
+    +.example.com 是它本身和全部子域（Stash 文档：+.foo.com 的效果等同于 .foo.com 和 foo.com），example.com 只有它本身。
+    以“.”或“*”开头的写法（只含子域 / 通配），各家客户端的解释不完全一样，这里不读，记进 ignored（现在那份文件里没有这类行）。"""
+    rl = RuleList()
+    with open(path, encoding="utf-8") as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            if line.startswith("+."):
+                rl.domains.suffix.add(line[2:].lower())
+            elif line.startswith((".", "*")) or "," in line:
+                key = line[0] if line[0] in ".*" else "other"
+                rl.ignored[key] = rl.ignored.get(key, 0) + 1
+            else:
+                rl.domains.full.add(line.lower())
+    return rl
+
+
+def read_remote(path: str) -> RuleList:
+    """按文件写法选读法：blackmatrix7 给 Clash 的 .txt 域名清单用 read_clash_domain_text，其余（Loon / Quantumult X 的 .list）用 read_rule_list。"""
+    if path.endswith(".txt") and os.sep + "Clash" + os.sep in path:
+        return read_clash_domain_text(path)
+    return read_rule_list(path)
+
+
 BM7_RAW_PREFIX = "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/"
 
 
@@ -309,11 +339,12 @@ def expect_of(case: dict, key: str) -> str:
 
 
 def upstream_remote_lists(model) -> Dict[str, List[str]]:
-    """Loon / Quantumult X 的配置（标准版和严格版合起来）订阅的上游规则文件地址。本项目自己生成的远程规则文件不在内：
-    它们的内容就是这次的产物，模拟器直接读（tests/emulate.py 的 register_own_lists）。"""
+    """Loon / Quantumult X / Stash 的配置（标准版和严格版合起来）订阅的上游规则文件地址。本项目自己生成的远程规则文件不在内：
+    它们的内容就是这次的产物，模拟器直接读（tests/emulate.py 的 register_own_lists）。
+    Stash 的广告集合是 GEOSITE（没有地址），只有严格版订阅的国内域名清单在这里。"""
     out = {}
-    for family in ("loon", "quantumultx"):
-        urls = [x["url"] for x in model.adblock["remote_lists"][family]]
+    for family in ("loon", "quantumultx", "stash"):
+        urls = [x["url"] for x in model.adblock["remote_lists"][family] if x.get("url")]
         urls += [x["url"] for x in model.strict["domestic_lists"][family] if x.get("url")]
         out[family] = urls
     return out

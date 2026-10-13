@@ -8,6 +8,9 @@
 严格版（Loon / Quantumult X）另外引用本项目自己生成的远程规则文件（国内域名清单、Quantumult X 的域名兜底）：
 它们不是上游数据，内容就是这次生成的产物，由 register_own_lists 登记进来，两种来源下用的都是真实内容。
 
+Stash（2026-10-13 加的）没有能运行的内核，和 Loon / Quantumult X 一样只有这个模拟器；它的规则语义和 mihomo 相同（按书写顺序），
+用同一段模拟，多认 RULE-SET。
+
 这是自制模拟器，不能替代官方解析器与真机验证；mihomo / sing-box 另用官方内核实际跑一遍（tools/check_real_routes.py）。"""
 from __future__ import annotations
 
@@ -129,14 +132,14 @@ class SnapshotFixtures(Fixtures):
                            "tools/check_real_routes.py --write-snapshot（需要官方内核和上游数据文件）") from None
 
     def site(self, name: str, host: str) -> bool:
-        if self.family not in ("mihomo", "singbox"):
+        if self.family not in ("mihomo", "singbox", "stash"):
             raise AssertionError(f"{self.family} 的配置不应该引用域名集合 {name}")
-        return (name if self.family == "mihomo" else "geosite-" + name) in self._rec("hosts", host)
+        return (name if self.family in ("mihomo", "stash") else "geosite-" + name) in self._rec("hosts", host)
 
     def geoip_match(self, code: str, ip: str) -> bool:
         if code.lower() != "cn":
             raise AssertionError(f"快照只记录了国内 IP 段，配置引用了 {code}")
-        # Loon / Quantumult X 用 App 自带的 GeoIP 库，拿不到；这里假定与 mihomo 的数据一致
+        # Loon / Quantumult X / Stash 用 App 自带的 GeoIP 库（Stash 的文档说是 MaxMind 的），拿不到；这里假定与 mihomo 的数据一致
         fam = self.family if self.family in ("mihomo", "singbox") else "mihomo"
         try:
             return bool(self.snap["ips"][ip][fam]["cn"])
@@ -161,7 +164,14 @@ def parse_mihomo(text: str) -> dict:
 
 
 def mihomo_route(conf: dict, c: Conn, fx: Fixtures) -> str:
+    return _clash_route(conf, c, fx, "mihomo")
+
+
+def _clash_route(conf: dict, c: Conn, fx: Fixtures, client: str, trace: Optional[dict] = None) -> str:
+    """mihomo 和 Stash 共用：严格按书写顺序，第一条命中的规则决定去向。Stash 另有 RULE-SET（只认 domain 行为的远程域名清单）。
+    trace：给了一个字典时，域名连接为了判断 IP 规则在本机解析过，就记 trace["resolved"] = True（Stash 严格版要保证它不发生）。"""
     rules = conf["rules"]
+    providers = conf.get("rule-providers") or {}
     if not fx.ads_on:
         rules = _mihomo_drop_adblock(rules, fx.exception_values)
     ip = c.ip
@@ -171,6 +181,15 @@ def mihomo_route(conf: dict, c: Conn, fx: Fixtures) -> str:
         if t == "MATCH":
             return parts[1]
         payload, target, opts = parts[1], parts[2], parts[3:]
+        if t == "RULE-SET" and client == "stash":
+            rp = providers.get(payload)
+            if rp is None:
+                raise AssertionError(f"规则引用了没有定义的规则集合 {payload}")
+            if rp.get("behavior") not in ("domain-text", "domain") or ("format" in rp and rp["format"] != "text"):
+                raise ValueError(f"模拟器只认 domain 行为的文本规则集合：{payload} {rp}")
+            if c.host and fx.remote_host_hit(rp["url"], c.host):
+                return target
+            continue
         if t in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "GEOSITE"):
             if not c.host:
                 continue
@@ -184,6 +203,8 @@ def mihomo_route(conf: dict, c: Conn, fx: Fixtures) -> str:
             if cur is None and c.host:
                 if "no-resolve" in opts:
                     continue
+                if trace is not None:
+                    trace["resolved"] = True
                 cur = fx.resolve(c.host)
             if cur is None:
                 continue
@@ -193,8 +214,22 @@ def mihomo_route(conf: dict, c: Conn, fx: Fixtures) -> str:
             elif in_cidrs(cur, [payload]):
                 return target
         else:
-            raise ValueError(f"模拟器不认识的 mihomo 规则类型 {t}")
-    raise AssertionError("mihomo 规则没有 MATCH 兜底")
+            raise ValueError(f"模拟器不认识的 {client} 规则类型 {t}")
+    raise AssertionError(f"{client} 规则没有 MATCH 兜底")
+
+
+# ---------------------------------------------------------------------------
+# Stash（2026-10-13）：规则语义按官方文档“规则类型”一页——从上到下依次匹配；IP 类规则可能触发 DNS 解析，加 no-resolve 不解析。
+# 和 mihomo 用同一个模拟（_clash_route），多认 RULE-SET。GEOSITE 的数据是 Stash 自带的 domain-list-community，
+# 真实数据那一遍用 SagerNet 由同一来源转换的 .srs 近似（版本可能不同，见 tools/check_real_routes.py）。
+# ---------------------------------------------------------------------------
+
+def parse_stash(text: str) -> dict:
+    return yaml.safe_load(text)
+
+
+def stash_route(conf: dict, c: Conn, fx: Fixtures, trace: Optional[dict] = None) -> str:
+    return _clash_route(conf, c, fx, "stash", trace=trace)
 
 
 def _mihomo_drop_adblock(rules: List[str], exception_values) -> List[str]:

@@ -2,7 +2,7 @@
 #
 # 匹配阶段（语义）：局域网例外 → 误杀例外（按业务目标放行）→ 广告与跟踪拦截 → 产品规则 → …
 # 各端差异（生成器自动处理，详见 docs/06-已知限制.md）：
-#   mihomo / sing-box：严格按书写顺序，可以完全按上面的语义排列。
+#   mihomo / sing-box / Stash：严格按书写顺序，可以完全按上面的语义排列。
 #   Loon：本地规则 > 插件规则 > 订阅规则；Quantumult X：本地 > 远程。
 #         远程广告集合排在本地产品规则之后，所以“位于产品根域下的广告主机”只有列在下面 local_ads /
 #         local_tracking 里的那部分能被拦截。
@@ -10,6 +10,9 @@
 remote_lists:
   mihomo:
     - {kind: geosite, value: category-ads-all, source: "MetaCubeX meta-rules-dat geosite.dat（源自 domain-list-community）"}
+  # Stash（2026-10-13 加的）：用它自带的 GEOSITE（官方文档：domain-list-community，不随 App 分发，首次用到时从 github.com 下载）
+  stash:
+    - {kind: geosite, value: category-ads-all, source: "Stash 内置的 GEOSITE 数据（domain-list-community；首次用到时由 Stash 从 github.com 下载）"}
   singbox:
     - {kind: rule_set, tag: geosite-category-ads-all,
        url: "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",

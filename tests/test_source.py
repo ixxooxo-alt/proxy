@@ -167,7 +167,7 @@ class UpstreamEvidenceRecord(unittest.TestCase):
         self.assertFalse(problems, "\n" + "\n".join(problems))
 
     def test_upstream_ads_under_products_are_handled(self):
-        """category-ads-all 落在产品规则内的条目，四端都必须一致处理（自有拦截或误杀例外）。"""
+        """category-ads-all 落在产品规则内的条目，各端都必须一致处理（自有拦截或误杀例外）。"""
         self.assertTrue(self.rec["ads_under_products"])
         self.assertFalse([x for x in self.rec["ads_under_products"] if x["handled_by"] == "未处理"])
         self.assertFalse(self.rec["ads_covering_rules"])

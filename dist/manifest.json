@@ -1,8 +1,8 @@
 {
-  "generator_version": "1.8.0",
-  "source_version": "2026.10.13-1",
+  "generator_version": "1.9.0",
+  "source_version": "2026.10.13-2",
   "docs_checked": "2026-09-23",
-  "source_sha256": "0c10897160f340333b688f6a4a4de492c0097ea9a6075a070ce8208a9e4a7df5",
+  "source_sha256": "cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
@@ -13,7 +13,8 @@
       "mihomo": 850,
       "singbox": 850,
       "loon": 780,
-      "quantumultx": 780
+      "quantumultx": 780,
+      "stash": 850
     },
     "strict_real_ip_direct": 8,
     "strict_cn_domains": {
@@ -23,18 +24,20 @@
     "strict_qx_max_domains": 111182
   },
   "outputs": {
-    "loon/loon-strict.conf": "0f7578b881df1b31a77157654a785ba16903a46fc52538ab595b1ac707b85e21",
-    "loon/loon.conf": "871407807f17fa60e7ed62c1f8a3efa00d29d7ecff3e05be0653713bb4687f2d",
+    "loon/loon-strict.conf": "beef8332144aa346e3c9a50581e567132d4909bdc35230f9b74608e5a7c6c081",
+    "loon/loon.conf": "3bf26530948f7fc694dd0e0141b963c4c4e9016693955df3643a39e56331f9f1",
     "loon/rules/cn-domains.list": "6eb4bb905e39cea3a8b38c05c3a136031f326c02b9dc6293c02101293afeb7bd",
-    "mihomo/mihomo-core.yaml": "0e107e0f13da44da6063ce912f82dc9d69076740afa0a2f62bd4a6489590c813",
-    "mihomo/mihomo-profile.yaml": "22d0b214d1ecaf3e2de2b17fd4e8946d501829044c29fac960187bef2e453572",
-    "quantumultx/quantumultx-strict.conf": "0af255f6610ae00966895159f50ea06cf22898d2517860a447e7ce069d057fa4",
-    "quantumultx/quantumultx.conf": "b8fbd7485880105732db3c573cbd040b62db8352015dc01006f83b79d935e401",
+    "mihomo/mihomo-core.yaml": "04c7f1e551b9ba5d5ee7c221fcba67d5d0d7c6139b9e983e4164b0e8fe2f3100",
+    "mihomo/mihomo-profile.yaml": "cb7621272e4e11bb03ea6f98b276c815b8cbe4b63a8ec5844de2cd9ebf522f0a",
+    "quantumultx/quantumultx-strict.conf": "2456f9d7953188772a3bcd977d773d633394ca85f21162ab9e3ebed3396f4693",
+    "quantumultx/quantumultx.conf": "9327be3459e60b44e8f9947e3820a8ce3aaf6e3eb00ac3d92e84713b9297b3c7",
     "quantumultx/rules/cn-domains-max.list": "73807957107694a84a9fd1e5e554747ff65cd63d6736f96944a688e583c10805",
     "quantumultx/rules/cn-domains.list": "d4f8bebf36d4ec3c67126b8fea6ea1ec57ccfa08c6e98ae99694f53b03983a74",
     "quantumultx/rules/domain-fallback.list": "c15975930f5d0e8097dd7d9330ca24b29438d07c7374eca5beb90e47b685e4c6",
     "sing-box/sing-box-1.12.json": "32294f3515c29a3f1d8e86b85705b20a757413df12148fcee2e80efbed21920f",
-    "sing-box/sing-box-1.14.json": "358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda"
+    "sing-box/sing-box-1.14.json": "358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda",
+    "stash/stash-strict.yaml": "4f4050d490709704c73912a069e603dbd556978dd3037321bf3fc6af5b9093ef",
+    "stash/stash.yaml": "779fe935f4212428169e29d738ca0e5c312e66d747edc298f5294523efdbdc96"
   },
   "targets": {
     "mihomo": {
@@ -65,6 +68,14 @@
         "iPhone / iOS",
         "iPad / iPadOS",
         "Mac（Apple 芯片，官方支持的版本）"
+      ]
+    },
+    "stash": {
+      "core": "Stash（按 2026-10-13 下载的官方文档写，当时最新是 iOS 3.4.0、macOS 4.2.0；没有用到文档标了 iOS 3.6 / macOS 4.3 才有的写法；更早的版本没有核对）",
+      "clients": [
+        "iPhone / iOS",
+        "iPad / iPadOS",
+        "Mac"
       ]
     }
   }

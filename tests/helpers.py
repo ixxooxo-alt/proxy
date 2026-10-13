@@ -13,7 +13,8 @@ from generator import strict as strict_mod  # noqa: E402
 from generator.model import build_plan, load  # noqa: E402
 import emulate  # noqa: E402
 
-# 测试里说的“客户端”指一份产物。标准版六份；Loon / Quantumult X 另有严格版各一份（2026-10-06）。
+# 测试里说的“客户端”指一份产物。标准版七份（2026-10-13 起含 Stash）；Loon / Quantumult X / Stash 另有严格版各一份
+# （前两个 2026-10-06，Stash 2026-10-13）。
 CLIENT_FILES = {
     "mihomo-profile": "mihomo/mihomo-profile.yaml",
     "mihomo-core": "mihomo/mihomo-core.yaml",
@@ -23,12 +24,18 @@ CLIENT_FILES = {
     "quantumultx": "quantumultx/quantumultx.conf",
     "loon-strict": "loon/loon-strict.conf",
     "quantumultx-strict": "quantumultx/quantumultx-strict.conf",
+    # Stash（2026-10-13，r16）：标准版、严格版
+    "stash": "stash/stash.yaml",
+    "stash-strict": "stash/stash-strict.yaml",
 }
-STRICT_CLIENTS = ("loon-strict", "quantumultx-strict")
+STRICT_CLIENTS = ("loon-strict", "quantumultx-strict", "stash-strict")
 STANDARD_CLIENTS = tuple(c for c in CLIENT_FILES if c not in STRICT_CLIENTS)
-STRICT_OF = {"loon": "loon-strict", "quantumultx": "quantumultx-strict"}        # 标准版 → 同一个 App 的严格版
+STRICT_OF = {"loon": "loon-strict", "quantumultx": "quantumultx-strict", "stash": "stash-strict"}   # 标准版 → 同一个 App 的严格版
 LOON_CLIENTS = ("loon", "loon-strict")
 QX_CLIENTS = ("quantumultx", "quantumultx-strict")
+STASH_CLIENTS = ("stash", "stash-strict")
+# Loon / Quantumult X 的严格版：按这两端的文件格式（[Rule] / [Remote Rule]、filter_local / filter_remote）写的检查只管它们
+LQ_STRICT_OF = {"loon": "loon-strict", "quantumultx": "quantumultx-strict"}
 
 
 @functools.lru_cache(maxsize=1)
@@ -52,8 +59,8 @@ def text(client: str) -> str:
 
 
 def family(client: str) -> str:
-    """这份产物给哪一类客户端用：mihomo / singbox / loon / quantumultx（严格版和标准版是同一类）。"""
-    for fam in ("singbox", "mihomo", "loon", "quantumultx"):
+    """这份产物给哪一类客户端用：mihomo / singbox / loon / quantumultx / stash（严格版和标准版是同一类）。"""
+    for fam in ("singbox", "mihomo", "loon", "quantumultx", "stash"):
         if client.startswith(fam):
             return fam
     raise KeyError(client)
@@ -81,11 +88,13 @@ def parsed(client: str):
         return emulate.parse_singbox(t)
     if fam == "loon":
         return emulate.parse_loon(t)
+    if fam == "stash":
+        return emulate.parse_stash(t)
     return emulate.parse_qx(t)
 
 
 def route(client: str, conn, fx, trace=None) -> str:
-    """trace：给一个字典时，Loon / Quantumult X 的模拟器会记下“为了判断 IP 规则，有没有在本机解析这个域名”。"""
+    """trace：给一个字典时，Loon / Quantumult X / Stash 的模拟器会记下“为了判断 IP 规则，有没有在本机解析这个域名”。"""
     conf = parsed(client)
     fam = family(client)
     if fam == "mihomo":
@@ -94,6 +103,8 @@ def route(client: str, conn, fx, trace=None) -> str:
         return emulate.singbox_route(conf, conn, fx)
     if fam == "loon":
         return emulate.loon_route(conf, conn, fx, trace=trace)
+    if fam == "stash":
+        return emulate.stash_route(conf, conn, fx, trace=trace)
     return emulate.qx_route(conf, conn, fx, trace=trace)
 
 

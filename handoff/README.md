@@ -12,7 +12,7 @@
 3. `docs/06-已知限制与待决事项.md` 开头那张表：等使用者决定的事（2026-10-07 他把当时的第 1–20 项一次定了，2026-10-13 定了第 21 项，定下的在后面两张表；还挂着的只有几项，要先有真机上的现象或机场的节点名）。
 4. `docs/08-外部审核记录.md` 最后两轮：最近的审核意见是怎么核实、怎么处理的——下一轮照这个样子做。
 5. `00-审核说明.md`：最新一版改了什么、请审核方重点看哪里，以及能运行的检查命令。
-6. 这份说明的第 7 节起：交接时的补充和之后每一版的补充（第 10–12 节），是上面这些文件里还没有的。
+6. 这份说明的第 7 节起：交接时的补充和之后每一版的补充（第 10–13 节），是上面这些文件里还没有的。
 
 ## 2. 分支与版本
 
@@ -21,7 +21,7 @@
 | `main` | r11，统一源 `2026.10.05-2`，提交 `946d655` | 客户端里填的配置地址、严格版引用的规则文件（r14 起 Loon 一个、Quantumult X 三个），都指向 `main`。**只有使用者明确说可以才更新** |
 | `r12` | 第一个提交 `beae635`：r12，统一源 `2026.10.06-1`，生成器 1.5.0，与交付包 `proxy-rules-review-2026.10.06-r12.zip` 逐文件相同（150 个文件；包的 SHA-256 是 `bb92d97b6a9f53bfe970d255337c503bd73d03fdee7fa315e55ab4c4b1a7210e`）。之后的提交只加了 `CLAUDE.md` 和 `handoff/` | 从这个分支接着做 |
 | `baseline-r7` | r7（统一源 `2026.10.02-1`）的工程，提交 `f8bfa92` | 只给 `tools/compare_versions.py` 当旧版本用，不是给客户端用的 |
-| `claude/r12-gpt-review-handling-q4onlv` | r13–r15（2026-10-07 接手的云端会话做的）。r13 处理 GPT 对 r12 的审核：配置与 r12 逐字节相同（统一源仍是 `2026.10.06-1`，生成器 1.5.0），改的是测试、核对工具和文档，提交 `4510096`（之后 `bf42e8b` 只改了文档）。r14 处理 GPT 对 r13 的审核（mihomo 两份配置的 DNS 策略加了“走代理组的产品域名”一层），再加上使用者 2026-10-07 一次定下的待决事项，四个客户端的配置都变了：统一源 `2026.10.07-2`，生成器 1.7.0（只做了前一半的 `2026.10.07-1` / 1.6.0 没有交付）；提交 `3f45668`。r15 处理 GPT 对 r14 的审核：统一源 `2026.10.13-1`，生成器 1.8.0，分流只多了一条拦截（`afpapi.alimama.com`），其余是核对工具和文档；代码状态哈希见 `docs/05` | 下一版从这个分支接着做（见第 10–12 节） |
+| `claude/r12-gpt-review-handling-q4onlv` | r13–r16（2026-10-07 接手的云端会话做的）。r13 处理 GPT 对 r12 的审核：配置与 r12 逐字节相同（统一源仍是 `2026.10.06-1`，生成器 1.5.0），改的是测试、核对工具和文档，提交 `4510096`（之后 `bf42e8b` 只改了文档）。r14 处理 GPT 对 r13 的审核（mihomo 两份配置的 DNS 策略加了“走代理组的产品域名”一层），再加上使用者 2026-10-07 一次定下的待决事项，四个客户端的配置都变了：统一源 `2026.10.07-2`，生成器 1.7.0（只做了前一半的 `2026.10.07-1` / 1.6.0 没有交付）；提交 `3f45668`。r15 处理 GPT 对 r14 的审核：统一源 `2026.10.13-1`，生成器 1.8.0，分流只多了一条拦截（`afpapi.alimama.com`），其余是核对工具和文档；提交 `dc90da7`。r16 处理 GPT 对 r15 的审核（核对工具和文档），另加 Stash 的两份配置：统一源 `2026.10.13-2`，生成器 1.9.0；代码状态哈希见 `docs/05` | 下一版从这个分支接着做（见第 10–13 节） |
 
 怎么确认拿到的是 r12：
 
@@ -184,3 +184,13 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 7. **出这一版用的脚本**在 `handoff/release/r15-as-used/`（照 r14 的改：类数 122、新的用例和数字、节点实际收到的目标、组切换以后）。
 8. **交付**：r15 推到同一个分支，没有动 `main`（`main` 仍是 r11）。
 9. **下一版要改的小毛病**（出 r15 时核对日志看到的）：`tools/check_real_routes.py` 的 `_refuse_if_blocked` 用 `open(logp, …).read()` 读内核日志、没有关文件，`docs/evidence/tests.log` 里因此有一条 `ResourceWarning`。改成 `with open(…) as f`，照常重新定稿、全部重跑；改完测试日志里不应再有 `ResourceWarning`（可以在下一版的 finalize 里加这一条断言）。
+
+## 13. r16 的补充（2026-10-13，同一个云端会话）
+
+1. **做了什么**：使用者把 r15 的分支交给 GPT 审，10-13 上传了报告（原文 `docs/evidence/gpt-r15/`），先问“这个是不是代表基本没有大问题了”，我答完以后他说“改吧 改完连 stash 一起写最好再让他审核终版”。按第 6 节处理，记在 `docs/08` 第 11 轮：R15-F01（SOCKS5 接收端没按 RFC 1928 拒绝该拒绝的）、R15-F02（代码里一处旧说明）属实，都改了；建议都采纳（“另记握手、有效包数”只做了一部分，原因在 `docs/08`）；报告里“mihomo 只去掉一个根点”和源码不同，如实记下。r15 留下的 `ResourceWarning` 也改了。生成器 1.9.0，统一源 2026.10.13-2；变异 122 → 141 类（M123–M128 是审核和 `ResourceWarning`，M129–M141 是 Stash）。
+2. **新的待决事项第 22 项**：按审核方的建议定位 sing-box 的 UDP 问题，查到 1.14.1 里隔着选择组（selector）或自动测速组（urltest）时，目标是域名的 UDP 包被丢掉（SOCKS、Shadowsocks、Trojan；VMess 不会；1.12.0 隔着选择组不会，“自动测速组 + SOCKS”那一种也丢了、没有报错）。一次性核对 `handoff/notes/r15_review_probes.py`（输出 `.out`）。配置没有改，三个选项写在 `docs/06` 第 22 项，**等使用者定**。sing-box 1.14.3 修没修好没有核对：要去 SagerNet 的仓库取程序，这个会话的 GitHub 权限只到使用者的仓库，我没有绕过去；下一个会话如果能取，按 `handoff/setup_env.sh` 的做法登记版本和校验值以后再跑那个脚本。
+3. **Stash**（使用者 2026-10-07 的需求；10-12 说“等到审核意见改过来，你完成最终版再写”）：`generator/emit_stash.py`，标准版 `dist/stash/stash.yaml`、严格版 `stash-strict.yaml`。规则、顺序、策略组和 mihomo 的完全相同（测试逐条核对）；不同的是 DNS 段（国内 DoH；不开 `follow-rule`，理由在 `docs/03`）、空组（Stash 的文档说空组等于直连，所以每个地区放一个连不上的占位节点）、严格版（`GEOIP,CN` 加 `no-resolve`，在 `GEOSITE,geolocation-!cn` 之后订阅 blackmatrix7 的 `ChinaMax_Domain_For_Clash.txt`）。依据是使用者请另一个模型下载的 44 页 stash.wiki（这台机器打不开 stash.wiki），放在仓库以外的 `~/proxy-vendor/src/stash-docs-2026-10-13/`——**下一个会话没有这个目录**，要改 Stash 的写法时请使用者再发一次那个 zip，或者在云端环境的网络设置里放行 `stash.wiki`。文档标了 iOS 3.6 / macOS 4.3 才有的写法（`proxy-server-nameserver`、inline 规则集合、`GEOIP,UNKNOWN`）都没有用：下载时最新的是 iOS 3.4.0、macOS 4.2.0。
+4. **Stash 的核对只有模拟器**（`tests/emulate.py` 的 `stash_route`，规则语义同 mihomo；`GEOSITE` 的成员用 SagerNet 的 `.srs` 近似，Stash 自带的数据拿不到）。真机上要看的几处写在 `docs/09`“1c. Stash”和 `docs/06`“2026-10-13（r16）”：正则引擎（文档没写；不支持否定前瞻的话筛选全错）、占位节点在组里排第几（排第一的话手选的组默认选中它）、订阅整个没下载下来时、`GEOSITE` 数据第一次从 github.com 下载。
+5. **加客户端时要一起改的地方**（这次走过一遍）：`generator/model.py` 的 `ALL_CLIENTS` / `STRICT_CLIENTS`、`source/services/misc.yaml` 的国内常用网站 `clients`、`build.py` 的产物表和私密产物、`generator/verify.py`、`tests/helpers.py`（`CLIENT_FILES`、`family`、`parsed`、`route`）、各测试里按客户端分支的地方（`test_routing`、`test_icons`、`test_structure`、`test_regions`、`test_dns_lan`、`test_real_data`）、`tools/real_data.py` 的 `FAMILIES`、`tools/check_real_routes.py` 的成员记录和 `CLIENT`、`tools/compare_versions.py` 的 `OUTPUTS`、`tools/check_icons.py`；快照要重新生成。代码注释里的“四端”“四个客户端”也要一起查（`docs/08` 第 11 轮自查第 4 条）。服务的 `clients` 改了以后，用 `tools/check_upstream_evidence.py … --write` 重写规则证据的记录（`docs/evidence/upstream-snapshot.json`、`上游规则对照.md`）：测试只核对里面的服务名，看不出 `clients` 变了（r16 是出版本、核对日志时才发现的，在变异检查跑完以后补上，再跑了一遍全部检查）。
+6. **出这一版用的脚本**在 `handoff/release/r16-as-used/`（照 r15 的改：类数 141、Stash 的数字、新的一次性核对）。
+7. **交付**：r16 推到同一个分支，没有动 `main`（`main` 仍是 r11）。使用者说这一版交给 GPT 审“终版”；审完他说可以，才更新 `main`。

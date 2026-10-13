@@ -61,8 +61,8 @@ class Service:
 COMMUNITY_EV_SOURCE = {"dlc": "dlc", "bm7-snap": "bm7"}
 # upstream 允许的键：dlc（列表自身的条目）、dlc_resolved（展开 include 之后的整个集合，例如 geosite:cn）、bm7
 UPSTREAM_KEYS = ("dlc", "dlc_resolved", "bm7")
-# 客户端族：服务的 clients 字段只能写这些；不写表示全部生成
-ALL_CLIENTS = ("mihomo", "singbox", "loon", "quantumultx")
+# 客户端族：服务的 clients 字段只能写这些；不写表示全部生成（stash 是 2026-10-13 加的，r16）
+ALL_CLIENTS = ("mihomo", "singbox", "loon", "quantumultx", "stash")
 
 
 def upstream_lists(s: "Service", src: str) -> List[str]:
@@ -193,7 +193,8 @@ RULE_EXTRA_KEYS = {"ev", "note", "nature"}
 GROUP_KEYS = {"name", "category", "default", "options", "residual", "note", "special"}
 # shared_excluded：只说明“不归本服务”的主机。写了 to 的，表示“它会去这个组”，是一条要核对的断言：
 # probe 列出具体主机，测试（tests/test_real_data.py，用上游数据的成员快照）和 tools/check_real_routes.py（官方内核）
-# 会检查四个客户端是否真的把它们交给 to。不写 to 的只是“没有收”，不保证去向（2026-10-03 审核 F01 之后加的区分）。
+# 会检查各客户端是否真的把它们交给 to（2026-10-13 起含 Stash；Loon、Quantumult X、Stash 只有模拟器）。
+# 不写 to 的只是“没有收”，不保证去向（2026-10-03 审核 F01 之后加的区分）。
 EXCLUDED_KEYS = {"host", "ev", "why", "to", "probe"}
 AD_KEYS = {"suffix", "domain", "ev", "note"}
 EXCEPTION_KEYS = {"suffix", "domain", "target", "ev", "why", "allow_direct"}
@@ -202,9 +203,10 @@ LOCAL_KEYS = {"special_entries", "extra_services", "evidence", "node_names"}
 ICON_KEYS = {"enabled", "base_url", "ext", "renamed", "pending", "checked_commit", "checked", "available"}
 STRICT_KEYS = {"publish_base", "domestic_lists", "qx_fallback"}
 STRICT_LIST_KEYS = {"url", "own", "tag", "ev", "source"}
-# 严格版只给这两端生成；各端能引用的自有清单文件
-STRICT_CLIENTS = ("loon", "quantumultx")
-STRICT_OWN_CN = {"loon": {strict_mod.LOON_CN_REL}, "quantumultx": {strict_mod.QX_CN_REL, strict_mod.QX_MAX_REL}}
+# 严格版只给这几端生成（Stash 是 2026-10-13 加的）；各端能引用的自有清单文件（Stash 不引用自有文件：国内域名靠
+# 它自带的 GEOSITE,cn 和直接订阅的上游大清单，见 generator/emit_stash.py）
+STRICT_CLIENTS = ("loon", "quantumultx", "stash")
+STRICT_OWN_CN = {"loon": {strict_mod.LOON_CN_REL}, "quantumultx": {strict_mod.QX_CN_REL, strict_mod.QX_MAX_REL}, "stash": set()}
 # 图标地址要原样写进 Loon / Quantumult X 的一行：不能有逗号、空格、引号、反引号这些会被当成分隔符的字符
 _ICON_BASE_RX = re.compile(r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]*/$")
 _ICON_EXT_RX = re.compile(r"^\.[A-Za-z0-9]{2,5}$")
@@ -288,7 +290,7 @@ def _check_strict(st: dict, evidence: dict) -> List[str]:
             if e.get("ev") not in evidence:
                 errors.append(f"strict.yaml {where} {url}：证据 {e.get('ev')!r} 未登记")
         elif "own" in e and where in STRICT_OWN_CN and e["own"] not in STRICT_OWN_CN[where]:
-            errors.append(f"strict.yaml {where}：own 只能是 {' / '.join(sorted(STRICT_OWN_CN[where]))}")
+            errors.append(f"strict.yaml {where}：own 只能是 {' / '.join(sorted(STRICT_OWN_CN[where])) or '（这一端不引用自有清单）'}")
     tags = [(c, e.get("tag")) for c, e in entries if isinstance(e, dict)]
     for client in STRICT_CLIENTS:
         mine = [t for c, t in tags if c.startswith(client)]
@@ -455,7 +457,7 @@ def load(root: str, include_local: bool = True) -> Model:
         else:
             schema_errors += _unknown("icons.yaml icons", icons, ICON_KEYS)
             schema_errors += _check_icons(icons)
-    # 严格版（Loon / Quantumult X 各多生成一份）的设定与国内域名清单
+    # 严格版（Loon / Quantumult X 各多生成一份，2026-10-13 起 Stash 也有）的设定与国内域名清单
     strict_data = _load_yaml(os.path.join(src, "strict.yaml")) or {}
     schema_errors += _unknown("strict.yaml", strict_data, {"strict"})
     strict_conf = strict_data.get("strict") if isinstance(strict_data, dict) else None
@@ -672,7 +674,7 @@ class Plan:
     product: List[Rule]        # 第 4–5 阶段：产品专属 + 共享依赖 / 厂商规则（已排序）
     service_ip: List[Rule]     # 第 7 阶段：服务专属 IP（no-resolve，已排序）
     service_clients: Dict[str, Tuple[str, ...]] = field(default_factory=dict)   # 只生成到部分客户端的服务
-    # 要真实地址的名单里、局域网规则还没有管到的那些名字，四端（标准版、严格版）都固定直连。
+    # 要真实地址的名单里、局域网规则还没有管到的那些名字，各端（标准版、严格版；2026-10-13 起含 Stash）都固定直连。
     # 这些名字必须先在本机由国内 DNS 解析（解析发生在选出口之前），固定直连以后不会出现“国内 DNS 解析 + 代理出口”。
     # 以前只有 Loon / Quantumult X 的严格版这样做；2026-10-07 用户定了待决事项第 15 项（方案二），四端的标准版也这样做
     real_ip_direct: List[Rule] = field(default_factory=list)
@@ -690,7 +692,7 @@ class Plan:
 
     def intended_target(self, host: str, family: Optional[str] = None) -> Optional[str]:
         """按语义阶段求一个主机名的预期目标（不含远程集合；远程集合在测试里用样本模拟）。
-        family 给出时只看该客户端族实际写出的产品规则（例如国内常用网站只写进 mihomo / sing-box）。"""
+        family 给出时只看该客户端族实际写出的产品规则（例如国内常用网站只写进 mihomo / sing-box / Stash）。"""
         for stage in (self.lan, self.real_ip_direct, self.exceptions, self.ads_local):
             for r in stage:
                 if rule_matches_host(r.kind, r.value, host):

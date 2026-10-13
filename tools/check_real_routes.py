@@ -45,6 +45,8 @@
 Loon / Quantumult X 没有可以在电脑上运行的官方内核，这里只把它们订阅的上游规则文件（blackmatrix7 的固定快照：
 远程广告集合；Loon 严格版另订阅的国内域名集合 ChinaMax_Domain）读进来记进快照，路由结果仍由模拟器按官方文档描述的
 匹配顺序推算——不是这两个 App 的实测。标准版和严格版（2026-10-06）各算一遍；严格版引用的自有远程规则文件用这次生成的内容。
+Stash（2026-10-13 起）也没有能在电脑上运行的内核，同样只有模拟器：它的 GEOSITE 集合用上面 SagerNet 的 .srs 近似（Stash 自带的
+domain-list-community 数据拿不到）；严格版订阅的 blackmatrix7 国内域名清单（ChinaMax_Domain_For_Clash.txt）一样读进来记进快照。
 读这些上游文件时另数一件事：Loon 订阅的文件里，按 IP 判断的规则是不是都带 no-resolve。Loon 严格版靠“全部 IP 规则都不为域名解析”
 成立，本地规则由写盘前的结构检查管，上游文件里的只能在这里数；有不带的算不符合（模拟器是按“都带”算的）。
 
@@ -1303,8 +1305,10 @@ def build_membership(a, model, files, hosts, ips):
             p = rd.bm7_local_path(a.bm7, url)
             if not os.path.exists(p):
                 raise RuntimeError(f"blackmatrix7 的检出目录里没有 {os.path.relpath(p, a.bm7)}（配置订阅了 {url}）")
-            remote.setdefault(family, {})[url] = rd.read_rule_list(p)
+            remote.setdefault(family, {})[url] = rd.read_remote(p)
             src(family, p, a.bm7_origin)
+    for tag in ("geosite-" + n for n in rd.STASH_SETS):             # Stash 的 GEOSITE 用 SagerNet 的同源数据近似（见 real_data.STASH_SETS）
+        src("stash", os.path.join(a.srs_dir, SB_SRS[tag]), a.srs_origin + "（近似 Stash 自带的 domain-list-community 数据）")
 
     host_rec = {}
     for h in hosts:
@@ -1313,6 +1317,8 @@ def build_membership(a, model, files, hosts, ips):
             "singbox": {n: srs_sets[n].why(h) for n in rd.SINGBOX_SETS if srs_sets[n].why(h)},
             "loon": {u: rl.host_hits(h)[0] for u, rl in remote["loon"].items() if rl.host_hits(h)},
             "quantumultx": {u: rl.host_hits(h)[0] for u, rl in remote["quantumultx"].items() if rl.host_hits(h)},
+            "stash": {**{n: srs_sets["geosite-" + n].why(h) for n in rd.STASH_SETS if srs_sets["geosite-" + n].why(h)},
+                      **{u: rl.host_hits(h)[0] for u, rl in remote["stash"].items() if rl.host_hits(h)}},
         }
     ip_rec = {}
     for ip in ips:
@@ -1322,6 +1328,7 @@ def build_membership(a, model, files, hosts, ips):
             "singbox": {"cn": any(addr.version == n.version and addr in n for n in srs_nets["geoip-cn"])},
             "loon": {u: rl.ip_hits(ip)[0] for u, rl in remote["loon"].items() if rl.ip_hits(ip)},
             "quantumultx": {u: rl.ip_hits(ip)[0] for u, rl in remote["quantumultx"].items() if rl.ip_hits(ip)},
+            "stash": {u: rl.ip_hits(ip)[0] for u, rl in remote["stash"].items() if rl.ip_hits(ip)},
         }
 
     # 上游集合里值得留意的地方
@@ -1346,7 +1353,11 @@ def build_membership(a, model, files, hosts, ips):
                           "ip_resolving_examples": rl.ip_resolving[:3]} for u, rl in remote["loon"].items()},
              "quantumultx": {u: {"domain": len(rl.domains.full), "suffix": len(rl.domains.suffix),
                                  "keyword": len(rl.domains.keyword), "ip": len(rl.nets), "ignored": rl.ignored}
-                             for u, rl in remote["quantumultx"].items()}}
+                             for u, rl in remote["quantumultx"].items()},
+             "stash": {u: {"domain": len(rl.domains.full), "suffix": len(rl.domains.suffix),
+                           "keyword": len(rl.domains.keyword), "ip": len(rl.nets), "ignored": rl.ignored}
+                       for u, rl in remote["stash"].items()},
+             "stash_geosite": {n: len(srs_sets["geosite-" + n]) for n in rd.STASH_SETS}}
     loaded = {"mihomo": geo, "mihomo_cn_nets": cn_nets, "singbox": srs_sets, "singbox_cn_nets": srs_nets["geoip-cn"]}
     return host_rec, ip_rec, sources, oddities, sizes, notes, loaded
 
@@ -1767,11 +1778,13 @@ def main(argv=None) -> int:
     consistency, bad = check_consistency(a, model, files, loaded, dns_map)
     failures += bad
 
-    # ---- Loon / Quantumult X：只有模拟器。标准版和严格版各算一遍 ----
+    # ---- Loon / Quantumult X / Stash：只有模拟器。标准版和严格版各算一遍 ----
     for client, fam, parse, route in (("loon", "loon", emulate.parse_loon, emulate.loon_route),
                                       ("loon-strict", "loon", emulate.parse_loon, emulate.loon_route),
                                       ("quantumultx", "quantumultx", emulate.parse_qx, emulate.qx_route),
-                                      ("quantumultx-strict", "quantumultx", emulate.parse_qx, emulate.qx_route)):
+                                      ("quantumultx-strict", "quantumultx", emulate.parse_qx, emulate.qx_route),
+                                      ("stash", "stash", emulate.parse_stash, emulate.stash_route),
+                                      ("stash-strict", "stash", emulate.parse_stash, emulate.stash_route)):
         conf = parse(files[CLIENT[client]])
         fx = emulate.SnapshotFixtures(snap, fam, dns_map)
         strict = client in rd.STRICT_KEYS
@@ -1786,7 +1799,8 @@ def main(argv=None) -> int:
             if trace.get("resolved"):
                 resolved.append(t)
         n_hosts = len({p["host"] for p in probes if p["host"]})
-        print(f"{client}（没有官方内核，只有模拟器 + 真实的上游规则文件" + ("和这次生成的自有清单" if strict else "") + f"）：{len(probes)} 条，"
+        extra = ("和直接订阅的上游国内域名清单" if fam == "stash" else "和这次生成的自有清单") if strict else ""
+        print(f"{client}（没有官方内核，只有模拟器 + 真实的上游规则文件" + extra + f"）：{len(probes)} 条，"
               + ("全部符合人工期望" if not bad else f"{len(bad)} 条不符合"))
         print(f"      为了判断 IP 规则而在本机解析过的域名：{n_hosts} 个里 {len(set(resolved))} 个"
               + ("（严格版应该是 0）" if strict else "（标准版的已知行为：没被域名规则接住的域名都要先解析）"))
@@ -1832,7 +1846,10 @@ def main(argv=None) -> int:
                          "outbound_switched、outbound_switched_received 是把默认直连、可以切换的组也切到测试出口以后的同一项核对"
                          "（tests/cases.yaml 的 outbound_switched）；mihomo 的 outbound_without_product_layer_udp 是 SOCKS5 走 UDP 的那一遍自检。"
                          "loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的"
-                         "国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
+                         "国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。"
+                         "2026-10-13 起另有 stash 一类：GEOSITE 集合（cn、geolocation-!cn、category-ads-all）的成员用 SagerNet 的 .srs"
+                         "近似（Stash 用自带的 domain-list-community 数据，版本拿不到），另有 Stash 严格版订阅的国内域名清单"
+                         "（blackmatrix7 给 Clash 的 ChinaMax_Domain_For_Clash.txt）；国内 IP 和 Loon / Quantumult X 一样假定与 mihomo 的一致。",
                 "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
                 "source_version": model.project["project"]["source_version"],
                 "assumed_dns": {"note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP",
@@ -1896,7 +1913,8 @@ def self_check(a, files, dns_map) -> dict:
 
 CLIENT = {"mihomo-core": "mihomo/mihomo-core.yaml", "singbox-1.14": "sing-box/sing-box-1.14.json",
           "singbox-1.12": "sing-box/sing-box-1.12.json", "loon": "loon/loon.conf", "quantumultx": "quantumultx/quantumultx.conf",
-          "loon-strict": "loon/loon-strict.conf", "quantumultx-strict": "quantumultx/quantumultx-strict.conf"}
+          "loon-strict": "loon/loon-strict.conf", "quantumultx-strict": "quantumultx/quantumultx-strict.conf",
+          "stash": "stash/stash.yaml", "stash-strict": "stash/stash-strict.yaml"}
 
 
 def _is_ip(s: str) -> bool:

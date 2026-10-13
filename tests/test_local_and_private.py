@@ -139,6 +139,12 @@ class PrivateOutputs(unittest.TestCase):
                     self.assertNotIn("SECRET123", content, f"公开产物 {p} 泄漏了订阅")
             with open(os.path.join(out, "private", "loon.conf"), encoding="utf-8") as f:
                 self.assertIn("SECRET123", f.read())
+            # Stash（2026-10-13）：两份都带订阅，订阅写在 proxy-providers 里，没有占位符了
+            import yaml
+            for name in ("stash.yaml", "stash-strict.yaml"):
+                with open(os.path.join(out, "private", name), encoding="utf-8") as f:
+                    c = yaml.safe_load(f)
+                self.assertEqual([p["url"] for p in c["proxy-providers"].values()], [secret], name)
             self.assertTrue(os.path.exists(os.path.join(out, "private", "请勿分享.txt")))
         finally:
             if old is None:

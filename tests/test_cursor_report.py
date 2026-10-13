@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import check_cursor_report as ccr  # noqa: E402
 
 SAME = "同组"
-CN_ONLY = "同组（只写进 mihomo / sing-box）"
+CN_ONLY = "同组（只写进 mihomo / sing-box / Stash）"
 
 
 class CursorReport(unittest.TestCase):

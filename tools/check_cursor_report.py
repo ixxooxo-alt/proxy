@@ -65,7 +65,7 @@ DIFF_NOTES = {
     "alimama.com": NARROW_ALIMAMA,
 }
 
-DESIGN = ("设计差异：本工程在 mihomo / sing-box 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），"
+DESIGN = ("设计差异：本工程在 mihomo / sing-box / Stash 引用远程集合（category-ads-all 广告拦截，cn / geolocation-!cn / GEOIP,CN 兜底），"
           "Loon / QX 用 AdvertisingLite 广告集合与 GEOIP,CN 兜底；未命中专门规则的流量才走到这些集合。理由见 docs/03、docs/06")
 BILI = "保留：需求要求港澳台内容走 Bilibili 港澳台，这些接口主机大陆与港澳台共用、按域名拆不开；这个组 2026-10-07 起默认直连，看港澳台内容时切到台湾（docs/06 第 5 项）"
 MS_FIRST = "保留：Microsoft 第一方域名（必应、Microsoft 账户、静态资源短域），不托管第三方内容；Copilot 的更具体规则排在前面"
@@ -134,7 +134,7 @@ def analyze(rows, m, plan):
                 if all(t == want for t in tm + tl):
                     cat = "同组"
                 elif all(t == want for t in tm) and all(t is None for t in tl):
-                    cat = "同组（只写进 mihomo / sing-box）"
+                    cat = "同组（只写进 mihomo / sing-box / Stash）"
                 elif all(t is None for t in tm):
                     cat = "无专门规则"
                 else:
@@ -155,18 +155,18 @@ def render(cursor_rows, reject_rows, m):
          "由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`"
          "（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 "
          f"`{m.project['project']['source_version']}` 计算每条规则的去向。",
-         "“去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box”那一类。", "",
+         "“去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box / Stash”那一类（Stash 是 2026-10-13 加的，规则和 mihomo 相同）。", "",
          "## 一、Cursor 版的规则在本工程里进哪个组", ""]
     c = Counter(x["cat"] for x in cursor_rows)
     L.append(f"Cursor 版共 {len(cursor_rows)} 条：" + "，".join(f"{k} {v}" for k, v in c.most_common()) + "。")
     L.append("")
-    L.append("| 分流 | 同组 | 同组（只写进 mihomo / sing-box） | 已替换 | 不同组 | 无专门规则 |")
+    L.append("| 分流 | 同组 | 同组（只写进 mihomo / sing-box / Stash） | 已替换 | 不同组 | 无专门规则 |")
     L.append("|---|---|---|---|---|---|")
     by = OrderedDict()
     for x in cursor_rows:
         by.setdefault(x["group"], Counter())[x["cat"]] += 1
     for g, cc in by.items():
-        L.append(f"| {g} | {cc['同组'] or ''} | {cc['同组（只写进 mihomo / sing-box）'] or ''} | {cc['已替换'] or ''} | "
+        L.append(f"| {g} | {cc['同组'] or ''} | {cc['同组（只写进 mihomo / sing-box / Stash）'] or ''} | {cc['已替换'] or ''} | "
                  f"{cc['不同组'] or ''} | {cc['无专门规则'] or ''} |")
     L.append("")
     L.append("去向不同、没有专门规则或被替换的条目，逐条写明处理：")
@@ -174,10 +174,10 @@ def render(cursor_rows, reject_rows, m):
     L.append("| 分流 | 类型 | 值 | 报告判断 | 本工程去向 | 处理 |")
     L.append("|---|---|---|---|---|---|")
     for x in cursor_rows:
-        if x["cat"] not in ("同组", "同组（只写进 mihomo / sing-box）"):
+        if x["cat"] not in ("同组", "同组（只写进 mihomo / sing-box / Stash）"):
             L.append(f"| {x['group']} | {x['kind']} | `{x['value']}` | {x['judge']} | {x['got']} | {x['note'] or '**未说明**'} |")
     L.append("")
-    L.append("“同组（只写进 mihomo / sing-box）”是国内常用网站：Loon / QX 不写这些规则，由 `GEOIP,CN` 兜底直连，原因见 `docs/06`。")
+    L.append("“同组（只写进 mihomo / sing-box / Stash）”是国内常用网站：Loon / QX 不写这些规则，由 `GEOIP,CN` 兜底直连，原因见 `docs/06`。")
     L.append("")
     L += ["## 二、报告判为“不该收”的本工程条目", ""]
     L.append(f"共 {len(reject_rows)} 条。")
@@ -202,7 +202,7 @@ def main(argv=None):
     plan = build_plan(m)
     cursor_rows, reject_rows = analyze(rows, m, plan)
     text = render(cursor_rows, reject_rows, m)
-    missing = [x for x in cursor_rows if x["cat"] not in ("同组", "同组（只写进 mihomo / sing-box）") and not x["note"]]
+    missing = [x for x in cursor_rows if x["cat"] not in ("同组", "同组（只写进 mihomo / sing-box / Stash）") and not x["note"]]
     missing += [x for x in reject_rows if not x["note"]]
     c = Counter(x["cat"] for x in cursor_rows)
     print(f"Cursor 版 {len(cursor_rows)} 条：" + "，".join(f"{k} {v}" for k, v in c.most_common()))

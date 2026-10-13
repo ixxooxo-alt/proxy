@@ -8,6 +8,7 @@ sing-box 的出站标签不能重名。以前这些只在单独运行测试时�
   Quantumult X：[filter_remote] 的最后一条是域名兜底、交给“国外默认”，而且没有用 inserted-resource；
   两端：广告集合在前、国内域名清单在后，清单交给“国内直连”；引用的自有远程规则文件确实在这次生成的产物里；
   自有文件本身：国内清单只有域名和后缀两类规则，兜底文件只有那一条关键词规则。
+Stash（stash.yaml、stash-strict.yaml，2026-10-13）另查的几条见 check_stash。
 """
 from __future__ import annotations
 
@@ -103,6 +104,94 @@ def check_mihomo(text: str) -> List[str]:
         for pattern, servers in (dns.get(key) or {}).items():
             if not servers:
                 problems.append(f"dns.{key} 的 {pattern} 没有写 DNS 服务器")
+    return problems
+
+
+STASH_IP_RULES = {"IP-CIDR", "IP-CIDR6", "GEOIP", "IP-ASN"}
+
+
+def check_stash(text: str, strict: bool = False) -> List[str]:
+    """Stash（2026-10-13）：引用都找得到、组不循环；另查两条这份配置赖以成立的结构——
+      每个按节点筛选的组（include-all + filter），筛选正则正好选中一个占位节点（名字以“·无可用节点”结尾的那几个）：
+        Stash 的文档说没有代理的组会被当作直连，占位节点保证组永远不空（这里用 Python 的正则判断；Stash 的引擎未知）；
+      严格版：每一条按 IP 判断的规则都带 no-resolve，国内域名清单（RULE-SET → 国内直连）排在广告集合、GEOSITE,geolocation-!cn 之后，
+        最后一条是 MATCH,国外默认。"""
+    from .emit_stash import PLACEHOLDER_PORT, PLACEHOLDER_SERVER, PLACEHOLDER_SUFFIX
+    c = yaml.safe_load(text)
+    problems = []
+    groups = {g["name"]: list(g.get("proxies") or []) for g in c.get("proxy-groups", [])}
+    if len(groups) != len(c.get("proxy-groups", [])):
+        problems.append("策略组重名")
+    proxies = [p for p in (c.get("proxies") or [])]
+    names = [p["name"] for p in proxies]
+    if len(names) != len(set(names)):
+        problems.append("代理（占位节点）重名")
+    holders = [p for p in proxies if str(p.get("name", "")).endswith(PLACEHOLDER_SUFFIX)]
+    for p in holders:
+        if (p.get("server"), p.get("port"), p.get("type")) != (PLACEHOLDER_SERVER, PLACEHOLDER_PORT, "http"):
+            problems.append(f"占位节点 {p['name']} 应该是连 {PLACEHOLDER_SERVER}:{PLACEHOLDER_PORT} 的 http 代理（连不上）")
+    if len(holders) != len(proxies):
+        problems.append("proxies 里只应该有占位节点（真节点从订阅来）")
+    providers = set((c.get("proxy-providers") or {}).keys())
+    rule_providers = c.get("rule-providers") or {}
+    known = set(groups) | set(names) | BUILTIN
+    for g in c.get("proxy-groups", []):
+        for mem in g.get("proxies") or []:
+            if mem not in known:
+                problems.append(f"组 {g['name']} 引用了不存在的 {mem}")
+        for u in g.get("use") or []:
+            if u not in providers:
+                problems.append(f"组 {g['name']} 引用了不存在的订阅 {u}")
+        if g["name"] in (g.get("proxies") or []):
+            problems.append(f"组 {g['name']} 引用了自己")
+        if "filter" in g:
+            if not g.get("include-all"):
+                problems.append(f"组 {g['name']} 有 filter 却没有 include-all（本项目只按文档的 include-all + filter 写法核对过）")
+            try:
+                rx = re.compile(g["filter"])
+            except re.error as e:
+                problems.append(f"组 {g['name']} 的筛选正则 Python 也读不懂：{e}")
+                continue
+            hit = [p["name"] for p in holders if rx.search(p["name"])]
+            if len(hit) != 1:
+                problems.append(f"组 {g['name']} 的筛选应该正好选中一个占位节点，实际 {hit}：选不中就可能变成空组（Stash 当作直连）")
+        elif not g.get("proxies"):
+            problems.append(f"组 {g['name']} 没有成员（Stash 当作直连）")
+    rules = c.get("rules", [])
+    for r in rules:
+        parts = [x.strip() for x in r.split(",")]
+        target = parts[1] if parts[0] == "MATCH" else (parts[2] if len(parts) > 2 else None)
+        if target is None or target not in known:
+            problems.append(f"规则 {r} 的目标不存在")
+        if parts[0] == "RULE-SET" and parts[1] not in rule_providers:
+            problems.append(f"规则 {r} 引用的规则集合不存在")
+    for name, rp in rule_providers.items():
+        if not any(r.split(",")[:2] == ["RULE-SET", name] for r in rules):
+            problems.append(f"规则集合 {name} 没有被任何规则引用")
+    loop = _cycles(groups)
+    if loop:
+        problems.append("组循环引用：" + " → ".join(loop))
+    dns = c.get("dns") or {}
+    if not dns.get("nameserver"):
+        problems.append("dns.nameserver 不能为空")
+    for pattern, servers in (dns.get("nameserver-policy") or {}).items():
+        if not servers:
+            problems.append(f"dns.nameserver-policy 的 {pattern} 没有写 DNS 服务器")
+    if strict:
+        for r in rules:
+            parts = [x.strip() for x in r.split(",")]
+            if parts[0].upper() in STASH_IP_RULES and "no-resolve" not in parts[3:]:
+                problems.append(f"严格版里按 IP 判断的规则 {r} 没有 no-resolve：没命中域名规则的域名又要在本机解析")
+        kinds = [[x.strip() for x in r.split(",")] for r in rules]
+        cn = [i for i, k in enumerate(kinds) if k[0] == "RULE-SET" and k[2] == "国内直连"]
+        ads = [i for i, k in enumerate(kinds) if k[0] in ("GEOSITE", "RULE-SET") and k[2] == "广告拦截"]
+        foreign = [i for i, k in enumerate(kinds) if k[:2] == ["GEOSITE", "geolocation-!cn"]]
+        if not cn:
+            problems.append("严格版里没有交给“国内直连”的国内域名清单（RULE-SET）")
+        elif (ads and min(cn) < max(ads)) or (foreign and min(cn) < max(foreign)):
+            problems.append("严格版的国内域名清单应该排在广告集合和 GEOSITE,geolocation-!cn 之后")
+        if not kinds or kinds[-1] != ["MATCH", "国外默认"]:
+            problems.append("严格版最后一条应该是 MATCH,国外默认")
     return problems
 
 
@@ -339,6 +428,8 @@ def check_outputs(files: Dict[str, str], own: Optional[dict] = None) -> List[str
             probs = check_loon(text, strict=base == "loon-strict.conf", own=own)
         elif base in ("quantumultx.conf", "quantumultx-strict.conf"):
             probs = check_qx(text, strict=base == "quantumultx-strict.conf", own=own)
+        elif base in ("stash.yaml", "stash-strict.yaml"):
+            probs = check_stash(text, strict=base == "stash-strict.yaml")
         else:
             continue
         out += [f"{rel}：{p}" for p in probs]

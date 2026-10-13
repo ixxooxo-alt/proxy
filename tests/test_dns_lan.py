@@ -1,4 +1,4 @@
-"""局域网名字的解析路径：四端都把局域网后缀交给系统 / 本地 DNS，而不是公共 DoH（审核 F04）；
+"""局域网名字的解析路径：各端（2026-10-13 起含 Stash）都把局域网后缀交给系统 / 本地 DNS，而不是公共 DoH（审核 F04）；
 sing-box 拨号时的解析也一样（审核 r9 的 F02）；mihomo 节点自己的服务器地址也一样（审核 r10 的 R10-F01）；
 没被任何域名规则接住的域名只问境外 DNS（GPT 审核 r12 的第 10 点）；mihomo 上走代理组的产品域名也只问境外 DNS
 （GPT 审核 r13 的 R13-F01，待决事项 16）；以及 mihomo 订阅上的健康检查间隔与组一致（审核 3.4）。"""
@@ -193,6 +193,18 @@ class LanDns(unittest.TestCase):
                          [f"*.{s} = server:system" for s in self.lan])
         qx = parsed("quantumultx")["sections"]["dns"]
         self.assertEqual([x for x in qx if x.endswith("/system")], [f"server=/*.{s}/system" for s in self.lan])
+
+    def test_stash_uses_system_dns_for_lan_suffixes(self):
+        """Stash（2026-10-13）：同一份局域网后缀，nameserver-policy 里每个后缀交给 system，fake-ip-filter 里拿真实地址，
+        规则第 2 段固定直连。不带点的名字和上游 private 集合没有像 mihomo 那样交给 system（文档没写 * 的意思；
+        geosite: 写在 nameserver-policy 里要 iOS 3.4.0 / macOS 4.2.0），见 docs/06。"""
+        for client in ("stash", "stash-strict"):
+            c = parsed(client)
+            self.assertEqual(c["dns"]["nameserver-policy"], {"+." + s: "system" for s in self.lan}, client)
+            for s in self.lan:
+                self.assertIn("+." + s, c["dns"]["fake-ip-filter"], client)
+                self.assertIn(f"DOMAIN-SUFFIX,{s},DIRECT", c["rules"], client)
+            self.assertNotIn("*", c["dns"]["nameserver-policy"], client)
 
     def test_mihomo_unmatched_names_ask_only_the_foreign_doh(self):
         """GPT 审核 r12 的第 10 点（交接时也列为下一版要补的）：没被任何域名规则接住的域名只问境外 DNS——把设计约束直接写成断言。

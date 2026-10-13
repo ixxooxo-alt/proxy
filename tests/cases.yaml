@@ -1,8 +1,8 @@
 # 路由期望：由需求与官方资料独立写出，不从生成结果反推。
 # expect：策略组名 / DIRECT / 广告拦截；per_client：各端语义不同时的覆盖值（必须写明原因）。
-#   per_client 的键是四类客户端：mihomo、singbox、loon、quantumultx。Loon / Quantumult X 另有严格版（2026-10-06），
-#   键是 loon-strict、quantumultx-strict：只管严格版那一份产物；没写的话，严格版跟同一个 App 的标准版走
-#   （查找顺序：per_client[严格版的键] → per_client[loon / quantumultx] → expect）。
+#   per_client 的键是五类客户端：mihomo、singbox、loon、quantumultx、stash（2026-10-13 加的）。Loon / Quantumult X 另有严格版
+#   （2026-10-06），Stash 也有（2026-10-13），键是 loon-strict、quantumultx-strict、stash-strict：只管严格版那一份产物；
+#   没写的话，严格版跟同一个 App 的标准版走（查找顺序：per_client[严格版的键] → per_client[loon / quantumultx / stash] → expect）。
 # 字段 host 表示按域名连接，ip 表示直接 IP 连接。
 #
 # 每个用例跑两遍（2026-10-03 审核 F01 之后）：
@@ -206,7 +206,7 @@ cases:
   - {ip: 'fe80::1', expect: DIRECT}
   - {host: www.baidu.com, expect: 国内直连}
   - {host: example.cn, expect: 国内直连, why: "mihomo/sing-box 靠 GeoSite cn；Loon/QX 靠解析后的 GEOIP"}
-  - {host: unknown-cn.example, expect: 国内直连, per_client: {loon-strict: 国外默认, quantumultx-strict: 国外默认},
+  - {host: unknown-cn.example, expect: 国内直连, per_client: {loon-strict: 国外默认, quantumultx-strict: 国外默认, stash-strict: 国外默认},
      why: "未分类域名解析到国内 IP。严格版不在本机解析没被域名规则接住的域名，所以它走国外默认——这是严格版的代价：清单里没有的国内网站会走代理"}
   - {ip: 1.2.4.8, expect: 国内直连}
   - {ip: '240e::1', expect: 国内直连, why: 国内 IPv6 兜底}
@@ -296,8 +296,8 @@ cases:
 # 样本数据那一遍不跑：样本里没有这些上游条目。
 # 上游改掉以后，带新数据重跑 tools/check_real_routes.py 会在这里报不一致——那时把这一条和 docs/06 里对应的已知行为一起删掉。
 upstream_followed:
-  - {host: example.ms, expect: 国外默认, per_client: {mihomo: 国内直连},
-     why: "MetaCubeX 的国内域名集合里有整段 .ms（SagerNet 的没有）。r8 加过一条只写进 mihomo 的 DOMAIN-SUFFIX,ms → 国外默认；2026-10-04 用户决定删掉、跟随上游。所以 mihomo 上没被产品规则接住的 .ms 域名走国内直连"}
+  - {host: example.ms, expect: 国外默认, per_client: {mihomo: 国内直连, stash-strict: 国内直连},
+     why: "MetaCubeX 的国内域名集合里有整段 .ms（SagerNet 的没有）。r8 加过一条只写进 mihomo 的 DOMAIN-SUFFIX,ms → 国外默认；2026-10-04 用户决定删掉、跟随上游。所以 mihomo 上没被产品规则接住的 .ms 域名走国内直连。2026-10-13 加的 Stash 严格版也一样：它订阅的 blackmatrix7 给 Clash 的 ChinaMax 清单里有整段 +.ms（Loon 那份没有），按同一个决定跟随上游"}
 
 # 只在真实数据下才看得到的行为（2026-10-06）。和 upstream_followed 不同：这里的 expect / per_client 就是现状的如实记录，
 # 样本数据那一遍不跑（样本里没有这些上游条目）。每一条都要在 docs/06 里有对应的说明。

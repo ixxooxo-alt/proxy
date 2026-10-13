@@ -8,7 +8,7 @@
   python3 tools/check_icons.py --icon-repo <目录>
 
 检查的内容：
-  1. 三个带图标的客户端产物（Loon、Quantumult X、mihomo）里，每个策略组的图标地址都指向检出目录里存在的文件；
+  1. 带图标的客户端产物（Loon、Quantumult X、mihomo，2026-10-13 起还有 Stash）里，每个策略组的图标地址都指向检出目录里存在的文件；
   2. 那个文件是 PNG，宽高和目录名一致（256px 目录里是 256×256）；
   3. source/icons.yaml 的 available 和目录里实际有的图一致（仓库里多了图只提示，少了图算失败）；
   4. 图标仓库自己公布的地址清单（icon-urls.json）里对应的地址，和本工程生成的逐个相同；清单里没有的组不比、单独列出
@@ -51,7 +51,7 @@ def icons_from_outputs(files: dict) -> dict:
     out = {}
     for rel, text in files.items():
         got = {}
-        if rel.startswith("mihomo/"):
+        if rel.startswith(("mihomo/", "stash/")):
             for g in yaml.safe_load(text)["proxy-groups"]:
                 if "icon" in g:
                     got[g["name"]] = g["icon"]

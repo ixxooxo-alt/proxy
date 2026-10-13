@@ -1,4 +1,4 @@
-"""路由行为：用独立写出的期望（cases.yaml）检查各个客户端的真实产物（标准版六份，加 Loon / Quantumult X 的严格版两份）。"""
+"""路由行为：用独立写出的期望（cases.yaml）检查各个客户端的真实产物（标准版七份，加 Loon / Quantumult X / Stash 的严格版三份）。"""
 import csv
 import os
 import unittest
@@ -103,7 +103,7 @@ class RoutingCases(unittest.TestCase):
         self.assertEqual(len(self.APPLE_AI_EXPECTED), 17 - len(self.NARROWED) + len(self.SIRI_REPLACEMENTS))
 
     def test_apple_ai_before_apple(self):
-        """Apple AI 的全部地址在四端都先命中 Apple AI；普通苹果地址仍命中 Apple；不再有关键词规则误伤 siriusxm.com。"""
+        """Apple AI 的全部地址在各端都先命中 Apple AI；普通苹果地址仍命中 Apple；不再有关键词规则误伤 siriusxm.com。"""
         m, plan = model_and_plan()
         rules = [(r.kind, r.value) for s in m.services if s.id == "apple_ai" for r in s.rules]
         self.assertEqual(rules, self.APPLE_AI_EXPECTED, "Apple AI 规则必须与上面的清单一致（需求给定的 18 条，按用户的决定去掉三条宽规则）")
@@ -137,7 +137,7 @@ class RoutingCases(unittest.TestCase):
     def _domain_rule_targets(client):
         """按书写顺序列出各端域名类规则的目标组（sing-box 一条规则对象可能含多个域名，按对象计）。"""
         conf = parsed(client)
-        if client.startswith("mihomo"):
+        if client.startswith(("mihomo", "stash")):
             return [ln.split(",")[2].strip() for ln in conf["rules"]
                     if ln.split(",")[0] in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD")]
         if client.startswith("singbox"):
@@ -151,7 +151,7 @@ class RoutingCases(unittest.TestCase):
         """服务专属 IP 规则只匹配直接 IP 连接：域名连接解析到 Telegram 段也不应被它截走（no-resolve 语义）。"""
         fx = emulate.Fixtures({"dns": {"somewhere.example": "149.154.167.51"}, "geoip": {"cn": []},
                                "geosite": {}, "ad_list": []})
-        for client in ("mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "loon", "loon-strict"):
+        for client in ("mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "loon", "loon-strict", "stash", "stash-strict"):
             got = route(client, emulate.Conn(host="somewhere.example"), fx)
             self.assertEqual(got, "国外默认", client)
         # Quantumult X 的 ip-cidr 没有 no-resolve 参数：标准版里域名连接走到 IP 规则时会解析并命中（已知差异，见 docs）

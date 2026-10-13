@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-10-13 04:17:54
+运行时间（UTC）：2026-10-13 12:04:51
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2
+统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 tools/check_icons.py --icon-repo /root/proxy-vendor/src/icon
 
-统一源 2026.10.13-1；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
+统一源 2026.10.13-2；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
 图标仓库检出目录的提交：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06 14:12:36 +0800）
 icons.yaml 登记的 checked_commit：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06）
   [符合] loon/loon-strict.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
@@ -12,6 +12,8 @@ icons.yaml 登记的 checked_commit：f250126f57228b0b32f3445b21078e382e6152e9�
   [符合] mihomo/mihomo-profile.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] quantumultx/quantumultx-strict.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] quantumultx/quantumultx.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] stash/stash-strict.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] stash/stash.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] 各端同一个策略组用的是同一个地址
 用到的图片 81 张，合计 6,949,624 字节（客户端显示图标时要下载；缓存不缓存、多久刷新由各客户端决定，没有核对）
   [符合] 与图标仓库公布的地址清单（icon-urls.json 的 url_256px）对比：80 个地址逐个相同；1 个图在图标仓库里、清单没有收，没有比：Apple Push

@@ -1,4 +1,4 @@
-"""Loon / Quantumult X 的严格版（2026-10-06）。
+"""Loon / Quantumult X 的严格版（2026-10-06）；按行为写的几项也管 Stash 的严格版（2026-10-13），它自己格式上的检查在 test_stash.py。
 
 标准版里，没有命中任何域名规则的域名要先在本机解析（这两端填的是国内 DNS），再按 IP 决定走哪里——连接从代理出去，
 域名却被国内 DNS 看到了。严格版各多生成一份配置：国内网站靠国内域名清单认出来、直连；其余域名不在本机解析，
@@ -14,8 +14,8 @@ import os
 import re
 import unittest
 
-from helpers import (CLIENT_FILES, LOON_CLIENTS, QX_CLIENTS, ROOT, STRICT_CLIENTS, STRICT_OF, build, emulate, expected,
-                     family, load_yaml, model_and_plan, outputs, parsed, route, text)
+from helpers import (CLIENT_FILES, LOON_CLIENTS, LQ_STRICT_OF, QX_CLIENTS, ROOT, STRICT_CLIENTS, STRICT_OF, build, emulate,
+                     expected, family, load_yaml, model_and_plan, outputs, parsed, route, text)
 
 from generator import strict as strict_mod
 from generator import verify
@@ -42,16 +42,17 @@ def own_rules(rel):
 
 
 class StrictOutputs(unittest.TestCase):
-    def test_thirteen_public_outputs(self):
+    def test_fifteen_public_outputs(self):
         files = outputs()
         want = set(CLIENT_FILES.values()) | set(strict_mod.OWN_FILES) | {"manifest.json"}
         self.assertEqual(set(files), want)
-        self.assertEqual(len(files), 13)          # 2026-10-07 多了 Quantumult X 严格版的上游大清单副本（待决事项第 19 项）
+        # 2026-10-07 多了 Quantumult X 严格版的上游大清单副本（待决事项第 19 项）；2026-10-13 多了 Stash 的标准版和严格版
+        self.assertEqual(len(files), 15)
 
     def test_standard_configs_do_not_use_any_strict_part(self):
         """标准版不引用自有远程规则文件、不订阅国内域名集合；Loon 标准版的 GEOIP,CN 仍然会解析（没有 no-resolve）。"""
         base = model_and_plan()[0].strict["publish_base"]
-        for client in ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12"):
+        for client in ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "stash"):
             self.assertNotIn(base, text(client), client)
             self.assertNotIn("ChinaMax", text(client), client)
             self.assertNotIn("严格版", text(client), client)
@@ -60,8 +61,9 @@ class StrictOutputs(unittest.TestCase):
             self.assertFalse([r for r in parsed(client)["remote"] if r["policy"] == "国内直连"], client)
 
     def test_strict_differs_from_standard_only_where_intended(self):
-        """严格版和同一个 App 的标准版相比：策略组、节点订阅、DNS、其余设置逐行相同；规则部分只多不少。"""
-        for std, strict in STRICT_OF.items():
+        """严格版和同一个 App 的标准版相比：策略组、节点订阅、DNS、其余设置逐行相同；规则部分只多不少。
+        这里按 Loon / Quantumult X 的段落比；Stash 的同一项在 test_stash.py。"""
+        for std, strict in LQ_STRICT_OF.items():
             a, b = sections(std), sections(strict)
             self.assertEqual(list(a), list(b), f"{strict} 的段落和标准版不一样")
             rule_sec = {"loon": ("Rule", "Remote Rule"), "quantumultx": ("filter_local", "filter_remote")}[std]
@@ -186,14 +188,16 @@ class StrictBehaviour(unittest.TestCase):
                 if trace.get("resolved"):
                     resolved.append(h)
             self.assertEqual(resolved, [], client)
-        for client in ("loon", "quantumultx"):
+        for client in STRICT_OF:
             resolved = []
             for h in hosts:
                 trace = {}
                 route(client, emulate.Conn(host=h), fx, trace=trace)
                 if trace.get("resolved"):
                     resolved.append(h)
-            self.assertGreater(len(resolved), 20, f"{client}：标准版里没被域名规则接住的域名应该要先解析（严格版要解决的就是这个）")
+            # Stash 的标准版有 GEOSITE 集合，没被接住的域名比 Loon / QX 少，但仍然有
+            self.assertGreater(len(resolved), 10 if client == "stash" else 20,
+                               f"{client}：标准版里没被域名规则接住的域名应该要先解析（严格版要解决的就是这个）")
             self.assertIn("never-listed-site.org", resolved)
 
     def test_unlisted_domain_goes_to_foreign_default_even_if_it_resolves_to_china(self):
@@ -210,16 +214,16 @@ class StrictBehaviour(unittest.TestCase):
     def test_real_ip_names_route_direct(self):
         """要真实地址的名单：严格版一直固定直连；2026-10-07 起标准版也是（待决事项第 15 项方案二），这里一起看。"""
         fx = emulate.Fixtures(FIX)
-        for client in STRICT_CLIENTS + ("loon", "quantumultx"):
+        for client in STRICT_CLIENTS + tuple(STRICT_OF):
             for h in REAL_IP_NAMES:
                 trace = {}
                 self.assertEqual(route(client, emulate.Conn(host=h), fx, trace=trace), "DIRECT", f"{client} {h}")
                 self.assertFalse(trace.get("resolved"))
 
     def test_domestic_lists_cover_the_supplementary_rules_other_clients_get(self):
-        """mihomo / sing-box 另有一批只写给它们的国内补充规则（source/services/misc.yaml 的 cn_common）。
-        严格版不写这些本地规则（会挡住远程广告集合），靠自有清单接住：每一条的域名本身和它的一个子域都要落到国内直连。
-        这里不用任何样本集合，只有这次生成的自有清单。"""
+        """mihomo / sing-box（2026-10-13 起还有 Stash）另有一批只写给它们的国内补充规则（source/services/misc.yaml 的 cn_common）。
+        Loon / Quantumult X 的严格版不写这些本地规则（会挡住远程广告集合），靠自有清单接住：每一条的域名本身和它的一个子域都要落到
+        国内直连。这里不用任何样本集合，只有这次生成的自有清单（Stash 严格版是写进了本地规则，同样要落到国内直连）。"""
         m, _ = model_and_plan()
         fx = emulate.Fixtures(EMPTY)
         rules = [r for s in m.services if s.id == "cn_common" for r in s.rules]

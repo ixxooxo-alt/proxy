@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-10-13 04:01:21
+运行时间（UTC）：2026-10-13 11:47:26
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2
+统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 tools/check_real_routes.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata --srs-dir /root/proxy-vendor/srs --bm7 /root/proxy-vendor/src/bm7 --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /root/proxy-vendor/src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
 
-统一源 2026.10.13-1；用例与排除项共 290 条，不同的目标 270 个；DNS 去向用例 sing-box 22 条、mihomo 15 条，拨号解析用例 sing-box 12 条、mihomo 12 条
+统一源 2026.10.13-2；用例与排除项共 290 条，不同的目标 270 个；DNS 去向用例 sing-box 22 条、mihomo 15 条，拨号解析用例 sing-box 12 条、mihomo 12 条
 数据文件：
   [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
   [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
@@ -16,6 +16,10 @@ Python：Python 3.13.16，PyYAML：6.0.1
   [loon] AdvertisingLite_Domain.list：SHA-256 90fc37c6affc550aa62f8449ee69fae42113f70a66906cf2a6cfafd8b76c2bde（595785 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
   [loon] ChinaMax_Domain.list：SHA-256 838a06dfbe6d3fca9d8ad373a04ba5e15939c94e674b1d4b95b34632ac4974bf（1522827 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
   [quantumultx] AdvertisingLite.list：SHA-256 566865dfe8f72c1145567c05d0a72ab8111443f4cddc9a8d636e7cfa756b8e10（1486832 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
+  [stash] ChinaMax_Domain_For_Clash.txt：SHA-256 7722df98aedeb67b3572a9043ecf8edce6fe0dc89acbc684d1079eaa5e7994ed（1634434 字节；blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21））
+  [stash] geosite-category-ads-all.srs：SHA-256 a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324（8244 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据））
+  [stash] geosite-cn.srs：SHA-256 fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c（56145 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据））
+  [stash] geosite-geolocation-!cn.srs：SHA-256 30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6（168020 字节；SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据））
 集合规模：mihomo category-ads-all 911、cn 111224、geolocation-!cn 27217（只在 DNS 段里用到的：private 131）；sing-box geosite-category-ads-all 911、geosite-cn 9303、geosite-geolocation-!cn 23905
   [loon] AdvertisingLite.list：域名 0、后缀 0、关键词 187、IP 段 187（都带 no-resolve）；没有读的规则类型 {'URL-REGEX': 2}
   [loon] AdvertisingLite_Domain.list：域名 23753、后缀 13939、关键词 0、IP 段 0
@@ -170,6 +174,10 @@ loon-strict（没有官方内核，只有模拟器 + 真实的上游规则文件
 quantumultx（没有官方内核，只有模拟器 + 真实的上游规则文件）：290 条，全部符合人工期望
       为了判断 IP 规则而在本机解析过的域名：261 个里 43 个（标准版的已知行为：没被域名规则接住的域名都要先解析）
 quantumultx-strict（没有官方内核，只有模拟器 + 真实的上游规则文件和这次生成的自有清单）：290 条，全部符合人工期望
+      为了判断 IP 规则而在本机解析过的域名：261 个里 0 个（严格版应该是 0）
+stash（没有官方内核，只有模拟器 + 真实的上游规则文件）：290 条，全部符合人工期望
+      为了判断 IP 规则而在本机解析过的域名：261 个里 16 个（标准版的已知行为：没被域名规则接住的域名都要先解析）
+stash-strict（没有官方内核，只有模拟器 + 真实的上游规则文件和直接订阅的上游国内域名清单）：290 条，全部符合人工期望
       为了判断 IP 规则而在本机解析过的域名：261 个里 0 个（严格版应该是 0）
 
 全部一致

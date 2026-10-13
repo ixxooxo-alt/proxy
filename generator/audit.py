@@ -55,7 +55,8 @@ def render_audit(m: Model, plan: Plan) -> str:
     L.append("")
     L.append("每条规则记录：匹配条件、匹配类型、证据来源、性质（专属 / 共享）、说明。"
              "“排除”一栏记录官方放行清单里出现、但不归该服务的主机及理由——官方放行清单不等于产品归属表。"
-             "排除项里写了“去向”的，是经过核对的断言（用上游数据的成员快照和官方内核检查四个客户端都把它交给这个组）；"
+             "排除项里写了“去向”的，是经过核对的断言（用上游数据的成员快照和官方内核检查各客户端都把它交给这个组；"
+             "Loon、Quantumult X、Stash 没有官方内核，用的是模拟器）；"
              "没写去向的只表示没有收，落到哪里取决于上游集合与解析结果。")
     L.append("")
 
@@ -141,15 +142,16 @@ def render_audit(m: Model, plan: Plan) -> str:
 
 
 def _strict_section(m: Model, plan: Plan) -> list:
-    """严格版（Loon / Quantumult X 各多生成的一份配置）用到的清单：来源、条数、和本地规则的关系。"""
+    """严格版（Loon / Quantumult X / Stash 各多生成的一份配置）用到的清单：来源、条数、和本地规则的关系。"""
     st = m.strict
     suffix, full = m.cn_domains
-    L = ["## 严格版（Loon / Quantumult X）用到的清单", ""]
-    L.append("严格版只在这两端各多生成一份配置（`loon-strict.conf`、`quantumultx-strict.conf`）。标准版不用下面的国内域名清单和域名兜底；"
-             "最后的“要真实地址的名单固定直连”2026-10-07 起四个客户端的标准版也有。做法与限制见 `docs/03`“严格版”一节和 `docs/06`。")
+    L = ["## 严格版（Loon / Quantumult X / Stash）用到的清单", ""]
+    L.append("严格版只在这三端各多生成一份配置（`loon-strict.conf`、`quantumultx-strict.conf`，2026-10-13 起还有 `stash-strict.yaml`）。"
+             "标准版不用下面的国内域名清单和域名兜底；最后的“要真实地址的名单固定直连”2026-10-07 起各客户端的标准版也有。"
+             "做法与限制见 `docs/03`“严格版”一节和 `docs/06`。")
     L.append("")
     L.append("**国内域名清单**（远程规则，排在广告集合之后，交给“国内直连”）：")
-    for client in ("loon", "quantumultx"):
+    for client in ("loon", "quantumultx", "stash"):
         for x in st["domestic_lists"][client]:
             if x.get("url"):
                 L.append(f"- {client}：{x['url']}（证据 `{x.get('ev', '')}`）—— {x.get('source', '')}")
@@ -162,6 +164,9 @@ def _strict_section(m: Model, plan: Plan) -> list:
                 data = strict_mod.MAX_DATA_REL if is_max else strict_mod.CN_DATA_REL
                 L.append(f"- {client}：`dist/{x['own']}`（{what}，随本项目生成和发布，配置里引用的地址是 {strict_mod.own_url(m, x['own'])}）——"
                          f"后缀 {len(kept_s)} 条、精确域名 {len(kept_f)} 条；数据文件 `{data}` 里另有 {dropped} 条已被这一端的本地规则覆盖，没有写进去")
+    L.append("")
+    L.append("Stash 的严格版不引用自有清单：自有清单的来源（domain-list-community 的 cn）就是 Stash 自带的 `GEOSITE,cn`，"
+             "标准版、严格版都在规则第 6 段用它；上面那份上游大清单排在 `GEOSITE,geolocation-!cn` 之后，只接住两个集合都没收的域名。")
     L.append("")
     L.append(f"自有清单的数据在 `{strict_mod.CN_DATA_REL}`（后缀 {len(suffix)} 条、精确域名 {len(full)} 条），"
              "由 `tools/update_cn_list.py` 从固定快照生成，文件头照录如下：")
@@ -199,7 +204,7 @@ def _strict_section(m: Model, plan: Plan) -> list:
     L.append(f"**域名兜底**（只有 Quantumult X 严格版）：`dist/{fb['own']}`，只有一条规则 `HOST-KEYWORD,{strict_mod.FALLBACK_KEYWORD},{strict_mod.QX_INLINE_PROXY}`，"
              "在配置里排在全部远程规则的最后，由 `force-policy` 交给“国外默认”。写法出自官方 sample.conf。")
     L.append("")
-    L.append("**要真实地址的名单固定直连**（四个客户端的标准版和严格版都有，2026-10-07 起；以前只有两端的严格版。"
+    L.append("**要真实地址的名单固定直连**（各客户端的标准版和严格版都有，2026-10-07 起；以前只有两端的严格版。2026-10-13 加的 Stash 也一样。"
              "名单在 `source/project.yaml` 的 `dns.real_ip`，其中局域网后缀和系统联网检测本来就固定直连，下面是其余的）：")
     L.append("")
     for r in plan.real_ip_direct:

@@ -126,14 +126,14 @@ services:
 
   # ---------- 国内常用网站：从 Cursor 版迁入的 72 条国内域名作补充（bilibili.com、b23.tv 已在哔哩哔哩通用里，不重复写） ----------
   # 全部在 domain-list-community 快照展开后的 geosite:cn 里同值出现。
-  # 只生成到 mihomo / sing-box：这两端广告拦截排在这些规则之前，写进去没有副作用（本来也会被 GEOSITE,cn 命中）。
+  # 只生成到 mihomo / sing-box / Stash：这几端广告拦截排在这些规则之前，写进去没有副作用（本来也会被 GEOSITE,cn 命中）。
   # 不生成到 Loon / Quantumult X：这两端本地规则优先于远程广告集合，写成本地规则会让 blackmatrix7 AdvertisingLite 里
   # 落在这些域名下的 954 个国内广告主机失效（qq.com 下 203 个、baidu.com 下 187 个等）。这些域名在这两端仍由后面的
   # GEOIP,CN 兜底直连（前提是解析到国内 IP，国内网络下通常如此；若某个主机解析到境外 CDN，会走国外默认）。
   - id: cn_common
     group: 国内直连
     title: 国内常用网站（补充）
-    clients: [mihomo, singbox]
+    clients: [mihomo, singbox, stash]
     upstream: {dlc_resolved: [cn]}
     rules:
       - {suffix: 10010.com, ev: dlc}

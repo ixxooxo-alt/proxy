@@ -227,6 +227,35 @@ dns:
   - 浏览器自己的安全 DNS（DoH）；程序缓存了地址以后直接按 IP 连接（那样走的是 IP 规则）；你自己在 App 里另加的规则、插件；系统在隧道之外发出的流量。
   `docs/09` 第 1b 节第 3、4 步能看出其中一部分。
 
+## Stash（2026-10-13，r16）
+
+Stash 是 2026-10-13 加的第五个客户端（`generator/emit_stash.py`）。上面那张表没有给它加一列，写在这里。依据是你请另一个模型 2026-10-13 从 stash.wiki 下载的官方文档（`docs/02`“Stash”一节）；Stash 没有能在电脑上运行的内核，下面说的行为都是**按文档推断**，真机上的事见 `docs/09`。
+
+**和谁像**：规则写法、先后（从上到下逐条匹配）和 mihomo 一样，规则逐条相同（`tests/test_stash.py` 核对）；DNS 的做法和 Loon / Quantumult X 的标准版一样，所以也多一份严格版。
+
+| 场景 | Stash 的做法 | 依据 |
+|---|---|---|
+| 设备查地址 | 一直给假地址（Stash 没有关掉假地址的选项）；`fake-ip-filter` 里的名字拿真实地址：局域网后缀、要真实地址的名单（和其他客户端同一份） | 文档“编写高效的配置文件”“IPv6 兼容性”“配置样例” |
+| 走代理的连接 | TCP 把域名交给节点，本机不解析；UDP 由 Stash 经代理问 1.0.0.1（节点上可以用 `udp-nameserver` 改），再按地址转发——名字到不了国内 DNS | 文档“IPv6 兼容性”（“通常会尽可能地向代理服务器转发域名”）、“协议类型”（UDP 只以 IP 形式转发，转发前通过代理发起 DNS 查询，默认 1.0.0.1） |
+| 直连的连接、要按 IP 判断的规则 | 由 `nameserver` 解析：国内 DoH（223.5.5.5、1.12.12.12，和其他客户端的国内 DNS 同一份）。**标准版**最后的 `GEOIP,CN` 会为没被域名规则接住的域名解析（国内 DNS 看得到这类域名，和 Loon / QX 标准版一样）；**严格版**的 `GEOIP,CN` 带 `no-resolve`，这类域名不解析、直接走国外默认 | 文档“规则类型”：IP 类规则可能触发 DNS 解析，加 `no-resolve` 不解析；“编写高效的配置文件”：给中国用户的建议是用国内 DNS |
+| 局域网名字 | `nameserver-policy` 里每个局域网后缀交给 `system`（值写单个 `system`，文档的例子就是这样写的）；规则第 2 段固定直连 | 文档“内置 DNS 服务” |
+| DNS 查询本身走哪 | 直接出站，不经过规则（`follow-rule` 写明 `false`，也是默认值） | 文档“内置 DNS 服务”：默认情况下 Stash 发出的 DNS 查询均会直接出站 |
+| 节点自己的服务器地址 | 由 `nameserver`（国内 DoH）解析，直连去问。文档里专门的 `proxy-server-nameserver` 要 iOS 3.6 / macOS 4.3，没有用 | 文档“内置 DNS 服务” |
+
+**没被域名规则接住的域名有多少**：Stash 有 `GEOSITE,cn`、`GEOSITE,geolocation-!cn` 两个集合（和 mihomo 一样），核对用的 261 个主机里标准版要先解析的有 16 个；Loon / Quantumult X 没有这两个集合，是 43 个（`docs/evidence/real-route-check.log`）。
+
+**为什么没有做成 mihomo 那样（经代理问境外 DNS）**：Stash 有一个开关 `dns.follow-rule`，打开以后 DNS 查询按规则走。照 mihomo 写的话是：`nameserver` 改成境外 DoH（1.1.1.1、8.8.8.8，按规则经国外默认发出），`nameserver-policy` 里 `geosite:cn` 交给国内 DoH，再加局域网、产品域名几层。没有这样做，原因（都没法在这里验证，所以只按文档的说法判断）：
+
+1. 文档写明“绝大部分场景下，不需要开启此配置”：DNS 经代理会破坏 CDN 的就近优化、DNS 查询进入 Stash 的网络引擎会让延迟上升——你最在意的“国内网站不能变慢”首先受影响。
+2. 文档说打开以后会有“连代理服务器要先解析、解析又要经代理”的循环，三个条件满足其一即可；其中“为节点服务器单独设 `proxy-server-nameserver`”要 iOS 3.6（下载时还没有发布），“DNS 服务器写成 IP”这一条这份配置满足，但它为什么能避免循环，文档没解释。
+3. 订阅第一次下载、GEOSITE 数据第一次下载时还没有节点：按文档，没有代理的组被当作直连，境外 DNS 只能从国内直连去问（1.1.1.1、8.8.8.8 在国内不一定连得上），可能连订阅都下载不下来。
+4. Stash 没有 mihomo 的 `direct-nameserver`：没被国内集合收录的国内网站，直连时也会拿境外 DNS 的结果，可能连到海外的 CDN 节点。
+5. `geosite:` 写在 `nameserver-policy` 里要 iOS 3.4.0 / macOS 4.2.0（2026 年 6、7 月发布）。
+
+所以给 Stash 的是和 Loon / Quantumult X 一样的两份：标准版（国内网站最快，没被接住的境外域名国内 DNS 看得到）和严格版（境外域名都不在本机解析，清单里没有的国内网站走代理）。想试 `follow-rule` 的做法，告诉我，可以另出一份试验用的配置，先在真机上看订阅能不能下载、国内网站快不快。
+
+**严格版**（`stash-strict.yaml`）：规则第 6 段在 `GEOSITE,cn`、`GEOSITE,geolocation-!cn` 之后加一条 `RULE-SET` 引用 blackmatrix7 给 Clash 的 ChinaMax 域名清单（`+.后缀` 和精确域名，111,328 条；`source/strict.yaml`），交给国内直连——只接住两个集合都没收的国内网站；最后的 `GEOIP,CN` 加 `no-resolve`。DNS、策略组、节点和标准版完全相同。不像 Loon / Quantumult X 那样另引用本项目的自有清单：自有清单的来源（domain-list-community 的 cn）就是 Stash 自带的 `GEOSITE,cn`。
+
 ## 走代理的域名不交给国内 DNS：三项固定核对与逐条扫描（2026-10-06；2026-10-07 修订）
 
 这一节说的是 mihomo（Clash Verge Rev / Clash Meta for Android）和 sing-box（SFA）。r12 加的是检查：把“国外的连接，名字不要让国内 DNS 看到”这句话拆成能用官方内核实际跑的几项。r14（2026-10-07）加了第 ④ 项“出站时的解析”，并按它查出来的问题改了 mihomo 的 `nameserver-policy`（最后一节）。做法沿用拨号核对的办法（`tools/check_real_routes.py`）：内核是官方发布的程序（mihomo v1.19.31，sing-box v1.14.1 和 v1.12.0），系统 / 国内 / 境外三类 DNS 各换成一个本机替身，看“这个名字被哪个替身收到过”。
@@ -322,7 +351,7 @@ dns:
 **节点收到的到底是什么**（2026-10-13，GPT 审核 r14 的建议 S01）：以前测试节点连的是本机一个没人监听的端口，只能看到“三类 DNS 替身都没有收到查询”，看不到域名确实交给了节点——连接被提前拒绝、目标根本没处理，也会是这个结果。现在 SOCKS 出口连本机一个最简单的 SOCKS5 服务端（`Socks5Recorder`：握手、记下请求里的目标、回成功，不转发数据），按 RFC 1928 的地址类型记下节点收到的是域名还是 IP；DNS 替身给每个核对的主机答一个不同的本机地址，收到 IP 时能认回是哪个主机。官方内核的结果（事实）：
 
 - mihomo：走代理的名字经 SOCKS5 走 TCP，节点收到的是域名；走 UDP，节点收到的是本机用境外 DNS 解析出来的地址（和上面 `ResolveUDP` 那一段一致）。没被任何域名规则接住的名字（`never-listed-site.org`）走 TCP 时节点也收到域名（为了判断 IP 规则在本机解析过一次，但交给节点的仍是域名）。
-- sing-box：经 SOCKS 走 TCP，节点收到的是域名（两个版本）。经 SOCKS 走 UDP、目标写成域名时，**两个版本不一样**：1.12.0 把包发给了节点，节点收到的是域名；1.14.1 没有发出——它连上节点做了 UDP ASSOCIATE，然后内核日志写 `packet upload closed: unsupported address`，包被丢掉。原因没有查到底（报错不在 sing-box 和 sing v0.9.4 里两个最可能的文件里）。没被域名规则接住的名字，sing-box 先按规则解析（问 `dns-foreign`），交给节点的是解析出来的地址。
+- sing-box：经 SOCKS 走 TCP，节点收到的是域名（两个版本）。经 SOCKS 走 UDP、目标写成域名时，**两个版本不一样**：1.12.0 把包发给了节点，节点收到的是域名；1.14.1 没有发出——它连上节点做了 UDP ASSOCIATE，然后内核日志写 `packet upload closed: unsupported address`，包被丢掉。原因没有查到底（报错不在 sing-box 和 sing v0.9.4 里两个最可能的文件里）。**2026-10-13（r16）按 GPT 审核 r15 的建议定位到了“组”这一层**（一次性核对 `handoff/notes/r15_review_probes.out`，最小配置：本机 mixed 入站 → 路由 → 出口）：1.14.1 里路由直接交给 SOCKS 出口时，域名和 IPv4 目标都发出了；中间隔一个只含这个出口的选择组（selector）或自动测速组（urltest）时，域名那个包被丢掉、出现同一条报错，IPv4 照常；sniff 加不加都一样；先用 `resolve` 动作解析成地址再交给选择组，发出去的是地址、不丢。本机配对的服务端：Shadowsocks、Trojan 和 SOCKS 一样（隔着选择组时服务端收不到域名那个包），VMess 隔着选择组也收到了域名。1.12.0 隔着选择组正常（只有“自动测速组 + SOCKS”这一种没发出域名那个包、也没有这条报错，原因没查）。本项目的 sing-box 配置里规则交给的都是选择组，所以推断 SFA 上走代理组的域名的 UDP 在 1.14.1 上发不出去（虚拟网卡加假地址那条路没有核对；1.14.3 没有核对）；处理办法是待决事项第 22 项。没被域名规则接住的名字，sing-box 先按规则解析（问 `dns-foreign`），交给节点的是解析出来的地址。
 - 所以以前写的“SOCKS、Shadowsocks 出口把域名原样交给节点”，在 UDP 上没有得到证实，对 1.14.1 的 SOCKS 出口在这套核对里不成立；名字不交给国内 DNS 这一点不受影响。Shadowsocks、Trojan 等别的协议，节点那一端没有办法在本机接收，没有核对；虚拟网卡加假地址的情况（假地址的包走 `route/route.go` 里另一层包装）也没有核对。见 `docs/06`“2026-10-13（r15）”一节。
 
 **核对**（都在 `tools/check_real_routes.py`，结果在 `docs/evidence/real-route-check.log`、快照的 `outbound`、`outbound_received`、`outbound_switched`）：

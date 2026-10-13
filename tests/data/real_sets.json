@@ -1,5 +1,5 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 把 nameserver-policy 里交给系统 DNS 的几条改成国内 DNS。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。2026-10-13 起：SOCKS 出口连本机的 SOCKS5 接收端，outbound_received 是节点收到的目标（domain / ip / -）；outbound_switched、outbound_switched_received 是把默认直连、可以切换的组也切到测试出口以后的同一项核对（tests/cases.yaml 的 outbound_switched）；mihomo 的 outbound_without_product_layer_udp 是 SOCKS5 走 UDP 的那一遍自检。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 把 nameserver-policy 里交给系统 DNS 的几条改成国内 DNS。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。2026-10-13 起：SOCKS 出口连本机的 SOCKS5 接收端，outbound_received 是节点收到的目标（domain / ip / -）；outbound_switched、outbound_switched_received 是把默认直连、可以切换的组也切到测试出口以后的同一项核对（tests/cases.yaml 的 outbound_switched）；mihomo 的 outbound_without_product_layer_udp 是 SOCKS5 走 UDP 的那一遍自检。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。2026-10-13 起另有 stash 一类：GEOSITE 集合（cn、geolocation-!cn、category-ads-all）的成员用 SagerNet 的 .srs近似（Stash 用自带的 domain-list-community 数据，版本拿不到），另有 Stash 严格版订阅的国内域名清单（blackmatrix7 给 Clash 的 ChinaMax_Domain_For_Clash.txt）；国内 IP 和 Loon / Quantumult X 一样假定与 mihomo 的一致。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
@@ -147,6 +147,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:pool.ntp.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:pool.ntp.org"
    }
   },
   "1-courier.push.apple.com": {
@@ -157,13 +160,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "a.b.cursorvm.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "aaid.umeng.com": {
    "loon": {
@@ -180,13 +187,19 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:aaid.umeng.com",
     "geosite-cn": "suffix:aaid.umeng.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:aaid.umeng.com",
+    "cn": "suffix:aaid.umeng.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:umeng.com"
    }
   },
   "abc.cursorvm.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "abc.hf.space": {
    "loon": {},
@@ -196,6 +209,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:hf.space"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:hf.space"
    }
   },
   "abema.tv": {
@@ -206,6 +222,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:abema.tv"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:abema.tv"
    }
   },
   "accounts.google.com": {
@@ -216,13 +235,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "accounts.spacex.ai": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "accounts.x.ai": {
    "loon": {},
@@ -232,6 +255,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:x.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:x.ai"
    }
   },
   "acookie.alimama.com": {
@@ -244,6 +270,9 @@
    },
    "singbox": {
     "geosite-cn": "suffix:alimama.com"
+   },
+   "stash": {
+    "cn": "suffix:alimama.com"
    }
   },
   "ad.12306.cn": {
@@ -260,6 +289,11 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:ad.12306.cn",
     "geosite-cn": "suffix:12306.cn"
+   },
+   "stash": {
+    "category-ads-all": "suffix:ad.12306.cn",
+    "cn": "suffix:12306.cn",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
   "ads.twitter.com": {
@@ -274,6 +308,9 @@
    },
    "singbox": {
     "geosite-geolocation-!cn": "suffix:twitter.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:twitter.com"
    }
   },
   "ads.viber.com": {
@@ -288,6 +325,9 @@
    },
    "singbox": {
     "geosite-geolocation-!cn": "suffix:viber.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:viber.com"
    }
   },
   "ads.yahoo.com": {
@@ -300,6 +340,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:ads.yahoo.com",
     "geosite-geolocation-!cn": "suffix:ads.yahoo.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:ads.yahoo.com",
+    "geolocation-!cn": "suffix:ads.yahoo.com"
    }
   },
   "adservice.google.com": {
@@ -317,6 +361,11 @@
     "geosite-category-ads-all": "suffix:adservice.google.com",
     "geosite-cn": "full:adservice.google.com",
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:adservice.google.com",
+    "cn": "full:adservice.google.com",
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "afpapi.alimama.com": {
@@ -329,6 +378,9 @@
    },
    "singbox": {
     "geosite-cn": "suffix:alimama.com"
+   },
+   "stash": {
+    "cn": "suffix:alimama.com"
    }
   },
   "agent.global.api5.cursor.sh": {
@@ -339,6 +391,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cursor.sh"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cursor.sh"
    }
   },
   "aistudio.google.com": {
@@ -349,6 +404,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "aka.ms": {
@@ -360,6 +418,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:aka.ms"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:aka.ms",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:ms"
    }
   },
   "alimama.com": {
@@ -372,6 +434,9 @@
    },
    "singbox": {
     "geosite-cn": "suffix:alimama.com"
+   },
+   "stash": {
+    "cn": "suffix:alimama.com"
    }
   },
   "alkalicore-pa.clients6.google.com": {
@@ -382,6 +447,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "analytics.google.com": {
@@ -394,6 +462,10 @@
    "singbox": {
     "geosite-category-ads-all": "full:analytics.google.com",
     "geosite-geolocation-!cn": "full:analytics.google.com"
+   },
+   "stash": {
+    "category-ads-all": "full:analytics.google.com",
+    "geolocation-!cn": "full:analytics.google.com"
    }
   },
   "ani.gamer.com.tw": {
@@ -404,6 +476,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:gamer.com.tw"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:gamer.com.tw"
    }
   },
   "antigravity.google": {
@@ -414,6 +489,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:.google"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:.google"
    }
   },
   "anysphere-binaries.s3.us-east-1.amazonaws.com": {
@@ -424,6 +502,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
    }
   },
   "aod.itunes.apple.com": {
@@ -435,6 +516,10 @@
    "singbox": {
     "geosite-cn": "full:aod.itunes.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:aod.itunes.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "api.anthropic.com": {
@@ -445,6 +530,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:anthropic.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:anthropic.com"
    }
   },
   "api.bilibili.com": {
@@ -457,6 +545,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:bilibili.com"
+   },
+   "stash": {
+    "cn": "suffix:bilibili.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:bilibili.com"
    }
   },
   "api.dmmapis.com": {
@@ -467,6 +559,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:dmmapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:dmmapis.com"
    }
   },
   "api.github.com": {
@@ -477,6 +572,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:github.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:github.com"
    }
   },
   "api.githubcopilot.com": {
@@ -487,6 +585,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:githubcopilot.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubcopilot.com"
    }
   },
   "api.individual.githubcopilot.com": {
@@ -497,6 +598,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:githubcopilot.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubcopilot.com"
    }
   },
   "api.openai.com": {
@@ -507,13 +611,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:openai.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:openai.com"
    }
   },
   "api.workos.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "api.x.ai": {
    "loon": {},
@@ -523,6 +631,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:x.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:x.ai"
    }
   },
   "api2.cursor.sh": {
@@ -533,6 +644,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cursor.sh"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cursor.sh"
    }
   },
   "api5.cursor.sh": {
@@ -543,6 +657,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cursor.sh"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cursor.sh"
    }
   },
   "apihub.googleapis.com": {
@@ -553,6 +670,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "app-measurement.com": {
@@ -570,6 +690,11 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:app-measurement.com",
     "geosite-cn": "full:app-measurement.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:app-measurement.com",
+    "cn": "full:app-measurement.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "full:app-measurement.com"
    }
   },
   "apps.mzstatic.com": {
@@ -584,6 +709,11 @@
    "singbox": {
     "geosite-cn": "full:apps.mzstatic.com",
     "geosite-geolocation-!cn": "suffix:mzstatic.com"
+   },
+   "stash": {
+    "cn": "full:apps.mzstatic.com",
+    "geolocation-!cn": "suffix:mzstatic.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:mzstatic.com"
    }
   },
   "atv-ps-fe.amazon.co.jp": {
@@ -594,6 +724,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazon.co.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazon.co.jp"
    }
   },
   "atv-ps.amazon.com": {
@@ -604,6 +737,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazon.com"
    }
   },
   "audio4-ak-spotify-com.akamaized.net": {
@@ -614,6 +750,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:akamaized.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:akamaized.net"
    }
   },
   "auth.grok.com": {
@@ -624,6 +763,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:grok.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:grok.com"
    }
   },
   "auth.grokipedia.com": {
@@ -634,13 +776,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:grokipedia.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:grokipedia.com"
    }
   },
   "auth.grokusercontent.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "auth.x.ai": {
    "loon": {},
@@ -650,6 +796,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:x.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:x.ai"
    }
   },
   "bootstrap.pypa.io": {
@@ -660,6 +809,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:pypa.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:pypa.io"
    }
   },
   "captive.apple.com": {
@@ -670,6 +822,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "cdn.oaistatic.com": {
@@ -680,6 +835,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:oaistatic.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:oaistatic.com"
    }
   },
   "challenges.cloudflare.com": {
@@ -690,6 +848,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cloudflare.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cloudflare.com"
    }
   },
   "chat.deepseek.com": {
@@ -702,6 +863,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:deepseek.com"
+   },
+   "stash": {
+    "cn": "suffix:deepseek.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:deepseek.com"
    }
   },
   "chat.qwen.ai": {
@@ -714,6 +879,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:qwen.ai"
+   },
+   "stash": {
+    "cn": "suffix:qwen.ai",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:qwen.ai"
    }
   },
   "chat.qwenlm.ai": {
@@ -726,6 +895,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:qwenlm.ai"
+   },
+   "stash": {
+    "cn": "suffix:qwenlm.ai",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:qwenlm.ai"
    }
   },
   "chatgpt.com": {
@@ -736,6 +909,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:chatgpt.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:chatgpt.com"
    }
   },
   "chromium-review.googlesource.com": {
@@ -746,6 +922,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googlesource.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googlesource.com"
    }
   },
   "claude.ai": {
@@ -756,13 +935,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:claude.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:claude.ai"
    }
   },
   "claude.app": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "cloudaicompanion.googleapis.com": {
    "loon": {},
@@ -772,6 +955,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "cloudcode-pa.googleapis.com": {
@@ -782,6 +968,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "cloudresourcemanager.googleapis.com": {
@@ -792,6 +981,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "collector.github.com": {
@@ -804,6 +996,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:collector.github.com",
     "geosite-geolocation-!cn": "suffix:collector.github.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:collector.github.com",
+    "geolocation-!cn": "suffix:collector.github.com"
    }
   },
   "contoso.sharepointonline.com": {
@@ -814,6 +1010,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:sharepointonline.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:sharepointonline.com"
    }
   },
   "copilot-proxy.githubusercontent.com": {
@@ -824,6 +1023,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubusercontent.com"
    }
   },
   "copilot-telemetry-service.githubusercontent.com": {
@@ -836,6 +1038,10 @@
    "singbox": {
     "geosite-category-ads-all": "full:copilot-telemetry-service.githubusercontent.com",
     "geosite-geolocation-!cn": "full:copilot-telemetry-service.githubusercontent.com"
+   },
+   "stash": {
+    "category-ads-all": "full:copilot-telemetry-service.githubusercontent.com",
+    "geolocation-!cn": "full:copilot-telemetry-service.githubusercontent.com"
    }
   },
   "copilot-telemetry.githubusercontent.com": {
@@ -848,6 +1054,10 @@
    "singbox": {
     "geosite-category-ads-all": "full:copilot-telemetry.githubusercontent.com",
     "geosite-geolocation-!cn": "full:copilot-telemetry.githubusercontent.com"
+   },
+   "stash": {
+    "category-ads-all": "full:copilot-telemetry.githubusercontent.com",
+    "geolocation-!cn": "full:copilot-telemetry.githubusercontent.com"
    }
   },
   "copilot-workspace.githubnext.com": {
@@ -858,6 +1068,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:githubnext.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubnext.com"
    }
   },
   "copilot.com": {
@@ -868,6 +1081,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:copilot.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:copilot.com"
    }
   },
   "copilot.microsoft.com": {
@@ -878,6 +1094,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:microsoft.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:microsoft.com"
    }
   },
   "d111111abcdef8.cloudfront.net": {
@@ -888,6 +1107,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cloudfront.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cloudfront.net"
    }
   },
   "d25xi40x97liuc.cloudfront.net": {
@@ -898,6 +1120,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cloudfront.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cloudfront.net"
    }
   },
   "daily-cloudcode-pa.googleapis.com": {
@@ -908,6 +1133,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "default.exp-tas.com": {
@@ -918,6 +1146,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:exp-tas.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:exp-tas.com"
    }
   },
   "discord.com": {
@@ -928,6 +1159,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:discord.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:discord.com"
    }
   },
   "dl.delivery.mp.microsoft.com": {
@@ -942,6 +1176,11 @@
    "singbox": {
     "geosite-cn": "suffix:dl.delivery.mp.microsoft.com",
     "geosite-geolocation-!cn": "suffix:microsoft.com"
+   },
+   "stash": {
+    "cn": "suffix:dl.delivery.mp.microsoft.com",
+    "geolocation-!cn": "suffix:microsoft.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:dl.delivery.mp.microsoft.com"
    }
   },
   "dotnetcli.blob.core.windows.net": {
@@ -952,6 +1191,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:windows.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:windows.net"
    }
   },
   "downloads.claude.ai": {
@@ -962,6 +1204,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:claude.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:claude.ai"
    }
   },
   "downloads.cursor.com": {
@@ -972,6 +1217,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cursor.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cursor.com"
    }
   },
   "example.cn": {
@@ -982,6 +1230,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:cn"
+   },
+   "stash": {
+    "cn": "suffix:cn",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
   "example.ms": {
@@ -990,7 +1242,10 @@
     "cn": "suffix:ms"
    },
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:ms"
+   }
   },
   "f-radiko.smartstream.ne.jp": {
    "loon": {},
@@ -1000,13 +1255,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:smartstream.ne.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:smartstream.ne.jp"
    }
   },
   "fakegoogle.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "feedback-pa.googleapis.com": {
    "loon": {},
@@ -1016,6 +1275,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "files.pythonhosted.org": {
@@ -1026,6 +1288,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:pythonhosted.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:pythonhosted.org"
    }
   },
   "firebaselogging-pa.googleapis.com": {
@@ -1036,6 +1301,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "fls-na.amazon.com": {
@@ -1046,6 +1314,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazon.com"
    }
   },
   "fonts.gstatic.com": {
@@ -1057,6 +1328,10 @@
    "singbox": {
     "geosite-cn": "full:fonts.gstatic.com",
     "geosite-geolocation-!cn": "suffix:gstatic.com"
+   },
+   "stash": {
+    "cn": "full:fonts.gstatic.com",
+    "geolocation-!cn": "suffix:gstatic.com"
    }
   },
   "foo.github.io": {
@@ -1067,6 +1342,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:github.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:github.io"
    }
   },
   "formulae.brew.sh": {
@@ -1077,6 +1355,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:brew.sh"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:brew.sh"
    }
   },
   "gateway.icloud.com": {
@@ -1087,6 +1368,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:icloud.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:icloud.com"
    }
   },
   "gemini.google.com": {
@@ -1097,13 +1381,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "gemini.google.com.evil.example": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "gemini.gstatic.com": {
    "loon": {},
@@ -1113,6 +1401,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:gstatic.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:gstatic.com"
    }
   },
   "generativelanguage.googleapis.com": {
@@ -1123,13 +1414,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "get.pnpm.io": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "ghcr.io": {
    "loon": {},
@@ -1139,6 +1434,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ghcr.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ghcr.io"
    }
   },
   "github-cloud.s3.amazonaws.com": {
@@ -1149,6 +1447,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
    }
   },
   "github.com": {
@@ -1159,6 +1460,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:github.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:github.com"
    }
   },
   "global.edge.bamgrid.com": {
@@ -1169,6 +1473,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:bamgrid.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:bamgrid.com"
    }
   },
   "golang.org": {
@@ -1179,6 +1486,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:golang.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:golang.org"
    }
   },
   "graph-fallback.instagram.com": {
@@ -1191,6 +1501,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:graph-fallback.instagram.com",
     "geosite-geolocation-!cn": "suffix:graph-fallback.instagram.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:graph-fallback.instagram.com",
+    "geolocation-!cn": "suffix:graph-fallback.instagram.com"
    }
   },
   "graph.instagram.com": {
@@ -1203,6 +1517,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:graph.instagram.com",
     "geosite-geolocation-!cn": "suffix:graph.instagram.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:graph.instagram.com",
+    "geolocation-!cn": "suffix:graph.instagram.com"
    }
   },
   "grok.com": {
@@ -1213,6 +1531,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:grok.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:grok.com"
    }
   },
   "grok.x.com": {
@@ -1223,6 +1544,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:x.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:x.com"
    }
   },
   "groq.com": {
@@ -1233,6 +1557,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:groq.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:groq.com"
    }
   },
   "gsp-ssl.ls.apple.com": {
@@ -1243,6 +1570,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "gspe1-ssl.ls.apple.com": {
@@ -1253,6 +1583,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "guzzoni.apple.com": {
@@ -1264,6 +1597,10 @@
    "singbox": {
     "geosite-cn": "full:guzzoni.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:guzzoni.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "host.livekit.cloud": {
@@ -1274,6 +1611,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:host.livekit.cloud"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:host.livekit.cloud"
    }
   },
   "hulu.playback.edge.bamgrid.com": {
@@ -1284,6 +1624,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:bamgrid.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:bamgrid.com"
    }
   },
   "humb.apple.com": {
@@ -1294,6 +1637,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "i0.hdslb.com": {
@@ -1306,6 +1652,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:hdslb.com"
+   },
+   "stash": {
+    "cn": "suffix:hdslb.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:hdslb.com"
    }
   },
   "iadsdk.apple.com": {
@@ -1318,6 +1668,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:iadsdk.apple.com",
     "geosite-geolocation-!cn": "suffix:iadsdk.apple.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:iadsdk.apple.com",
+    "geolocation-!cn": "suffix:iadsdk.apple.com"
    }
   },
   "id6.me": {
@@ -1330,6 +1684,9 @@
    },
    "singbox": {
     "geosite-cn": "full:id6.me"
+   },
+   "stash": {
+    "cn": "full:id6.me"
    }
   },
   "images-eu.ssl-images-amazon.com": {
@@ -1340,6 +1697,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ssl-images-amazon.com"
    }
   },
   "images-fe.ssl-images-amazon.com": {
@@ -1350,6 +1710,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ssl-images-amazon.com"
    }
   },
   "images-na.ssl-images-amazon.com": {
@@ -1360,13 +1723,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ssl-images-amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ssl-images-amazon.com"
    }
   },
   "images.workoscdn.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "init-p01st.push.apple.com": {
    "loon": {},
@@ -1377,6 +1744,10 @@
    "singbox": {
     "geosite-cn": "full:init-p01st.push.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:init-p01st.push.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "init.push.apple.com": {
@@ -1387,6 +1758,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "itunes.apple.com": {
@@ -1398,6 +1772,10 @@
    "singbox": {
     "geosite-cn": "full:itunes.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:itunes.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "js.intercomcdn.com": {
@@ -1408,6 +1786,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:intercomcdn.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:intercomcdn.com"
    }
   },
   "js.stripe.com": {
@@ -1418,6 +1799,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:stripe.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:stripe.com"
    }
   },
   "jules.google.com": {
@@ -1428,6 +1812,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "lh3.googleusercontent.com": {
@@ -1438,6 +1825,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleusercontent.com"
    }
   },
   "lh5.ggpht.com": {
@@ -1448,6 +1838,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ggpht.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ggpht.com"
    }
   },
   "lh5.googleusercontent.com": {
@@ -1458,6 +1851,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleusercontent.com"
    }
   },
   "line.me": {
@@ -1468,13 +1864,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:line.me"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:line.me"
    }
   },
   "links.app.link": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "live.nicochannel.jp": {
    "loon": {},
@@ -1484,13 +1884,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:nicochannel.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:nicochannel.jp"
    }
   },
   "log.byteoversea.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "log.cmpassport.com": {
    "loon": {
@@ -1502,13 +1906,17 @@
    },
    "singbox": {
     "geosite-cn": "suffix:cmpassport.com"
+   },
+   "stash": {
+    "cn": "suffix:cmpassport.com"
    }
   },
   "log.isnssdk.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "login.microsoftonline.com": {
    "loon": {},
@@ -1518,6 +1926,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:microsoftonline.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:microsoftonline.com"
    }
   },
   "m.media-amazon.com": {
@@ -1528,6 +1939,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:media-amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:media-amazon.com"
    }
   },
   "m.stripe.network": {
@@ -1538,6 +1952,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:stripe.network"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:stripe.network"
    }
   },
   "marketplace.cursorapi.com": {
@@ -1548,6 +1965,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:cursorapi.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cursorapi.com"
    }
   },
   "mask.apple-dns.net": {
@@ -1558,6 +1978,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple-dns.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple-dns.net"
    }
   },
   "mmg.whatsapp.net": {
@@ -1568,6 +1991,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:whatsapp.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:whatsapp.net"
    }
   },
   "msg.umeng.com": {
@@ -1583,6 +2009,10 @@
    },
    "singbox": {
     "geosite-cn": "suffix:umeng.com"
+   },
+   "stash": {
+    "cn": "suffix:umeng.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:umeng.com"
    }
   },
   "music.apple.com": {
@@ -1594,6 +2024,10 @@
    "singbox": {
     "geosite-cn": "full:music.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:music.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "myvm.eastus.cloudapp.azure.com": {
@@ -1604,13 +2038,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:azure.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:azure.com"
    }
   },
   "nas.lan": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "netflixdnstest7.com": {
    "loon": {},
@@ -1620,13 +2058,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:netflixdnstest7.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:netflixdnstest7.com"
    }
   },
   "never-listed-site.org": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "news.sina.com.cn": {
    "loon": {},
@@ -1636,13 +2078,18 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:sina.com.cn"
+   },
+   "stash": {
+    "cn": "suffix:sina.com.cn",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
   "notopenai.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "oauth2.googleapis.com": {
    "loon": {},
@@ -1652,6 +2099,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "occ-0-1.1.nflxso.net": {
@@ -1662,6 +2112,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:nflxso.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:nflxso.net"
    }
   },
   "onedrive.live.com": {
@@ -1672,6 +2125,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:live.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:live.com"
    }
   },
   "open.spotify.com": {
@@ -1682,13 +2138,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:spotify.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:spotify.com"
    }
   },
   "openai.com.evil.example": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "openaicom.imgix.net": {
    "loon": {},
@@ -1698,6 +2158,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:imgix.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:imgix.net"
    }
   },
   "other-bucket.s3.amazonaws.com": {
@@ -1708,6 +2171,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
    }
   },
   "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": {
@@ -1718,6 +2184,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "full:p16-tiktok-dm-sticker-sign-sg.ibyteimg.com"
+   },
+   "stash": {
+    "geolocation-!cn": "full:p16-tiktok-dm-sticker-sign-sg.ibyteimg.com"
    }
   },
   "pagead2.googlesyndication.com": {
@@ -1734,6 +2203,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:googlesyndication.com",
     "geosite-geolocation-!cn": "suffix:.googlesyndication.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:googlesyndication.com",
+    "geolocation-!cn": "suffix:.googlesyndication.com"
    }
   },
   "pbs.twimg.com": {
@@ -1744,6 +2217,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:twimg.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:twimg.com"
    }
   },
   "people.googleapis.com": {
@@ -1754,6 +2230,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "pixel.facebook.com": {
@@ -1770,6 +2249,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:pixel.facebook.com",
     "geosite-geolocation-!cn": "suffix:pixel.facebook.com"
+   },
+   "stash": {
+    "category-ads-all": "suffix:pixel.facebook.com",
+    "geolocation-!cn": "suffix:pixel.facebook.com"
    }
   },
   "platform.claude.com": {
@@ -1780,6 +2263,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:claude.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:claude.com"
    }
   },
   "play.max.com": {
@@ -1790,6 +2276,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:max.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:max.com"
    }
   },
   "poe.com": {
@@ -1800,6 +2289,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:poe.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:poe.com"
    }
   },
   "portal.azure.com": {
@@ -1810,19 +2302,24 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:azure.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:azure.com"
    }
   },
   "printer.local": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "prod.hjholdings.tv": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "proxy.golang.org": {
    "loon": {},
@@ -1832,6 +2329,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:golang.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:golang.org"
    }
   },
   "push.apple.com": {
@@ -1842,6 +2342,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "pypi.org": {
@@ -1852,6 +2355,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:pypi.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:pypi.org"
    }
   },
   "qwen.ai": {
@@ -1864,6 +2370,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:qwen.ai"
+   },
+   "stash": {
+    "cn": "suffix:qwen.ai",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:qwen.ai"
    }
   },
   "raw.githubusercontent.com": {
@@ -1874,6 +2384,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubusercontent.com"
    }
   },
   "registry-1.docker.io": {
@@ -1884,6 +2397,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:docker.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:docker.io"
    }
   },
   "registry.npmjs.org": {
@@ -1894,6 +2410,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:npmjs.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:npmjs.org"
    }
   },
   "robinfrontend-pa.googleapis.com": {
@@ -1904,6 +2423,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "rr3---sn-a5mekn6s.googlevideo.com": {
@@ -1914,6 +2436,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googlevideo.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googlevideo.com"
    }
   },
   "s.youtube.com": {
@@ -1924,6 +2449,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:youtube.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:youtube.com"
    }
   },
   "s3.us-east-1.amazonaws.com": {
@@ -1934,6 +2462,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
    }
   },
   "servd-anthropic-website.b-cdn.net": {
@@ -1944,6 +2475,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:b-cdn.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:b-cdn.net"
    }
   },
   "serviceusage.googleapis.com": {
@@ -1954,6 +2488,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "someone.blob.core.windows.net": {
@@ -1964,6 +2501,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:windows.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:windows.net"
    }
   },
   "sora.com": {
@@ -1974,6 +2514,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:sora.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:sora.com"
    }
   },
   "spotify.link": {
@@ -1984,6 +2527,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:spotify.link"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:spotify.link"
    }
   },
   "static.siege-amazon.com": {
@@ -1994,6 +2540,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:siege-amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:siege-amazon.com"
    }
   },
   "static.zhihu.com": {
@@ -2006,6 +2555,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:zhihu.com"
+   },
+   "stash": {
+    "cn": "suffix:zhihu.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:zhihu.com"
    }
   },
   "stats.g.doubleclick.net": {
@@ -2022,6 +2575,10 @@
    "singbox": {
     "geosite-category-ads-all": "suffix:doubleclick.net",
     "geosite-geolocation-!cn": "suffix:.doubleclick.net"
+   },
+   "stash": {
+    "category-ads-all": "suffix:doubleclick.net",
+    "geolocation-!cn": "suffix:.doubleclick.net"
    }
   },
   "stitch.withgoogle.com": {
@@ -2032,6 +2589,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:withgoogle.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:withgoogle.com"
    }
   },
   "storage.googleapis.com": {
@@ -2042,6 +2602,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "sydney.bing.com": {
@@ -2052,6 +2615,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:bing.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:bing.com"
    }
   },
   "t.appsflyer.com": {
@@ -2062,7 +2628,8 @@
    "quantumultx": {
     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "keyword:appsflyer"
    },
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "t.co": {
    "loon": {},
@@ -2072,6 +2639,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:t.co"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:t.co"
    }
   },
   "t.me": {
@@ -2082,6 +2652,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:t.me"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:t.me"
    }
   },
   "time.apple-dns.net": {
@@ -2092,6 +2665,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple-dns.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple-dns.net"
    }
   },
   "time.apple.com": {
@@ -2102,6 +2678,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "time.windows.com": {
@@ -2112,6 +2691,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:windows.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:windows.com"
    }
   },
   "tongyi.aliyun.com": {
@@ -2124,6 +2706,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:tongyi.aliyun.com"
+   },
+   "stash": {
+    "cn": "suffix:tongyi.aliyun.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:aliyun.com"
    }
   },
   "tracker.twimg.com": {
@@ -2134,6 +2720,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:twimg.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:twimg.com"
    }
   },
   "turn.livekit.cloud": {
@@ -2144,6 +2733,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:turn.livekit.cloud"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:turn.livekit.cloud"
    }
   },
   "tv.apple.com": {
@@ -2154,6 +2746,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "tver.jp": {
@@ -2164,13 +2759,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:tver.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:tver.jp"
    }
   },
   "u123.ct.sendgrid.net": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "umengcloud.com": {
    "loon": {
@@ -2185,19 +2784,25 @@
    },
    "singbox": {
     "geosite-cn": "suffix:umengcloud.com"
+   },
+   "stash": {
+    "cn": "suffix:umengcloud.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:umengcloud.com"
    }
   },
   "unknown-cn.example": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "unknown-foreign.example": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "user.wixsite.com": {
    "loon": {
@@ -2211,6 +2816,9 @@
    },
    "singbox": {
     "geosite-geolocation-!cn": "suffix:wixsite.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:wixsite.com"
    }
   },
   "web.telegram.org": {
@@ -2221,6 +2829,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:telegram.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:telegram.org"
    }
   },
   "web.whatsapp.com": {
@@ -2231,6 +2842,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:whatsapp.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:whatsapp.com"
    }
   },
   "widget.intercom.io": {
@@ -2241,6 +2855,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:intercom.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:intercom.io"
    }
   },
   "wikipedia.org": {
@@ -2251,6 +2868,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:wikipedia.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:wikipedia.org"
    }
   },
   "workos.imgix.net": {
@@ -2261,6 +2881,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:imgix.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:imgix.net"
    }
   },
   "ws.chatgpt.com": {
@@ -2271,6 +2894,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:chatgpt.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:chatgpt.com"
    }
   },
   "www.amazon.co.jp": {
@@ -2281,6 +2907,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazon.co.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazon.co.jp"
    }
   },
   "www.amazon.com": {
@@ -2291,6 +2920,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:amazon.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazon.com"
    }
   },
   "www.apple.com": {
@@ -2302,6 +2934,10 @@
    "singbox": {
     "geosite-cn": "full:www.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:www.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "www.apple.com.cn": {
@@ -2312,6 +2948,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:apple.com.cn"
+   },
+   "stash": {
+    "cn": "suffix:apple.com.cn",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
   "www.baidu.com": {
@@ -2324,6 +2964,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:baidu.com"
+   },
+   "stash": {
+    "cn": "suffix:baidu.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:baidu.com"
    }
   },
   "www.bilibili.com": {
@@ -2336,6 +2980,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:bilibili.com"
+   },
+   "stash": {
+    "cn": "suffix:bilibili.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:bilibili.com"
    }
   },
   "www.bilibili.tv": {
@@ -2346,7 +2994,10 @@
     "cn": "suffix:bilibili.tv"
    },
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:bilibili.tv"
+   }
   },
   "www.bing.com": {
    "loon": {},
@@ -2356,19 +3007,24 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:bing.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:bing.com"
    }
   },
   "www.byteglb.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "www.byteoversea.net": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "www.crunchyroll.com": {
    "loon": {},
@@ -2378,6 +3034,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:crunchyroll.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:crunchyroll.com"
    }
   },
   "www.disneyplus.com": {
@@ -2388,6 +3047,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:disneyplus.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:disneyplus.com"
    }
   },
   "www.dmm.com": {
@@ -2398,6 +3060,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:dmm.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:dmm.com"
    }
   },
   "www.doubao.com": {
@@ -2410,6 +3075,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:doubao.com"
+   },
+   "stash": {
+    "cn": "suffix:doubao.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:doubao.com"
    }
   },
   "www.facebook.com": {
@@ -2420,6 +3089,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:facebook.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:facebook.com"
    }
   },
   "www.google.cn": {
@@ -2430,6 +3102,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:google.cn"
+   },
+   "stash": {
+    "cn": "suffix:google.cn",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
   "www.google.com": {
@@ -2440,6 +3116,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.com"
    }
   },
   "www.google.de": {
@@ -2450,13 +3129,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:google.de"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:google.de"
    }
   },
   "www.hjholdings.tv": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "www.hulu.com": {
    "loon": {},
@@ -2466,6 +3149,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:hulu.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:hulu.com"
    }
   },
   "www.hulu.jp": {
@@ -2476,6 +3162,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:hulu.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:hulu.jp"
    }
   },
   "www.icloud.com": {
@@ -2486,6 +3175,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:icloud.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:icloud.com"
    }
   },
   "www.instagram.com": {
@@ -2496,6 +3188,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:instagram.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:instagram.com"
    }
   },
   "www.ithome.com": {
@@ -2508,6 +3203,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:ithome.com"
+   },
+   "stash": {
+    "cn": "suffix:ithome.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:ithome.com"
    }
   },
   "www.jd.com": {
@@ -2520,6 +3219,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:jd.com"
+   },
+   "stash": {
+    "cn": "suffix:jd.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:jd.com"
    }
   },
   "www.linkedin.com": {
@@ -2530,6 +3233,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:linkedin.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:linkedin.com"
    }
   },
   "www.meta.ai": {
@@ -2540,6 +3246,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:meta.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:meta.ai"
    }
   },
   "www.microsoft.com": {
@@ -2550,6 +3259,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:microsoft.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:microsoft.com"
    }
   },
   "www.msftconnecttest.com": {
@@ -2560,6 +3272,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:msftconnecttest.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:msftconnecttest.com"
    }
   },
   "www.netflix.com": {
@@ -2570,6 +3285,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:netflix.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:netflix.com"
    }
   },
   "www.nicovideo.jp": {
@@ -2580,6 +3298,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:nicovideo.jp"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:nicovideo.jp"
    }
   },
   "www.paypal.com": {
@@ -2590,6 +3311,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:paypal.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:paypal.com"
    }
   },
   "www.paypalobjects.com": {
@@ -2600,6 +3324,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:paypalobjects.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:paypalobjects.com"
    }
   },
   "www.perplexity.ai": {
@@ -2610,6 +3337,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:perplexity.ai"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:perplexity.ai"
    }
   },
   "www.perplexity.com": {
@@ -2620,6 +3350,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:perplexity.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:perplexity.com"
    }
   },
   "www.primevideo.com": {
@@ -2630,6 +3363,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:primevideo.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:primevideo.com"
    }
   },
   "www.qianwen.com": {
@@ -2642,6 +3378,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:qianwen.com"
+   },
+   "stash": {
+    "cn": "suffix:qianwen.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:qianwen.com"
    }
   },
   "www.recaptcha.net": {
@@ -2654,6 +3394,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "full:www.recaptcha.net"
+   },
+   "stash": {
+    "cn": "full:www.recaptcha.net",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "full:www.recaptcha.net"
    }
   },
   "www.reddit.com": {
@@ -2664,13 +3408,17 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:reddit.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:reddit.com"
    }
   },
   "www.siriusxm.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
-   "singbox": {}
+   "singbox": {},
+   "stash": {}
   },
   "www.spacex.com": {
    "loon": {},
@@ -2680,6 +3428,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:spacex.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:spacex.com"
    }
   },
   "www.threads.com": {
@@ -2690,6 +3441,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:threads.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:threads.com"
    }
   },
   "www.tiktok.com": {
@@ -2700,6 +3454,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:tiktok.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:tiktok.com"
    }
   },
   "www.tongyi.com": {
@@ -2712,6 +3469,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:tongyi.com"
+   },
+   "stash": {
+    "cn": "suffix:tongyi.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:tongyi.com"
    }
   },
   "www.tubitv.com": {
@@ -2722,6 +3483,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:tubitv.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:tubitv.com"
    }
   },
   "www.twitch.tv": {
@@ -2732,6 +3496,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:twitch.tv"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:twitch.tv"
    }
   },
   "www.youtube.com": {
@@ -2742,6 +3509,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:youtube.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:youtube.com"
    }
   },
   "www.zhihu.com": {
@@ -2754,6 +3524,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:zhihu.com"
+   },
+   "stash": {
+    "cn": "suffix:zhihu.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:zhihu.com"
    }
   },
   "x.com": {
@@ -2764,6 +3538,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:x.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:x.com"
    }
   },
   "x1.chatgpt.livekit.cloud": {
@@ -2774,6 +3551,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:chatgpt.livekit.cloud"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:chatgpt.livekit.cloud"
    }
   },
   "xp.apple.com": {
@@ -2785,6 +3565,10 @@
    "singbox": {
     "geosite-cn": "full:xp.apple.com",
     "geosite-geolocation-!cn": "suffix:apple.com"
+   },
+   "stash": {
+    "cn": "full:xp.apple.com",
+    "geolocation-!cn": "suffix:apple.com"
    }
   },
   "youtubeembeddedplayer.googleapis.com": {
@@ -2795,6 +3579,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "youtubei.googleapis.com": {
@@ -2805,6 +3592,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "yt3.ggpht.com": {
@@ -2815,6 +3605,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:ggpht.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:ggpht.com"
    }
   },
   "yt3.googleusercontent.com": {
@@ -2825,6 +3618,9 @@
    "quantumultx": {},
    "singbox": {
     "geosite-geolocation-!cn": "suffix:googleusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleusercontent.com"
    }
   },
   "yuanbao.tencent.com": {
@@ -2837,6 +3633,10 @@
    "quantumultx": {},
    "singbox": {
     "geosite-cn": "suffix:yuanbao.tencent.com"
+   },
+   "stash": {
+    "cn": "suffix:yuanbao.tencent.com",
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:tencent.com"
    }
   }
  },
@@ -2849,7 +3649,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "1.2.4.9": {
    "loon": {},
@@ -2859,7 +3660,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "10.0.0.8": {
    "loon": {},
@@ -2869,7 +3671,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "104.18.1.1": {
    "loon": {},
@@ -2879,7 +3682,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "104.18.1.2": {
    "loon": {},
@@ -2889,7 +3693,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "104.18.1.3": {
    "loon": {},
@@ -2899,7 +3704,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "104.18.1.4": {
    "loon": {},
@@ -2909,7 +3715,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "110.242.68.3": {
    "loon": {},
@@ -2919,7 +3726,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.4": {
    "loon": {},
@@ -2929,7 +3737,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.5": {
    "loon": {},
@@ -2939,7 +3748,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.6": {
    "loon": {},
@@ -2949,7 +3759,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.66": {
    "loon": {},
@@ -2959,7 +3770,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.7": {
    "loon": {},
@@ -2969,7 +3781,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "110.242.68.8": {
    "loon": {},
@@ -2979,7 +3792,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "149.154.167.51": {
    "loon": {},
@@ -2989,7 +3803,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "167.89.118.1": {
    "loon": {},
@@ -2999,7 +3814,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "18.155.1.1": {
    "loon": {},
@@ -3009,7 +3825,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "185.199.108.153": {
    "loon": {},
@@ -3019,7 +3836,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "192.168.1.1": {
    "loon": {},
@@ -3029,7 +3847,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "2001:67c:4e8::1": {
    "loon": {},
@@ -3039,7 +3858,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "208.80.154.224": {
    "loon": {},
@@ -3049,7 +3869,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "240e::1": {
    "loon": {},
@@ -3059,7 +3880,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
-   }
+   },
+   "stash": {}
   },
   "47.246.1.1": {
    "loon": {},
@@ -3069,7 +3891,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "52.217.1.1": {
    "loon": {},
@@ -3079,7 +3902,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "8.8.8.8": {
    "loon": {},
@@ -3089,7 +3913,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "91.108.56.100": {
    "loon": {},
@@ -3099,7 +3924,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "93.184.215.14": {
    "loon": {},
@@ -3109,7 +3935,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   },
   "fe80::1": {
    "loon": {},
@@ -3119,7 +3946,8 @@
    "quantumultx": {},
    "singbox": {
     "cn": false
-   }
+   },
+   "stash": {}
   }
  },
  "oddities": {
@@ -3187,7 +4015,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "0e107e0f13da44da6063ce912f82dc9d69076740afa0a2f62bd4a6489590c813",
+   "config_sha256": "04c7f1e551b9ba5d5ee7c221fcba67d5d0d7c6139b9e983e4164b0e8fe2f3100",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -7111,9 +7939,23 @@
   },
   "singbox_ip": {
    "geoip-cn": 8045
+  },
+  "stash": {
+   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": {
+    "domain": 268,
+    "ignored": {},
+    "ip": 0,
+    "keyword": 0,
+    "suffix": 111060
+   }
+  },
+  "stash_geosite": {
+   "category-ads-all": 911,
+   "cn": 9303,
+   "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.10.13-1",
+ "source_version": "2026.10.13-2",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
@@ -7175,6 +8017,28 @@
    "geosite-geolocation-!cn.srs": {
     "bytes": 168020,
     "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
+    "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
+   }
+  },
+  "stash": {
+   "ChinaMax_Domain_For_Clash.txt": {
+    "bytes": 1634434,
+    "origin": "blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）",
+    "sha256": "7722df98aedeb67b3572a9043ecf8edce6fe0dc89acbc684d1079eaa5e7994ed"
+   },
+   "geosite-category-ads-all.srs": {
+    "bytes": 8244,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
+    "sha256": "a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324"
+   },
+   "geosite-cn.srs": {
+    "bytes": 56145,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
+    "sha256": "fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c"
+   },
+   "geosite-geolocation-!cn.srs": {
+    "bytes": 168020,
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
     "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
    }
   }

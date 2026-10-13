@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 128 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 141 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -104,7 +104,7 @@ def append_case_without_snapshot(s):
 
 cases = [
     ("M1 Apple AI 服务挪到 Apple 之后（书写位置）", [("source/services/bigtech.yaml", move_apple_ai_after_apple)], "书写顺序"),
-    ("M2 国内常用网站也写进 Loon / QX", [("source/services/misc.yaml", lambda s: s.replace("    clients: [mihomo, singbox]\n", "", 1))], "ad.12306.cn"),
+    ("M2 国内常用网站也写进 Loon / QX", [("source/services/misc.yaml", lambda s: s.replace("    clients: [mihomo, singbox, stash]\n", "", 1))], "ad.12306.cn"),
     ("M3 删掉一条 Apple AI 规则（smoot.apple.com）", [("source/services/bigtech.yaml", lambda s: re.sub(r"      - \{suffix: smoot\.apple\.com,[^\n]*\n", "", s, count=1))], "不增不减"),
     ("M4 从 Apple 组删掉 apple-dns.net", [("source/services/bigtech.yaml", lambda s: s.replace("      - {suffix: apple-dns.net, ev: dlc}\n", "", 1))], "apple-dns.net"),
     ("M5 Apple AI 默认改成日本", [("source/groups.yaml", lambda s: s.replace("{name: Apple AI,  category: AI, default: 美国", "{name: Apple AI,  category: AI, default: 日本", 1))], "Apple AI"),
@@ -428,6 +428,39 @@ cases = [
     ("M128 读内核日志又不关文件（r15 测试日志里那条 ResourceWarning）", [("tools/check_real_routes.py", lambda s: s.replace(
         "    with open(logp, encoding=\"utf-8\", errors=\"replace\") as f:\n        text = f.read()\n",
         "    text = open(logp, encoding=\"utf-8\", errors=\"replace\").read()\n", 1))], "ResourceWarning"),
+    # ---- Stash（2026-10-13，r16）----
+    ("M129 Stash 严格版的 GEOIP,CN 又不带 no-resolve（没被域名规则接住的域名又要在本机解析）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        add("GEOIP,CN,国内直连,no-resolve")\n', '        add("GEOIP,CN,国内直连")\n', 1))], "no-resolve"),
+    ("M130 Stash 的占位节点连得上（端口改成 Stash 自己的代理端口）", [("generator/emit_stash.py", lambda s: s.replace(
+        "PLACEHOLDER_PORT = 1\n", "PLACEHOLDER_PORT = 7890\n", 1))], "test_one_placeholder_per_region_that_cannot_connect"),
+    ("M131 Stash 没有占位节点（某个地区一个节点都没有时组是空的，Stash 当作直连）", [("generator/emit_stash.py", lambda s: s.replace(
+        "             for name in placeholders(m).values()]\n", "             for name in []]\n", 1))], "占位节点"),
+    ("M132 Stash 严格版的国内域名清单排到 GEOSITE,geolocation-!cn 前面（境外集合里的域名也被它接走）", [("generator/emit_stash.py", lambda s: s.replace(
+        '    add("GEOSITE,geolocation-!cn,国外默认")\n    if strict:\n        for x in m.strict["domestic_lists"]["stash"]:\n'
+        '            add(f"RULE-SET,{x[\'tag\']},国内直连")\n',
+        '    if strict:\n        for x in m.strict["domestic_lists"]["stash"]:\n            add(f"RULE-SET,{x[\'tag\']},国内直连")\n'
+        '    add("GEOSITE,geolocation-!cn,国外默认")\n', 1))], "geolocation-!cn 之后"),
+    ("M133 Stash 的 nameserver 换成境外 DNS（直连的连接拿境外 DNS 的结果，国内网站可能变慢）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        "nameserver": list(dns["domestic_doh"]),\n', '        "nameserver": list(dns["foreign_doh"]),\n', 1))], "test_dns_block"),
+    ("M134 Stash 的局域网后缀不交给系统 DNS", [("generator/emit_stash.py", lambda s: s.replace(
+        '        "nameserver-policy": {"+." + s: "system" for s in lan},\n', '        "nameserver-policy": {"+.lan": "system"},\n', 1))],
+     "test_stash_uses_system_dns_for_lan_suffixes"),
+    ("M135 国内常用网站的补充规则又不写进 Stash（和 mihomo 的规则不再逐条相同）", [("source/services/misc.yaml", lambda s: s.replace(
+        "    clients: [mihomo, singbox, stash]\n", "    clients: [mihomo, singbox]\n", 1))], "test_standard_rules_are_the_mihomo_rules"),
+    ("M136 模拟器不认 Stash 的 RULE-SET（严格版的国内域名清单在测试里等于没有）", [("tests/emulate.py", lambda s: s.replace(
+        '            if c.host and fx.remote_host_hit(rp["url"], c.host):\n                return target\n            continue\n',
+        '            continue\n', 1))], "only-in-chinamax-sample"),
+    ("M137 Stash 的 PayPal 固定节点没带占位节点（那个节点被删掉以后组是空的）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        return "^(?:" + lit(nf.pinned) + "|" + lit(ph) + ")$"\n', '        return nf.final_regex()\n', 1))],
+     "test_pinned_paypal_node_keeps_its_placeholder"),
+    ("M138 生成 Stash 配置时不核对占位节点", [("generator/emit_stash.py", lambda s: s.replace(
+        "    check_placeholders(m, groups)\n", "", 1))], "test_build_refuses_a_broken_stash_config"),
+    ("M139 结构检查不看筛选能不能选中占位节点", [("generator/verify.py", lambda s: s.replace(
+        "            if len(hit) != 1:\n", "            if False:\n", 1))], "test_missing_placeholder"),
+    ("M140 Stash 的 DNS 段里 +. 开头的写法又不加引号（和文档的例子不一样）", [("generator/emit_stash.py", lambda s: s.replace(
+        '    style = "\'" if data.startswith(("+", "*")) else None\n', "    style = None\n", 1))], "test_wildcard_keys_are_quoted_like_the_docs"),
+    ("M141 模拟器不记 Stash 为了判断 IP 规则在本机解析过（严格版“不在本机解析”的检查失灵）", [("tests/emulate.py", lambda s: s.replace(
+        '                if trace is not None:\n                    trace["resolved"] = True\n', "", 1))], "标准版里没被域名规则接住的域名应该要先解析"),
 ]
 
 

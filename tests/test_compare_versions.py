@@ -183,7 +183,7 @@ class Units(unittest.TestCase):
 
 class AgainstItself(unittest.TestCase):
     def test_comparing_the_project_with_itself_reports_no_change(self):
-        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时八份配置（标准版六份、严格版两份）都逐字节相同，
+        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同，
         严格版一节照常列出它和标准版的差别，自有远程规则文件和“上一版”一模一样。
         顺带核对 --out：结果写到指定的文件，缺省的那份（docs/evidence/与上一版的对比.md）不动。"""
         default = os.path.join(ROOT, cv.OUT)
@@ -211,10 +211,12 @@ class AgainstItself(unittest.TestCase):
         self.assertIn("只是自动 / 故障转移 / 负载均衡的成员变了（0 个）", out)
         self.assertRegex(out, r"\| 乙 \| (\d+) \| 0 \| \1 \| 0 \|")
         if os.path.exists(os.path.join(ROOT, "dist", "loon", "loon.conf")):
-            self.assertEqual(out.count("逐字节相同。"), 8)
+            self.assertEqual(out.count("逐字节相同。"), 10)
+            self.assertEqual(len(cv.OUTPUTS), 10)
             self.assertNotIn("顺序变了", out)
             self.assertIn("## 六、严格版：乙 的严格版相对同一版的标准版", out)
             self.assertIn("### `loon/loon-strict.conf` 对照 `loon/loon.conf`", out)
+            self.assertIn("### `stash/stash-strict.yaml` 对照 `stash/stash.yaml`", out)
             self.assertIn("GEOIP,CN,国内直连,no-resolve", out)
             self.assertIn("domain-fallback.list", out)
             self.assertEqual(out.count("和 甲 的一模一样。"), len(cv.OWN_RULE_FILES))      # 2026-10-07 起是 4 个
@@ -237,6 +239,7 @@ class StrictSection(unittest.TestCase):
             text = "\n".join(L)
             self.assertEqual(text.count("是这一版新增的严格版"), 2)
             self.assertEqual(text.count("缺文件，没有比。"), 6, "上一版目录是空的：六份标准版都没法比")
+            self.assertEqual(text.count("Stash 的配置是 2026-10-13 新增的"), 2, "Stash 的两份写明是这一版新增的")
             L = []
             cv.strict_section(L, old, labels, "甲", "乙")
             self.assertEqual("\n".join(L).count("甲 没有这个文件。"), len(cv.OWN_RULE_FILES))

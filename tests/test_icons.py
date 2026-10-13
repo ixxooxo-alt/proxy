@@ -32,8 +32,8 @@ PUBLISHED = {
     "PayPal·美国固定": BASE + "PayPal%C2%B7%E7%BE%8E%E5%9B%BD%E5%9B%BA%E5%AE%9A.png",
     "香港·手动优先": BASE + "%E9%A6%99%E6%B8%AF%C2%B7%E6%89%8B%E5%8A%A8%E4%BC%98%E5%85%88.png",
 }
-WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict")
-# Loon / Quantumult X / mihomo 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 1 个
+WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict", "stash", "stash-strict")
+# Loon / Quantumult X / mihomo / Stash 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 1 个
 # （PayPal·美国固定；Netflix·解锁入口 2026-10-07 取消，待决事项第 3 项）+ 地区入口 7 个 + 六个地区各 5 个模式组 30 个。
 # 增减策略组时要同时改这里
 GROUPS = 81
@@ -42,7 +42,7 @@ GROUPS = 81
 def icons_in(client: str, source: str = None) -> dict:
     """{策略组名: 图标地址}，直接从产物文本里读（没有图标的组不出现）。"""
     out = {}
-    if client.startswith("mihomo"):
+    if client.startswith(("mihomo", "stash")):
         conf = parsed(client) if source is None else __import__("yaml").safe_load(source)
         for g in conf["proxy-groups"]:
             if "icon" in g:
@@ -68,7 +68,7 @@ def icons_in(client: str, source: str = None) -> dict:
 
 
 def group_names(client: str) -> list:
-    if client.startswith("mihomo"):
+    if client.startswith(("mihomo", "stash")):
         return [g["name"] for g in parsed(client)["proxy-groups"]]
     c = parsed(client)
     return list(c["groups"] if client.startswith("loon") else c["policies"])
@@ -158,7 +158,8 @@ class Icons(unittest.TestCase):
         files = build.render_public(off, plan)
         strip = {"loon/loon.conf": r",img-url = \S+$", "quantumultx/quantumultx.conf": r", img-url=\S+$",
                  "loon/loon-strict.conf": r",img-url = \S+$", "quantumultx/quantumultx-strict.conf": r", img-url=\S+$",
-                 "mihomo/mihomo-core.yaml": r"^    icon: \S+\n", "mihomo/mihomo-profile.yaml": r"^    icon: \S+\n"}
+                 "mihomo/mihomo-core.yaml": r"^    icon: \S+\n", "mihomo/mihomo-profile.yaml": r"^    icon: \S+\n",
+                 "stash/stash.yaml": r"^    icon: \S+\n", "stash/stash-strict.yaml": r"^    icon: \S+\n"}
         on = build.render_public(m, plan)
         for rel, pattern in strip.items():
             self.assertNotIn("ixxooxo-alt/icon", files[rel], rel)
