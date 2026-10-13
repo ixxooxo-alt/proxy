@@ -1,6 +1,6 @@
 # Cursor 版迁入核对（自动生成，请勿手改）
 
-由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.07-2` 计算每条规则的去向。
+由 `tools/check_cursor_report.py --write` 生成。输入是 Cursor 云端的逐条对照明细 `docs/evidence/cursor-对照明细.csv`（报告里“本仓库”= Cursor 版，“另一版”= 本工程），按当前统一源 `2026.10.13-1` 计算每条规则的去向。
 “去向”按 mihomo 计算；后缀规则同时测根域和一个子域。Loon / Quantumult X 与 mihomo 不同的只有“只写进 mihomo / sing-box”那一类。
 
 ## 一、Cursor 版的规则在本工程里进哪个组
@@ -58,7 +58,7 @@ Cursor 版共 533 条：同组 429，同组（只写进 mihomo / sing-box） 70�
 | Meta 社交 | 域名后缀 | `instagr.am` | 该收 | 兜底 | Instagram 短链接，未收录，落入国外默认 |
 | Reddit | 域名后缀 | `redditinc.com` | 该收 | 兜底 | 公司官网，按采纳原则不收，落入国外默认 |
 | GitHub | 域名后缀 | `github.io` | 该收 | 兜底 | GitHub Pages 托管第三方站点，按共享托管根域不收（见 github 服务的 shared_excluded），落入国外默认 |
-| 广告拦截 | 域名后缀 | `alimama.com` | 该收 | 广告拦截 / 兜底 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机和它的 10 个子域，其余子域按普通的国内网站处理 |
+| 广告拦截 | 域名后缀 | `alimama.com` | 该收 | 广告拦截 / 兜底 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机、它的 10 个子域和上游写成关键词的 afpapi.alimama.com（2026-10-13 补上），其余子域按普通的国内网站处理 |
 | 广告拦截 | 域名后缀 | `umeng.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml） |
 | 广告拦截 | 域名后缀 | `umengcloud.com` | 该收 | 国内直连 | 收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域（source/adblock.yaml 的 local_tracking 最后）；友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml） |
 | 共享基础设施 | 域名后缀 | `akamai.net` | 该收 | 兜底 | 共享云 / CDN 根域：本工程不给它写专门规则，交给兜底（境外域名 → 国外默认；解析到国内 IP 的 → 国内直连）。Cursor 版把它显式绑到国外默认 |

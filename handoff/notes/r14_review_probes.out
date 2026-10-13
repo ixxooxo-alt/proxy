@@ -1,14 +1,14 @@
-mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026；配置：dist/mihomo/mihomo-core.yaml（统一源 2026.10.07-2）
+mihomo：Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026；配置：dist/mihomo/mihomo-core.yaml（统一源 2026.10.13-1）
 结果：收到这个名字查询的 DNS 替身（system = 代表路由器的替身，domestic = 国内，foreign = 境外；none = 三类都没有收到）
 
-== 现在的配置（r14）
-  默认直连的组保持直连                wireguard TCP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
-  默认直连的组保持直连                socks5 UDP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
-  Apple / Bilibili 港澳台切到测试节点wireguard TCP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
-  Apple / Bilibili 港澳台切到测试节点socks5 UDP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
+== 交付的配置（DNS 设置与 r14 相同）
+  默认直连的组保持直连，wireguard TCP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
+  默认直连的组保持直连，socks5 UDP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
+  Apple / Bilibili 港澳台切到测试节点，wireguard TCP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
+  Apple / Bilibili 港澳台切到测试节点，socks5 UDP：www.apple.com.cn → domestic，api.bilibili.com → domestic，www.qq.com → domestic，router.lan → system，qwen.ai → foreign
 
 == 审核方的做法（direct-nameserver: [system]，follow-policy: false）
-  默认直连的组保持直连                wireguard TCP：www.apple.com.cn → system，api.bilibili.com → system，www.qq.com → system，router.lan → system，qwen.ai → foreign
-  默认直连的组保持直连                socks5 UDP：www.apple.com.cn → system，api.bilibili.com → system，www.qq.com → system，router.lan → system，qwen.ai → foreign
-  Apple / Bilibili 港澳台切到测试节点wireguard TCP：www.apple.com.cn → foreign，api.bilibili.com → foreign，www.qq.com → system，router.lan → system，qwen.ai → foreign
-  Apple / Bilibili 港澳台切到测试节点socks5 UDP：www.apple.com.cn → foreign，api.bilibili.com → foreign，www.qq.com → system，router.lan → system，qwen.ai → foreign
+  默认直连的组保持直连，wireguard TCP：www.apple.com.cn → system，api.bilibili.com → system，www.qq.com → system，router.lan → system，qwen.ai → foreign
+  默认直连的组保持直连，socks5 UDP：www.apple.com.cn → system，api.bilibili.com → system，www.qq.com → system，router.lan → system，qwen.ai → foreign
+  Apple / Bilibili 港澳台切到测试节点，wireguard TCP：www.apple.com.cn → foreign，api.bilibili.com → foreign，www.qq.com → system，router.lan → system，qwen.ai → foreign
+  Apple / Bilibili 港澳台切到测试节点，socks5 UDP：www.apple.com.cn → foreign，api.bilibili.com → foreign，www.qq.com → system，router.lan → system，qwen.ai → foreign

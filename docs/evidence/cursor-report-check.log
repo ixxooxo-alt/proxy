@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-07 08:06:36
+运行时间（UTC）：2026-10-13 04:00:57
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc
+统一源摘要：a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2
 命令：python3 tools/check_cursor_report.py --write
 
 Cursor 版 533 条：同组 429，同组（只写进 mihomo / sing-box） 70，无专门规则 18，不同组 15，已替换 1

@@ -10,8 +10,8 @@ direct-nameserver 那个解析器（关掉 direct-nameserver-follow-policy 时�
 这里用官方内核把两份配置各跑一遍，看系统 / 国内 / 境外三类 DNS 替身各收到了谁的查询（做法同 tools/check_real_routes.py 的
 mihomo_outbound_probe：规则原样，三类 DNS 换成本机替身，测试节点连本机一个没人监听的端口）：
 
-  现在的配置（r14）：默认直连的组保持直连；再把 Apple、Apple Music/TV、Apple Push、Bilibili 港澳台切到测试节点
-                    （第 21 项说的“切到国外”）。
+  交付的配置：       默认直连的组保持直连；再把 Apple、Apple Music/TV、Apple Push、Bilibili 港澳台切到测试节点
+                    （第 21 项说的“切到国外”）。r15 的 DNS 设置与审核方看的 r14 相同（只多了一条拦截规则）。
   审核方的做法：     direct-nameserver 改成 [system]、direct-nameserver-follow-policy 改成 false，nameserver-policy 里把
                     www.apple.com.cn、api.bilibili.com 交给境外 DNS（审核方的复现脚本也只加了这两个名字）；同样试“保持直连”
                     和“切到测试节点”两种。这里的 system 替身代表“认得局域网名字、把国内网站交给国内 DNS 的路由器”——
@@ -67,7 +67,7 @@ def main() -> int:
     ver = os.popen(f"{binary} -v").read().strip().splitlines()[0]
     print(f"mihomo：{ver}；配置：dist/mihomo/mihomo-core.yaml（统一源 {SOURCE_VERSION}）")
     print("结果：收到这个名字查询的 DNS 替身（system = 代表路由器的替身，domestic = 国内，foreign = 境外；none = 三类都没有收到）")
-    for title, router_dns in (("现在的配置（r14）", False), ("审核方的做法（direct-nameserver: [system]，follow-policy: false）", True)):
+    for title, router_dns in (("交付的配置（DNS 设置与 r14 相同）", False), ("审核方的做法（direct-nameserver: [system]，follow-policy: false）", True)):
         print()
         print(f"== {title}")
         for switched in (False, True):
@@ -75,7 +75,7 @@ def main() -> int:
                 res = crr.mihomo_outbound_probe(binary, geodata, model, variant(text, model, router_dns, switched),
                                                 HOSTS, outbound, transport)
                 state = "Apple / Bilibili 港澳台切到测试节点" if switched else "默认直连的组保持直连"
-                print(f"  {state:<26}{outbound} {transport.upper()}：" + "，".join(f"{h} → {res[h]}" for h in HOSTS))
+                print(f"  {state}，{outbound} {transport.upper()}：" + "，".join(f"{h} → {res[h]}" for h in HOSTS))
     return 0
 
 

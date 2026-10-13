@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-07 08:02:22
+运行时间（UTC）：2026-10-13 03:57:45
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc
+统一源摘要：a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2
 命令：python3 -m unittest discover -s tests -v
 
 test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 13 个公开产物到 out（订阅为占位符）
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 13 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmptc5b61ej/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpb2cvvex7/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -52,8 +52,8 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpkalubcx4/report.md
-报告已写入 /tmp/tmpkalubcx4/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpj_84lmub/report.md
+报告已写入 /tmp/tmpj_84lmub/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时八份配置（标准版六份、严格版两份）都逐字节相同， ... ok
@@ -79,6 +79,8 @@ test_adopted_removals_are_gone (test_cursor_report.CursorReport.test_adopted_rem
 test_every_difference_has_a_disposition (test_cursor_report.CursorReport.test_every_difference_has_a_disposition) ... ok
 test_requested_migrations_route_to_the_same_group (test_cursor_report.CursorReport.test_requested_migrations_route_to_the_same_group)
 2026-09-29 要求迁入的：Google 187 个国家域名、Microsoft 365 清单、41 条广告、72 条国内域名、claude.app、Apple AI。 ... ok
+test_domain_trie_checks_patterns_like_mihomo (test_dns_lan.LanDns.test_domain_trie_checks_patterns_like_mihomo)
+核对工具的域名树检查写法和内核一样严（v1.19.31 component/trie/domain.go 的 ValidAndSplitDomain）：内核加载配置时会拒绝的 ... ok
 test_lan_suffix_list_also_drives_node_server_resolution (test_dns_lan.LanDns.test_lan_suffix_list_also_drives_node_server_resolution)
 公司自己的内网后缀（不在默认那几个里）加进 lan.domain_suffix 之后：mihomo 的两条策略（访问目标的、节点服务器的） ... ok
 test_loon_and_qx_use_system_dns_for_lan_suffixes (test_dns_lan.LanDns.test_loon_and_qx_use_system_dns_for_lan_suffixes) ... ok
@@ -112,7 +114,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 13 个公开产物到 /tmp/tmpb_vmpb1m（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 13 个公开产物到 /tmp/tmpwycoocre（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -122,8 +124,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 13 个公开产物到 ../../../tmp/tmpkst6a5lx（订阅为占位符）
-私密产物已写入 ../../../tmp/tmpkst6a5lx/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 13 个公开产物到 ../../../tmp/tmp85geres3（订阅为占位符）
+私密产物已写入 ../../../tmp/tmp85geres3/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -157,9 +159,14 @@ test_each_setting_only_governs_its_own_path (test_real_data.MihomoDial.test_each
 test_cases_cover_the_point_of_the_check (test_real_data.OutboundResolve.test_cases_cover_the_point_of_the_check) ... ok
 test_mihomo_never_hands_a_proxied_name_to_the_domestic_dns (test_real_data.OutboundResolve.test_mihomo_never_hands_a_proxied_name_to_the_domestic_dns)
 r14 的目标：名字归走代理组的主机，三种出口下都没有被交给国内 DNS（time.windows.com 在 mihomo 上也没有）。 ... ok
-test_recorded_official_runs_match_the_cases (test_real_data.OutboundResolve.test_recorded_official_runs_match_the_cases) ... ok
+test_recorded_official_runs_match_the_cases (test_real_data.OutboundResolve.test_recorded_official_runs_match_the_cases)
+快照里官方内核的记录和人工期望一致：问了哪类 DNS（outbound、outbound_switched），以及 SOCKS 那几种场景下节点 ... ok
 test_self_check_sees_the_product_layer (test_real_data.OutboundResolve.test_self_check_sees_the_product_layer)
-去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard：只有 product 一类变回国内 DNS。 ... ok
+去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard、SOCKS5 走 UDP（UDP 那一遍 2026-10-13 起）： ... ok
+test_socks_node_gets_the_name_over_tcp (test_real_data.OutboundResolve.test_socks_node_gets_the_name_over_tcp)
+走代理的名字经 SOCKS 走 TCP 时，节点收到的就是域名（两个内核）——以前只能说“DNS 替身没有收到查询”， ... ok
+test_switched_groups_follow_the_documented_split (test_real_data.OutboundResolve.test_switched_groups_follow_the_documented_split)
+待决事项第 21 项的依据（2026-10-13 起是官方内核的实测，不再是推断）：默认直连的组切到代理以后，mihomo 上在国内域名集合里的 ... ok
 test_each_kind_of_reply_is_told_apart (test_real_data.ProbeReplyParsing.test_each_kind_of_reply_is_told_apart) ... ok
 test_names_ending_in_a_pointer_after_labels_are_read (test_real_data.ProbeReplyParsing.test_names_ending_in_a_pointer_after_labels_are_read)
 GPT 审核 r13 的 R13-F04：记录的名字可以是“几个标签 + 一个压缩指针”（RFC 1035 第 4.1.4 节），例如 CNAME 之后的 ... ok
@@ -198,6 +205,12 @@ test_loon_ad_list_has_its_domain_part (test_real_data.SnapshotCoverage.test_loon
 blackmatrix7 把 Loon 版的 AdvertisingLite 拆成两个文件：只订阅 .list 的话只有关键词和 IP 段， ... ok
 test_loon_strict_domestic_list_is_recorded (test_real_data.SnapshotCoverage.test_loon_strict_domestic_list_is_recorded)
 Loon 严格版订阅的上游国内域名集合：只有域名和后缀两类（没有关键词、IP 段、别的规则类型），规模在十万条以上。 ... ok
+test_blocked_environment_is_an_error_not_a_result (test_real_data.Socks5RecorderTool.test_blocked_environment_is_an_error_not_a_result)
+内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。 ... /home/user/proxy/tools/check_real_routes.py:928: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpllug_u1z.txt' mode='r' encoding='utf-8'>
+  text = open(logp, encoding="utf-8", errors="replace").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_records_names_and_addresses (test_real_data.Socks5RecorderTool.test_records_names_and_addresses) ... ok
 test_standard_configs_do_resolve_unlisted_hosts (test_real_data.StrictWithRealSets.test_standard_configs_do_resolve_unlisted_hosts)
 对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。 ... ok
 test_strict_configs_never_resolve_for_rule_matching (test_real_data.StrictWithRealSets.test_strict_configs_never_resolve_for_rule_matching) ... ok
@@ -324,6 +337,8 @@ test_residual_group_cannot_steal_independent_service (test_source.SourceValidati
 test_shared_cloud_root_rejected (test_source.SourceValidation.test_shared_cloud_root_rejected) ... ok
 test_unknown_evidence_rejected (test_source.SourceValidation.test_unknown_evidence_rejected) ... ok
 test_unmatched_exception_needs_target (test_source.SourceValidation.test_unmatched_exception_needs_target) ... ok
+test_bm7_ads_entries_are_recorded_in_the_snapshot (test_source.UpstreamEvidenceRecord.test_bm7_ads_entries_are_recorded_in_the_snapshot)
+自有拦截里标 bm7-snap 的，记录里要么在 blackmatrix7 的广告列表里同值出现，要么被上游同名的关键词包住 ... ok
 test_client_restricted_services_recorded (test_source.UpstreamEvidenceRecord.test_client_restricted_services_recorded)
 不写进 Loon / QX 的服务，记录里要有“写进去会遮挡多少远程广告条目”的核对结果（不写进去的理由可复核）。 ... ok
 test_every_community_rule_is_backed (test_source.UpstreamEvidenceRecord.test_every_community_rule_is_backed) ... ok
@@ -340,6 +355,8 @@ test_generated_lists_are_the_data_minus_locally_covered_entries (test_strict.Own
 test_list_headers_carry_source_and_license (test_strict.OwnLists.test_list_headers_carry_source_and_license) ... ok
 test_max_copy_is_the_upstream_list_minus_locally_covered_entries (test_strict.OwnLists.test_max_copy_is_the_upstream_list_minus_locally_covered_entries)
 Quantumult X 严格版的上游大清单副本（2026-10-07，待决事项第 19 项）：数据文件头写明来源、快照、GPL-2.0； ... ok
+test_max_copy_says_what_was_changed_and_when (test_strict.OwnLists.test_max_copy_says_what_was_changed_and_when)
+GPL-2.0 第 2 条 a 款：改过的文件要写明改了什么、哪天改的（2026-10-13，GPT 审核 r14 的建议 S03）。数据文件和生成的规则文件 ... ok
 test_rule_list_doc_counts_each_own_list_from_its_own_data (test_strict.OwnLists.test_rule_list_doc_counts_each_own_list_from_its_own_data)
 docs/04 的严格版一节：每份自有规则文件的条数按它自己的数据算。2026-10-07 加大清单副本时，那一行一度写成了 ... ok
 test_fallback_file_is_the_single_documented_rule (test_strict.QuantumultXStrict.test_fallback_file_is_the_single_documented_rule)
@@ -404,7 +421,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 259 tests in 253.881s
+Ran 266 tests in 191.241s
 
 OK
 退出码：0
