@@ -2,7 +2,7 @@
   "generator_version": "1.8.0",
   "source_version": "2026.10.13-1",
   "docs_checked": "2026-09-23",
-  "source_sha256": "a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2",
+  "source_sha256": "0c10897160f340333b688f6a4a4de492c0097ea9a6075a070ce8208a9e4a7df5",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
@@ -30,7 +30,7 @@
     "mihomo/mihomo-profile.yaml": "22d0b214d1ecaf3e2de2b17fd4e8946d501829044c29fac960187bef2e453572",
     "quantumultx/quantumultx-strict.conf": "0af255f6610ae00966895159f50ea06cf22898d2517860a447e7ce069d057fa4",
     "quantumultx/quantumultx.conf": "b8fbd7485880105732db3c573cbd040b62db8352015dc01006f83b79d935e401",
-    "quantumultx/rules/cn-domains-max.list": "8205a9601bf27de3a729cc63a19b2a1123ed4315f260aff4caf1e7f55de94037",
+    "quantumultx/rules/cn-domains-max.list": "73807957107694a84a9fd1e5e554747ff65cd63d6736f96944a688e583c10805",
     "quantumultx/rules/cn-domains.list": "d4f8bebf36d4ec3c67126b8fea6ea1ec57ccfa08c6e98ae99694f53b03983a74",
     "quantumultx/rules/domain-fallback.list": "c15975930f5d0e8097dd7d9330ca24b29438d07c7374eca5beb90e47b685e4c6",
     "sing-box/sing-box-1.12.json": "32294f3515c29a3f1d8e86b85705b20a757413df12148fcee2e80efbed21920f",

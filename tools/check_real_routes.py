@@ -73,6 +73,7 @@ import json
 import os
 import re
 import shutil
+import select
 import socket
 import struct
 import subprocess
@@ -806,7 +807,7 @@ def _recv_exact(c: socket.socket, n: int) -> bytes:
 
 
 def _socks_addr(read) -> tuple:
-    """按 RFC 1928 第 4、7 节读一个目标地址：ATYP 1 = IPv4，3 = 域名（前面一个字节是长度），4 = IPv6。返回 (类别, 地址)。"""
+    """按 RFC 1928 第 4、7 节读一个目标地址：ATYP 1 = IPv4，3 = 域名（前面一个字节是长度），4 = IPv6。返回 (类别, 地址, 端口)。"""
     atyp = read(1)[0]
     if atyp == 1:
         addr = socket.inet_ntop(socket.AF_INET, read(4))
@@ -816,16 +817,25 @@ def _socks_addr(read) -> tuple:
         addr = socket.inet_ntop(socket.AF_INET6, read(16))
     else:
         raise ValueError(f"不认识的地址类型 {atyp}")
-    read(2)                                            # 端口
-    return ("domain" if atyp == 3 else "ip"), addr
+    port = struct.unpack("!H", read(2))[0]
+    return ("domain" if atyp == 3 else "ip"), addr, port
 
 
 class Socks5Recorder(threading.Thread):
     """本机的一个最简单的 SOCKS5 服务端，只用来记下代理出口实际交过来的目标（2026-10-13，GPT 审核 r14 的建议 S01）。
     以前测试节点连的是一个没人监听的端口：只能看到“DNS 替身没有收到查询”，看不到域名确实交给了节点——连接被提前拒绝、
-    目标根本没处理，也会是这个结果。现在：不要认证的握手 → 读请求。CONNECT：记下目标，回成功，等对方关掉；
+    目标根本没处理，也会是这个结果。现在：握手 → 读请求。CONNECT：记下目标，回成功，等对方关掉；
     UDP ASSOCIATE：开一个本机 UDP 口，回成功，记下发到这个口的每个 UDP 包里写的目标。不转发任何数据，也不连外面。
-    seen 是 [(tcp / udp, domain / ip, 地址)]。"""
+    seen 是 [(tcp / udp, domain / ip, 地址)]，只记 RFC 1928 里这几处要求都满足的请求（2026-10-13 起，GPT 审核 r15 的 R15-F01；
+    以前不看这些，不合规的包也会被记成“节点收到了”）：
+      - 握手（第 3 节）：客户端列出的方法里有 00（不要认证）才接受，否则回 05 FF 并断开；
+      - 请求（第 4 节）：VER 必须是 5、RSV 必须是 0；CMD 只认 CONNECT（1）和 UDP ASSOCIATE（3），别的回 07；
+      - UDP（第 7 节）：RSV 必须是 0；FRAG 不是 0 的丢掉（这里不做重组，不实现分片的服务端必须丢掉这种包）；
+        只收 UDP ASSOCIATE 请求里写的客户端地址发来的包（写的是全 0 时，按发起这个关联的 TCP 连接的地址）；
+      - 关联（第 6 节）：控制用的 TCP 连接一断，这个关联就结束，之后发到那个 UDP 口的包不收。
+    不合规的记进 invalid：[(原因, 细节)]，不算进 seen；出站核对遇到它就报错，不把结果记下来。"""
+
+    UDP_MAX_SECONDS = 30                               # 一个关联最多开这么久（控制连接一直不断时的保险）
 
     def __init__(self):
         super().__init__(daemon=True)
@@ -834,6 +844,7 @@ class Socks5Recorder(threading.Thread):
         self.sock.listen(64)
         self.port = self.sock.getsockname()[1]
         self.seen = []
+        self.invalid = []
         self._lock = threading.Lock()
         self._closing = threading.Event()
 
@@ -852,16 +863,29 @@ class Socks5Recorder(threading.Thread):
         with self._lock:
             self.seen.append((transport, kind, addr))
 
+    def _bad(self, why: str, detail: str = "") -> None:
+        with self._lock:
+            self.invalid.append((why, detail))
+
     def _serve(self, c: socket.socket) -> None:
         try:
             c.settimeout(8)
             ver, n = _recv_exact(c, 2)
             if ver != 5:
+                self._bad("握手的版本不是 5", str(ver))
                 return
-            _recv_exact(c, n)
+            methods = _recv_exact(c, n)
+            if 0 not in methods:
+                self._bad("客户端没有提供“不要认证”这种方法", methods.hex())
+                c.sendall(b"\x05\xff")
+                return
             c.sendall(b"\x05\x00")
-            _, cmd, _ = _recv_exact(c, 3)
-            kind, addr = _socks_addr(lambda k: _recv_exact(c, k))
+            ver, cmd, rsv = _recv_exact(c, 3)
+            kind, addr, port = _socks_addr(lambda k: _recv_exact(c, k))
+            if ver != 5 or rsv != 0:
+                self._bad("请求的 VER / RSV 不对", f"{ver} {rsv}")
+                c.sendall(b"\x05\x01\x00\x01" + bytes(6))
+                return
             if cmd == 1:
                 self._note("tcp", kind, addr)
                 c.sendall(b"\x05\x00\x00\x01" + bytes(6))
@@ -871,34 +895,57 @@ class Socks5Recorder(threading.Thread):
                 except OSError:
                     pass
             elif cmd == 3:
-                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
-                    u.bind(("127.0.0.1", 0))
-                    u.settimeout(0.3)
-                    c.sendall(b"\x05\x00\x00\x01" + socket.inet_aton("127.0.0.1") + struct.pack("!H", u.getsockname()[1]))
-                    end = time.time() + 8
-                    while time.time() < end and not self._closing.is_set():
-                        try:
-                            data, _ = u.recvfrom(65535)
-                        except socket.timeout:
-                            continue
-                        pos = [3]                      # RSV(2) FRAG(1) 之后是目标地址
-
-                        def take(k, data=data, pos=pos):
-                            out = data[pos[0]:pos[0] + k]
-                            if len(out) < k:
-                                raise ValueError("UDP 包太短")
-                            pos[0] += k
-                            return out
-                        try:
-                            self._note("udp", *_socks_addr(take))
-                        except (ValueError, OSError):
-                            self._note("udp", "?", "")
+                self._associate(c, kind, addr, port)
             else:
                 c.sendall(b"\x05\x07\x00\x01" + bytes(6))
         except (OSError, ConnectionError, ValueError):
             return
         finally:
             c.close()
+
+    def _associate(self, c: socket.socket, kind: str, addr: str, port: int) -> None:
+        """UDP ASSOCIATE：请求里写的是客户端将来发 UDP 用的地址；全 0 表示还不知道，就按 TCP 连接的地址收。"""
+        peer_ip = c.getpeername()[0]
+        want_ip = peer_ip if kind != "ip" or addr in ("0.0.0.0", "::") else addr
+        want_port = port or None
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.bind(("127.0.0.1", 0))
+            c.sendall(b"\x05\x00\x00\x01" + socket.inet_aton("127.0.0.1") + struct.pack("!H", u.getsockname()[1]))
+            c.settimeout(None)
+            end = time.time() + self.UDP_MAX_SECONDS
+            while time.time() < end and not self._closing.is_set():
+                ready, _, _ = select.select([c, u], [], [], 0.3)
+                if c in ready:
+                    try:
+                        if not c.recv(4096):
+                            return                     # 控制连接断了：关联结束，UDP 口跟着关
+                    except OSError:
+                        return
+                if u not in ready:
+                    continue
+                data, (src_ip, src_port) = u.recvfrom(65535)
+                if src_ip != want_ip or (want_port is not None and src_port != want_port):
+                    self._bad("UDP 包不是从这个关联的客户端地址发来的", f"{src_ip}:{src_port}")
+                    continue
+                if len(data) < 4 or data[0:2] != b"\x00\x00":
+                    self._bad("UDP 包的 RSV 不是 0", data[:4].hex())
+                    continue
+                if data[2] != 0:
+                    self._bad("UDP 包分了片（FRAG 不是 0），这里不重组，丢掉", str(data[2]))
+                    continue
+                pos = [3]                              # RSV(2) FRAG(1) 之后是目标地址
+
+                def take(k, data=data, pos=pos):
+                    out = data[pos[0]:pos[0] + k]
+                    if len(out) < k:
+                        raise ValueError("UDP 包太短")
+                    pos[0] += k
+                    return out
+                try:
+                    k2, a2, _ = _socks_addr(take)
+                    self._note("udp", k2, a2)
+                except (ValueError, OSError) as e:
+                    self._bad("UDP 包里的目标地址读不懂", str(e))
 
     def close(self):
         self._closing.set()
@@ -911,11 +958,15 @@ class Socks5Recorder(threading.Thread):
 RECEIVED_NOTHING = "-"
 
 
-def received_by_node(rec: Socks5Recorder, answers: _PerHostLoopback, hosts: list) -> dict:
+def received_by_node(rec: Socks5Recorder, answers: _PerHostLoopback, hosts: list, transport: str) -> dict:
     """{主机: 节点收到的目标写法}：domain = 收到的是这个域名；ip = 收到的是本机解析出来的地址；domain+ip = 两种都有；
-    - = 节点没有收到关于它的任何连接（例如它走了直连）。地址按 _PerHostLoopback 分的本机地址认回主机。"""
+    - = 这次观察里节点没有收到关于它的合规请求（例如它走了直连，或者内核没有发出）——只说明“没收到”，不说明原因。
+    地址按 _PerHostLoopback 分的本机地址认回主机。transport（tcp / udp）：只看这种传输方式的记录（GPT 审核 r15 的建议：
+    以前不分，将来同一个接收端收两种请求时会混在一起）。"""
     got = {h: set() for h in hosts}
-    for _, kind, addr in rec.seen:
+    for t, kind, addr in rec.seen:
+        if t != transport:
+            continue
         h = addr if kind == "domain" else answers.host_of.get(addr) if kind == "ip" else None
         if h in got:
             got[h].add(kind)
@@ -925,7 +976,8 @@ def received_by_node(rec: Socks5Recorder, answers: _PerHostLoopback, hosts: list
 def _refuse_if_blocked(logp: str, what: str) -> None:
     """运行环境不许内核开连接时（审核方的环境里直连 UDP 出现过 netlinkrib: operation not permitted），结果会全是 none，
     看起来像“没有解析”。遇到这种日志直接报错，不把它当成结果（2026-10-13，GPT 审核 r14 的建议 S01）。"""
-    text = open(logp, encoding="utf-8", errors="replace").read()
+    with open(logp, encoding="utf-8", errors="replace") as f:
+        text = f.read()
     if "operation not permitted" in text:
         line = next(ln for ln in text.splitlines() if "operation not permitted" in ln)
         raise RuntimeError(f"{what}：运行环境不许内核开连接（{line.strip()[:200]}），这一项的结果不可信，没有记录")
@@ -1070,8 +1122,10 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
         for h in hosts:
             asked = [k for k, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
             out[h] = "+".join(asked) if asked else NONE
+        if recorder and recorder.invalid:
+            raise RuntimeError(f"测试节点收到了不合规的 SOCKS5 请求或 UDP 包（{transport}）：{recorder.invalid[:3]}，这一项的结果不记")
         if received is not None and recorder:
-            received.update(received_by_node(recorder, answers, hosts))
+            received.update(received_by_node(recorder, answers, hosts, transport))
         return out
     finally:
         for st in stubs.values():
@@ -1086,8 +1140,10 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
     """同上，sing-box 这一边（自查同一类问题）。返回 {主机: 收到查询的 DNS 服务器标签，或 none}。
     DNS 规则、路由规则原样；dns-cn / dns-foreign / dns-local 换成本机替身（dns-fakeip 保留），TUN 入站换成本机回环上的
     mixed 入站；默认直连的组仍直连，其余策略组都换成测试出口（socks 出站，或 WireGuard 端点）。
-    sing-box 的代理出站把域名原样交给节点（TCP、UDP 都是）；WireGuard 端点要 IP，按 DNS 规则解析
-    （v1.14.1 protocol/wireguard/endpoint.go 的 DialContext：dnsRouter.Lookup，不指定服务器）。
+    节点实际收到的目标看 received（接收端的记录），不在这里一概而论：不同版本、不同路由和出站协议下交给节点的写法不一样，
+    已知的差别见 docs/06（例如 1.14.1 经 SOCKS 转发 UDP、目标是域名的包没有发出；没被域名规则接住的名字先按规则解析，
+    交给节点的是地址。2026-10-13 起，GPT 审核 r15 的 R15-F02：这里以前写的是“代理出站把域名原样交给节点（TCP、UDP 都是）”）。
+    WireGuard 端点要 IP，按 DNS 规则解析（v1.14.1 protocol/wireguard/endpoint.go 的 DialContext：dnsRouter.Lookup，不指定服务器）。
     received、switch_default_direct 同 mihomo_outbound_probe（2026-10-13）：socks 出口连本机的 Socks5Recorder。"""
     conf = json.loads(config_text)
     answers = _PerHostLoopback(hosts)
@@ -1157,8 +1213,10 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
         for h in hosts:
             asked = [tag for tag, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
             out[h] = "+".join(asked) if asked else NONE
+        if recorder and recorder.invalid:
+            raise RuntimeError(f"测试节点收到了不合规的 SOCKS5 请求或 UDP 包（{transport}）：{recorder.invalid[:3]}，这一项的结果不记")
         if received is not None and recorder:
-            received.update(received_by_node(recorder, answers, hosts))
+            received.update(received_by_node(recorder, answers, hosts, transport))
         return out
     finally:
         for st in stubs.values():

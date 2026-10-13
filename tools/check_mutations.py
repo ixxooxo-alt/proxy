@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 122 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 128 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -414,6 +414,20 @@ cases = [
     ("M122 出站核对认不回节点收到的地址（SOCKS 走 UDP 时节点收到的 IP 全记成没收到；GPT 审核 r14 的建议 S01）", [("tools/check_real_routes.py", lambda s: s.replace(
         "        h = addr if kind == \"domain\" else answers.host_of.get(addr) if kind == \"ip\" else None\n",
         "        h = addr if kind == \"domain\" else None\n", 1))], "b.example"),
+    ("M123 SOCKS5 接收端又不看客户端提供的方法，一律选“不要认证”（GPT 审核 r15 的 R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "            if 0 not in methods:\n", "            if False:\n", 1))], "test_refuses_what_rfc1928_says_to_refuse"),
+    ("M124 SOCKS5 接收端又收分了片的 UDP 包（FRAG 不是 0 也记成节点收到了；R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "                if data[2] != 0:\n", "                if False:\n", 1))], "test_refuses_what_rfc1928_says_to_refuse"),
+    ("M125 控制连接断了以后 UDP 关联还在，接着收包（R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "                        if not c.recv(4096):\n                            return", "                        if not c.recv(4096):\n                            pass", 1))],
+     "test_refuses_what_rfc1928_says_to_refuse"),
+    ("M126 认主机时又不分 TCP / UDP 的记录（GPT 审核 r15 的建议）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        if t != transport:\n            continue\n", "", 1))], "test_records_names_and_addresses"),
+    ("M127 大清单副本的内容变了，“最后一次改动”的日期和校验值没跟着改（GPT 审核 r15 的建议）", [("generator/strict.py", lambda s: s.replace(
+        "这个文件里共 {len(suffix) + len(full)} 条。", "这个文件里一共 {len(suffix) + len(full)} 条。", 1))], "MAX_LIST_CONTENT_SHA256"),
+    ("M128 读内核日志又不关文件（r15 测试日志里那条 ResourceWarning）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "    with open(logp, encoding=\"utf-8\", errors=\"replace\") as f:\n        text = f.read()\n",
+        "    text = open(logp, encoding=\"utf-8\", errors=\"replace\").read()\n", 1))], "ResourceWarning"),
 ]
 
 

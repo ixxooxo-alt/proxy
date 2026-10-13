@@ -3,7 +3,7 @@
 # 授权：GPL-2.0（GNU General Public License v2）；许可全文见本项目的 source/data/LICENSE-ios_rule_script.txt。source/data/cn-domains-max.txt 和由它生成的 dist/quantumultx/rules/cn-domains-max.list 都按 GPL-2.0 提供，来源如上。
 # 条目 111277 条（后缀 111009 条、精确域名 268 条），按上游的顺序原样照录；上游这个文件只有域名和后缀，没有关键词和 IP 规则。不会自动跟着上游更新：换快照时用这个工具重新生成。
 # 生成时另去掉 95 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 111182 条。
-# 本项目在这个文件上的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：把上面的数据逐行改成 Quantumult X 的写法（以“.”开头的写成 HOST-SUFFIX，其余写成 HOST，行尾的 direct 由配置里的 force-policy 决定），去掉上一行说的那些条目；2026-10-07 第一次生成；以后本地规则变了、去掉的条目跟着变时重新生成，那几次的日期见这个文件在仓库里的提交记录（这里不写版本号：内容没变时文件逐字节不变，客户端不用重新下载）。GPL-2.0 原文：https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+# 本项目在这个文件上的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：把上面的数据逐行改成 Quantumult X 的写法（以“.”开头的写成 HOST-SUFFIX，其余写成 HOST，行尾的 direct 由配置里的 force-policy 决定），去掉上一行说的那些条目；2026-10-07 第一次生成；这个文件的内容最后一次改动：2026-10-13（以后本地规则变了、去掉的条目跟着变时重新生成，只有条目、去掉的条目或这几行说明真的变了才改这个日期；这里不写版本号：内容没变时文件逐字节不变，客户端不用重新下载）。GPL-2.0 原文：https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 HOST-SUFFIX,0.zone,direct
 HOST-SUFFIX,00.net,direct
 HOST-SUFFIX,000.link,direct

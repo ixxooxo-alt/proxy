@@ -34,7 +34,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import yaml  # noqa: E402
 
 import check_upstream_evidence as cue  # noqa: E402
-from generator.strict import CN_DATA_REL, GPL2_URL, MAX_CONVERTED_ON, MAX_DATA_REL, MAX_LICENSE_REL, parse_cn_domains  # noqa: E402
+from generator.strict import (CHANGED_ON_MARK, CN_DATA_REL, GPL2_URL, MAX_CONVERTED_ON, MAX_DATA_CHANGED_ON, MAX_DATA_REL,  # noqa: E402
+                              MAX_LICENSE_REL, parse_cn_domains)
 from generator.util import safe_stdout, valid_domain  # noqa: E402
 
 LIST_NAME = "cn"
@@ -111,7 +112,8 @@ def render_max(bm7_dir: str, commit: str, date: str) -> str:
         "# 授权：GPL-2.0（GNU General Public License v2）；许可全文见本项目的 " + MAX_LICENSE_REL + "。"
         "source/data/cn-domains-max.txt 和由它生成的 dist/quantumultx/rules/cn-domains-max.list 都按 GPL-2.0 提供，来源如上。",
         f"# 本项目的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：{MAX_CONVERTED_ON} 按上面的快照生成这个文件——去掉上游的文件头、"
-        f"换成这几行说明，条目逐行照录，没有增删、没有改写。GPL-2.0 原文：{GPL2_URL}",
+        f"换成这几行说明，条目逐行照录，没有增删、没有改写；{CHANGED_ON_MARK}{MAX_DATA_CHANGED_ON}（只有条目或这几行说明真的变了才改这个日期）。"
+        f"GPL-2.0 原文：{GPL2_URL}",
         f"# 条目 {len(entries)} 条（后缀 {n_suffix} 条、精确域名 {len(entries) - n_suffix} 条），按上游的顺序原样照录；上游这个文件只有域名和后缀，"
         "没有关键词和 IP 规则。不会自动跟着上游更新：换快照时用这个工具重新生成。",
         "# 写法：每行一个域名。以“.”开头的表示这个域名和它的全部子域；不带点开头的只表示这一个主机。",

@@ -1,7 +1,7 @@
 # 上游国内域名大清单的副本：Quantumult X 严格版按它认出国内网站、交给“国内直连”。由 tools/update_cn_list.py 生成，不要手改。
 # 来源：blackmatrix7/ios_rule_script 的 rule/Loon/ChinaMax/ChinaMax_Domain.list（Loon 严格版直接订阅的就是这个文件），固定快照 51d2e1dd8429a91be575157d6f8ed051c93559f8（2026-09-21），上游文件头写的更新时间 2026-09-22 05:34:24。
 # 授权：GPL-2.0（GNU General Public License v2）；许可全文见本项目的 source/data/LICENSE-ios_rule_script.txt。source/data/cn-domains-max.txt 和由它生成的 dist/quantumultx/rules/cn-domains-max.list 都按 GPL-2.0 提供，来源如上。
-# 本项目的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：2026-10-07 按上面的快照生成这个文件——去掉上游的文件头、换成这几行说明，条目逐行照录，没有增删、没有改写。GPL-2.0 原文：https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+# 本项目的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：2026-10-07 按上面的快照生成这个文件——去掉上游的文件头、换成这几行说明，条目逐行照录，没有增删、没有改写；这个文件的内容最后一次改动：2026-10-13（只有条目或这几行说明真的变了才改这个日期）。GPL-2.0 原文：https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 # 条目 111277 条（后缀 111009 条、精确域名 268 条），按上游的顺序原样照录；上游这个文件只有域名和后缀，没有关键词和 IP 规则。不会自动跟着上游更新：换快照时用这个工具重新生成。
 # 写法：每行一个域名。以“.”开头的表示这个域名和它的全部子域；不带点开头的只表示这一个主机。
 .0.zone

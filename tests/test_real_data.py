@@ -841,19 +841,90 @@ class Socks5RecorderTool(unittest.TestCase):
         finally:
             rec.close()
         self.assertEqual(sorted(rec.seen), [("tcp", "domain", "a.example"), ("udp", "domain", "a.example"), ("udp", "ip", "127.0.1.2")])
-        self.assertEqual(crr.received_by_node(rec, answers, ["a.example", "b.example", "c.example"]),
-                         {"a.example": "domain", "b.example": "ip", "c.example": "-"})
+        self.assertEqual(rec.invalid, [])
+        hosts = ["a.example", "b.example", "c.example"]
+        self.assertEqual(crr.received_by_node(rec, answers, hosts, "udp"), {"a.example": "domain", "b.example": "ip", "c.example": "-"})
+        # 只看指定的传输方式（GPT 审核 r15 的建议：以前 TCP、UDP 的记录混在一起认主机）
+        self.assertEqual(crr.received_by_node(rec, answers, hosts, "tcp"), {"a.example": "domain", "b.example": "-", "c.example": "-"})
+
+    def test_refuses_what_rfc1928_says_to_refuse(self):
+        """RFC 1928 要求拒绝或丢掉的，接收端不能记成“节点收到了”（2026-10-13，GPT 审核 r15 的 R15-F01，三个反例照审核报告的复现写）：
+        客户端没提供“不要认证”时回 05 FF（第 3 节）；请求的 RSV 不是 0 时回错误（第 4 节）；UDP 包分了片（FRAG 不是 0）、RSV 不是 0、
+        不是从这个关联的客户端地址发来的，都丢掉（第 7 节）；控制用的 TCP 连接断了以后，这个关联就结束（第 6 节）。
+        这些都记进 invalid（最后一种不进 invalid：UDP 口已经关了，什么都收不到，测试看的是本机回了“端口不可达”），
+        seen 里只有合规的那一个包。"""
+        import socket
+        import struct
+        import time
+        crr = self.crr
+        rec = crr.Socks5Recorder()
+        rec.start()
+
+        def udp_packet(rsv: bytes, frag: int, host: str) -> bytes:
+            return rsv + bytes([frag, 3, len(host)]) + host.encode() + struct.pack("!H", 443) + b"payload"
+        try:
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.sendall(b"\x05\x01\x02")              # 只提供“用户名 / 密码”
+                self.assertEqual(s.recv(2), b"\x05\xff")
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.sendall(b"\x05\x01\x00")
+                self.assertEqual(s.recv(2), b"\x05\x00")
+                s.sendall(b"\x05\x01\x07\x03\x09r.example" + struct.pack("!H", 443))   # RSV = 7
+                self.assertNotEqual(s.recv(10)[:2], b"\x05\x00")
+            c = socket.create_connection(("127.0.0.1", rec.port), timeout=5)
+            c.sendall(b"\x05\x01\x00")
+            c.recv(2)
+            c.sendall(b"\x05\x03\x00\x01" + bytes(6))
+            rep = c.recv(10)
+            relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                u.sendto(udp_packet(b"\x00\x00", 0, "valid.example"), relay)
+                u.sendto(udp_packet(b"\x00\x00", 1, "fragment.example"), relay)
+                u.sendto(udp_packet(b"\x00\x01", 0, "rsv.example"), relay)
+                time.sleep(0.5)
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as other:
+                other.bind(("127.0.0.2", 0))           # 不是发起这个关联的那个地址
+                other.sendto(udp_packet(b"\x00\x00", 0, "stranger.example"), relay)
+                time.sleep(0.5)
+            c.close()
+            time.sleep(0.8)
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                u.settimeout(3)
+                u.connect(relay)
+                u.send(udp_packet(b"\x00\x00", 0, "afterclose.example"))
+                # UDP 口真的关了：本机回“端口不可达”，连接过的 UDP 套接字接着收就报错（Linux / macOS 是 ConnectionRefusedError，
+                # Windows 是 ConnectionResetError）；口还开着的话这里等 3 秒超时，测试失败
+                with self.assertRaises(ConnectionError):
+                    u.recv(100)
+        finally:
+            rec.close()
+        self.assertEqual(rec.seen, [("udp", "domain", "valid.example")])
+        reasons = " / ".join(why for why, _ in rec.invalid)
+        for word in ("不要认证", "RSV", "FRAG", "客户端地址"):
+            self.assertIn(word, reasons)
+        self.assertEqual(len(rec.invalid), 5, rec.invalid)
 
     def test_blocked_environment_is_an_error_not_a_result(self):
-        """内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。"""
+        """内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。读完日志要把文件关上
+        （r15 漏了，测试日志里因此有一条 ResourceWarning；2026-10-13 起这里把它当作失败）。"""
+        import gc
         import tempfile
+        import warnings
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as f:
             f.write("ERROR dial udp: route ip+net: netlinkrib: operation not permitted\n")
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as g:
+            g.write("INFO sing-box started\n")
         try:
-            with self.assertRaises(RuntimeError):
-                self.crr._refuse_if_blocked(f.name, "测试")
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                with self.assertRaises(RuntimeError):
+                    self.crr._refuse_if_blocked(f.name, "测试")
+                self.crr._refuse_if_blocked(g.name, "测试")          # 正常的日志不报错
+                gc.collect()
+            self.assertEqual([str(w.message) for w in caught if issubclass(w.category, ResourceWarning)], [])
         finally:
             os.unlink(f.name)
+            os.unlink(g.name)
 
 
 class OutboundResolve(unittest.TestCase):

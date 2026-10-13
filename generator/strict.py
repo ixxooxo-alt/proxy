@@ -26,9 +26,25 @@ CN_DATA_REL = "source/data/cn-domains.txt"
 MAX_DATA_REL = "source/data/cn-domains-max.txt"
 MAX_LICENSE_REL = "source/data/LICENSE-ios_rule_script.txt"
 # 大清单副本是 GPL-2.0 的。它第 2 条 a 款要求改过的文件写明改了什么、哪天改的（2026-10-13，GPT 审核 r14 的建议 S03）：
-# MAX_CONVERTED_ON 是本项目第一次按固定快照生成这份副本的日期，换快照重新生成时改成那一天；之后每一版的改动日期看统一源版本号。
+# MAX_CONVERTED_ON 是本项目第一次按固定快照生成这份副本的日期，换快照重新生成时改成那一天。
 MAX_CONVERTED_ON = "2026-10-07"
 GPL2_URL = "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html"
+# 最后一次改动的日期也写在文件里（2026-10-13 起，GPT 审核 r15 的建议：单独下载这个文件的人看不到 Git 记录）。
+# 数据文件（source/data/cn-domains-max.txt）和生成的规则文件（dist/quantumultx/rules/cn-domains-max.list）各记各的：
+# 只有那个文件的内容（条目、去掉的条目、文件头的说明）真的变了才改日期，内容没变时文件逐字节不变，客户端不用重新下载。
+# 下面的 SHA-256 是去掉日期以后的内容（content_digest）；内容变了而日期没改，tests/test_strict.py 会失败并给出新的值。
+CHANGED_ON_MARK = "这个文件的内容最后一次改动："
+MAX_DATA_CHANGED_ON = "2026-10-13"
+MAX_DATA_CONTENT_SHA256 = "477ae79102502a44e18a224ffbdf6de44f5f022b6b9c057098858d9c04f0ae24"
+MAX_LIST_CHANGED_ON = "2026-10-13"
+MAX_LIST_CONTENT_SHA256 = "a83c22e61a07f5d57f604e3f5aa0f1a269a6600cc3e04bb9660637e82ceee754"
+
+
+def content_digest(text: str) -> str:
+    """文件内容去掉“最后一次改动”那个日期以后的 SHA-256：日期本身变不算内容变。"""
+    import hashlib
+    import re
+    return hashlib.sha256(re.sub(CHANGED_ON_MARK + r"\d{4}-\d{2}-\d{2}", CHANGED_ON_MARK + "<日期>", text).encode("utf-8")).hexdigest()
 LOON_CN_REL = "loon/rules/cn-domains.list"
 QX_CN_REL = "quantumultx/rules/cn-domains.list"
 QX_MAX_REL = "quantumultx/rules/cn-domains-max.list"
@@ -136,8 +152,8 @@ def qx_max_list(m, plan) -> str:
         f"# 生成时另去掉 {dropped} 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 {len(suffix) + len(full)} 条。",
         "# 本项目在这个文件上的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：把上面的数据逐行改成 Quantumult X 的写法"
         "（以“.”开头的写成 HOST-SUFFIX，其余写成 HOST，行尾的 direct 由配置里的 force-policy 决定），去掉上一行说的那些条目；"
-        f"{MAX_CONVERTED_ON} 第一次生成；以后本地规则变了、去掉的条目跟着变时重新生成，那几次的日期见这个文件在仓库里的提交记录"
-        "（这里不写版本号：内容没变时文件逐字节不变，客户端不用重新下载）。"
+        f"{MAX_CONVERTED_ON} 第一次生成；{CHANGED_ON_MARK}{MAX_LIST_CHANGED_ON}（以后本地规则变了、去掉的条目跟着变时重新生成，"
+        "只有条目、去掉的条目或这几行说明真的变了才改这个日期；这里不写版本号：内容没变时文件逐字节不变，客户端不用重新下载）。"
         f"GPL-2.0 原文：{GPL2_URL}"]
     L += [f"HOST-SUFFIX,{s},{QX_INLINE_DIRECT}" for s in suffix]
     L += [f"HOST,{d},{QX_INLINE_DIRECT}" for d in full]

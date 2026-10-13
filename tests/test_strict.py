@@ -395,11 +395,29 @@ class OwnLists(unittest.TestCase):
         with open(os.path.join(ROOT, *strict_mod.MAX_DATA_REL.split("/")), encoding="utf-8") as f:
             data_head = "\n".join(ln for ln in f.read().splitlines() if ln.startswith("#"))
         out_head = "\n".join(ln for ln in outputs()[strict_mod.QX_MAX_REL].splitlines() if ln.startswith("#"))
-        for head in (data_head, out_head):
+        for head, changed_on in ((data_head, strict_mod.MAX_DATA_CHANGED_ON), (out_head, strict_mod.MAX_LIST_CHANGED_ON)):
             self.assertIn("本项目", head)
             self.assertIn(strict_mod.MAX_CONVERTED_ON, head)
             self.assertIn(strict_mod.GPL2_URL, head)
+            self.assertIn(strict_mod.CHANGED_ON_MARK + changed_on, head)
         self.assertIn("改成 Quantumult X 的写法", out_head)
+
+    def test_max_copy_change_date_follows_content(self):
+        """文件头里“最后一次改动”的日期要跟着内容走（2026-10-13，GPT 审核 r15 的建议：GPL-2.0 第 2 条 a 款要的改动日期要写在文件里，
+        单独下载这个文件的人看不到 Git 记录）。只有内容（条目、去掉的条目、文件头的说明）变了才改日期：这里按去掉日期以后的内容算
+        SHA-256，和 generator/strict.py 里记的比——内容变了而日期、校验值没改，就在这里失败。"""
+        with open(os.path.join(ROOT, *strict_mod.MAX_DATA_REL.split("/")), encoding="utf-8") as f:
+            data_text = f.read()
+        for name, text, want in (("MAX_DATA", data_text, strict_mod.MAX_DATA_CONTENT_SHA256),
+                                 ("MAX_LIST", outputs()[strict_mod.QX_MAX_REL], strict_mod.MAX_LIST_CONTENT_SHA256)):
+            got = strict_mod.content_digest(text)
+            self.assertEqual(got, want, f"{name} 那个文件的内容变了：把 generator/strict.py 的 {name}_CHANGED_ON 改成改动那天、"
+                                        f"{name}_CONTENT_SHA256 改成 {got}")
+            # 只改日期不算内容变；日期以外改一个字就算
+            other_day = re.sub(re.escape(strict_mod.CHANGED_ON_MARK) + r"\d{4}-\d{2}-\d{2}", strict_mod.CHANGED_ON_MARK + "2000-01-01", text)
+            self.assertNotEqual(other_day, text)
+            self.assertEqual(strict_mod.content_digest(other_day), got)
+            self.assertNotEqual(strict_mod.content_digest(text.replace("GPL-2.0 原文", "GPL-2.0 全文", 1)), got)
 
     def test_list_headers_carry_source_and_license(self):
         for rel in (strict_mod.LOON_CN_REL, strict_mod.QX_CN_REL):
