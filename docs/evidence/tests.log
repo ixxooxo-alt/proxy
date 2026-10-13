@@ -1,4 +1,4 @@
-运行时间（UTC）：2026-10-13 11:43:12
+运行时间（UTC）：2026-10-13 17:55:29
 Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 -m unittest discover -s tests -v
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 15 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmptq7b57h2/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp0u330_xw/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -52,8 +52,8 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpxjt21yzh/report.md
-报告已写入 /tmp/tmpxjt21yzh/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp7uin709m/report.md
+报告已写入 /tmp/tmp7uin709m/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同， ... ok
@@ -116,7 +116,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmp70l0ne35（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmppl_spxpz（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -126,8 +126,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmpyjzu1ij5（订阅为占位符）
-私密产物已写入 ../../../tmp/tmpyjzu1ij5/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmp5misl1qk（订阅为占位符）
+私密产物已写入 ../../../tmp/tmp5misl1qk/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -464,7 +464,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 294 tests in 226.895s
+Ran 294 tests in 210.697s
 
 OK
 退出码：0

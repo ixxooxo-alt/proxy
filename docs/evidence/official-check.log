@@ -1,4 +1,4 @@
-运行时间（UTC）：2026-10-13 11:47:12
+运行时间（UTC）：2026-10-13 17:59:14
 Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 tools/check_official.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata
@@ -21,22 +21,22 @@ sing-box（兼容版检查）：sing-box version 1.12.0
 [符合] mihomo -t mihomo/mihomo-core.yaml：退出码 0
 [符合] mihomo -t mihomo/mihomo-profile.yaml：退出码 0
 [符合] 自检：mihomo -t，清空 proxy-server-nameserver，只留 respect-rules（节点的解析策略已去掉）：退出码 1（预期失败）
-    time="2026-10-13T11:47:18.210407871Z" level=info msg="Load GeoSite rule: geolocation-!cn"
-    time="2026-10-13T11:47:18.294856372Z" level=info msg="Finished initial GeoSite rule geolocation-!cn => 国外默认, records: 27217"
-    time="2026-10-13T11:47:18.295549321Z" level=error msg="if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty"
-    configuration file /tmp/official-check-g7e09zst/broken-dns.yaml test failed
+    time="2026-10-13T17:59:18.824097145Z" level=info msg="Load GeoSite rule: geolocation-!cn"
+    time="2026-10-13T17:59:18.873449923Z" level=info msg="Finished initial GeoSite rule geolocation-!cn => 国外默认, records: 27217"
+    time="2026-10-13T17:59:18.873758576Z" level=error msg="if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty"
+    configuration file /tmp/official-check-se4alt8j/broken-dns.yaml test failed
 [符合] 自检：mihomo -t，清空 proxy-server-nameserver，只留节点的解析策略（respect-rules 已关闭）：退出码 1（预期失败）
-    time="2026-10-13T11:47:19.243633257Z" level=info msg="Finished initial GeoSite rule private => dns.nameserver-policy, records: 131"
-    time="2026-10-13T11:47:19.243925621Z" level=info msg="Finished initial GeoSite rule cn => dns.nameserver-policy, records: 111224"
-    time="2026-10-13T11:47:19.244030499Z" level=error msg="disallow empty `proxy-server-nameserver` when `proxy-server-nameserver-policy` is set"
-    configuration file /tmp/official-check-g7e09zst/broken-dns.yaml test failed
+    time="2026-10-13T17:59:19.670565800Z" level=info msg="Finished initial GeoSite rule private => dns.nameserver-policy, records: 131"
+    time="2026-10-13T17:59:19.670662857Z" level=info msg="Finished initial GeoSite rule cn => dns.nameserver-policy, records: 111224"
+    time="2026-10-13T17:59:19.670706917Z" level=error msg="disallow empty `proxy-server-nameserver` when `proxy-server-nameserver-policy` is set"
+    configuration file /tmp/official-check-se4alt8j/broken-dns.yaml test failed
 [符合] sing-box check sing-box-1.14.json：退出码 0
 [符合] sing-box check sing-box-1.12.json（在 1.14 上）：退出码 0
 [符合] sing-box check 样例节点 sing-box-1.14.json：退出码 0
 [符合] sing-box check sing-box-1.12.json（在 1.12 上）：退出码 0
 [符合] sing-box check 样例节点 sing-box-1.12.json（在 1.12 上）：退出码 0
 [符合] 自检：HTTP 出站带 network 字段：退出码 1（预期失败）
-    [31mFATAL[0m[0000] decode config at /tmp/official-check-g7e09zst/broken.json: outbounds[74].network: json: unknown field "network"
+    [31mFATAL[0m[0000] decode config at /tmp/official-check-se4alt8j/broken.json: outbounds[74].network: json: unknown field "network"
 mihomo 实际分组（假节点，不联网）：
   节点 2290 个（手写期望：手动组 632 个、自动类组 632 个）；手动组（括号里是其中进自动类组的）：香港·手动 117（93）、日本·手动 109（78）、韩国·手动 30（28）、台湾·手动 42（37）、新加坡·手动 29（26）、美国·手动 187（163）、其他地区 1755；只进手动组的 72 个
 [符合] mihomo 实际分组（手动组用宽的、自动类组用严的）与手写期望、Python 结果一致

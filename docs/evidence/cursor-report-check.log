@@ -1,4 +1,4 @@
-运行时间（UTC）：2026-10-13 11:46:59
+运行时间（UTC）：2026-10-13 17:59:01
 Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 tools/check_cursor_report.py --write

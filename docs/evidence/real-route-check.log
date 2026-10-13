@@ -1,4 +1,4 @@
-运行时间（UTC）：2026-10-13 11:47:26
+运行时间（UTC）：2026-10-13 17:59:25
 Python：Python 3.13.16，PyYAML：6.0.1
 统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
 命令：python3 tools/check_real_routes.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata --srs-dir /root/proxy-vendor/srs --bm7 /root/proxy-vendor/src/bm7 --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /root/proxy-vendor/src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
