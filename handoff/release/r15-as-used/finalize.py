@@ -1,5 +1,5 @@
 """把文档里的占位符 ⟦…⟧ 换成最终运行得到的数字，并核对文档里写的数字和日志、产物一致（r15 用的；照 r14-as-used/finalize.py 改的）。
-r15 处理 GPT 对 r14 的审核；代码定稿一次（2026-10-13 03:56）。
+r15 处理 GPT 对 r14 的审核；代码定稿一次（2026-10-13 03:56）；变异检查被工作环境重新启动打断过一次，分两段跑完。
 数字都从日志和产物里读。用法（在工程根目录）：python3 handoff/release/r15-as-used/finalize.py <变异日志目录> [--dry]"""
 import datetime, json, os, re, subprocess, sys
 
@@ -7,7 +7,7 @@ D = os.path.abspath(sys.argv[1])
 dry = "--dry" in sys.argv
 ev = "docs/evidence"
 RUN_DAY = "2026-10-13"                                                            # 全部检查、一次性核对、快照、变异检查都在这一天
-MUT_DAYS = ("2026-10-13",)
+MUT_DAYS = ("2026-10-13", "2026-10-13")       # 变异检查分两段：04:23 前后工作环境重新启动，第一段停下；05:11 起跑剩下的
 DIGEST = "a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2"     # r15：生成器 1.8.0、统一源 2026.10.13-1
 N_TESTS, N_MUT, N_MIHOMO_DNS = "266", 122, "15"
 ENV = "Python：Python 3.13.16，PyYAML：6.0.1"
@@ -15,9 +15,35 @@ R14 = "3f45668"                                                                 
 W = os.path.expanduser("~/proxy-work")
 
 # ---- 这一版特有的说法（从日志里读到以后照抄；下面的断言核对它们确实在日志 / 报告里）----
-RR_RESOLVED, RR_RESOLVED_STD = "⟦待填⟧", "⟦待填⟧"                                # 为了判断 IP 规则而在本机解析过的域名：总数、标准版里解析了的
-RR_OUTBOUND = ()                                                                  # 出站核对、节点收到的目标、组切换以后（照日志原文）
-UE_NEEDLE = "⟦待填⟧"
+RR_RESOLVED, RR_RESOLVED_STD = "261", "43"                                      # 为了判断 IP 规则而在本机解析过的域名：总数、标准版里解析了的
+RR_OUTBOUND = (                                                                  # 出站核对、节点收到的目标、组切换以后（照日志原文）
+    "[符合] 出站时的解析 8 个主机 × 3 种出口（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP；SOCKS5 出口连本机的 SOCKS5 接收端，WireGuard 出口连本机空端口；none = 三类替身都没有收到）：官方内核与人工期望一致",
+    "qwen.ai：socks5-tcp → none，节点收到 domain，socks5-udp → foreign，节点收到 ip，wireguard-tcp → foreign",
+    "download.microsoft.com：socks5-tcp → none，节点收到 domain，socks5-udp → foreign，节点收到 ip，wireguard-tcp → foreign",
+    "chatgpt.com：socks5-tcp → none，节点收到 domain，socks5-udp → foreign，节点收到 ip，wireguard-tcp → foreign",
+    "never-listed-site.org：socks5-tcp → foreign，节点收到 domain，socks5-udp → foreign，节点收到 ip，wireguard-tcp → foreign",
+    "www.qq.com：socks5-tcp → domestic，节点收到 -，socks5-udp → domestic，节点收到 -，wireguard-tcp → domestic",
+    "www.apple.com：socks5-tcp → domestic，节点收到 -，socks5-udp → domestic，节点收到 -，wireguard-tcp → domestic",
+    "tlu.dl.delivery.mp.microsoft.com：socks5-tcp → domestic，节点收到 -，socks5-udp → domestic，节点收到 -，wireguard-tcp → domestic",
+    "time.windows.com：socks5-tcp → domestic，节点收到 -，socks5-udp → domestic，节点收到 -，wireguard-tcp → domestic",
+    "[符合] 默认直连的组切到代理以后 4 个主机 × 3 种出口（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP；SOCKS5 出口连本机的 SOCKS5 接收端，WireGuard 出口连本机空端口；none = 三类替身都没有收到）：官方内核与人工期望一致",
+    "www.apple.com：socks5-tcp → none，节点收到 domain，socks5-udp → foreign，节点收到 ip，wireguard-tcp → foreign",
+    "www.apple.com.cn：socks5-tcp → none，节点收到 domain，socks5-udp → domestic（已知限制的现状，见 docs/06），节点收到 ip，wireguard-tcp → domestic（已知限制的现状，见 docs/06）",
+    "api.bilibili.com：socks5-tcp → none，节点收到 domain，socks5-udp → domestic（已知限制的现状，见 docs/06），节点收到 ip，wireguard-tcp → domestic（已知限制的现状，见 docs/06）",
+    "自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，wireguard-tcp 下 download.microsoft.com → domestic、qwen.ai → domestic——只有这一类变回国内 DNS，这一层仍然需要",
+    "自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，socks5-udp 下 download.microsoft.com → domestic、qwen.ai → domestic——只有这一类变回国内 DNS，这一层仍然需要")
+RR_OUTBOUND_COUNTS = {                                                            # sing-box 两个版本各一遍：哪些行两遍都有、哪些只在一个版本里
+    "[符合] 出站时的解析 8 个主机 × 3 种出口（走代理的组换成 SOCKS 走 TCP、SOCKS 走 UDP、WireGuard 端点走 TCP；SOCKS 出口连本机的 SOCKS5 接收端）：官方内核与人工期望一致": 2,
+    "[符合] 默认直连的组切到代理以后 4 个主机 × 3 种出口（走代理的组换成 SOCKS 走 TCP、SOCKS 走 UDP、WireGuard 端点走 TCP；SOCKS 出口连本机的 SOCKS5 接收端）：官方内核与人工期望一致": 2,
+    "qwen.ai：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 -（现状：内核没有发出，见 docs/06），wireguard-tcp → dns-foreign": 1,   # 1.14.1
+    "qwen.ai：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign": 1,                                # 1.12.0
+    "api.bilibili.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 -（现状：内核没有发出，见 docs/06），wireguard-tcp → dns-foreign": 1,
+    "api.bilibili.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign": 1,
+    "never-listed-site.org：socks-tcp → dns-foreign，节点收到 ip，socks-udp → dns-foreign，节点收到 ip，wireguard-tcp → dns-foreign": 2,
+    "time.windows.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn": 2,
+    "www.qq.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn": 4,                                       # 出站、组切换以后两段 × 两个版本
+}
+UE_NEEDLE = "核对域名规则 856 条，社区来源 561 条；产品规则下的上游广告条目 48 条；更宽的广告条目 0 条"
 CMP_NEEDLES = ("大小：241,939 → 241,985 字节。", "大小：404,459 → 404,505 字节。", "大小：280,272 → 280,322 字节。", "大小：280,455 → 280,505 字节。",
                "大小：79,132 → 79,164 字节。", "大小：79,158 → 79,190 字节。", "大小：243,271 → 243,317 字节。", "大小：406,436 → 406,482 字节。",
                "**Rule**：新增 1 条，删除 0 条，改动 0 条；两版都有的条目顺序不变。", "- 新增：`DOMAIN-SUFFIX,afpapi.alimama.com,广告拦截`",
@@ -38,7 +64,10 @@ CMP_CELL = ("八份配置都只多了一条拦截规则 `afpapi.alimama.com`（L
             "两份自有清单和域名兜底文件和 r14 的一模一样")
 MUT_R15 = {}                                                                      # M119–M122 → 发现它的那一项测试（照变异日志）
 MUT_R15_TEXT = ""
-R15_REAL_CELL = ""
+R15_REAL_CELL = ("路由 270 个目标（r14 是 269 个，多了 `afpapi.alimama.com`）在 mihomo v1.19.31、sing-box v1.14.1 与 v1.12.0 上都与人工期望一致；"
+                 "出站时的解析：8 个主机 × mihomo 三种出口、sing-box 三种出口（两个版本），SOCKS 那几种另核对节点收到的目标；默认直连的组切到代理以后 4 个主机 × 同样的出口——都与人工期望一致"
+                 "（sing-box 1.14.1 经 SOCKS 走 UDP 那一格按现状写成“节点没收到”，mihomo 上 `www.apple.com.cn`、`api.bilibili.com` 切到代理以后经 UDP、WireGuard 问国内 DNS 那几格写成现状）；"
+                 "去掉产品域名那一层的自检在 WireGuard 走 TCP、SOCKS5 走 UDP 下都看得见；逐条扫描两个内核走代理组的仍是 0 个（`docs/evidence/real-route-check.log`）")
 H8 = "docs/08-外部审核记录.md"
 DOC_NEEDLES_R15 = (
     ("README.md", ["tests-266%20passing", "266 automated tests", "2026.10.13-1", "This is r15", "625 hand-labelled", "12–16 KB",
@@ -180,6 +209,8 @@ assert rr.count(f"连接 6 条、查询 {N_MIHOMO_DNS} 条，收到查询的替�
 assert rr.count("连接 6 条、查询 22 条，收到查询的替身与正常那一遍完全相同；其中 6 条只有境外替身收到") == 2
 assert "[不符合]" not in rr and "\n全部一致\n" in rr and "处不一致" not in rr and "全集" not in rr
 assert "operation not permitted" not in rr
+for needle, n in RR_OUTBOUND_COUNTS.items():
+    assert rr.count(needle) == n, (needle, rr.count(needle))
 for needle in ("node gateway.lan → system", "node homeproxy → system", "direct nas.lan → system", "printer.lan A → system",
                "www.taobao.com A → fake-ip", "printer A → system", "tplinkwifi.net A → system", "time.windows.com A → domestic",
                "chatgpt.com A → fake-ip", "api.openai.com HTTPS → empty", "claude.ai TXT → foreign", "never-listed-query.net A → fake-ip",
@@ -277,8 +308,13 @@ assert res["state"] == state
 segs = res["segments"]
 assert [s["start"][:10] for s in segs] == list(MUT_DAYS) and [s["end"][:10] for s in segs] == list(MUT_DAYS), segs
 assert all(s["start"] > freeze for s in segs), (segs, freeze)
-assert len(segs) == 1, segs
-window = f"三批并行，{segs[0]['start'][11:16]}–{segs[0]['end'][11:16]} UTC，一次跑完"
+assert len(segs) == 2 and [len(x["ids"]) for x in segs] == [24, 98], [(x["start"], x["end"], len(x["ids"])) for x in segs]
+env2 = read(f"{W}/env15-seg2.txt")
+assert f"code_state {state}" in env2 and "Python 3.13.16" in env2 and "PyYAML 6.0.1" in env2 and "libicui18n.so.74" in env2 and "SOURCES ok=17 bad=0" in env2, env2
+assert segs[0]["end"] < env2[:19] < segs[1]["start"], (segs, env2[:19])
+window = ("三批并行，分 2 段：" + "；".join(f"{x['start'][11:16]}–{x['end'][11:16]} UTC 跑完 {len(x['ids'])} 类" for x in segs) + "；"
+          "前一段被工作环境重新启动打断（机器重启，后台进程随之停止；正在跑的那几类没有留下结果，在后一段里从头重跑），两段之间代码没有改动；"
+          f"后一段开始前（{env2[11:16]}）重新核对过代码状态和运行环境：Python、PyYAML、ICU 的版本，官方程序和上游数据的 SHA-256、上游源码的提交号，都和前一段相同")
 fresh = res["fresh"]
 assert fresh["solo"] == [], fresh
 NEW_TESTS = {"M101": "test_names_ending_in_a_pointer_after_labels_are_read", "M102": "test_mihomo_product_names_go_to_the_foreign_dns",

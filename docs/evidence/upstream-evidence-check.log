@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-07 08:24:27
+运行时间（UTC）：2026-10-13 04:17:58
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：f36806a4d25b2831d433a7f8bb47039611720c5d699197867bd2b2027a2b8abc
+统一源摘要：a8c850f9865a0dd12f4820deb9eb08a67cd12f80202a7e07054806a45612b8e2
 命令：python3 tools/check_upstream_evidence.py --dlc /root/proxy-vendor/src/domain-list-community --bm7 /root/proxy-vendor/src/bm7
 
 dlc 快照：c1c2cf0d252871e8739747714df06e8d2671f72f（2026-09-22T19:29:39+08:00）
