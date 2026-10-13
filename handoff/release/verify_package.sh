@@ -51,7 +51,10 @@ grep -rIn "${SELF[@]}" -E 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|BEGIN CERTIFICA
 grep -rIn "${SELF[@]}" -E 'gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}' proxy-rules | head -5
 grep -rIn "${SELF[@]}" -E '[A-Za-z0-9._%+-]+@(gmail|outlook|hotmail|qq|163|126|icloud|proton|protonmail|foxmail|yahoo)\.[a-z.]+' proxy-rules | head -5
 grep -rIn "${SELF[@]}" -i -E 'users\.noreply\.github\.com|session_01[A-Za-z0-9]{6,}|claude\.ai/(code/session_|chat/)' proxy-rules | head -5
-grep -rIn "${SELF[@]}" -E '/root/\.claude|/tmp/claude|scratchpad|replay-git|/mnt/user-data' proxy-rules | head -10
+# docs/00 里有两行提到另一个对话的模型所在机器上的 /mnt/user-data/outputs/（使用者 2026-10-12 截图里写的，不是本机目录，也不是私人信息）。
+# docs/00 只追加、不改写，2026-10-13 逐行看过，只按这两行开头的文字放过；别处出现照样报出来
+grep -rIn "${SELF[@]}" -E '/root/\.claude|/tmp/claude|scratchpad|replay-git|/mnt/user-data' proxy-rules \
+  | grep -v -E '^proxy-rules/docs/00-需求原文\.md:[0-9]+:(19:46 前后（附了一张手机截图：另一个对话里的模型说它把 Stash 的配置样例存到了它那边的 `/mnt/user-data/outputs/stash-config-example\.yaml`）：$|- \*\*共享目录\*\*：那个对话的“共享目录”在它自己的机器上，我这边同名的 `/mnt/user-data/outputs/` 是空的，读不到。)' | head -10
 if [ -n "${PRIVATE_PATTERN:-}" ]; then
   echo "-- 另外按 PRIVATE_PATTERN 扫（字样本身不显示）"
   grep -rIl -i -E "$PRIVATE_PATTERN" proxy-rules | head -10

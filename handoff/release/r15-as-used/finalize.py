@@ -62,8 +62,12 @@ CMP_NEEDLES = ("大小：241,939 → 241,985 字节。", "大小：404,459 → 4
 CMP_CELL = ("八份配置都只多了一条拦截规则 `afpapi.alimama.com`（Loon、Quantumult X、mihomo 是新增的一条规则；sing-box 是拦截的那条路由规则里多一个后缀）和注释里的版本号，"
             "策略组、DNS（mihomo 的 `nameserver-policy`、sing-box 的 DNS 规则）、规则集都没有变；大清单副本的规则相同、只有注释不同（文件头多一行：本项目改了什么、哪天改的、GPL-2.0 原文的地址）；"
             "两份自有清单和域名兜底文件和 r14 的一模一样")
-MUT_R15 = {}                                                                      # M119–M122 → 发现它的那一项测试（照变异日志）
-MUT_R15_TEXT = ""
+MUT_R15 = {"M119": "test_all_cases_all_clients", "M120": "test_domain_trie_checks_patterns_like_mihomo",       # M119–M122 → 发现它的那一项测试（照变异日志）
+           "M121": "test_max_copy_says_what_was_changed_and_when", "M122": "test_records_names_and_addresses"}
+MUT_R15_TEXT = ("M119（阿里妈妈又漏了上游写成关键词的 `afpapi.alimama.com`）由路由用例发现（`tests/cases.yaml` 里新加的那一条：`tests/test_routing.py` 的 `test_all_cases_all_clients`、"
+                "真实数据下的几项、严格版跟随标准版的那一项）；M120（核对工具的域名树又先去掉两头的空白、不检查写法）由 `tests/test_dns_lan.py` 的 `test_domain_trie_checks_patterns_like_mihomo` 发现；"
+                "M121（大清单副本的文件头又不写本项目改了什么、哪天改的）由 `tests/test_strict.py` 的 `test_max_copy_says_what_was_changed_and_when` 发现；"
+                "M122（出站核对认不回节点收到的地址）由 `tests/test_real_data.py` 的 `test_records_names_and_addresses` 发现。")
 R15_REAL_CELL = ("路由 270 个目标（r14 是 269 个，多了 `afpapi.alimama.com`）在 mihomo v1.19.31、sing-box v1.14.1 与 v1.12.0 上都与人工期望一致；"
                  "出站时的解析：8 个主机 × mihomo 三种出口、sing-box 三种出口（两个版本），SOCKS 那几种另核对节点收到的目标；默认直连的组切到代理以后 4 个主机 × 同样的出口——都与人工期望一致"
                  "（sing-box 1.14.1 经 SOCKS 走 UDP 那一格按现状写成“节点没收到”，mihomo 上 `www.apple.com.cn`、`api.bilibili.com` 切到代理以后经 UDP、WireGuard 问国内 DNS 那几格写成现状）；"
@@ -192,7 +196,7 @@ assert "× 2306 个节点名" in icu
 m = re.search(r"ICU 平均每次匹配：宽 (\d+) 微秒、严 (\d+) 微秒.*?Loon (\d+) 毫秒，Quantumult X（26 个策略各一条）(\d+) 毫秒", icu)
 assert m, "icu-check.log 里没有耗时行"
 icu_time = (f"这次运行 ICU 平均每次匹配：宽的 {m.group(1)} 微秒、严的 {m.group(2)} 微秒（含调用开销）；按 300 个节点估算 Loon 约 {m.group(3)} 毫秒、"
-            f"Quantumult X 约 {m.group(4)} 毫秒（每次运行有出入：同一台机器上 r14 那次是 52 / 91 毫秒，r13 是 49 / 93 毫秒，r12 是 29 / 51 毫秒（另一台机器），"
+            f"Quantumult X 约 {m.group(4)} 毫秒（每次运行有出入：同一个云端会话里 r14 那次是 52 / 91 毫秒，r13 是 49 / 93 毫秒——中间工作环境重启过，不一定是同一台机器；r12 是 29 / 51 毫秒（另一台机器），"
             f"r10 时几次运行是 36–38 / 63–66 毫秒；这一次和变异检查同时跑、机器更忙；手机会慢几倍）")
 long_lines = re.findall(r"^长名字（120、400 个字符两档，共 (\d+) 个）.*?，(ICU|Python)：(.*?)；最慢的一次 ([\d.]+) 毫秒", icu, re.M)
 assert len(long_lines) == 2 and all(x[0] == "860" and "全部按时结束，分组与逐步判断完全一致" in x[2] for x in long_lines), long_lines

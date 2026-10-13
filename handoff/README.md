@@ -183,3 +183,4 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 6. **Stash 还没有写**：使用者 10-12 说“如果能读到的话先不写，等到审核意见改过来，你完成最终版再写”。10-13 他发来另一个模型从 stash.wiki 下载的页面（zip，44 页），我放在仓库以外的 `~/proxy-vendor/src/stash-docs-2026-10-13/`，核对过（每页的校验值都对、没有失败页）。**下一个会话没有这个目录**：要用的话请使用者再发一次那个 zip，或者在云端环境的网络设置里放行 `stash.wiki`。写的时候在文档里注明资料来源（他人代下载，不是从官方站直接取的）。
 7. **出这一版用的脚本**在 `handoff/release/r15-as-used/`（照 r14 的改：类数 122、新的用例和数字、节点实际收到的目标、组切换以后）。
 8. **交付**：r15 推到同一个分支，没有动 `main`（`main` 仍是 r11）。
+9. **下一版要改的小毛病**（出 r15 时核对日志看到的）：`tools/check_real_routes.py` 的 `_refuse_if_blocked` 用 `open(logp, …).read()` 读内核日志、没有关文件，`docs/evidence/tests.log` 里因此有一条 `ResourceWarning`。改成 `with open(…) as f`，照常重新定稿、全部重跑；改完测试日志里不应再有 `ResourceWarning`（可以在下一版的 finalize 里加这一条断言）。
