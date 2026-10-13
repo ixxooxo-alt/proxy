@@ -389,6 +389,18 @@ class OwnLists(unittest.TestCase):
             self.assertIn(needle, out_head)
         self.assertNotIn("统一源版本", out_head)
 
+    def test_max_copy_says_what_was_changed_and_when(self):
+        """GPL-2.0 第 2 条 a 款：改过的文件要写明改了什么、哪天改的（2026-10-13，GPT 审核 r14 的建议 S03）。数据文件和生成的规则文件
+        的文件头都要写本项目的改动、第一次生成的日期，并给出 GPL-2.0 原文的地址；上游快照的日期不算本项目的改动日期。"""
+        with open(os.path.join(ROOT, *strict_mod.MAX_DATA_REL.split("/")), encoding="utf-8") as f:
+            data_head = "\n".join(ln for ln in f.read().splitlines() if ln.startswith("#"))
+        out_head = "\n".join(ln for ln in outputs()[strict_mod.QX_MAX_REL].splitlines() if ln.startswith("#"))
+        for head in (data_head, out_head):
+            self.assertIn("本项目", head)
+            self.assertIn(strict_mod.MAX_CONVERTED_ON, head)
+            self.assertIn(strict_mod.GPL2_URL, head)
+        self.assertIn("改成 Quantumult X 的写法", out_head)
+
     def test_list_headers_carry_source_and_license(self):
         for rel in (strict_mod.LOON_CN_REL, strict_mod.QX_CN_REL):
             head = [ln for ln in outputs()[rel].splitlines() if ln.startswith("#")]

@@ -249,6 +249,23 @@ class LanDns(unittest.TestCase):
                            ("w.x.b.a.com", D), ("c.com", None), ("q.c.com", D), ("r.q.c.com", None), ("other.org", None)):
             self.assertEqual(drc.mihomo_policy(conf, host, sets), want, host)
 
+    def test_domain_trie_checks_patterns_like_mihomo(self):
+        """核对工具的域名树检查写法和内核一样严（v1.19.31 component/trie/domain.go 的 ValidAndSplitDomain）：内核加载配置时会拒绝的
+        写法，这里插入时也报错；查不合格的名字当作没有命中（2026-10-13，GPT 审核 r14 的建议 S02：以前这里先去掉两头的空白、
+        对 +. 开头的写法不检查，内核会拒绝的写法这里也能插进去）。期望按那个函数的源码逐条人工写出。"""
+        for bad in (" a.com", "a.com ", "a..com", "a.com.", "", ".", "+", "+.", "a.+.com", "+a.com", "+.a..com", "*a.com", "a*.com",
+                    "a.*b.com", "+.a.com ", "+.a.com."):
+            with self.assertRaises(ValueError, msg=repr(bad)):
+                drc.DomainTrie().insert(bad, ["x"])
+        for good in ("a.com", "+.a.com", "*.a.com", ".a.com", "*", "lan", "A.COM"):
+            drc.DomainTrie().insert(good, ["x"])
+        t = drc.DomainTrie()
+        t.insert("+.a.com", ["x"])
+        self.assertEqual(t.search("b.a.com"), ["x"])
+        self.assertEqual(t.search("b.a.com."), ["x"])          # 内核查之前去掉问题名字末尾的点（dns/util.go 的 msgToDomain）
+        for miss in (" b.a.com", "b..a.com", ".a.com", ""):
+            self.assertIsNone(t.search(miss), repr(miss))
+
     def test_mihomo_product_names_go_to_the_foreign_dns(self):
         """GPT 审核 r13 的 R13-F01（待决事项 16，用户 2026-10-07 选了改）：mihomo 转发 UDP、经 WireGuard 这类出口时，会用默认解析器
         在本机解析目标域名，按 nameserver-policy 选服务器。所以 nameserver-policy 上的归类必须和路由一致：

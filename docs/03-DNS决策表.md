@@ -308,8 +308,8 @@ dns:
 
 - mihomo v1.19.31 的 `adapter/outbound/base.go` 有一个 `ResolveUDP`：目标还没解析时，用默认解析器在本机解析。socks5、shadowsocks、shadowsocksr、trojan、vmess、vless、hysteria、hysteria2、tuic、snell、anytls、mieru 等出口转发 UDP 前都先调用它（各自的 `ListenPacketContext`）。也就是说，**经普通的代理节点转发 UDP 也一样**——浏览器访问支持 HTTP/3 的网站时用的 QUIC 就是 UDP。WireGuard、OpenVPN、Masque 这类按 IP 转发的出口，连 TCP 也要在本机解析（`wireguard.go` 的 `DialContext`）。只有少数出口能配“远程解析”（WireGuard 的 `remote-dns-resolve` + `dns`，节点上的设置，订阅里的节点一般不带）。
 - 官方内核实测（一次性核对 `handoff/notes/r13_review_probes.r13.out`，r13 的配置）：走代理的组换成 SOCKS5、Shadowsocks、Trojan 或 WireGuard 出口（都连本机空端口），`qwen.ai` 走 TCP 经 SOCKS5、Shadowsocks 时没有被解析；走 UDP（SOCKS5、Shadowsocks 试了目标写域名和目标是假地址两种，Trojan 试了目标写域名）、经 WireGuard（TCP、UDP）时，它的 A、AAAA 查询都由国内 DNS 的替身收到。`chatgpt.com` 这类普通境外域名本来就问境外 DNS，不受影响。
-- sing-box 实测（1.14.1：SOCKS、Shadowsocks 的 TCP、UDP 和 WireGuard 端点，一次性核对；1.12.0：只有固定核对里的 SOCKS 走 UDP、WireGuard 端点走 TCP）：SOCKS、Shadowsocks 出口把域名原样交给节点，不解析；WireGuard 端点按 DNS 规则解析（`protocol/wireguard/endpoint.go`），DNS 规则里有“走代理组的产品域名先判断”一层，`qwen.ai` 交给 `dns-foreign`。只有待决事项第 15 项那几个名字（`time.windows.com` 等，DNS 规则写明交给 `dns-cn`、路由却走代理组）经 WireGuard 端点时交给 `dns-cn`。2026-10-07 起这几个名字固定直连（你定的第 15 项），用国内 DNS 正是直连该用的，这一处没有了。
-- Loon、Quantumult X：没有能运行的内核，转发 UDP 时会不会在本机解析目标，官方文档没有写，不知道。
+- sing-box 实测（1.14.1：SOCKS、Shadowsocks 的 TCP、UDP 和 WireGuard 端点，一次性核对；1.12.0：只有固定核对里的 SOCKS 走 UDP、WireGuard 端点走 TCP）：SOCKS、Shadowsocks 出口不在本机解析走代理的名字（三类 DNS 替身都没有收到查询）；WireGuard 端点按 DNS 规则解析（`protocol/wireguard/endpoint.go`），DNS 规则里有“走代理组的产品域名先判断”一层，`qwen.ai` 交给 `dns-foreign`。只有待决事项第 15 项那几个名字（`time.windows.com` 等，DNS 规则写明交给 `dns-cn`、路由却走代理组）经 WireGuard 端点时交给 `dns-cn`。2026-10-07 起这几个名字固定直连（你定的第 15 项），用国内 DNS 正是直连该用的，这一处没有了。
+- Loon、Quantumult X：没有能运行的内核。Quantumult X 官方示例（sample.conf，提交 `af6fb59`）有一般说明：查到的地址“只用来判断规则和直连，走代理服务器时不用，Quantumult 也不会知道相关域名的目标 IP”，另说不在 `dns_exclusion_list` 里的域名有“在远端解析”的效果——没有分 TCP、UDP，UDP 各协议、UDP over TCP 没有核对（2026-10-13 更正：以前这里写的是“官方文档没有写”，审核方指出了这段说明，`docs/08` 第 10 轮）。Loon 的官方文档里没有找到相应说明，不知道。
 
 **r14 的改动**（待决事项第 16 项，你 2026-10-07 选了“改”；和当天定下的其余各项合在一起交付，生成器 1.7.0，统一源 2026.10.07-2）：mihomo 的 `nameserver-policy` 在“局域网后缀 → `system`”之后、`geosite:private` 和 `geosite:cn` 之前，加一条一条的产品域名。同一段里另有你定的两处：不带点的名字 → `system`（第 14 项）、“要真实地址的名单”8 条 → 国内 DoH（第 15 项），都是普通的域名写法，和产品域名合在同一棵域名树里。
 
@@ -319,14 +319,21 @@ dns:
 
 **代价**：这些组你手动切成直连时（例如把 Microsoft 切成 DIRECT 下载更新），它们的名字也由境外 DNS 解析，可能连到离你远的服务器、变慢。默认状态下不影响国内网站。sing-box 上没有这个代价：设备查地址（A / AAAA）时只拿到假地址，连接进来以后内核把假地址换回域名（v1.14.1 `route/route.go`），组切成直连时由直连出站用 `route.default_domain_resolver`（`dns-cn`）解析——和上面“sing-box：拨号时的解析不看 DNS 规则”一节是同一条路（按源码和那一节的实测推断，“走代理的组切成直连”这种情况没有单独实测）。交付前自查时改正：这里原来写的是“sing-box 现在就是这样（DNS 在连接之前就判断完了）”，说反了——DNS 在连接之前判断完、拿不回来的，是“国内直连”这类给真实地址的名字（待决事项第 17 项那一类），不是给假地址的这些。
 
-**核对**（都在 `tools/check_real_routes.py`，结果在 `docs/evidence/real-route-check.log`、快照的 `outbound`）：
+**节点收到的到底是什么**（2026-10-13，GPT 审核 r14 的建议 S01）：以前测试节点连的是本机一个没人监听的端口，只能看到“三类 DNS 替身都没有收到查询”，看不到域名确实交给了节点——连接被提前拒绝、目标根本没处理，也会是这个结果。现在 SOCKS 出口连本机一个最简单的 SOCKS5 服务端（`Socks5Recorder`：握手、记下请求里的目标、回成功，不转发数据），按 RFC 1928 的地址类型记下节点收到的是域名还是 IP；DNS 替身给每个核对的主机答一个不同的本机地址，收到 IP 时能认回是哪个主机。官方内核的结果（事实）：
 
-- 第 ④ 项“出站时的解析”：8 个主机（`tests/cases.yaml` 的 `outbound_resolve`）× mihomo 三种出口（SOCKS5 走 TCP、走 UDP，WireGuard 走 TCP）、sing-box 两种（SOCKS 走 UDP，WireGuard 端点走 TCP），两个 sing-box 版本各跑一遍，结果都与人工期望一致。自检：把 mihomo 的产品域名那一层去掉，WireGuard 下 `qwen.ai`、`download.microsoft.com` 变回国内 DNS，别的不变。
+- mihomo：走代理的名字经 SOCKS5 走 TCP，节点收到的是域名；走 UDP，节点收到的是本机用境外 DNS 解析出来的地址（和上面 `ResolveUDP` 那一段一致）。没被任何域名规则接住的名字（`never-listed-site.org`）走 TCP 时节点也收到域名（为了判断 IP 规则在本机解析过一次，但交给节点的仍是域名）。
+- sing-box：经 SOCKS 走 TCP，节点收到的是域名（两个版本）。经 SOCKS 走 UDP、目标写成域名时，**两个版本不一样**：1.12.0 把包发给了节点，节点收到的是域名；1.14.1 没有发出——它连上节点做了 UDP ASSOCIATE，然后内核日志写 `packet upload closed: unsupported address`，包被丢掉。原因没有查到底（报错不在 sing-box 和 sing v0.9.4 里两个最可能的文件里）。没被域名规则接住的名字，sing-box 先按规则解析（问 `dns-foreign`），交给节点的是解析出来的地址。
+- 所以以前写的“SOCKS、Shadowsocks 出口把域名原样交给节点”，在 UDP 上没有得到证实，对 1.14.1 的 SOCKS 出口在这套核对里不成立；名字不交给国内 DNS 这一点不受影响。Shadowsocks、Trojan 等别的协议，节点那一端没有办法在本机接收，没有核对；虚拟网卡加假地址的情况（假地址的包走 `route/route.go` 里另一层包装）也没有核对。见 `docs/06`“2026-10-13（r15）”一节。
+
+**核对**（都在 `tools/check_real_routes.py`，结果在 `docs/evidence/real-route-check.log`、快照的 `outbound`、`outbound_received`、`outbound_switched`）：
+
+- 第 ④ 项“出站时的解析”：8 个主机（`tests/cases.yaml` 的 `outbound_resolve`）× mihomo 三种出口（SOCKS5 走 TCP、走 UDP，WireGuard 走 TCP）、sing-box 三种（SOCKS 走 TCP、走 UDP，WireGuard 端点走 TCP；SOCKS 走 TCP 是 2026-10-13 加的），两个 sing-box 版本各跑一遍；SOCKS 那几种另核对节点收到的目标（上面一段）。结果都与人工期望一致。自检：把 mihomo 的产品域名那一层去掉，WireGuard 走 TCP、SOCKS5 走 UDP 下（UDP 那一遍 2026-10-13 加的）`qwen.ai`、`download.microsoft.com` 都变回国内 DNS，别的不变。
+- 默认直连的组切到代理以后（2026-10-13 加的，`tests/cases.yaml` 的 `outbound_switched`；待决事项第 21 项）：Apple、Apple Music/TV、Apple Push、Bilibili 港澳台都切到测试出口（只有 DIRECT 一项的“国内直连”不动），同样六种出口各跑一遍。mihomo：`www.apple.com.cn`、`api.bilibili.com`（在上游国内域名集合里）经 UDP、WireGuard 交给国内 DNS（现状，记作 limit），`www.apple.com`（不在集合里）交给境外 DNS；sing-box：WireGuard 端点都问 `dns-foreign`，SOCKS 不解析。
 - 逐条扫描的自检：去掉那一层再扫，mihomo 走代理组的从 0 个变成 136 个；多出来的 136 个交给官方内核查 TXT，现在都只由境外 DNS 的替身收到。
 - 静态断言（`tests/test_dns_lan.py`）：每条产品规则的值和它的一个子域，路由交给默认走代理的组的，`nameserver-policy` 必须交给境外 DNS；交给默认直连的组的，不能交给境外 DNS（变异 M102、M103）。
 
 **仍然没有覆盖的**
 
-- 默认直连的组你手动切到代理以后（例如把 Apple 切到某个地区、把 Bilibili 港澳台切到台湾），它们的名字仍按 `geosite:cn` 交给国内 DNS——转发 UDP、经 WireGuard 时同样会被国内 DNS 看到。mihomo 的 DNS 不会跟着组的选择变：每个域名用哪个 DNS 是配置里固定的，直连连接的解析要么和 `nameserver-policy` 共用同一份、要么完全不看（v1.19.31 `dns/resolver.go`），没有按组的开关。要不要把这几个组的名字改交境外 DNS（代价是平时直连也用境外的结果、可能变慢），是待决事项第 21 项，等你选。sing-box 上会跟着变：这几个组在 DNS 规则里给假地址，直连时由直连出站用 `dns-cn` 解析。以前这里还提到同一类的待决事项第 17 项（“国内直连”切到代理）：2026-10-07 你定了方案二，“国内直连”固定直连、不能再切，那种情况不会再出现。
+- 默认直连的组你手动切到代理以后（例如把 Apple 切到某个地区、把 Bilibili 港澳台切到台湾），mihomo 上它们**在上游国内域名集合里的名字**仍按 `geosite:cn` 交给国内 DNS——转发 UDP、经 WireGuard 时会被国内 DNS 看到（2026-10-13 起是官方内核的实测，上面“默认直连的组切到代理以后”）；不在集合里的名字（`www.apple.com` 这类）直连时由 `direct-nameserver` 解析、切到代理以后由默认的 `nameserver` 解析，本来就跟着变。mihomo 的直连出口和代理出口是两条解析路径：直连用 `direct-nameserver` 那个解析器，开着 `direct-nameserver-follow-policy` 时也看 `nameserver-policy`；代理转发 UDP、经 WireGuard 用默认解析器（v1.19.31、v1.19.32 `dns/resolver.go` 相同）。以前这里写的“没有按组的开关”是对的，但据此说“mihomo 做不到”说过了头：审核方指出（R14-F01），关掉 follow-policy、让 `direct-nameserver` 指向一台认得局域网名字又把国内网站交给国内 DNS 的路由器，再把这几个组交给境外，就能做到“直连用路由器、切到国外用境外”（官方内核实测，`handoff/notes/r14_review_probes.out`）。代价和前提见待决事项第 21 项方案 ③，等你选。sing-box 上会跟着变：这几个组在 DNS 规则里给假地址，直连时由直连出站用 `dns-cn` 解析。以前这里还提到同一类的待决事项第 17 项（“国内直连”切到代理）：2026-10-07 你定了方案二，“国内直连”固定直连、不能再切，那种情况不会再出现。
 - 上游 `private` 集合里的名字（待决事项第 14 项）、sing-box 的“要真实地址的名单”（第 15 项）不归这一层管，你 2026-10-07 另外定了改法（“走代理的域名不交给国内 DNS”一节最后那张表）。
-- 核对用的是本机的代理端口，不是 TUN；真实节点、真实网络没有试。Loon、Quantumult X 的情况不知道（上面）。
+- 核对用的是本机的代理端口，不是 TUN；真实节点、真实网络没有试。Loon 的情况不知道；Quantumult X 只有官方示例的一般说明（上面）。sing-box 1.14.1 经 SOCKS 转发目标写成域名的 UDP 包没有发出，真实使用（虚拟网卡加假地址）时是不是一样、别的协议怎样，没有核对。

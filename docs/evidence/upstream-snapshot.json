@@ -957,7 +957,8 @@
   {"kind": "suffix", "value": "cpc.click.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": true},
   {"kind": "suffix", "value": "p.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": true},
   {"kind": "suffix", "value": "static.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": true},
-  {"kind": "suffix", "value": "t.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": true}
+  {"kind": "suffix", "value": "t.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": true},
+  {"kind": "suffix", "value": "afpapi.alimama.com", "ev": "bm7-snap", "in_category_ads_all": false, "in_bm7_AdvertisingLite": false, "bm7_keyword_covers": true}
  ],
  "ads_under_products": [
   {"entry": "aaid.umeng.com @ads", "product_rule": "suffix,umeng.com", "group": "国内直连", "handled_by": "自有拦截"},

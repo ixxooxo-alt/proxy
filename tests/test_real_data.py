@@ -802,6 +802,60 @@ class ProbeReplyParsing(unittest.TestCase):
         self.assertEqual(self.kind(serve(cut_short)), "unparsed", "读不懂的应答记 unparsed，不能冒充应答码")
 
 
+class Socks5RecorderTool(unittest.TestCase):
+    """出站核对用的本机 SOCKS5 接收端（tools/check_real_routes.py 的 Socks5Recorder、received_by_node；2026-10-13，GPT 审核 r14 的
+    建议 S01）。不需要官方内核：自己当客户端发 CONNECT、UDP 包（RFC 1928 第 4、7 节的格式），看接收端记下的和认回的主机对不对。
+    接收端坏了时，结果会全是“-”，看起来像“内核没有发出”，所以单独核对它。"""
+
+    @classmethod
+    def setUpClass(cls):
+        import check_real_routes as crr  # noqa: E402（tools/ 已在 sys.path 里）
+        cls.crr = crr
+
+    def test_records_names_and_addresses(self):
+        import socket
+        import struct
+        import time
+        crr = self.crr
+        answers = crr._PerHostLoopback(["a.example", "b.example", "c.example"])
+        self.assertEqual(answers.get("B.Example."), "127.0.1.2")
+        self.assertEqual(answers.get("other.example"), "127.0.0.1")
+        rec = crr.Socks5Recorder()
+        rec.start()
+        try:
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.sendall(b"\x05\x01\x00")
+                self.assertEqual(s.recv(2), b"\x05\x00")
+                s.sendall(b"\x05\x01\x00\x03\x09a.example" + struct.pack("!H", 443))
+                self.assertEqual(s.recv(10)[:2], b"\x05\x00")
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.sendall(b"\x05\x01\x00")
+                s.recv(2)
+                s.sendall(b"\x05\x03\x00\x01" + bytes(6))
+                rep = s.recv(10)
+                relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                    u.sendto(b"\x00\x00\x00\x01" + socket.inet_aton("127.0.1.2") + struct.pack("!H", 443) + b"x", relay)
+                    u.sendto(b"\x00\x00\x00\x03\x09a.example" + struct.pack("!H", 443) + b"x", relay)
+                    time.sleep(0.5)
+        finally:
+            rec.close()
+        self.assertEqual(sorted(rec.seen), [("tcp", "domain", "a.example"), ("udp", "domain", "a.example"), ("udp", "ip", "127.0.1.2")])
+        self.assertEqual(crr.received_by_node(rec, answers, ["a.example", "b.example", "c.example"]),
+                         {"a.example": "domain", "b.example": "ip", "c.example": "-"})
+
+    def test_blocked_environment_is_an_error_not_a_result(self):
+        """内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。"""
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            f.write("ERROR dial udp: route ip+net: netlinkrib: operation not permitted\n")
+        try:
+            with self.assertRaises(RuntimeError):
+                self.crr._refuse_if_blocked(f.name, "测试")
+        finally:
+            os.unlink(f.name)
+
+
 class OutboundResolve(unittest.TestCase):
     """出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01；用例在 cases.yaml 的 outbound_resolve，怎么跑的见
     tools/check_real_routes.py 的 mihomo_outbound_probe、singbox_outbound_probe）。走代理的组换成真的出口（连本机空端口），
@@ -812,6 +866,7 @@ class OutboundResolve(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.cases = rd.outbound_cases()
+        cls.switched = rd.outbound_switched_cases()
         cls.official = snapshot()["official"]
 
     def test_cases_cover_the_point_of_the_check(self):
@@ -825,14 +880,37 @@ class OutboundResolve(unittest.TestCase):
             self.assertEqual(hosts[h]["expect"]["mihomo-wireguard-tcp"], "domestic", h)
 
     def test_recorded_official_runs_match_the_cases(self):
+        """快照里官方内核的记录和人工期望一致：问了哪类 DNS（outbound、outbound_switched），以及 SOCKS 那几种场景下节点
+        收到的目标（outbound_received、outbound_switched_received，2026-10-13 起，GPT 审核 r14 的建议 S01）。"""
         for fam, scen_prefix in (("mihomo", "mihomo-"), ("singbox", "singbox-"), ("singbox112", "singbox-")):
-            rec = self.official[fam].get("outbound")
-            self.assertTrue(rec, f"快照里没有 {fam} 的出站解析记录" + HINT)
             scens = [s for s in rd.OUTBOUND_SCENARIOS if s.startswith(scen_prefix)]
-            self.assertEqual(sorted(rec), scens, fam + HINT)
-            wrong = [(fam, s, c["host"], c["expect"][s], rec[s].get(c["host"])) for s in scens for c in self.cases
-                     if rec[s].get(c["host"]) != c["expect"][s]]
-            self.assertEqual(wrong, [], "（记录, 场景, 主机, 期望, 官方内核记录）" + HINT)
+            recv_scens = [s for s in rd.RECEIVED_SCENARIOS if s.startswith(scen_prefix)]
+            for key, recv_key, cases in (("outbound", "outbound_received", self.cases),
+                                         ("outbound_switched", "outbound_switched_received", self.switched)):
+                rec, recv = self.official[fam].get(key), self.official[fam].get(recv_key)
+                self.assertTrue(rec and recv, f"快照里没有 {fam} 的 {key} / {recv_key} 记录" + HINT)
+                self.assertEqual(sorted(rec), scens, fam + HINT)
+                self.assertEqual(sorted(recv), sorted(recv_scens), fam + HINT)
+                wrong = [(fam, key, s, c["host"], c["expect"][s], rec[s].get(c["host"])) for s in scens for c in cases
+                         if rec[s].get(c["host"]) != c["expect"][s]]
+                ver = {"singbox": "1.14", "singbox112": "1.12"}.get(fam, "")
+                wrong += [(fam, recv_key, s, c["host"], rd.received_want(c, s, ver), recv[s].get(c["host"])) for s in recv_scens for c in cases
+                          if recv[s].get(c["host"]) != rd.received_want(c, s, ver)]
+                self.assertEqual(wrong, [], "（记录, 哪一项, 场景, 主机, 期望, 官方内核记录）" + HINT)
+
+    def test_socks_node_gets_the_name_over_tcp(self):
+        """走代理的名字经 SOCKS 走 TCP 时，节点收到的就是域名（两个内核）——以前只能说“DNS 替身没有收到查询”，
+        连接被提前拒绝也会是这个结果（2026-10-13，GPT 审核 r14 的建议 S01）。mihomo 走 UDP 时节点收到的是本机用境外 DNS
+        解析出来的地址。"""
+        proxied = [c["host"] for c in self.cases if c["expect"]["mihomo-socks5-tcp"] == "none"]
+        self.assertGreaterEqual(len(proxied), 3)
+        for fam, scen in (("mihomo", "mihomo-socks5-tcp"), ("singbox", "singbox-socks-tcp"), ("singbox112", "singbox-socks-tcp")):
+            got = self.official[fam]["outbound_received"][scen]
+            self.assertEqual({h: got[h] for h in proxied}, {h: "domain" for h in proxied}, fam)
+        got = self.official["mihomo"]["outbound_received"]["mihomo-socks5-udp"]
+        self.assertEqual({h: got[h] for h in proxied}, {h: "ip" for h in proxied})
+        for h in proxied:
+            self.assertEqual(self.official["mihomo"]["outbound"]["mihomo-socks5-udp"][h], "foreign", h)
 
     def test_mihomo_never_hands_a_proxied_name_to_the_domestic_dns(self):
         """r14 的目标：名字归走代理组的主机，三种出口下都没有被交给国内 DNS（time.windows.com 在 mihomo 上也没有）。"""
@@ -844,12 +922,27 @@ class OutboundResolve(unittest.TestCase):
                 self.assertNotEqual(got[h], "domestic", f"{s} {h}")
 
     def test_self_check_sees_the_product_layer(self):
-        """去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard：只有 product 一类变回国内 DNS。"""
+        """去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard、SOCKS5 走 UDP（UDP 那一遍 2026-10-13 起）：
+        只有 product 一类变回国内 DNS。"""
         rec = self.official["mihomo"]
-        without, now = rec["outbound_without_product_layer"], rec["outbound"]["mihomo-wireguard-tcp"]
-        moved = sorted(h for h in now if without[h] != now[h])
-        self.assertEqual(moved, sorted(c["host"] for c in self.cases if c.get("product")))
-        self.assertTrue(all(without[h] == "domestic" for h in moved))
+        for key, scen in (("outbound_without_product_layer", "mihomo-wireguard-tcp"), ("outbound_without_product_layer_udp", "mihomo-socks5-udp")):
+            without, now = rec[key], rec["outbound"][scen]
+            moved = sorted(h for h in now if without[h] != now[h])
+            self.assertEqual(moved, sorted(c["host"] for c in self.cases if c.get("product")), scen)
+            self.assertTrue(all(without[h] == "domestic" for h in moved), scen)
+
+    def test_switched_groups_follow_the_documented_split(self):
+        """待决事项第 21 项的依据（2026-10-13 起是官方内核的实测，不再是推断）：默认直连的组切到代理以后，mihomo 上在国内域名集合里的
+        名字（limit 标出的）经 UDP、WireGuard 仍交给国内 DNS；其余的按默认的 nameserver 交给境外。sing-box 都不交给国内。"""
+        limited = {c["host"] for c in self.switched if c.get("limit")}
+        self.assertEqual(limited, {"www.apple.com.cn", "api.bilibili.com"})
+        for scen in ("mihomo-socks5-udp", "mihomo-wireguard-tcp"):
+            got = self.official["mihomo"]["outbound_switched"][scen]
+            self.assertEqual({h: got[h] for h in limited}, {h: "domestic" for h in limited}, scen)
+            self.assertEqual(got["www.apple.com"], "foreign", scen)
+        for fam in ("singbox", "singbox112"):
+            for scen, got in self.official[fam]["outbound_switched"].items():
+                self.assertFalse([h for h in limited if got[h] == "dns-cn"], (fam, scen))
 
 
 if __name__ == "__main__":

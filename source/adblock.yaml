@@ -113,7 +113,9 @@ local_tracking:
   # 友盟 18 条：domain-list-community 的 umeng 列表里标了 @ads、在这两个域名下的子域（上游注释掉的 errlog、errnewlog 没有收）。
   # 友盟其余的主机由 services/misc.yaml 的 umeng 服务交给国内直连——Loon / Quantumult X 订阅的 blackmatrix7 AdvertisingLite
   # 里有一条关键词规则 umeng（名字里带 umeng 就拦），那两端本地规则先于远程规则，要靠那条规则挡住它。
-  # 阿里妈妈 11 条：blackmatrix7 AdvertisingLite 里 alimama.com 这台主机本身和它下面的 10 个子域（domain-list-community 没有标）。
+  # 阿里妈妈 12 条：blackmatrix7 AdvertisingLite 里 alimama.com 这台主机本身和它下面的 10 个子域（domain-list-community 没有标），
+  # 以及上游写成关键词的 afpapi.alimama.com（2026-10-13 补上：GPT 审核 r14 的 R14-F02 指出漏了这一条——Loon / Quantumult X 的
+  # 远程广告列表一直按关键词拦它，mihomo / sing-box 却放行，四端不一致）。这里按这台主机和它的子域拦，不照搬关键词。
   - {suffix: aaid.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
   - {suffix: alog.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
   - {suffix: alogs.umeng.com, ev: dlc, note: 友盟统计 / 跟踪（上游标为 @ads）}
@@ -143,6 +145,7 @@ local_tracking:
   - {suffix: p.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
   - {suffix: static.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
   - {suffix: t.alimama.com, ev: bm7-snap, note: 阿里妈妈广告}
+  - {suffix: afpapi.alimama.com, ev: bm7-snap, note: 阿里妈妈广告（上游写成关键词 afpapi.alimama.com，这里按这台主机和它的子域拦）}
 
 # HTTPDNS：不等于广告。是否拦截取决于实际用途、应用能否回退到系统 DNS、拦截后是否可用。
 # 目前没有经过验证的条目，默认不启用。

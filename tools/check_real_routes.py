@@ -782,6 +782,155 @@ def _throwaway_key() -> str:
     return base64.b64encode(os.urandom(32)).decode()
 
 
+class _PerHostLoopback(dict):
+    """出站核对用的 DNS 应答：要核对的主机各答一个不同的本机地址（127.0.1.1、127.0.1.2……），别的名字都答 127.0.0.1。
+    拨号仍然落在本机；代理出口在本机解析以后把 IP 交给节点时，凭这个地址能认出是哪个主机（2026-10-13）。"""
+
+    def __init__(self, hosts):
+        super().__init__()
+        self.ip_of = {h.lower(): f"127.0.1.{i}" for i, h in enumerate(hosts, 1)}
+        self.host_of = {ip: h for h, ip in self.ip_of.items()}
+
+    def get(self, key, default=None):
+        return self.ip_of.get(str(key).lower().rstrip("."), "127.0.0.1")
+
+
+def _recv_exact(c: socket.socket, n: int) -> bytes:
+    buf = b""
+    while len(buf) < n:
+        part = c.recv(n - len(buf))
+        if not part:
+            raise ConnectionError("对方提前断开")
+        buf += part
+    return buf
+
+
+def _socks_addr(read) -> tuple:
+    """按 RFC 1928 第 4、7 节读一个目标地址：ATYP 1 = IPv4，3 = 域名（前面一个字节是长度），4 = IPv6。返回 (类别, 地址)。"""
+    atyp = read(1)[0]
+    if atyp == 1:
+        addr = socket.inet_ntop(socket.AF_INET, read(4))
+    elif atyp == 3:
+        addr = read(read(1)[0]).decode("ascii", "replace").lower()
+    elif atyp == 4:
+        addr = socket.inet_ntop(socket.AF_INET6, read(16))
+    else:
+        raise ValueError(f"不认识的地址类型 {atyp}")
+    read(2)                                            # 端口
+    return ("domain" if atyp == 3 else "ip"), addr
+
+
+class Socks5Recorder(threading.Thread):
+    """本机的一个最简单的 SOCKS5 服务端，只用来记下代理出口实际交过来的目标（2026-10-13，GPT 审核 r14 的建议 S01）。
+    以前测试节点连的是一个没人监听的端口：只能看到“DNS 替身没有收到查询”，看不到域名确实交给了节点——连接被提前拒绝、
+    目标根本没处理，也会是这个结果。现在：不要认证的握手 → 读请求。CONNECT：记下目标，回成功，等对方关掉；
+    UDP ASSOCIATE：开一个本机 UDP 口，回成功，记下发到这个口的每个 UDP 包里写的目标。不转发任何数据，也不连外面。
+    seen 是 [(tcp / udp, domain / ip, 地址)]。"""
+
+    def __init__(self):
+        super().__init__(daemon=True)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind(("127.0.0.1", 0))
+        self.sock.listen(64)
+        self.port = self.sock.getsockname()[1]
+        self.seen = []
+        self._lock = threading.Lock()
+        self._closing = threading.Event()
+
+    def run(self):
+        self.sock.settimeout(0.3)
+        while not self._closing.is_set():
+            try:
+                c, _ = self.sock.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            threading.Thread(target=self._serve, args=(c,), daemon=True).start()
+
+    def _note(self, transport: str, kind: str, addr: str) -> None:
+        with self._lock:
+            self.seen.append((transport, kind, addr))
+
+    def _serve(self, c: socket.socket) -> None:
+        try:
+            c.settimeout(8)
+            ver, n = _recv_exact(c, 2)
+            if ver != 5:
+                return
+            _recv_exact(c, n)
+            c.sendall(b"\x05\x00")
+            _, cmd, _ = _recv_exact(c, 3)
+            kind, addr = _socks_addr(lambda k: _recv_exact(c, k))
+            if cmd == 1:
+                self._note("tcp", kind, addr)
+                c.sendall(b"\x05\x00\x00\x01" + bytes(6))
+                try:
+                    while c.recv(4096):
+                        pass
+                except OSError:
+                    pass
+            elif cmd == 3:
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                    u.bind(("127.0.0.1", 0))
+                    u.settimeout(0.3)
+                    c.sendall(b"\x05\x00\x00\x01" + socket.inet_aton("127.0.0.1") + struct.pack("!H", u.getsockname()[1]))
+                    end = time.time() + 8
+                    while time.time() < end and not self._closing.is_set():
+                        try:
+                            data, _ = u.recvfrom(65535)
+                        except socket.timeout:
+                            continue
+                        pos = [3]                      # RSV(2) FRAG(1) 之后是目标地址
+
+                        def take(k, data=data, pos=pos):
+                            out = data[pos[0]:pos[0] + k]
+                            if len(out) < k:
+                                raise ValueError("UDP 包太短")
+                            pos[0] += k
+                            return out
+                        try:
+                            self._note("udp", *_socks_addr(take))
+                        except (ValueError, OSError):
+                            self._note("udp", "?", "")
+            else:
+                c.sendall(b"\x05\x07\x00\x01" + bytes(6))
+        except (OSError, ConnectionError, ValueError):
+            return
+        finally:
+            c.close()
+
+    def close(self):
+        self._closing.set()
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+
+
+RECEIVED_NOTHING = "-"
+
+
+def received_by_node(rec: Socks5Recorder, answers: _PerHostLoopback, hosts: list) -> dict:
+    """{主机: 节点收到的目标写法}：domain = 收到的是这个域名；ip = 收到的是本机解析出来的地址；domain+ip = 两种都有；
+    - = 节点没有收到关于它的任何连接（例如它走了直连）。地址按 _PerHostLoopback 分的本机地址认回主机。"""
+    got = {h: set() for h in hosts}
+    for _, kind, addr in rec.seen:
+        h = addr if kind == "domain" else answers.host_of.get(addr) if kind == "ip" else None
+        if h in got:
+            got[h].add(kind)
+    return {h: "+".join(sorted(v)) if v else RECEIVED_NOTHING for h, v in got.items()}
+
+
+def _refuse_if_blocked(logp: str, what: str) -> None:
+    """运行环境不许内核开连接时（审核方的环境里直连 UDP 出现过 netlinkrib: operation not permitted），结果会全是 none，
+    看起来像“没有解析”。遇到这种日志直接报错，不把它当成结果（2026-10-13，GPT 审核 r14 的建议 S01）。"""
+    text = open(logp, encoding="utf-8", errors="replace").read()
+    if "operation not permitted" in text:
+        line = next(ln for ln in text.splitlines() if "operation not permitted" in ln)
+        raise RuntimeError(f"{what}：运行环境不许内核开连接（{line.strip()[:200]}），这一项的结果不可信，没有记录")
+
+
 def socks5_udp_once(port: int, host: str, wait: float = 4.0) -> None:
     """经本机的 SOCKS5 端口做 UDP ASSOCIATE，发一个目标是“host:443”（域名形式）的 UDP 包；控制连接保持 wait 秒。"""
     try:
@@ -814,8 +963,17 @@ def _send_all(port: int, hosts: list, transport: str) -> None:
     time.sleep(1.0)
 
 
+def _probe_member(members: list, switch_default_direct: bool) -> str:
+    """出站核对里一个策略组换成什么：首选是 DIRECT 的组仍然直连；其余换成测试出口。switch_default_direct 时，首选是 DIRECT、
+    但还有别的选项的组（可以切换的默认直连组）也换成测试出口；只有 DIRECT 一项的组（国内直连，2026-10-07 起固定直连）不动。"""
+    if members[:1] == ["DIRECT"] and not (switch_default_direct and len(members) > 1):
+        return "DIRECT"
+    return OUTBOUND_NODE
+
+
 def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str, hosts: list, outbound: str,
-                          transport: str, without_product_layer: bool = False) -> dict:
+                          transport: str, without_product_layer: bool = False, received: dict = None,
+                          switch_default_direct: bool = False) -> dict:
     """连接交给代理出口以后，mihomo 还会不会在本机解析目标域名、交给哪一类 DNS（2026-10-07，GPT 审核 r13 的 R13-F01）。
     返回 {主机: system / domestic / foreign / none}（收到这个名字的查询的替身；都没有收到记 none）。
 
@@ -828,7 +986,10 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
     （socks5 或 wireguard，服务器是本机一个没人监听的端口，WireGuard 用一次性随机密钥）——每次拨号都落在本机。
     transport：tcp 发 CONNECT 主机:443；udp 经 SOCKS5 UDP ASSOCIATE 发一个目标是“主机:443”的 UDP 包（开了 TUN 时程序发 QUIC，
     目标是假地址，内核按假地址找回域名，走的是同一条路；2026-10-07 的一次性核对两种都试过，结果相同）。
-    without_product_layer：去掉 nameserver-policy 里走代理组的产品域名那一层（r13 以前的样子），用来自检。"""
+    without_product_layer：去掉 nameserver-policy 里走代理组的产品域名那一层（r13 以前的样子），用来自检。
+    2026-10-13 起（GPT 审核 r14 的建议 S01）：socks5 出口连的是本机的 Socks5Recorder，不再是空端口；给了 received（一个空字典）
+    就把“节点收到的目标是域名还是 IP”填进去（received_by_node）。switch_default_direct：把默认直连、可以切换的组
+    （Apple 那几个、Bilibili 港澳台）也切到测试出口——待决事项第 21 项说的“切到国外”；只有 DIRECT 一项的组（国内直连）不动。"""
     conf = rd.mihomo_dial_base(config_text)
     orig = yaml.safe_load(config_text)
     dns = conf["dns"]
@@ -839,7 +1000,8 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
         kind_of[srv] = "domestic"
     for srv in model.dns["foreign_doh"]:
         kind_of[srv] = "foreign"
-    stubs = {k: DnsStub(k, _Loopback()) for k in ("system", "domestic", "foreign")}
+    answers = _PerHostLoopback(hosts)
+    stubs = {k: DnsStub(k, answers) for k in ("system", "domestic", "foreign")}
 
     def stand_in(servers) -> list:
         out = []
@@ -857,7 +1019,8 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
     for key in MIHOMO_DNS_POLICIES:
         if key in dns:
             dns[key] = {pattern: stand_in(servers) for pattern, servers in dns[key].items()}
-    closed = free_port_tcp_udp()
+    recorder = Socks5Recorder() if outbound == "socks5" else None
+    closed = recorder.port if recorder else free_port_tcp_udp()
     node = {"name": OUTBOUND_NODE, "server": "127.0.0.1", "port": closed, "udp": True}
     if outbound == "socks5":
         node["type"] = "socks5"
@@ -871,14 +1034,15 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
         "mixed-port": port, "allow-lan": False, "bind-address": "127.0.0.1", "log-level": "debug",
         "find-process-mode": "off", "geo-auto-update": False, "profile": {"store-selected": False, "store-fake-ip": False},
         "proxies": [node],
-        "proxy-groups": [{"name": g["name"], "type": "select",
-                          "proxies": ["DIRECT" if (g.get("proxies") or [None])[0] == "DIRECT" else OUTBOUND_NODE]}
+        "proxy-groups": [{"name": g["name"], "type": "select", "proxies": [_probe_member(g.get("proxies") or [], switch_default_direct)]}
                          for g in orig["proxy-groups"]],
     })
     home = tempfile.mkdtemp(prefix="outbound-mihomo-")
     try:
         for st in stubs.values():
             st.start()
+        if recorder:
+            recorder.start()
         for src, dst in {"geosite.dat": "GeoSite.dat", "geoip.dat": "GeoIP.dat", "geoip.metadb": "geoip.metadb"}.items():
             if os.path.exists(os.path.join(geodata_dir, src)):
                 shutil.copy(os.path.join(geodata_dir, src), os.path.join(home, dst))
@@ -901,31 +1065,40 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        _refuse_if_blocked(logp, f"mihomo {outbound} {transport}")
         out = {}
         for h in hosts:
             asked = [k for k, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
             out[h] = "+".join(asked) if asked else NONE
+        if received is not None and recorder:
+            received.update(received_by_node(recorder, answers, hosts))
         return out
     finally:
         for st in stubs.values():
             st.close()
+        if recorder:
+            recorder.close()
         shutil.rmtree(home, ignore_errors=True)
 
 
-def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: list, outbound: str, transport: str) -> dict:
+def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: list, outbound: str, transport: str,
+                           received: dict = None, switch_default_direct: bool = False) -> dict:
     """同上，sing-box 这一边（自查同一类问题）。返回 {主机: 收到查询的 DNS 服务器标签，或 none}。
     DNS 规则、路由规则原样；dns-cn / dns-foreign / dns-local 换成本机替身（dns-fakeip 保留），TUN 入站换成本机回环上的
     mixed 入站；默认直连的组仍直连，其余策略组都换成测试出口（socks 出站，或 WireGuard 端点）。
     sing-box 的代理出站把域名原样交给节点（TCP、UDP 都是）；WireGuard 端点要 IP，按 DNS 规则解析
-    （v1.14.1 protocol/wireguard/endpoint.go 的 DialContext：dnsRouter.Lookup，不指定服务器）。"""
+    （v1.14.1 protocol/wireguard/endpoint.go 的 DialContext：dnsRouter.Lookup，不指定服务器）。
+    received、switch_default_direct 同 mihomo_outbound_probe（2026-10-13）：socks 出口连本机的 Socks5Recorder。"""
     conf = json.loads(config_text)
-    stubs = {tag: DnsStub(tag, _Loopback()) for tag in ("dns-cn", "dns-foreign", "dns-local")}
+    answers = _PerHostLoopback(hosts)
+    stubs = {tag: DnsStub(tag, answers) for tag in ("dns-cn", "dns-foreign", "dns-local")}
     for srv in conf["dns"]["servers"]:
         if srv["tag"] in stubs:
             port, tag = stubs[srv["tag"]].port, srv["tag"]
             srv.clear()
             srv.update({"type": "udp", "tag": tag, "server": "127.0.0.1", "server_port": port})
-    closed, mixed = free_port_tcp_udp(), free_port_tcp_udp()
+    recorder = Socks5Recorder() if outbound == "socks" else None
+    closed, mixed = (recorder.port if recorder else free_port_tcp_udp()), free_port_tcp_udp()
     conf["log"] = {"level": "debug", "timestamp": False}
     conf["inbounds"] = [{"type": "mixed", "tag": "probe-in", "listen": "127.0.0.1", "listen_port": mixed}]
     for rs in conf["route"]["rule_set"]:
@@ -940,8 +1113,11 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
     outs = []
     for o in conf["outbounds"]:
         if o["type"] in ("selector", "urltest"):
-            direct = (o.get("default") or (o.get("outbounds") or [None])[0]) == "DIRECT"
-            outs.append({"type": "selector", "tag": o["tag"], "outbounds": ["DIRECT" if direct else OUTBOUND_NODE]})
+            members = list(o.get("outbounds") or [])
+            if o.get("default") in members:
+                members.remove(o["default"])
+                members.insert(0, o["default"])
+            outs.append({"type": "selector", "tag": o["tag"], "outbounds": [_probe_member(members, switch_default_direct)]})
         else:
             outs.append(o)
     if outbound == "socks":
@@ -958,6 +1134,8 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
     try:
         for st in stubs.values():
             st.start()
+        if recorder:
+            recorder.start()
         cfg = os.path.join(tmp, "probe.json")
         with open(cfg, "w", encoding="utf-8") as f:
             json.dump(conf, f, ensure_ascii=False)
@@ -974,20 +1152,48 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        _refuse_if_blocked(logp, f"sing-box {outbound} {transport}")
         out = {}
         for h in hosts:
             asked = [tag for tag, st in stubs.items() if any(q.lower().rstrip(".") == h for q, _ in st.seen)]
             out[h] = "+".join(asked) if asked else NONE
+        if received is not None and recorder:
+            received.update(received_by_node(recorder, answers, hosts))
         return out
     finally:
         for st in stubs.values():
             st.close()
+        if recorder:
+            recorder.close()
         shutil.rmtree(tmp, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
 # 成员快照
 # ---------------------------------------------------------------------------
+
+def report_outbound(who: str, how: str, cases, rec, recv, sw_cases, sw_rec, sw_recv) -> list:
+    """打印出站核对的结果，返回不符合期望的条目（tests/cases.yaml 的 outbound_resolve、outbound_switched）。"""
+    pre = who.split("-")[0] + "-"
+    version = who.split("-")[1] if "-" in who else ""          # singbox-1.14 → 1.14
+    bad = []
+    for title, cs, r, rv in (("出站时的解析", cases, rec, recv), ("默认直连的组切到代理以后", sw_cases, sw_rec, sw_recv)):
+        bad_here = [f"{scen} {c['host']}：期望 {c['expect'][scen]}，官方内核 {r[scen][c['host']]}"
+                    for scen in r for c in cs if r[scen][c["host"]] != c["expect"][scen]]
+        bad_here += [f"{scen} {c['host']} 节点收到：期望 {rd.received_want(c, scen, version)}，实际 {rv[scen][c['host']]}"
+                     for scen in rv for c in cs if rv[scen][c["host"]] != rd.received_want(c, scen, version)]
+        print(f"  [{'符合' if not bad_here else '不符合'}] {title} {len(cs)} 个主机 × {len(r)} 种出口{how}："
+              + ("官方内核与人工期望一致" if not bad_here else f"有 {len(bad_here)} 条不一致"))
+        for c in cs:
+            print(f"      {c['host']}：" + "，".join(
+                f"{scen[len(pre):]} → {r[scen][c['host']]}" + ("（已知限制的现状，见 docs/06）" if scen in c.get("limit", []) else "")
+                + (f"，节点收到 {rv[scen][c['host']]}"
+                   + ("（现状：内核没有发出，见 docs/06）" if scen in c.get("received_limit", []) and rv[scen][c["host"]] == "-" else "")
+                   if scen in rv else "")
+                for scen in r))
+        bad += [f"{who} {title}：{x}" for x in bad_here]
+    return bad
+
 
 def mihomo_dns_sets(config_text: str) -> list:
     """mihomo 配置的 dns 段里引用到的 geosite 集合名（nameserver-policy、fake-ip-filter 里的 geosite:甲,乙）。"""
@@ -1371,37 +1577,44 @@ def main(argv=None) -> int:
         print("      " + x)
     failures += [f"mihomo 境外 DNS 不应答：{x}" for x in bad]
     mihomo_dial_record["dial_foreign_silent"], mihomo_dial_record["dns_foreign_silent"] = d3, q3
-    # 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：走代理的组换成真的出口（连本机空端口），看出口自己会不会再解析
-    ob_cases = rd.outbound_cases()
-    ob_hosts = [c["host"] for c in ob_cases]
-    ob_rec = {}
+    # 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：走代理的组换成真的出口，看出口自己会不会再解析目标、交给谁。
+    # 2026-10-13（GPT 审核 r14 的建议 S01）：SOCKS 出口连本机的 SOCKS5 接收端，另记节点收到的目标是域名还是 IP；
+    # 另跑一遍“默认直连、可以切换的组也切到测试出口”（outbound_switched，待决事项第 21 项）。
+    ob_cases, sw_cases = rd.outbound_cases(), rd.outbound_switched_cases()
+    ob_hosts, sw_hosts = [c["host"] for c in ob_cases], [c["host"] for c in sw_cases]
+    ob_rec, ob_recv, sw_rec, sw_recv = {}, {}, {}, {}
     for scen in rd.OUTBOUND_SCENARIOS:
         core, outbound, transport = scen.split("-")
         if core == "mihomo":
-            ob_rec[scen] = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, outbound, transport)
-    bad = [f"{scen} {c['host']}：期望 {c['expect'][scen]}，官方内核 {ob_rec[scen][c['host']]}"
-           for scen in ob_rec for c in ob_cases if ob_rec[scen][c["host"]] != c["expect"][scen]]
-    print(f"  [{'符合' if not bad else '不符合'}] 出站时的解析 {len(ob_cases)} 个主机 × {len(ob_rec)} 种出口"
-          "（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP，出口连本机空端口；"
-          "看出口自己会不会再解析目标、交给哪一类 DNS；none = 三类替身都没有收到）："
-          + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
-    for c in ob_cases:
-        print(f"      {c['host']}：" + "，".join(f"{scen[len('mihomo-'):]} → {ob_rec[scen][c['host']]}"
-                                             + ("（已知限制的现状，见 docs/06）" if scen in c.get("limit", []) else "")
-                                             for scen in ob_rec))
-    failures += [f"mihomo 出站时的解析：{x}" for x in bad]
-    # 自检：去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard 那一种。应该只有 product: true 的主机变回国内 DNS
-    without = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, "wireguard", "tcp", without_product_layer=True)
+            got, got_sw = {}, {}
+            ob_rec[scen] = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, outbound, transport, received=got)
+            sw_rec[scen] = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, sw_hosts, outbound, transport, received=got_sw,
+                                                 switch_default_direct=True)
+            if scen in rd.RECEIVED_SCENARIOS:
+                ob_recv[scen], sw_recv[scen] = got, got_sw
+    failures += report_outbound("mihomo", "（走代理的组换成 SOCKS5 走 TCP、SOCKS5 走 UDP、WireGuard 走 TCP；"
+                                "SOCKS5 出口连本机的 SOCKS5 接收端，WireGuard 出口连本机空端口；none = 三类替身都没有收到）",
+                                ob_cases, ob_rec, ob_recv, sw_cases, sw_rec, sw_recv)
+    # 自检：去掉 nameserver-policy 里产品域名那一层（r13 的样子）再跑 WireGuard、SOCKS5 走 UDP 两种（UDP 那一种 2026-10-13 起，
+    # GPT 审核 r14 的建议 S01）。应该只有 product: true 的主机变回国内 DNS
+    without = {}
+    for scen in ("mihomo-wireguard-tcp", "mihomo-socks5-udp"):
+        _, outbound, transport = scen.split("-")
+        without[scen] = mihomo_outbound_probe(a.mihomo, a.geodata_dir, model, core_text, ob_hosts, outbound, transport, without_product_layer=True)
     should = sorted(c["host"] for c in ob_cases if c.get("product"))
-    moved = sorted(h for h in ob_hosts if without[h] != ob_rec["mihomo-wireguard-tcp"][h])
-    ok = moved == should and bool(should) and all(without[h] == "domestic" for h in moved)
-    print("      自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，WireGuard 出口下 "
-          + ("、".join(f"{h} → {without[h]}" for h in moved) if moved else "结果没有变化")
-          + ("——只有这一类变回国内 DNS，这一层仍然需要" if ok
-             else f"——应该变回 domestic 的是 {should}，实际不是这样：这项核对没有起作用，或者内核的行为变了"))
-    if not ok:
-        failures.append("mihomo 出站时的解析：去掉产品域名那一层的自检结果不对")
-    mihomo_dial_record["outbound"], mihomo_dial_record["outbound_without_product_layer"] = ob_rec, without
+    for scen, got in without.items():
+        moved = sorted(h for h in ob_hosts if got[h] != ob_rec[scen][h])
+        ok = moved == should and bool(should) and all(got[h] == "domestic" for h in moved)
+        print(f"      自检：去掉 nameserver-policy 里走代理组的产品域名那一层后，{scen[len('mihomo-'):]} 下 "
+              + ("、".join(f"{h} → {got[h]}" for h in moved) if moved else "结果没有变化")
+              + ("——只有这一类变回国内 DNS，这一层仍然需要" if ok
+                 else f"——应该变回 domestic 的是 {should}，实际不是这样：这项核对没有起作用，或者内核的行为变了"))
+        if not ok:
+            failures.append(f"mihomo 出站时的解析：去掉产品域名那一层的自检结果不对（{scen}）")
+    mihomo_dial_record.update({"outbound": ob_rec, "outbound_received": ob_recv, "outbound_switched": sw_rec,
+                               "outbound_switched_received": sw_recv,
+                               "outbound_without_product_layer": without["mihomo-wireguard-tcp"],
+                               "outbound_without_product_layer_udp": without["mihomo-socks5-udp"]})
     official["mihomo"].update(mihomo_dial_record)
 
     # ---- sing-box ----
@@ -1464,21 +1677,20 @@ def main(argv=None) -> int:
         for x in bad[:20]:
             print("      " + x)
         failures += [f"{client} 境外 DNS 不应答：{x}" for x in bad]
-        # 出站时的解析（2026-10-07，自查 GPT 审核 r13 的 R13-F01 在 sing-box 上有没有）
-        sb_ob = {}
+        # 出站时的解析（2026-10-07，自查 GPT 审核 r13 的 R13-F01 在 sing-box 上有没有；2026-10-13 起同 mihomo：SOCKS 出口连本机的
+        # SOCKS5 接收端，加了 SOCKS 走 TCP，另跑“默认直连的组也切到测试出口”那一遍）
+        sb_ob, sb_recv, sb_sw, sb_sw_recv = {}, {}, {}, {}
         for scen in rd.OUTBOUND_SCENARIOS:
             core, outbound, transport = scen.split("-")
             if core == "singbox":
-                sb_ob[scen] = singbox_outbound_probe(binary, a.srs_dir, files[rel], ob_hosts, outbound, transport)
-        bad = [f"{scen} {c['host']}：期望 {c['expect'][scen]}，官方内核 {sb_ob[scen][c['host']]}"
-               for scen in sb_ob for c in ob_cases if sb_ob[scen][c["host"]] != c["expect"][scen]]
-        print(f"  [{'符合' if not bad else '不符合'}] 出站时的解析 {len(ob_cases)} 个主机 × {len(sb_ob)} 种出口"
-              "（走代理的组换成 SOCKS 走 UDP、WireGuard 端点走 TCP）：" + ("官方内核与人工期望一致" if not bad else f"有 {len(bad)} 条不一致"))
-        for c in ob_cases:
-            print(f"      {c['host']}：" + "，".join(f"{scen[len('singbox-'):]} → {sb_ob[scen][c['host']]}"
-                                                 + ("（已知限制的现状，见 docs/06）" if scen in c.get("limit", []) else "")
-                                                 for scen in sb_ob))
-        failures += [f"{client} 出站时的解析：{x}" for x in bad]
+                got, got_sw = {}, {}
+                sb_ob[scen] = singbox_outbound_probe(binary, a.srs_dir, files[rel], ob_hosts, outbound, transport, received=got)
+                sb_sw[scen] = singbox_outbound_probe(binary, a.srs_dir, files[rel], sw_hosts, outbound, transport, received=got_sw,
+                                                     switch_default_direct=True)
+                if scen in rd.RECEIVED_SCENARIOS:
+                    sb_recv[scen], sb_sw_recv[scen] = got, got_sw
+        failures += report_outbound(client, "（走代理的组换成 SOCKS 走 TCP、SOCKS 走 UDP、WireGuard 端点走 TCP；SOCKS 出口连本机的 SOCKS5 接收端）",
+                                    ob_cases, sb_ob, sb_recv, sw_cases, sb_sw, sb_sw_recv)
         # 两个版本的官方记录分开存：1.14 的在 singbox，1.12 的在 singbox112（测试里各比各的）
         official["singbox" if client == "singbox-1.14" else "singbox112"] = {
             "version": ver, "config": rel, "config_sha256": sha256_text(files[rel]),
@@ -1486,6 +1698,7 @@ def main(argv=None) -> int:
             "routes": {t: list(v) for t, v in routes.items() if v},
             "dns": {f"{h} {q}": v for (h, q), v in dns_got.items()},
             "dial": dial, "dial_without_fix": before, "dial_foreign_silent": d3, "dns_foreign_silent": q3, "outbound": sb_ob,
+            "outbound_received": sb_recv, "outbound_switched": sb_sw, "outbound_switched_received": sb_sw_recv,
             "dial_sha256": rd.dial_digest("singbox", rd.singbox_dial_base(model, plan, variant, dial_cases)[0])}
 
     # ---- 自检：把更正拿掉再跑一遍 ----
@@ -1557,6 +1770,9 @@ def main(argv=None) -> int:
                          "official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析"
                          "（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），"
                          "mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。"
+                         "2026-10-13 起：SOCKS 出口连本机的 SOCKS5 接收端，outbound_received 是节点收到的目标（domain / ip / -）；"
+                         "outbound_switched、outbound_switched_received 是把默认直连、可以切换的组也切到测试出口以后的同一项核对"
+                         "（tests/cases.yaml 的 outbound_switched）；mihomo 的 outbound_without_product_layer_udp 是 SOCKS5 走 UDP 的那一遍自检。"
                          "loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的"
                          "国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
                 "generated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),

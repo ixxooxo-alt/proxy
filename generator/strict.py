@@ -25,6 +25,10 @@ from typing import List, Tuple
 CN_DATA_REL = "source/data/cn-domains.txt"
 MAX_DATA_REL = "source/data/cn-domains-max.txt"
 MAX_LICENSE_REL = "source/data/LICENSE-ios_rule_script.txt"
+# 大清单副本是 GPL-2.0 的。它第 2 条 a 款要求改过的文件写明改了什么、哪天改的（2026-10-13，GPT 审核 r14 的建议 S03）：
+# MAX_CONVERTED_ON 是本项目第一次按固定快照生成这份副本的日期，换快照重新生成时改成那一天；之后每一版的改动日期看统一源版本号。
+MAX_CONVERTED_ON = "2026-10-07"
+GPL2_URL = "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html"
 LOON_CN_REL = "loon/rules/cn-domains.list"
 QX_CN_REL = "quantumultx/rules/cn-domains.list"
 QX_MAX_REL = "quantumultx/rules/cn-domains-max.list"
@@ -129,7 +133,12 @@ def qx_max_list(m, plan) -> str:
     suffix, full, dropped = max_entries(m, plan)
     L = ["# Quantumult X 严格版用的上游国内域名大清单（策略由配置里的 force-policy= 指定，行内的策略名会被忽略）。由统一源生成，请勿手工修改。"]
     L += m.max_data_header + [
-        f"# 生成时另去掉 {dropped} 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 {len(suffix) + len(full)} 条。"]
+        f"# 生成时另去掉 {dropped} 条已被配置里的本地规则覆盖的条目（本地规则优先于远程规则，它们本来也不会生效），这个文件里共 {len(suffix) + len(full)} 条。",
+        "# 本项目在这个文件上的改动（GPL-2.0 第 2 条 a 款要求写明改了什么、哪天改的）：把上面的数据逐行改成 Quantumult X 的写法"
+        "（以“.”开头的写成 HOST-SUFFIX，其余写成 HOST，行尾的 direct 由配置里的 force-policy 决定），去掉上一行说的那些条目；"
+        f"{MAX_CONVERTED_ON} 第一次生成；以后本地规则变了、去掉的条目跟着变时重新生成，那几次的日期见这个文件在仓库里的提交记录"
+        "（这里不写版本号：内容没变时文件逐字节不变，客户端不用重新下载）。"
+        f"GPL-2.0 原文：{GPL2_URL}"]
     L += [f"HOST-SUFFIX,{s},{QX_INLINE_DIRECT}" for s in suffix]
     L += [f"HOST,{d},{QX_INLINE_DIRECT}" for d in full]
     return "\n".join(L) + "\n"

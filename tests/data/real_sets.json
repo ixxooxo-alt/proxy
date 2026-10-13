@@ -1,5 +1,5 @@
 {
- "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 把 nameserver-policy 里交给系统 DNS 的几条改成国内 DNS。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
+ "about": "核对用到的主机在真实上游集合里的成员关系，以及官方内核对同一批主机的判断结果。由 tools/check_real_routes.py --write-snapshot 生成，不要手改；上游数据更新后结论可能变化。hosts / ips 下各端的含义：mihomo、singbox 是“在哪个集合里（命中的条目）”；loon、quantumultx 是“被哪个远程规则文件命中”。ips 的 cn 表示是否在国内 IP 段里（mihomo 取自同一次发布的 geoip.dat，官方内核实际用的是 geoip.metadb；Loon / Quantumult X 用 App 自带的库，拿不到，测试里假定与 mihomo 的一致）。official 下是官方内核那一次运行的记录：mihomo；singbox（1.14 版配置 + 1.14 内核）；singbox112（1.12 兼容版配置 + 1.12 内核）。dial 是拨号时名字交给谁解析：sing-box 记的是 DNS 服务器的标签，dial_without_fix 是把节点上的 domain_resolver 和局域网后缀的 resolve 规则拿掉后的同一项结果；mihomo 记的是哪一类 DNS（system 系统、domestic 国内、foreign 境外，核对时各换成一个本机替身），它的 dns 是设备发来的查询交给哪一类（没有替身收到时记内核自己回了什么：fake-ip 是直接给了假地址，empty 是直接回了一条记录都没有的应答）。mihomo 另有三组自检记录，是从 DNS 段里各去掉一样东西后的同一批结果：…_without_node_policy 去掉 proxy-server-nameserver-policy，…_without_follow_policy 去掉 direct-nameserver-follow-policy，…_without_lan_policy 把 nameserver-policy 里交给系统 DNS 的几条改成国内 DNS。这些都是生成快照那一天的记录，自动测试只是重放它，不会重新启动内核。每份记录里有两个摘要，测试用它们确认记录对应的就是现在生成的配置：routing_sha256 是当时那份配置的规则段与 DNS 段的摘要，管路由和 DNS 去向的记录；dial_sha256 是拨号核对那份配置里影响拨号解析的部分（见 tools/real_data.py 的 dial_digest）的摘要，管拨号记录。2026-10-06 起另有：dial 里 kind 为 proxied / unlisted 的用例（走代理组的域名、没被域名规则接住的域名，连接过程中名字被哪个替身收到；none 表示都没有收到）；dial_foreign_silent / dns_foreign_silent 是把境外 DNS 的替身改成只收不答、每个连接保持十几秒重跑的同一批结果，应当与正常那一遍相同；consistency 是国内 DNS 与路由的逐条扫描（tools/dns_route_consistency.py）：swept 是扫了多少代表主机，to_domestic 是其中名字会交给国内 DNS 的，consistent 是路由为国内直连 / 直连 / 拦截的，default_direct 是归默认直连、可切换的组的，mismatch 是走代理组的（by_ip 表示它没被域名规则接住，去向取决于假定的解析结果），official_checked 是交给官方内核核对过的主机数。2026-10-07 起另有 outbound：出站时的解析（tests/cases.yaml 的 outbound_resolve：走代理的组换成真的出口、连本机空端口，看出口自己会不会再解析目标、交给谁），mihomo 的 outbound_without_product_layer 是去掉 nameserver-policy 里产品域名那一层后的同一项自检。2026-10-13 起：SOCKS 出口连本机的 SOCKS5 接收端，outbound_received 是节点收到的目标（domain / ip / -）；outbound_switched、outbound_switched_received 是把默认直连、可以切换的组也切到测试出口以后的同一项核对（tests/cases.yaml 的 outbound_switched）；mihomo 的 outbound_without_product_layer_udp 是 SOCKS5 走 UDP 的那一遍自检。loon 一类的成员记录里除了广告集合，还有 Loon 严格版订阅的国内域名集合；严格版引用的自有远程规则文件不在快照里（它们就是产物本身）。",
  "assumed_dns": {
   "default": "203.0.113.77",
   "note": "解析结果是假定的：tests/fixtures.yaml 的 dns；没列出的主机一律当作解析到境外 IP"
@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1637,
+    "from_rules": 1639,
     "from_sets": 222448,
-    "hosts": 224085,
+    "hosts": 224087,
     "sets": {
      "cn": 111224
     },
@@ -98,14 +98,14 @@
    "without_product_dns_rules": 136
   },
   "singbox": {
-   "consistent": 17699,
+   "consistent": 17701,
    "default_direct": [],
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1550,
+    "from_rules": 1552,
     "from_sets": 17996,
-    "hosts": 19546,
+    "hosts": 19548,
     "sets": {
      "geosite-cn": 9303
     },
@@ -114,18 +114,18 @@
      "regex": 8
     }
    },
-   "to_domestic": 17699,
+   "to_domestic": 17701,
    "without_product_dns_rules": 130
   },
   "singbox112": {
-   "consistent": 17699,
+   "consistent": 17701,
    "default_direct": [],
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1550,
+    "from_rules": 1552,
     "from_sets": 17996,
-    "hosts": 19546,
+    "hosts": 19548,
     "sets": {
      "geosite-cn": 9303
     },
@@ -134,10 +134,10 @@
      "regex": 8
     }
    },
-   "to_domestic": 17699
+   "to_domestic": 17701
   }
  },
- "generated": "2026-10-07",
+ "generated": "2026-10-13",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -317,6 +317,18 @@
     "geosite-category-ads-all": "suffix:adservice.google.com",
     "geosite-cn": "full:adservice.google.com",
     "geosite-geolocation-!cn": "suffix:google.com"
+   }
+  },
+  "afpapi.alimama.com": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite.list": "keyword:afpapi.alimama.com"
+   },
+   "mihomo": {},
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "keyword:afpapi.alimama.com"
+   },
+   "singbox": {
+    "geosite-cn": "suffix:alimama.com"
    }
   },
   "agent.global.api5.cursor.sh": {
@@ -3175,7 +3187,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "c1c4881570f2377e33ac4687a32c19b355d86e61a13e3abcb07482a7707a5126",
+   "config_sha256": "0e107e0f13da44da6063ce912f82dc9d69076740afa0a2f62bd4a6489590c813",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -3198,7 +3210,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "9b53c3c9a62e18b3efc09fa316129b72ff103e91a6724926673a8cc51807266a",
+   "dial_sha256": "dae91fb882d9a81dd29b770e42b06ce39b66e9a7d80019c2b38ff140963d3fcd",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -3358,7 +3370,73 @@
      "www.qq.com": "domestic"
     }
    },
+   "outbound_received": {
+    "mihomo-socks5-tcp": {
+     "chatgpt.com": "domain",
+     "download.microsoft.com": "domain",
+     "never-listed-site.org": "domain",
+     "qwen.ai": "domain",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    },
+    "mihomo-socks5-udp": {
+     "chatgpt.com": "ip",
+     "download.microsoft.com": "ip",
+     "never-listed-site.org": "ip",
+     "qwen.ai": "ip",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    }
+   },
+   "outbound_switched": {
+    "mihomo-socks5-tcp": {
+     "api.bilibili.com": "none",
+     "www.apple.com": "none",
+     "www.apple.com.cn": "none",
+     "www.qq.com": "domestic"
+    },
+    "mihomo-socks5-udp": {
+     "api.bilibili.com": "domestic",
+     "www.apple.com": "foreign",
+     "www.apple.com.cn": "domestic",
+     "www.qq.com": "domestic"
+    },
+    "mihomo-wireguard-tcp": {
+     "api.bilibili.com": "domestic",
+     "www.apple.com": "foreign",
+     "www.apple.com.cn": "domestic",
+     "www.qq.com": "domestic"
+    }
+   },
+   "outbound_switched_received": {
+    "mihomo-socks5-tcp": {
+     "api.bilibili.com": "domain",
+     "www.apple.com": "domain",
+     "www.apple.com.cn": "domain",
+     "www.qq.com": "-"
+    },
+    "mihomo-socks5-udp": {
+     "api.bilibili.com": "ip",
+     "www.apple.com": "ip",
+     "www.apple.com.cn": "ip",
+     "www.qq.com": "-"
+    }
+   },
    "outbound_without_product_layer": {
+    "chatgpt.com": "foreign",
+    "download.microsoft.com": "domestic",
+    "never-listed-site.org": "foreign",
+    "qwen.ai": "domestic",
+    "time.windows.com": "domestic",
+    "tlu.dl.delivery.mp.microsoft.com": "domestic",
+    "www.apple.com": "domestic",
+    "www.qq.com": "domestic"
+   },
+   "outbound_without_product_layer_udp": {
     "chatgpt.com": "foreign",
     "download.microsoft.com": "domestic",
     "never-listed-site.org": "foreign",
@@ -3463,6 +3541,10 @@
     ],
     "adservice.google.com": [
      "DomainSuffix(adservice.google.com)",
+     "广告拦截"
+    ],
+    "afpapi.alimama.com": [
+     "DomainSuffix(afpapi.alimama.com)",
      "广告拦截"
     ],
     "agent.global.api5.cursor.sh": [
@@ -4446,12 +4528,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "c1fcb8e1da5149798f39e2cc40e98dd9a57f98a9768c8219f0b2cd72e3feaa32",
+   "routing_sha256": "695173c241fe15e679197326e2694fb6c53ef70de142e30decb8b3d8996243c8",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "ccd000134c4d0b468dfd711b58da7428ac24cfab9e14292139ba4cc73e8a1b4f",
+   "config_sha256": "358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -4474,7 +4556,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "a6811e12f14fbdf8fa6efcd6cab1876e4e39795fc9a79cd383b3b164ba26df7e",
+   "dial_sha256": "84f9c8e982489c7c5b14c160accc925bd1df3437507d8620b8ad2a8e9222bbf7",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -4538,6 +4620,16 @@
     "www.recaptcha.net A": "dns-fakeip"
    },
    "outbound": {
+    "singbox-socks-tcp": {
+     "chatgpt.com": "none",
+     "download.microsoft.com": "none",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "none",
+     "time.windows.com": "dns-cn",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    },
     "singbox-socks-udp": {
      "chatgpt.com": "none",
      "download.microsoft.com": "none",
@@ -4557,6 +4649,62 @@
      "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
      "www.apple.com": "dns-cn",
      "www.qq.com": "dns-cn"
+    }
+   },
+   "outbound_received": {
+    "singbox-socks-tcp": {
+     "chatgpt.com": "domain",
+     "download.microsoft.com": "domain",
+     "never-listed-site.org": "ip",
+     "qwen.ai": "domain",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    },
+    "singbox-socks-udp": {
+     "chatgpt.com": "-",
+     "download.microsoft.com": "-",
+     "never-listed-site.org": "ip",
+     "qwen.ai": "-",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    }
+   },
+   "outbound_switched": {
+    "singbox-socks-tcp": {
+     "api.bilibili.com": "none",
+     "www.apple.com": "none",
+     "www.apple.com.cn": "none",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-socks-udp": {
+     "api.bilibili.com": "none",
+     "www.apple.com": "none",
+     "www.apple.com.cn": "none",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-wireguard-tcp": {
+     "api.bilibili.com": "dns-foreign",
+     "www.apple.com": "dns-foreign",
+     "www.apple.com.cn": "dns-foreign",
+     "www.qq.com": "dns-cn"
+    }
+   },
+   "outbound_switched_received": {
+    "singbox-socks-tcp": {
+     "api.bilibili.com": "domain",
+     "www.apple.com": "domain",
+     "www.apple.com.cn": "domain",
+     "www.qq.com": "-"
+    },
+    "singbox-socks-udp": {
+     "api.bilibili.com": "-",
+     "www.apple.com": "-",
+     "www.apple.com.cn": "-",
+     "www.qq.com": "-"
     }
    },
    "routes": {
@@ -4653,6 +4801,10 @@
      "REJECT"
     ],
     "adservice.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "afpapi.alimama.com": [
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
@@ -5637,12 +5789,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "0a376ccfb5404feafe94861fc8381caa9aa42de669628c0ca3b50b82e587bf96",
+   "routing_sha256": "7766b0c5ca3992034b2f3cafb7d952dadf29ca96a84a139dfcfecf70c51d21a4",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "04007aaf91c653e2e8fc9d5a7b8167e727072357445b10e03fd05b3f212bee22",
+   "config_sha256": "32294f3515c29a3f1d8e86b85705b20a757413df12148fcee2e80efbed21920f",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5665,7 +5817,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "87c2d1948eacf50863e79581e977571c36243d4c9ae35ce9f181068a6b457fdc",
+   "dial_sha256": "693dd6b4cd620ed521e741909a6c29a1542cd6242b21d5cf9057b22bf1aa7b72",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5729,6 +5881,16 @@
     "www.recaptcha.net A": "dns-fakeip"
    },
    "outbound": {
+    "singbox-socks-tcp": {
+     "chatgpt.com": "none",
+     "download.microsoft.com": "none",
+     "never-listed-site.org": "dns-foreign",
+     "qwen.ai": "none",
+     "time.windows.com": "dns-cn",
+     "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
+     "www.apple.com": "dns-cn",
+     "www.qq.com": "dns-cn"
+    },
     "singbox-socks-udp": {
      "chatgpt.com": "none",
      "download.microsoft.com": "none",
@@ -5748,6 +5910,62 @@
      "tlu.dl.delivery.mp.microsoft.com": "dns-cn",
      "www.apple.com": "dns-cn",
      "www.qq.com": "dns-cn"
+    }
+   },
+   "outbound_received": {
+    "singbox-socks-tcp": {
+     "chatgpt.com": "domain",
+     "download.microsoft.com": "domain",
+     "never-listed-site.org": "ip",
+     "qwen.ai": "domain",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    },
+    "singbox-socks-udp": {
+     "chatgpt.com": "domain",
+     "download.microsoft.com": "domain",
+     "never-listed-site.org": "ip",
+     "qwen.ai": "domain",
+     "time.windows.com": "-",
+     "tlu.dl.delivery.mp.microsoft.com": "-",
+     "www.apple.com": "-",
+     "www.qq.com": "-"
+    }
+   },
+   "outbound_switched": {
+    "singbox-socks-tcp": {
+     "api.bilibili.com": "none",
+     "www.apple.com": "none",
+     "www.apple.com.cn": "none",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-socks-udp": {
+     "api.bilibili.com": "none",
+     "www.apple.com": "none",
+     "www.apple.com.cn": "none",
+     "www.qq.com": "dns-cn"
+    },
+    "singbox-wireguard-tcp": {
+     "api.bilibili.com": "dns-foreign",
+     "www.apple.com": "dns-foreign",
+     "www.apple.com.cn": "dns-foreign",
+     "www.qq.com": "dns-cn"
+    }
+   },
+   "outbound_switched_received": {
+    "singbox-socks-tcp": {
+     "api.bilibili.com": "domain",
+     "www.apple.com": "domain",
+     "www.apple.com.cn": "domain",
+     "www.qq.com": "-"
+    },
+    "singbox-socks-udp": {
+     "api.bilibili.com": "domain",
+     "www.apple.com": "domain",
+     "www.apple.com.cn": "domain",
+     "www.qq.com": "-"
     }
    },
    "routes": {
@@ -5844,6 +6062,10 @@
      "REJECT"
     ],
     "adservice.google.com": [
+     "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
+     "REJECT"
+    ],
+    "afpapi.alimama.com": [
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
@@ -6828,7 +7050,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "1598a0d8550ebf224d4c36028c86ced760534af28684610d467e49ccf9e7bd48",
+   "routing_sha256": "5d92167bc5391c350d8c9d614ab2041058cf0fd9c39fbfdde3502afbda8fbc39",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -6891,7 +7113,7 @@
    "geoip-cn": 8045
   }
  },
- "source_version": "2026.10.07-2",
+ "source_version": "2026.10.13-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {

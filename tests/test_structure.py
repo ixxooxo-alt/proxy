@@ -192,8 +192,14 @@ class Structure(unittest.TestCase):
         # raw.githubusercontent.com 下只允许这几个仓库：上游规则库、用户自己的图标仓库、用户自己放配置的仓库（严格版的自有规则文件）
         allowed_repos = ("/blackmatrix7/ios_rule_script/", "/ixxooxo-alt/icon/", "/ixxooxo-alt/proxy/",
                          "/SagerNet/sing-geosite/", "/SagerNet/sing-geoip/")
+        # GPL-2.0 原文的地址（2026-10-13，GPT 审核 r14 的建议 S03）：只许出现在大清单副本文件头的注释行里，客户端不会访问它
+        license_url = strict_mod.GPL2_URL
         for rel, t in outputs().items():
-            for u in re.findall(r"https?://[^\s,\"']+", t):
+            for ln in t.splitlines():
+                if license_url in ln:
+                    self.assertEqual(rel, strict_mod.QX_MAX_REL, f"{rel} 里出现了 GPL-2.0 原文的地址")
+                    self.assertTrue(ln.startswith("#"), f"{rel} 里 GPL-2.0 原文的地址不在注释行：{ln[:80]}")
+            for u in re.findall(r"https?://[^\s,\"']+", t.replace(license_url, "")):
                 host = urlparse(u).hostname or ""
                 self.assertIn(host if host != "replace-me.invalid" else "REPLACE-ME.invalid", allowed_hosts,
                               f"{rel} 出现未登记的外部地址 {u}")

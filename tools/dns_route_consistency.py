@@ -145,24 +145,52 @@ class FastMihomo:
         return None
 
 
+def valid_and_split(domain: str) -> List[str]:
+    """mihomo 检查域名写法的那一步（v1.19.31 component/trie/domain.go 的 ValidAndSplitDomain），照着写：不合格的报 ValueError，
+    合格的转成小写、按“.”切开。不合格指：空的；末尾带点；开头或末尾有空白；除第一段以外有空的一段（a..b）；“+”不是单独占
+    第一段、或者后面没有别的段；“*”没有单独占一段。第一段可以是空的（.a.com，“全部子域”的写法）。
+    以前（r14）这里先去掉两头的空白、对 +. 开头的写法不做检查，比内核宽：内核会拒绝的写法，这里也能插进去
+    （2026-10-13，GPT 审核 r14 的建议 S02）。本项目生成的写法都合格，所以以前的结论不受影响。"""
+    if domain == "":
+        raise ValueError("域名写法是空的")
+    if domain.endswith("."):
+        raise ValueError(f"域名写法 {domain!r} 末尾带点")
+    if domain[0].isspace() or domain[-1].isspace():
+        raise ValueError(f"域名写法 {domain!r} 开头或末尾有空白")
+    parts = domain.lower().split(".")
+    if len(parts) == 1 and parts[0] == "":
+        raise ValueError("域名写法是空的")
+    for i, part in enumerate(parts[1:], 2):
+        if part == "":
+            raise ValueError(f"域名写法 {domain!r} 第 {i} 段是空的")
+    for i, part in enumerate(parts, 1):
+        if "+" in part and (part != "+" or i != 1 or len(parts) == 1):
+            raise ValueError(f"域名写法 {domain!r} 里的“+”只能单独占第一段，后面还要有别的段")
+        if "*" in part and part != "*":
+            raise ValueError(f"域名写法 {domain!r} 里的“*”必须单独占一段")
+    return parts
+
+
 class DomainTrie:
     """mihomo 的域名树（v1.19.31 component/trie/domain.go）：
       +.a.com 等于同时写 a.com（精确）和 .a.com（全部子域）；*.a.com 只管下一级子域；其余是精确写法。
       查找时从顶级域往下走，能往下走就先往下（更具体的优先）：下一级精确的标签 > 这一级的 * > 这一级的“.”（全部子域）。
-    和写的先后无关；同一个写法写两次，后写的覆盖先写的。"""
+    和写的先后无关；同一个写法写两次，后写的覆盖先写的。
+    写法和查的名字都先按内核的规则检查（valid_and_split）：插入不合格的写法报错（内核加载配置时同样报错），查不合格的名字
+    返回 None（内核的 Search 同样当作没有命中）。只在本项目用到的写法上和内核核对过（tests/test_dns_lan.py）。"""
 
     def __init__(self):
         self.root: dict = {}
 
     def insert(self, pattern: str, value) -> None:
-        pattern = pattern.strip().lower()
-        if pattern.startswith("+."):
-            self._insert(pattern[2:].split("."), value)
-            self._insert([""] + pattern[2:].split("."), value)
+        try:
+            parts = valid_and_split(pattern)
+        except ValueError as e:
+            raise ValueError(f"不认识的 nameserver-policy 域名写法：{e}") from None
+        if parts[0] == "+":
+            self._insert(parts[1:], value)
+            self._insert([""] + parts[1:], value)
             return
-        parts = pattern.split(".")
-        if any(("*" in x and x != "*") or "+" in x for x in parts) or not all(parts[1:]):
-            raise ValueError(f"不认识的 nameserver-policy 域名写法 {pattern}")
         self._insert(parts, value)
 
     def _insert(self, parts: List[str], value) -> None:
@@ -172,7 +200,13 @@ class DomainTrie:
         node[None] = value
 
     def search(self, host: str):
-        parts = host.lower().rstrip(".").split(".")
+        # 内核查之前先去掉问题里名字末尾的点（dns/util.go 的 msgToDomain），再用同样的规则检查：不合格、或者以点开头，都当作没有命中
+        try:
+            parts = valid_and_split(host.rstrip("."))
+        except ValueError:
+            return None
+        if parts[0] == "":
+            return None
         return self._search(self.root, parts)
 
     def _search(self, node: dict, parts: List[str]):

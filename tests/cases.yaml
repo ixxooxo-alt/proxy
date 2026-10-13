@@ -281,8 +281,10 @@ cases:
   - {host: msg.umeng.com, expect: 国内直连,
      why: "友盟其余的主机直连（推送、一键登录等）。Loon / QX 订阅的上游广告列表里有关键词 umeng（名字里带 umeng 就拦）：靠本地的友盟直连规则排在它前面，真实数据下核对"}
   - {host: umengcloud.com, expect: 国内直连, why: 同上}
-  - {host: alimama.com, expect: 广告拦截, why: "阿里妈妈：只拦上游列出的这台主机本身和它下面的 10 个子域（待决事项第 7 项方案二）"}
+  - {host: alimama.com, expect: 广告拦截, why: "阿里妈妈：只拦上游列出的这台主机本身、它下面的 10 个子域和 afpapi.alimama.com（待决事项第 7 项方案二）"}
   - {host: acookie.alimama.com, expect: 广告拦截}
+  - {host: afpapi.alimama.com, expect: 广告拦截,
+     why: "上游广告列表里写成关键词的那一条：r14 漏了，Loon / QX 按远程列表拦、mihomo / sing-box 放行（GPT 审核 r14 的 R14-F02）。2026-10-13 起四端都由自有拦截拦"}
   - {host: gsp-ssl.ls.apple.com, expect: Apple, why: "Apple 地图 / 定位：2026-10-07 起不再整段归 Apple AI（待决事项第 8 项方案二），回到 Apple 组"}
   - {host: gspe1-ssl.ls.apple.com, expect: Apple AI, why: "上游的 Apple 智能清单列出的这一台仍归 Apple AI"}
   - {host: apps.mzstatic.com, expect: Apple, why: "App Store 图标与截图：回到 Apple 组（同上）"}
@@ -436,31 +438,71 @@ mihomo_dial:
 outbound_resolve:
   - host: qwen.ai
     product: true
-    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
-    why: "R13-F01 的例子。mihomo：TCP 经普通代理协议时把域名交给节点；UDP、WireGuard 时在本机解析，r14 起问境外 DNS（r13 时问的是国内 DNS）。sing-box：代理出站把域名交给节点，WireGuard 端点按 DNS 规则解析，产品域名那一层交给 dns-foreign"
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
+    why: "R13-F01 的例子。mihomo：TCP 经普通代理协议时把域名交给节点；UDP、WireGuard 时在本机解析，r14 起问境外 DNS（r13 时问的是国内 DNS）。sing-box：SOCKS 走 TCP 时把域名交给节点；SOCKS 走 UDP 时，1.14.1 没有把目标写成域名的包发到节点（received_limit：内核日志 packet upload closed: unsupported address，现状记录），1.12.0 发了、节点收到的是域名（2026-10-13 用本机的 SOCKS5 接收端查出来的）；WireGuard 端点按 DNS 规则解析，产品域名那一层交给 dns-foreign。received 是节点（本机的 SOCKS5 接收端）收到的目标：mihomo 走 TCP 收到域名，走 UDP 收到本机用境外 DNS 解析出来的地址"
   - host: download.microsoft.com
     product: true
-    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
     why: "同一类：上游的国内域名集合收了，规则交给 Microsoft 组（默认走代理）"
   - host: chatgpt.com
-    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
     why: "对照：普通的境外产品域名，本来就问境外 DNS"
   - host: never-listed-site.org
-    expect: {mihomo-socks5-tcp: foreign, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-udp: dns-foreign, singbox-wireguard-tcp: dns-foreign}
+    expect: {mihomo-socks5-tcp: foreign, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-tcp: dns-foreign, singbox-socks-udp: dns-foreign, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: ip, singbox-socks-udp: ip}
     why: "没被任何域名规则接住的域名：为了判断最后的国内 IP 规则，两个内核都先解析一次，只问境外 DNS（和 mihomo_dial、singbox_dial 里的 unlisted 一样）"
   - host: www.qq.com
-    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: dns-cn, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    received: {mihomo-socks5-tcp: "-", mihomo-socks5-udp: "-", singbox-socks-tcp: "-", singbox-socks-udp: "-"}
     why: "对照：国内直连的网站，由直连出口用国内 DNS 解析，和走哪种代理出口无关"
   - host: www.apple.com
-    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: dns-cn, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    received: {mihomo-socks5-tcp: "-", mihomo-socks5-udp: "-", singbox-socks-tcp: "-", singbox-socks-udp: "-"}
     why: "Apple 组默认直连：产品域名那一层不收默认直连的组（否则 mihomo 的直连连接也会按这一层问境外 DNS，可能变慢），仍由国内 DNS 解析"
   - host: tlu.dl.delivery.mp.microsoft.com
-    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: dns-cn, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    received: {mihomo-socks5-tcp: "-", mihomo-socks5-udp: "-", singbox-socks-tcp: "-", singbox-socks-udp: "-"}
     why: "Microsoft 组下面更具体的国内直连规则（Windows 更新的下载）：直连，国内 DNS"
   - host: time.windows.com
-    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: dns-cn, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    received: {mihomo-socks5-tcp: "-", mihomo-socks5-udp: "-", singbox-socks-tcp: "-", singbox-socks-udp: "-"}
     why: "要真实地址的名单：2026-10-07 起四端都固定直连（待决事项 15 方案二），由直连出口用国内 DNS 解析。以前路由归 Microsoft 组，sing-box 的 WireGuard 端点按 DNS 规则拿去问了国内 DNS（当时记为已知限制）"
 
+
+# 默认直连、可以切换的组（Apple 那几个、Bilibili 港澳台）切到测试出口以后（2026-10-13，待决事项第 21 项说的“切到国外”；GPT 审核 r14 的
+# 建议 S01 也提到要补“组实际切换”的用例）。格式同 outbound_resolve；只有 DIRECT 一项的组（国内直连）不动。
+# 这一节记的是现状：mihomo 的名字交给哪个 DNS 不看组选了什么——在上游国内域名集合里的名字（api.bilibili.com、www.apple.com.cn）
+# 切到代理以后，转发 UDP、经 WireGuard 时仍交给国内 DNS（limit）；不在集合里的（www.apple.com）直连时由 direct-nameserver（国内）
+# 解析、切到代理以后由默认的 nameserver（境外）解析，本来就跟着变。sing-box 的 DNS 规则把这几个组也算在产品域名那一层里，
+# 切到代理以后 WireGuard 端点问 dns-foreign。
+outbound_switched:
+  - host: www.apple.com
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: foreign, mihomo-wireguard-tcp: foreign, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
+    why: "Apple 组切到代理：apple.com 不在上游国内域名集合里，mihomo 的默认解析器按 nameserver（境外）解析——直连时由 direct-nameserver（国内）解析，所以本来就跟着组的选择变"
+  - host: www.apple.com.cn
+    limit: [mihomo-socks5-udp, mihomo-wireguard-tcp]
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
+    why: "Apple 组切到代理：apple.com.cn 在上游国内域名集合里，mihomo 的 nameserver-policy 把它交给国内 DNS，不看组的选择（待决事项第 21 项）；TCP 经 SOCKS 时不在本机解析"
+  - host: api.bilibili.com
+    limit: [mihomo-socks5-udp, mihomo-wireguard-tcp]
+    expect: {mihomo-socks5-tcp: none, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: none, singbox-socks-udp: none, singbox-wireguard-tcp: dns-foreign}
+    received: {mihomo-socks5-tcp: domain, mihomo-socks5-udp: ip, singbox-socks-tcp: domain, singbox-socks-udp: {"1.14": "-", "1.12": domain}}
+    received_limit: [singbox-socks-udp]
+    why: "Bilibili 港澳台切到台湾这类情况：同上一条（待决事项第 21 项）"
+  - host: www.qq.com
+    expect: {mihomo-socks5-tcp: domestic, mihomo-socks5-udp: domestic, mihomo-wireguard-tcp: domestic, singbox-socks-tcp: dns-cn, singbox-socks-udp: dns-cn, singbox-wireguard-tcp: dns-cn}
+    received: {mihomo-socks5-tcp: "-", mihomo-socks5-udp: "-", singbox-socks-tcp: "-", singbox-socks-udp: "-"}
+    why: "对照：国内直连 2026-10-07 起固定直连（待决事项第 17 项），切换别的组不影响它"
 # 国内 DNS 与路由的逐条扫描（2026-10-06；r12 时叫“全集一致性”）：“名字会交给国内 DNS、连接却走代理组”的主机，应该一个都没有；
 # 现在有的，必须属于下面列出的已知类别。怎么扫的见 tools/dns_route_consistency.py（每个条目取代表主机，不是全部域名）；扫描结果连同官方内核的抽查记在快照的
 # consistency 里，tests/test_real_data.py 逐个核对：每个不一致的主机都能归到某一类，每一类都确实还有主机（没有了就该删掉）。

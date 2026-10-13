@@ -262,6 +262,9 @@ def run(dlc_repo: str, bm7_repo: str):
     ads_set = {(k, v) for k, v, _ in ads_dom}
 
     bm7_ads = {(k, v) for k, v, _ in bm7_own.get(BM7_AD_LIST, [])}
+    # 上游有几条写成关键词、但值本身就是一个主机名（例如 afpapi.alimama.com）。本项目按“这台主机和它的子域”拦：
+    # 凡是本项目这条规则拦的名字都含有这个关键词，所以上游的范围包住本项目的（2026-10-13，GPT 审核 r14 的 R14-F02）。
+    bm7_ad_keywords = {v for k, v, _ in bm7_own.get(BM7_AD_LIST, []) if k == "keyword"}
 
     def related(value):
         """两个快照里与 value 相关、但不是同值同类的条目（同值不同范围，或更窄的子域），供人工判断。"""
@@ -280,9 +283,12 @@ def run(dlc_repo: str, bm7_repo: str):
         want = ("domain" if r.kind == "suffix" else "full", r.value)
         present = want in ads_set
         in_bm7 = want in bm7_ads
+        kw_covers = not in_bm7 and r.value in bm7_ad_keywords
         rec = OrderedDict([("kind", r.kind), ("value", r.value), ("ev", r.ev),
                            ("in_category_ads_all", present), ("in_bm7_" + BM7_AD_LIST, in_bm7)])
-        if not present and not in_bm7:
+        if kw_covers:
+            rec["bm7_keyword_covers"] = True
+        if not present and not in_bm7 and not kw_covers:
             rel = related(r.value)
             rec["related"] = rel[:8] + ([f"……另有 {len(rel) - 8} 条"] if len(rel) > 8 else [])
         ads_local_rec.append(rec)
@@ -290,7 +296,7 @@ def run(dlc_repo: str, bm7_repo: str):
             alt = ("full" if want[0] == "domain" else "domain", r.value) in ads_set
             failures.append(f"自有拦截 {r.kind},{r.value} 标为 dlc，但 category-ads-all 里"
                             + ("范围不同（一个含子域、一个不含）" if alt else "没有这一条"))
-        if r.ev == "bm7-snap" and not in_bm7:
+        if r.ev == "bm7-snap" and not in_bm7 and not kw_covers:
             failures.append(f"自有拦截 {r.kind},{r.value} 标为 bm7-snap，但 blackmatrix7 {BM7_AD_LIST} 里没有同值条目")
 
     def covers_host(rule, kind, value):
@@ -432,9 +438,13 @@ def write_report(m, result, failures, upgrade, differ, counts, missing_by_servic
     evc = defaultdict(int)
     for x in result["ads_local"]:
         evc[x["ev"]] += 1
+    kw = [x for x in result["ads_local"] if x.get("bm7_keyword_covers")]
     L.append("自有拦截条目按证据：" + "，".join(f"`{k}` {v} 条" for k, v in sorted(evc.items()))
-             + f"（`dlc` 的在 category-ads-all 里同值出现，`bm7-snap` 的在 blackmatrix7 {BM7_AD_LIST} 里同值出现）。")
-    no_src = [x for x in result["ads_local"] if not x["in_category_ads_all"] and not x.get("in_bm7_" + BM7_AD_LIST)]
+             + f"（`dlc` 的在 category-ads-all 里同值出现，`bm7-snap` 的在 blackmatrix7 {BM7_AD_LIST} 里同值出现"
+             + ("；其中 " + "、".join(f"`{x['kind']},{x['value']}`" for x in kw)
+                + " 上游写成同名的关键词（名字里含它就拦），上游的范围包住本项目这条" if kw else "") + "）。")
+    no_src = [x for x in result["ads_local"] if not x["in_category_ads_all"] and not x.get("in_bm7_" + BM7_AD_LIST)
+              and not x.get("bm7_keyword_covers")]
     if no_src:
         L.append("")
         L.append("两个快照里都没有同值条目的自有拦截（“相关条目”是快照里同一域名的其他写法或更窄的子域，"

@@ -176,6 +176,18 @@ class UpstreamEvidenceRecord(unittest.TestCase):
             if r.ev == "dlc":
                 self.assertIn((r.kind, r.value), recorded, f"自有拦截 {r.value} 标为 dlc 但记录里没有上游条目")
 
+    def test_bm7_ads_entries_are_recorded_in_the_snapshot(self):
+        """自有拦截里标 bm7-snap 的，记录里要么在 blackmatrix7 的广告列表里同值出现，要么被上游同名的关键词包住
+        （2026-10-13，GPT 审核 r14 的 R14-F02：afpapi.alimama.com 上游写成关键词，r14 迁入阿里妈妈时漏了它）。"""
+        rec = {(x["kind"], x["value"]): x for x in self.rec["ads_local"]}
+        for r in self.plan.ads_local:
+            if r.ev != "bm7-snap":
+                continue
+            x = rec.get((r.kind, r.value))
+            self.assertIsNotNone(x, f"自有拦截 {r.value} 标为 bm7-snap，但记录里没有（改动后需要重新运行核对工具）")
+            self.assertTrue(x["in_bm7_AdvertisingLite"] or x.get("bm7_keyword_covers"), r.value)
+        self.assertTrue(rec[("suffix", "afpapi.alimama.com")].get("bm7_keyword_covers"))
+
     def test_client_restricted_services_recorded(self):
         """不写进 Loon / QX 的服务，记录里要有“写进去会遮挡多少远程广告条目”的核对结果（不写进去的理由可复核）。"""
         restricted = {s.id for s in self.m.services if s.clients and not {"loon", "quantumultx"} <= set(s.clients)}

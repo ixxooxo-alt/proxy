@@ -354,21 +354,57 @@ def dns_cases(family: str = "singbox") -> List[dict]:
 
 
 # 出站时的解析（2026-10-07，GPT 审核 r13 的 R13-F01）：哪个内核 - 测试出口的类型 - 流量
-OUTBOUND_SCENARIOS = ("mihomo-socks5-tcp", "mihomo-socks5-udp", "mihomo-wireguard-tcp", "singbox-socks-udp", "singbox-wireguard-tcp")
+# 2026-10-13 加了 singbox-socks-tcp（GPT 审核 r14 的建议 S01：以前 sing-box 只试了 SOCKS 走 UDP）。
+OUTBOUND_SCENARIOS = ("mihomo-socks5-tcp", "mihomo-socks5-udp", "mihomo-wireguard-tcp",
+                      "singbox-socks-tcp", "singbox-socks-udp", "singbox-wireguard-tcp")
+# 出口是 SOCKS 的几种：测试节点是本机的 Socks5Recorder（tools/check_real_routes.py），另外看节点收到的目标是怎么写的：
+# domain = 域名，ip = 本机解析出来的地址，- = 节点没有收到（走了直连，或者内核没有发出去）。2026-10-13 起。
+RECEIVED_SCENARIOS = tuple(s for s in OUTBOUND_SCENARIOS if "-socks" in s)
+RECEIVED_VALUES = ("domain", "ip", "domain+ip", "-")
+# sing-box 两个版本在这一项上不一样时，received 里那一格写成 {"1.14": …, "1.12": …}（2026-10-13：SOCKS 走 UDP、目标写成域名的包，
+# 1.14.1 报 unsupported address 没有发出，1.12.0 发了）。
+SINGBOX_VERSIONS = ("1.14", "1.12")
+
+
+def received_want(case: dict, scen: str, version: str = "") -> str:
+    """这一条用例在这个场景（和 sing-box 版本）下，节点应该收到什么。"""
+    v = case["received"][scen]
+    return v[version] if isinstance(v, dict) else v
+
+
+def _checked_outbound(section: str) -> List[dict]:
+    cases = _load("tests/cases.yaml")[section]
+    for c in cases:
+        if sorted(c["expect"]) != sorted(OUTBOUND_SCENARIOS):
+            raise ValueError(f"{section} 里 {c['host']} 的期望没有写全场景：{sorted(c['expect'])}")
+        if sorted(c.get("received") or {}) != sorted(RECEIVED_SCENARIOS):
+            raise ValueError(f"{section} 里 {c['host']} 的 received 要写全 SOCKS 那几种场景：{sorted(c.get('received') or {})}")
+        for scen, v in c["received"].items():
+            vals = list(v.values()) if isinstance(v, dict) else [v]
+            if isinstance(v, dict) and (not scen.startswith("singbox-") or sorted(v) != sorted(SINGBOX_VERSIONS)):
+                raise ValueError(f"{section} 里 {c['host']} 的 received.{scen} 分版本写时，只能是 sing-box 的场景、两个版本都写：{sorted(SINGBOX_VERSIONS)}")
+            if not set(vals) <= set(RECEIVED_VALUES):
+                raise ValueError(f"{section} 里 {c['host']} 的 received 只能写 {RECEIVED_VALUES}")
+        if not set(c.get("limit", [])) <= set(OUTBOUND_SCENARIOS):
+            raise ValueError(f"{section} 里 {c['host']} 的 limit 要写场景名：{c['limit']}")
+        if not set(c.get("received_limit", [])) <= set(RECEIVED_SCENARIOS):
+            raise ValueError(f"{section} 里 {c['host']} 的 received_limit 要写 SOCKS 场景名：{c['received_limit']}")
+    hosts = [c["host"] for c in cases]
+    if len(set(hosts)) != len(hosts):
+        raise ValueError(f"{section} 里有重复的主机：核对时是按名字认查询的")
+    return cases
 
 
 def outbound_cases() -> List[dict]:
-    """连接交给代理出口以后、名字交给谁解析的用例（tests/cases.yaml 的 outbound_resolve）。每条都要写全部场景的期望。"""
-    cases = _load("tests/cases.yaml")["outbound_resolve"]
-    for c in cases:
-        if sorted(c["expect"]) != sorted(OUTBOUND_SCENARIOS):
-            raise ValueError(f"outbound_resolve 里 {c['host']} 的期望没有写全场景：{sorted(c['expect'])}")
-        if not set(c.get("limit", [])) <= set(OUTBOUND_SCENARIOS):
-            raise ValueError(f"outbound_resolve 里 {c['host']} 的 limit 要写场景名：{c['limit']}")
-    hosts = [c["host"] for c in cases]
-    if len(set(hosts)) != len(hosts):
-        raise ValueError("outbound_resolve 里有重复的主机：核对时是按名字认查询的")
-    return cases
+    """连接交给代理出口以后、名字交给谁解析的用例（tests/cases.yaml 的 outbound_resolve）。每条都要写全部场景的期望，
+    以及 SOCKS 那几种场景下节点收到的目标（received）。"""
+    return _checked_outbound("outbound_resolve")
+
+
+def outbound_switched_cases() -> List[dict]:
+    """同上，但把默认直连、可以切换的组（Apple 那几个、Bilibili 港澳台）也切到测试出口（tests/cases.yaml 的
+    outbound_switched；待决事项第 21 项说的“切到国外”，2026-10-13 起）。"""
+    return _checked_outbound("outbound_switched")
 
 
 def dial_cases(family: str = "singbox") -> List[dict]:

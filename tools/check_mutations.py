@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 118 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 122 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -405,6 +405,15 @@ cases = [
     ("M118 “国内直连”又能切到国外默认（待决事项 17：固定直连）", [("source/groups.yaml", lambda s: s.replace(
         "  - {name: 国内直连, category: 基础, default: DIRECT, options: [],", "  - {name: 国内直连, category: 基础, default: DIRECT, options: [国外默认],", 1))],
      "国内直连"),
+    ("M119 阿里妈妈又漏了上游写成关键词的 afpapi.alimama.com（GPT 审核 r14 的 R14-F02）", [("source/adblock.yaml", lambda s: s.replace(
+        "  - {suffix: afpapi.alimama.com, ev: bm7-snap,", "  # - {suffix: afpapi.alimama.com, ev: bm7-snap,", 1))], "afpapi.alimama.com"),
+    ("M120 核对工具的域名树又先去掉两头的空白、不检查写法（比内核宽；GPT 审核 r14 的建议 S02）", [("tools/dns_route_consistency.py", lambda s: s.replace(
+        "            parts = valid_and_split(pattern)\n", "            parts = pattern.strip().lower().split(\".\")\n", 1))], "not raised"),
+    ("M121 大清单副本的文件头又不写本项目改了什么、哪天改的（GPL-2.0 第 2 条 a 款；GPT 审核 r14 的建议 S03）", [("generator/strict.py", lambda s: s.replace(
+        "        f\"GPL-2.0 原文：{GPL2_URL}\"]\n", "        \"\"]\n", 1))], "gpl-2.0.html"),
+    ("M122 出站核对认不回节点收到的地址（SOCKS 走 UDP 时节点收到的 IP 全记成没收到；GPT 审核 r14 的建议 S01）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        h = addr if kind == \"domain\" else answers.host_of.get(addr) if kind == \"ip\" else None\n",
+        "        h = addr if kind == \"domain\" else None\n", 1))], "b.example"),
 ]
 
 

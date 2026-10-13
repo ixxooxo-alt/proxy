@@ -40,7 +40,8 @@ AAI_WHAT = {"ls.apple.com": ("Apple 地图 / 定位", "；Apple 智能用到的 
 NARROW_ADS = ("收窄（2026-10-07，用户定了待决事项第 7 项方案二）：不再整域拦截，只拦上游标出的统计 / 广告子域"
               "（source/adblock.yaml 的 local_tracking 最后）；")
 NARROW_UMENG = NARROW_ADS + "友盟其余的主机由“友盟+”服务交给国内直连（services/misc.yaml）"
-NARROW_ALIMAMA = NARROW_ADS + "阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机和它的 10 个子域，其余子域按普通的国内网站处理"
+NARROW_ALIMAMA = NARROW_ADS + ("阿里妈妈只拦 blackmatrix7 列出的 alimama.com 这台主机、它的 10 个子域和上游写成关键词的 afpapi.alimama.com"
+                              "（2026-10-13 补上），其余子域按普通的国内网站处理")
 DIFF_NOTES = {
     "cursorvm.com": "Cursor 官方文档写明是 Grok Bot 托管计算机，本工程归远程控制（报告也建议这样挪）",
     "x.ai": "2026-09-30 用户决定 Grok / xAI 与 Cursor 合并为 Grok 组，不再归其他 AI",
