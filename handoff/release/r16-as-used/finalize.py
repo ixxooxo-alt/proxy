@@ -82,7 +82,7 @@ DOC_NEEDLES_R16 = (
                          "`docs/06` 第 22 项", "`dist/stash/stash.yaml`"]),
     ("PROJECT_STATE.md", ["r16：统一源 2026.10.13-2", "生成器 1.9.0", "T29 第 11 轮", "第 22 项", "确认 294 项通过", "需要再跑一次 294 项", "r16：2026-10-13 11:42 定稿以后"]),
     ("00-审核说明.md", ["## 本轮（r16，统一源 2026.10.13-2）改了什么", "266 → 294 项", "122 → 141 类", "公开产物 13 → 15 个",
-                        "都在 2026-10-13（UTC）", "代码 2026-10-13 11:42 UTC 定稿", "handoff/notes/r15_review_probes.out", "## 本轮请重点看"]),
+                        "**这一轮检查的时间**：2026-10-13（UTC）", "代码 2026-10-13 11:42 UTC 定稿", "handoff/notes/r15_review_probes.out", "## 本轮请重点看"]),
     ("docs/05-验收记录.md", ["294 项全部通过", "逐一注入 141 类错误", "2026.10.13-2（r16", "Python 3.13.16，PyYAML 6.0.1", "2290 个假节点",
                              "860 个 120 / 400 个字符", "270 个目标", "**11:42 定稿**", "mihomo 15 条", "`tests/test_real_data.py`，47 项", "`tests/test_strict.py`，34 项",
                              "`tests/test_stash.py`，23 项", "`tests/test_regions.py`，66 项", "`tests/test_compare_versions.py`，13 项",
@@ -354,7 +354,11 @@ MUT_R16 = {"M123": "test_refuses_what_rfc1928_says_to_refuse", "M124": "test_ref
            "M127": "test_max_copy_change_date_follows_content", "M130": "test_one_placeholder_per_region_that_cannot_connect",
            "M133": "test_dns_block", "M134": "test_stash_uses_system_dns_for_lan_suffixes", "M135": "test_standard_rules_are_the_mihomo_rules",
            "M137": "test_pinned_paypal_node_keeps_its_placeholder", "M138": "test_build_refuses_a_broken_stash_config",
-           "M139": "test_missing_placeholder", "M140": "test_wildcard_keys_are_quoted_like_the_docs"}
+           "M139": "test_missing_placeholder", "M140": "test_wildcard_keys_are_quoted_like_the_docs",
+           "M128": "test_blocked_environment_is_an_error_not_a_result", "M136": "test_strict_list_catches_what_both_geosite_sets_miss",
+           "M141": "test_no_domain_is_resolved_locally_for_rule_matching", "M132": "test_strict_list_before_geolocation",
+           "M131": "test_missing_placeholder", "M129": "test_strict_configs_never_resolve_for_rule_matching",
+           "M111": "test_max_copy_is_the_upstream_list_minus_locally_covered_entries", "M121": "test_max_copy_says_what_was_changed_and_when"}
 for name, test in MUT_R16.items():
     l = next(x for x in mut.splitlines() if x.startswith(f"[发现] {name} "))
     assert test in l and "输出含预期信息" in l, l[:400]
@@ -365,9 +369,22 @@ for i in list(range(71, N_MUT + 1)):
 assert "DeprecationWarning" not in mut
 partial_names = sorted(x for v in res["partial"].values() for x in v)
 print("部分运行的：", res["partial"], "；未见预期信息：", res["not_seen"])
-PARTIAL_EXPECTED = ⟦PARTIAL_EXPECTED⟧
+PARTIAL_EXPECTED = ["M6", "M9", "M31", "M89", "M90"]
 assert partial_names == sorted(PARTIAL_EXPECTED), res["partial"]
-MUT_R16_TEXT = ⟦MUT_R16_TEXT⟧
+MUT_R16_TEXT = ("处理 GPT 审核 r15 新加的六类：M123、M124、M125（SOCKS5 接收端又不看客户端提供的方法、又收分了片的 UDP 包、控制连接断了以后照样收包）"
+                "由 `tests/test_real_data.py` 的 `test_refuses_what_rfc1928_says_to_refuse` 发现；M126（认主机时又不分 TCP / UDP）由 `test_records_names_and_addresses` 发现；"
+                "M127（大清单副本的内容变了，“最后一次改动”的日期没跟着改）由 `tests/test_strict.py` 的 `test_max_copy_change_date_follows_content` 发现；"
+                "M128（读内核日志又不关文件）由 `test_blocked_environment_is_an_error_not_a_result` 发现（这一项把 `ResourceWarning` 当成失败）。"
+                "Stash 的十三类：M130（占位节点连得上）由 `tests/test_stash.py` 的 `test_one_placeholder_per_region_that_cannot_connect` 发现；"
+                "M133、M134（`nameserver` 换成境外 DNS、局域网后缀不交给系统 DNS）由 `test_dns_block`（M134 另有 `tests/test_dns_lan.py` 的 `test_stash_uses_system_dns_for_lan_suffixes`）发现；"
+                "M135（国内常用网站的补充规则不写进 Stash）由 `test_standard_rules_are_the_mihomo_rules` 和路由用例发现；"
+                "M136（模拟器不认 `RULE-SET`）由 `test_strict_list_catches_what_both_geosite_sets_miss` 和真实数据下的两项发现；"
+                "M137（固定的 PayPal 节点没带占位节点）由 `test_pinned_paypal_node_keeps_its_placeholder` 发现；"
+                "M138、M139（生成时、结构检查不核对占位节点）分别由 `test_build_refuses_a_broken_stash_config`、`test_missing_placeholder` 发现；"
+                "M140（DNS 段不加引号）由 `test_wildcard_keys_are_quoted_like_the_docs` 发现；"
+                "M141（模拟器不记本机解析）由“严格版不为判断 IP 规则解析域名”“标准版确实会解析没列到的域名”两项发现；"
+                "M129、M131、M132（严格版的 `GEOIP,CN` 不带 `no-resolve`、没有占位节点、清单排到 `geolocation-!cn` 前面）被写盘前的结构检查拦住，"
+                "生成流程的那批测试因此失败，同时另有对应的测试失败（M129 有路由用例，M131 有占位节点那几项，M132 有 `test_strict_list_before_geolocation`）。")
 mut_cell = (f"{N_MUT} 类全部被发现，都是 r16 定稿（{freeze[:16]} UTC）以后在上面这个摘要、这个代码状态的代码上跑的（{window}）。"
             "“记录对应现在的配置”那两项——规则与 DNS 两段的摘要、拨号摘要——对改了规则、DNS 或出站的变异都会报："
             f"{N_MUT} 类里前一项报了 {len(fresh['with']['routing'])} 类、后一项报了 {len(fresh['with']['dial'])} 类；只靠这两项发现的一类都没有（r13 起）。"
@@ -375,7 +392,12 @@ mut_cell = (f"{N_MUT} 类全部被发现，都是 r16 定稿（{freeze[:16]} UTC
             "r15 加的 M119–M122 和更早的各类，发现它们的测试和 r15 时相同（M119 由路由用例，M120 由 `test_domain_trie_checks_patterns_like_mihomo`，"
             "M121 由 `test_max_copy_says_what_was_changed_and_when`，M122 由 `test_records_names_and_addresses`；M101–M118 见提交 `dc90da7` 里的这一页）。"
             "M45（回溯失控）只跑专门针对它的那一项测试：这种错误会让别的用到正则的测试卡住而不是报错，"
-            "那一项把匹配放在带超时的子进程里，等满 5 分钟后失败并给出提示。⟦PARTIAL_TEXT_HERE⟧其余由对应的测试发现，每一类的失败项见日志")
+            "那一项把匹配放在带超时的子进程里，等满 5 分钟后失败并给出提示。"
+            "“恢复关键词 siri”“azure.com 放回 Microsoft”“用回肯定前瞻”、国内域名清单数据文件被改坏的两类（M89、M90）"
+            "由统一源校验直接拒绝（生成器不肯生成，测试大面积报错）；大清单副本的数据文件被手改（M111）生成时没有拦住，"
+            "由 `tests/test_strict.py` 的 `test_max_copy_is_the_upstream_list_minus_locally_covered_entries` 发现；"
+            "严格版的结构被改坏的几类（M76–M78、M80–M82）和“清空 `proxy-server-nameserver`”被写盘前的检查拦住，生成流程的那批测试因此失败，同时另有路由用例失败；"
+            "“图标登记里漏了 Apple Push”在生成时直接报错；其余由对应的测试发现，每一类的失败项见日志")
 
 # ---- 一次性核对：sing-box UDP 的定位（审核 r15 第三点），在定稿以后重跑 ----
 p16 = read("handoff/notes/r15_review_probes.out")
