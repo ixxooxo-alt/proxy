@@ -182,6 +182,20 @@ class Units(unittest.TestCase):
 
 
 class AgainstItself(unittest.TestCase):
+    def test_stash_filters_get_their_own_label(self):
+        """Stash 写进配置的筛选是同一条正则开头多一段排除内置策略名（r17 起）：报告里写成 <筛选：Stash宽 hk>，不是“未知的正则”
+        （r17 出版本时第一次跑版本对比查出来的）。旧版本的正则不是 (?i)^ 开头的，跳过、不报错。"""
+        from generator.emit_stash import exclude_builtins
+        loose, strict, old_strict = "(?i)^" + "x" * 500, "(?i)^" + "y" * 500, "(?i)^" + "w" * 500
+        labels = cv.Labels(cv.label_sets({"hk": loose}, {"hk": old_strict}, {"hk": loose}, {"hk": strict}))
+        # 两版宽的那条相同：加了前缀的是这一版写进 Stash 的，不能标成“上一版”（r16 的 Stash 没有前缀）
+        self.assertEqual(labels.sub(exclude_builtins(loose)), "<筛选：Stash宽 hk>")
+        self.assertEqual(labels.sub(exclude_builtins(strict)), "<筛选：Stash严 hk>")
+        self.assertEqual(labels.sub(exclude_builtins(old_strict)), "<筛选：上一版Stash严 hk>")
+        self.assertEqual(labels.sub(loose), "<筛选：上一版 hk>")
+        self.assertEqual(labels.sub("(?i)^" + "z" * 500), "<筛选：未知的正则>")
+        self.assertEqual(cv._stash_variant({"hk": "^old-without-icase"}), {})
+
     def test_comparing_the_project_with_itself_reports_no_change(self):
         """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同，
         严格版一节照常列出它和标准版的差别，自有远程规则文件和“上一版”一模一样。

@@ -37,6 +37,7 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+from generator.emit_stash import exclude_builtins  # noqa: E402
 from generator.model import load  # noqa: E402
 from generator.regions import flag  # noqa: E402
 from generator.util import safe_stdout  # noqa: E402
@@ -316,6 +317,28 @@ class Labels:
         return self.by_text.get(text, "<筛选：未知的正则>" if len(text) > 400 else text)
 
 
+def _stash_variant(rxs):
+    """Stash 写进配置的筛选：同一条正则开头多一段排除内置策略名（r17 起，generator/emit_stash.py 的 exclude_builtins）。
+    不是 (?i)^ 开头的（更早的版本）跳过；r16 及以前的 Stash 筛选和其他三端逐字相同，用不着它。"""
+    out = {}
+    for k, v in (rxs or {}).items():
+        try:
+            out[k] = exclude_builtins(v)
+        except ValueError:
+            pass
+    return out
+
+
+def label_sets(old_loose, old_strict, new_loose, new_strict):
+    """Labels 用的几组正则：两版各自的宽、严两条，再加上各自写进 Stash 的那两条（r17 起开头多排除内置策略名，
+    以前没有这几组时报告里写成“未知的正则”——r17 出版本时第一次跑版本对比查出来的）。
+    同一段文字只取第一个标记：Stash 那几组新版本的排在旧版本的前面——两版的正则相同时，加了前缀的那条是新版本写进 Stash 的，
+    旧版本（r16 及以前）的 Stash 没有前缀，不能标成“上一版”。"""
+    return [("上一版 ", old_loose), ("上一版严 ", old_strict), ("宽 ", new_loose), ("严 ", new_strict),
+            ("Stash宽 ", _stash_variant(new_loose)), ("Stash严 ", _stash_variant(new_strict)),
+            ("上一版Stash宽 ", _stash_variant(old_loose)), ("上一版Stash严 ", _stash_variant(old_strict))]
+
+
 def _ini_units(text: str, rel: str, labels: Labels):
     """Loon / Quantumult X：{分段: [(键, 内容)]}。键相同的两条算“同一条的改动”；规则行没有键。"""
     out = collections.OrderedDict()
@@ -554,7 +577,8 @@ def outputs_section(L, old_dir, labels, old_label, new_label):
           "每个产物按“分段”拆成一条一条来比（去掉注释）：Loon / Quantumult X 按 `[分段]` 逐行；mihomo（和 Stash）按策略组、规则、DNS、其余设置；"
           "sing-box 按 DNS 服务器、DNS 规则、路由规则、规则集、出站与策略组、其余设置。节点筛选正则换成了标记："
           f"`<筛选：上一版 hk>` / `<筛选：上一版严 hk>` 是 {old_label} 的（{old_label} 每个地区只有一条筛选时没有后一种），"
-          f"`<筛选：宽 hk>` / `<筛选：严 hk>` 是 {new_label} 的两条。很多条目改法相同、只是各自的地区或各自的地址不同时，"
+          f"`<筛选：宽 hk>` / `<筛选：严 hk>` 是 {new_label} 的两条；`<筛选：Stash宽 hk>` / `<筛选：Stash严 hk>` 是 {new_label} 写进 Stash 的那两条"
+          "（同一条正则，开头多一段排除内置策略名，r17 起；旧版本的写作 `<筛选：上一版Stash宽 hk>`）。很多条目改法相同、只是各自的地区或各自的地址不同时，"
           "合并成一条，写成“各自的地区”“各自的地址”。“顺序”指两版都有的条目，先后是否相同。"
           "规则这类没有名字的条目，一条删除和一条新增文字很像时会配成一条“改动”显示（标题后面带“…”），只是为了紧凑："
           "配成一对不代表一条规则改成了另一条，按后面的“去掉 / 加上”读。", ""]
@@ -660,7 +684,7 @@ def main(argv=None) -> int:
     expect, indep = names_section(L, comp(old_loose), comp(old_strict), comp(new_loose), comp(new_strict),
                                   a.old_label, a.new_label)
     community_section(L, expect, indep, comp(old_loose), comp(new_loose), a.old_label, a.new_label)
-    labels = Labels([("上一版 ", old_loose), ("上一版严 ", old_strict), ("宽 ", new_loose), ("严 ", new_strict)])
+    labels = Labels(label_sets(old_loose, old_strict, new_loose, new_strict))
     outputs_section(L, a.old, labels, a.old_label, a.new_label)
     strict_section(L, a.old, labels, a.old_label, a.new_label)
 

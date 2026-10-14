@@ -7,11 +7,11 @@ FROZEN = sys.argv[2]
 res = json.load(open(os.path.join(D, "mut-result.json"), encoding="utf-8"))
 lines = open(os.path.join(D, "mut-lines.txt"), encoding="utf-8").read().rstrip("\n").split("\n")
 N = res["n"]
-assert len(lines) == N == 153, (len(lines), N)
+assert len(lines) == N == 154, (len(lines), N)
 segs = res["segments"]
 full, partial = res["full"], res["partial"]
 notes_partial = "；".join(f"Ran {k} tests 的几类（{'、'.join(v)}）" for k, v in sorted(partial.items(), key=lambda kv: int(kv[0])))
-batches = ("M1 M4 … M151", "M2 M5 … M152", "M3 M6 … M153")      # MUT_BATCHES=3：编号除以 3 余 1、余 2、整除
+batches = ("M1 M4 … M154", "M2 M5 … M152", "M3 M6 … M153")      # MUT_BATCHES=3：编号除以 3 余 1、余 2、整除
 if len(segs) == 1:
     when = f"运行时间（UTC）：{segs[0]['start']} 开始，三批并行，{segs[0]['end']} 结束。一次跑完，中间没有中断。"
     cmd = ("命令：MUT_BATCHES=3 bash handoff/release/run_mutations.sh，即 python3 tools/check_mutations.py " + "、".join(batches)
@@ -38,14 +38,17 @@ head = [
     "      M45（回溯失控）只跑专门针对它的那一项测试（见脚本开头的说明）：那一项把匹配放在带超时的子进程里，等满 300 秒后失败。",
     "      “未见预期信息”只表示输出里没有脚本预设的那个关键字（" + ("、".join(res["not_seen"]) or "这次没有") + "），失败项本身是对的。",
     "      M21 那一行有两个 FAILED：前一个是被测的检查脚本自己打印的，后一个才是这次测试运行的结果。",
-    "      这次是 153 类：r16 的 141 类，加上 M142–M145（对应 GPT 审核 r16 的 R16-F01：Stash 的筛选不排除内置策略的名字、生成时不核对、",
+    "      这次是 154 类：r16 的 141 类，加上 M142–M145（对应 GPT 审核 r16 的 R16-F01：Stash 的筛选不排除内置策略的名字、生成时不核对、",
     "      结构检查不核对、排除得太宽）、M146–M149（R16-F02：SOCKS5 接收端不记地址类型不认识的请求、只发了一部分的握手和请求、不支持的命令；",
     "      把一个字节都没发的连接记成不合规）、M150–M152（自查的同类问题：DNS 替身把读不懂的查询直接丢掉、关替身时不报错、有一处不经 close_stubs）",
-    "      和 M153（自查：出站核对的报错分支读内核日志又不关文件，和 r15 那条 ResourceWarning 同一类）。",
+    "      M153（自查：出站核对的报错分支读内核日志又不关文件，和 r15 那条 ResourceWarning 同一类）",
+    "      和 M154（第一次定稿以后跑版本对比查出来的：报告认不出 Stash 带前缀的筛选，写成“未知的正则”）。",
     "      只靠“记录对应现在的配置”那两项（规则与 DNS 两段的摘要、拨号摘要）发现的有 " + (str(len(solo)) + " 类：" + "、".join(solo) if solo else "0 类") + "。",
     "      运行环境和 r16 相同：同一个云端会话，Python 3.13.16，官方程序和上游数据是 handoff/setup_env.sh 登记的那一批。",
     f"      这一份对应的定稿是 {FROZEN} UTC，这一版的全部检查都在它之后跑。",
-    "      定稿之前，M142–M153 在接近定稿的代码上只跑相关的测试模块试过（都被发现），那几次的输出不在这份日志里。",
+    "      定稿之前，M142–M154 在接近定稿的代码上只跑相关的测试模块试过（都被发现），那几次的输出不在这份日志里。",
+    "      这一版定稿了两次：04:02 的那一次之后跑版本对比，查出报告把 Stash 的新筛选写成“未知的正则”，改了 tools/compare_versions.py、加了 M154，",
+    "      重新定稿；第一次定稿以后开始的那一轮变异检查（跑了十几分钟）停掉作废，这份日志全部是第二次定稿以后跑的。",
     "",
 ]
 out = "\n".join(head + lines + ["", f"合计 {N}/{N} 被发现"]) + "\n"

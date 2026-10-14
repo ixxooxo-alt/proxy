@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 153 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 154 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -493,6 +493,9 @@ cases = [
     ("M153 出站核对的报错分支读内核日志又不关文件（和 r15 那条 ResourceWarning 同一类）", [("tools/check_real_routes.py", lambda s: s.replace(
         '    with open(logp, encoding="utf-8", errors="replace") as f:\n        return f.read()[-n:]\n',
         '    return open(logp, encoding="utf-8", errors="replace").read()[-n:]\n', 1))], "test_code_closes_the_files_it_opens"),
+    ("M154 版本对比报告又认不出 Stash 带前缀的筛选（写成“未知的正则”）", [("tools/compare_versions.py", lambda s: s.replace(
+        '            ("Stash宽 ", _stash_variant(new_loose)), ("Stash严 ", _stash_variant(new_strict)),\n', "", 1))],
+     "test_stash_filters_get_their_own_label"),
 ]
 
 
