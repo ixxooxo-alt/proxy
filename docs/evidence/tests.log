@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-13 17:55:29
+运行时间（UTC）：2026-10-14 07:14:48
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：cd8f4cc874b1f4b462d0349531e0ffd4c1edb90ed4d2a61709cc5ae671dda4cf
+统一源摘要：2405728aaec1c9b6a62032f1fc2ecb56e9fb234e37e14485b928f3030f29f58d
 命令：python3 -m unittest discover -s tests -v
 
 test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 15 个公开产物到 out（订阅为占位符）
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 15 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp0u330_xw/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpwxoue03s/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -52,11 +52,13 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp7uin709m/report.md
-报告已写入 /tmp/tmp7uin709m/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp46pjokos/report.md
+报告已写入 /tmp/tmp46pjokos/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同， ... ok
+test_stash_filters_get_their_own_label (test_compare_versions.AgainstItself.test_stash_filters_get_their_own_label)
+Stash 写进配置的筛选是同一条正则开头多一段排除内置策略名（r17 起）：报告里写成 <筛选：Stash宽 hk>，不是“未知的正则” ... ok
 test_missing_strict_output_in_old_version_is_reported_as_new (test_compare_versions.StrictSection.test_missing_strict_output_in_old_version_is_reported_as_new)
 上一版没有严格版时（r11 及更早），第五节写明“这一版新增”，不是含糊的“缺文件”。 ... ok
 test_rule_file_stats (test_compare_versions.StrictSection.test_rule_file_stats) ... ok
@@ -116,7 +118,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmppl_spxpz（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmpo7t2yn84（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -126,8 +128,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmp5misl1qk（订阅为占位符）
-私密产物已写入 ../../../tmp/tmp5misl1qk/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmprt00iz9t（订阅为占位符）
+私密产物已写入 ../../../tmp/tmprt00iz9t/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -211,6 +213,14 @@ test_stash_strict_domestic_list_is_recorded (test_real_data.SnapshotCoverage.tes
 Stash 严格版订阅的上游国内域名清单（2026-10-13）：Clash 的 domain 写法，只有“+.后缀”和精确域名两种行， ... ok
 test_blocked_environment_is_an_error_not_a_result (test_real_data.Socks5RecorderTool.test_blocked_environment_is_an_error_not_a_result)
 内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。读完日志要把文件关上 ... ok
+test_code_closes_the_files_it_opens (test_real_data.Socks5RecorderTool.test_code_closes_the_files_it_opens)
+读写文件都要关（2026-10-14 自查：r16 只改了 _refuse_if_blocked 那一处 ResourceWarning，同一类写法——open(...).read()、 ... ok
+test_dns_stub_keeps_queries_it_cannot_read (test_real_data.Socks5RecorderTool.test_dns_stub_keeps_queries_it_cannot_read)
+DNS 替身读不懂的查询记进 unparsed，close_stubs 关的时候报错，不把结果当成“没有收到查询”（2026-10-14，GPT 审核 r16 的 ... ok
+test_every_dns_stub_is_closed_through_close_stubs (test_real_data.Socks5RecorderTool.test_every_dns_stub_is_closed_through_close_stubs)
+出站核对里每个开了 DNS 替身的函数，都经 close_stubs 关掉替身（只有它会在收到读不懂的查询时报错）； ... ok
+test_records_every_request_it_refuses (test_real_data.Socks5RecorderTool.test_records_every_request_it_refuses)
+以前拒绝了却没记下的几种请求，现在都记进 invalid（2026-10-14，GPT 审核 r16 的 R16-F02，前三个照审核报告的探针写）： ... ok
 test_records_names_and_addresses (test_real_data.Socks5RecorderTool.test_records_names_and_addresses) ... ok
 test_refuses_what_rfc1928_says_to_refuse (test_real_data.Socks5RecorderTool.test_refuses_what_rfc1928_says_to_refuse)
 RFC 1928 要求拒绝或丢掉的，接收端不能记成“节点收到了”（2026-10-13，GPT 审核 r15 的 R15-F01，三个反例照审核报告的复现写）： ... ok
@@ -350,6 +360,13 @@ test_every_community_rule_is_backed (test_source.UpstreamEvidenceRecord.test_eve
 test_snapshots_match_evidence_registry (test_source.UpstreamEvidenceRecord.test_snapshots_match_evidence_registry) ... ok
 test_upstream_ads_under_products_are_handled (test_source.UpstreamEvidenceRecord.test_upstream_ads_under_products_are_handled)
 category-ads-all 落在产品规则内的条目，各端都必须一致处理（自有拦截或误杀例外）。 ... ok
+test_no_filter_picks_a_builtin_policy (test_stash.StashBuiltinPolicies.test_no_filter_picks_a_builtin_policy) ... ok
+test_prefix_changes_nothing_for_node_names (test_stash.StashBuiltinPolicies.test_prefix_changes_nothing_for_node_names)
+前缀只排除这几个名字本身：tests/node_names.yaml 里的每个节点名，加不加前缀，宽、严两套筛选的结果都一样； ... ok
+test_prefix_only_goes_after_the_documented_head (test_stash.StashBuiltinPolicies.test_prefix_only_goes_after_the_documented_head)
+前缀加在“(?i)^”后面；不是这样开头的正则直接报错，不去猜该加在哪里。 ... ok
+test_without_the_prefix_other_regions_would_pick_direct (test_stash.StashBuiltinPolicies.test_without_the_prefix_other_regions_would_pick_direct)
+前缀不是摆设：去掉它，“其他地区”那条会选中 DIRECT（r16 就是这样）；六个地区的本来就不会（名字里没有地区词）。 ... ok
 test_dns_block (test_stash.StashDns.test_dns_block)
 nameserver 是国内 DoH；局域网后缀交给系统 DNS（一个后缀一条、值是单个 system）； ... ok
 test_nothing_that_needs_stash_3_6_or_3_4 (test_stash.StashDns.test_nothing_that_needs_stash_3_6_or_3_4)
@@ -379,7 +396,11 @@ test_strict_resolves_nothing_for_rule_matching (test_stash.StashStructure.test_s
 严格版每一条按 IP 判断的规则都带 no-resolve；标准版只有最后的 GEOIP,CN 不带（它就是靠解析认国内网站的）。 ... ok
 test_build_refuses_a_broken_stash_config (test_stash.StashVerifyCatches.test_build_refuses_a_broken_stash_config)
 生成时就核对占位节点：筛选正则选不中自己地区的占位节点时，生成器直接报错，不写出配置。 ... ok
+test_build_refuses_a_filter_that_picks_a_builtin_policy (test_stash.StashVerifyCatches.test_build_refuses_a_filter_that_picks_a_builtin_policy)
+生成时也核对：筛选不加前缀（会选中 DIRECT）时，生成器直接报错，不写出配置。 ... ok
 test_empty_group (test_stash.StashVerifyCatches.test_empty_group) ... ok
+test_filter_that_picks_a_builtin_policy (test_stash.StashVerifyCatches.test_filter_that_picks_a_builtin_policy)
+把“其他地区”的筛选换回 r16 的写法（没有排除内置策略的前缀）：结构检查要报出来。 ... ok
 test_filter_without_include_all (test_stash.StashVerifyCatches.test_filter_without_include_all) ... ok
 test_missing_placeholder (test_stash.StashVerifyCatches.test_missing_placeholder) ... ok
 test_placeholder_that_could_connect (test_stash.StashVerifyCatches.test_placeholder_that_could_connect) ... ok
@@ -464,7 +485,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 294 tests in 210.697s
+Ran 305 tests in 217.293s
 
 OK
 退出码：0
