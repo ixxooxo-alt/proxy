@@ -173,11 +173,14 @@ def _parse_question(data: bytes):
 
 class DnsStub(threading.Thread):
     """只监听 127.0.0.1 的 UDP 端口。A 查询按 answers 作答（没有的给 DEFAULT_FOREIGN_IP），其他类型回空应答；
-    记录收到的每一次查询。silent=True 时只记录、不回答（模拟“这个 DNS 服务器不应答”）。"""
+    记录收到的每一次查询。silent=True 时只记录、不回答（模拟“这个 DNS 服务器不应答”）。
+    读不懂的查询记进 unparsed（前 64 个字节），不回答；close_stubs 关的时候有就报错（2026-10-14，GPT 审核 r16 的 R16-F02
+    之后自查：以前直接丢掉，看起来和“没有收到查询”一样，核对的结论会因此偏向“没问国内 DNS”）。"""
 
     def __init__(self, name: str, answers: dict, silent: bool = False):
         super().__init__(daemon=True)
         self.label, self.answers, self.seen, self.silent = name, answers, [], silent
+        self.unparsed = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(("127.0.0.1", 0))
         self.port = self.sock.getsockname()[1]
@@ -191,6 +194,7 @@ class DnsStub(threading.Thread):
             try:
                 qname, qtype, end = _parse_question(data)
             except (IndexError, struct.error):
+                self.unparsed.append(data[:64].hex())
                 continue
             self.seen.append((qname, qtype))
             if self.silent:
@@ -207,6 +211,17 @@ class DnsStub(threading.Thread):
 
     def close(self):
         self.sock.close()
+
+
+def close_stubs(stubs) -> None:
+    """关掉一批 DNS 替身；有替身收到过读不懂的查询就报错，不把这一项的结果记下来（见 DnsStub）。"""
+    bad = []
+    for st in stubs:
+        st.close()
+        if st.unparsed:
+            bad.append(f"{st.label}：{st.unparsed[:2]}")
+    if bad:
+        raise RuntimeError("DNS 替身收到了读不懂的查询，这一项的结果不记：" + "；".join(bad))
 
 
 def dns_query(port: int, host: str, qtype: int):
@@ -314,6 +329,13 @@ def wait_port(port: int, proc, seconds: float = 30) -> bool:
 CANARY = "startup-canary.invalid"
 
 
+def _log_tail(logp: str, n: int = 800) -> str:
+    """内核日志的最后 n 个字符（启动失败时附在报错里）。读完关文件（2026-10-14 自查：以前这几处报错分支直接 open(...).read()，
+    和 r15 测试日志里那条 ResourceWarning 是同一类写法，只是测试走不到这里）。"""
+    with open(logp, encoding="utf-8", errors="replace") as f:
+        return f.read()[-n:]
+
+
 def wait_log(logp: str, poke, needle: str, proc, seconds: float = 60) -> bool:
     """反复执行 poke()，直到日志里出现 needle。"""
     end = time.time() + seconds
@@ -370,10 +392,10 @@ def mihomo_probe(binary: str, geodata_dir: str, config_text: str, targets: list,
             proc = subprocess.Popen([binary, "-d", home, "-f", cfg], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(port, proc):
-                    raise RuntimeError("mihomo 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 没有启动成功：" + _log_tail(logp))
                 # 端口先于规则引擎就绪：先反复发一个试探连接，直到日志里出现它的匹配结果，再发正式的
                 if not wait_log(logp, lambda: connect_once(port, CANARY, wait=1.0), f"--> {CANARY}:443 match", proc):
-                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + _log_tail(logp))
                 for t in targets:
                     connect_once(port, t)
                 time.sleep(1.0)
@@ -392,8 +414,8 @@ def mihomo_probe(binary: str, geodata_dir: str, config_text: str, targets: list,
                     got.setdefault(m.group(1), (m.group(2), "DIRECT" if group == DIRECT_STANDIN else group))
         return {t: got.get(hostport(t)) for t in targets}
     finally:
-        stub.close()
         shutil.rmtree(home, ignore_errors=True)
+        close_stubs([stub])
 
 
 # ---------------------------------------------------------------------------
@@ -451,7 +473,7 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
             proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(mixed, proc) or not wait_log(logp, lambda: None, "sing-box started", proc):
-                    raise RuntimeError("sing-box 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("sing-box 没有启动成功：" + _log_tail(logp))
                 for c in dns_cases:
                     before = {k: len(v.seen) for k, v in stubs.items()}
                     ips = dns_query(dns_in, c["host"], QTYPE[c["type"]])
@@ -495,9 +517,8 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
             routes.setdefault(hp, conn_result.get(cid, ("没有规则命中（route.final）", final)))
         return {t: routes.get(hostport(t)) for t in targets}, dns_got
     finally:
-        for st in stubs.values():
-            st.close()
         shutil.rmtree(tmp, ignore_errors=True)
+        close_stubs(stubs.values())
 
 
 class _Loopback(dict):
@@ -564,7 +585,7 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
             proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(mixed, proc) or not wait_log(logp, lambda: None, "sing-box started", proc):
-                    raise RuntimeError("sing-box 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("sing-box 没有启动成功：" + _log_tail(logp))
                 started = time.time()
                 with concurrent.futures.ThreadPoolExecutor(max_workers=max(8, len(targets) if hold else 8)) as pool:
                     list(pool.map(lambda t: connect_once(mixed, t, wait=4.0, hold=hold), targets))
@@ -582,9 +603,8 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
             out[rd.dial_key(c)] = asked[0] if len(asked) == 1 else ("+".join(asked) if asked else NONE)
         return out
     finally:
-        for st in stubs.values():
-            st.close()
         shutil.rmtree(tmp, ignore_errors=True)
+        close_stubs(stubs.values())
 
 
 MIHOMO_DNS_SERVER_LISTS = ("default-nameserver", "proxy-server-nameserver", "direct-nameserver", "nameserver", "fallback")
@@ -724,9 +744,9 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
             proc = subprocess.Popen([binary, "-d", home, "-f", cfg], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(port, proc):
-                    raise RuntimeError("mihomo 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 没有启动成功：" + _log_tail(logp))
                 if not wait_log(logp, lambda: connect_once(port, CANARY, wait=1.0), f"--> {CANARY}:443 match", proc):
-                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + _log_tail(logp))
                 answers = {}
                 started = time.time()
                 if hold:
@@ -766,9 +786,8 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
             dns_out[(c["host"], c["type"])] = where
         return out, dns_out
     finally:
-        for st in stubs.values():
-            st.close()
         shutil.rmtree(home, ignore_errors=True)
+        close_stubs(stubs.values())
 
 
 # ---------------------------------------------------------------------------
@@ -798,19 +817,14 @@ class _PerHostLoopback(dict):
         return self.ip_of.get(str(key).lower().rstrip("."), "127.0.0.1")
 
 
-def _recv_exact(c: socket.socket, n: int) -> bytes:
-    buf = b""
-    while len(buf) < n:
-        part = c.recv(n - len(buf))
-        if not part:
-            raise ConnectionError("对方提前断开")
-        buf += part
-    return buf
+SOCKS_ATYPS = (1, 3, 4)
 
 
-def _socks_addr(read) -> tuple:
-    """按 RFC 1928 第 4、7 节读一个目标地址：ATYP 1 = IPv4，3 = 域名（前面一个字节是长度），4 = IPv6。返回 (类别, 地址, 端口)。"""
-    atyp = read(1)[0]
+def _socks_addr(read, atyp=None) -> tuple:
+    """按 RFC 1928 第 4、7 节读一个目标地址：ATYP 1 = IPv4，3 = 域名（前面一个字节是长度），4 = IPv6。返回 (类别, 地址, 端口)。
+    atyp：已经读出来的地址类型（请求里先单独读它、核对过才读后面；见 Socks5Recorder._serve）。"""
+    if atyp is None:
+        atyp = read(1)[0]
     if atyp == 1:
         addr = socket.inet_ntop(socket.AF_INET, read(4))
     elif atyp == 3:
@@ -835,7 +849,11 @@ class Socks5Recorder(threading.Thread):
       - UDP（第 7 节）：RSV 必须是 0；FRAG 不是 0 的丢掉（这里不做重组，不实现分片的服务端必须丢掉这种包）；
         只收 UDP ASSOCIATE 请求里写的客户端地址发来的包（写的是全 0 时，按发起这个关联的 TCP 连接的地址）；
       - 关联（第 6 节）：控制用的 TCP 连接一断，这个关联就结束，之后发到那个 UDP 口的包不收。
-    不合规的记进 invalid：[(原因, 细节)]，不算进 seen；出站核对遇到它就报错，不把结果记下来。"""
+    不合规的记进 invalid：[(原因, 细节)]，不算进 seen；出站核对遇到它就报错，不把结果记下来。
+    2026-10-14（GPT 审核 r16 的 R16-F02）补齐了以前没记的几种拒绝：请求先核对 VER、RSV、CMD，再读地址；地址类型不是 1 / 3 / 4
+    的回 08（第 6 节：Address type not supported）并记下；不支持的命令回 07 并记下；握手或请求只发了一部分就断开、或者等了 8 秒
+    还没发完的，记成“不完整”。一个字节都没发就断开（或一直不发）的连接不是不合规的 SOCKS5 报文，不记进 invalid，只数在 empty 里
+    （内核建连接又放弃时会这样；把它算成不合规会让正常的核对也报错）。正常 CONNECT 的结束、UDP 控制连接的关闭不算异常。"""
 
     UDP_MAX_SECONDS = 30                               # 一个关联最多开这么久（控制连接一直不断时的保险）
 
@@ -847,6 +865,7 @@ class Socks5Recorder(threading.Thread):
         self.port = self.sock.getsockname()[1]
         self.seen = []
         self.invalid = []
+        self.empty = 0                                 # 一个字节都没发就断开 / 一直不发的连接数（不算不合规，见上）
         self._lock = threading.Lock()
         self._closing = threading.Event()
 
@@ -870,24 +889,53 @@ class Socks5Recorder(threading.Thread):
             self.invalid.append((why, detail))
 
     def _serve(self, c: socket.socket) -> None:
+        got = [0]                                      # 这个连接上已经收到的字节数：0 个就断开的是空连接，不算不合规
+        stage = ["握手"]
+
+        class _Short(Exception):
+            """握手或请求还没收完，对方就断开了（或 8 秒内没发完）。"""
+
+        def need(n: int) -> bytes:
+            buf = b""
+            while len(buf) < n:
+                try:
+                    part = c.recv(n - len(buf))
+                except OSError as e:                    # 含 socket.timeout
+                    raise _Short(type(e).__name__) from None
+                if not part:
+                    raise _Short("对方提前断开")
+                buf += part
+                got[0] += len(part)
+            return buf
+
         try:
             c.settimeout(8)
-            ver, n = _recv_exact(c, 2)
+            ver, n = need(2)
             if ver != 5:
                 self._bad("握手的版本不是 5", str(ver))
                 return
-            methods = _recv_exact(c, n)
+            methods = need(n)
             if 0 not in methods:
                 self._bad("客户端没有提供“不要认证”这种方法", methods.hex())
                 c.sendall(b"\x05\xff")
                 return
             c.sendall(b"\x05\x00")
-            ver, cmd, rsv = _recv_exact(c, 3)
-            kind, addr, port = _socks_addr(lambda k: _recv_exact(c, k))
+            stage[0] = "请求"
+            ver, cmd, rsv = need(3)
             if ver != 5 or rsv != 0:
                 self._bad("请求的 VER / RSV 不对", f"{ver} {rsv}")
                 c.sendall(b"\x05\x01\x00\x01" + bytes(6))
                 return
+            if cmd not in (1, 3):
+                self._bad("不支持的命令（这里只认 CONNECT、UDP ASSOCIATE）", str(cmd))
+                c.sendall(b"\x05\x07\x00\x01" + bytes(6))
+                return
+            atyp = need(1)[0]
+            if atyp not in SOCKS_ATYPS:
+                self._bad("请求里的地址类型不认识", str(atyp))
+                c.sendall(b"\x05\x08\x00\x01" + bytes(6))
+                return
+            kind, addr, port = _socks_addr(need, atyp)
             if cmd == 1:
                 self._note("tcp", kind, addr)
                 c.sendall(b"\x05\x00\x00\x01" + bytes(6))
@@ -896,12 +944,16 @@ class Socks5Recorder(threading.Thread):
                         pass
                 except OSError:
                     pass
-            elif cmd == 3:
-                self._associate(c, kind, addr, port)
             else:
-                c.sendall(b"\x05\x07\x00\x01" + bytes(6))
-        except (OSError, ConnectionError, ValueError):
-            return
+                self._associate(c, kind, addr, port)
+        except _Short as e:
+            if got[0]:
+                self._bad(f"{stage[0]}不完整（只收到一部分就断开或超时）", f"已收到 {got[0]} 个字节：{e}")
+            else:
+                with self._lock:
+                    self.empty += 1
+        except OSError:
+            return                                     # 回应答时对方已经断开之类：收到的那部分已经核对过（或已记下原因）
         finally:
             c.close()
 
@@ -1108,10 +1160,10 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
             proc = subprocess.Popen([binary, "-d", home, "-f", cfg], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(port, proc):
-                    raise RuntimeError("mihomo 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 没有启动成功：" + _log_tail(logp))
                 # 测试出口连不通，内核记的是“dial … error”而不是“match”，所以只等日志里出现这个目标
                 if not wait_log(logp, lambda: connect_once(port, CANARY, wait=1.0), f"--> {CANARY}:443", proc):
-                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("mihomo 启动后一直没有处理连接：" + _log_tail(logp))
                 _send_all(port, hosts, transport)
             finally:
                 proc.terminate()
@@ -1130,11 +1182,10 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
             received.update(received_by_node(recorder, answers, hosts, transport))
         return out
     finally:
-        for st in stubs.values():
-            st.close()
         if recorder:
             recorder.close()
         shutil.rmtree(home, ignore_errors=True)
+        close_stubs(stubs.values())
 
 
 def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: list, outbound: str, transport: str,
@@ -1202,7 +1253,7 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
             proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(mixed, proc) or not wait_log(logp, lambda: None, "sing-box started", proc):
-                    raise RuntimeError("sing-box 没有启动成功：" + open(logp, encoding="utf-8", errors="replace").read()[-800:])
+                    raise RuntimeError("sing-box 没有启动成功：" + _log_tail(logp))
                 _send_all(mixed, hosts, transport)
             finally:
                 proc.terminate()
@@ -1221,11 +1272,10 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
             received.update(received_by_node(recorder, answers, hosts, transport))
         return out
     finally:
-        for st in stubs.values():
-            st.close()
         if recorder:
             recorder.close()
         shutil.rmtree(tmp, ignore_errors=True)
+        close_stubs(stubs.values())
 
 
 # ---------------------------------------------------------------------------

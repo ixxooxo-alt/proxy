@@ -1,7 +1,8 @@
 """Stash 产物（iPhone / iPad / Mac 共用）：标准版 stash.yaml、严格版 stash-strict.yaml（2026-10-13 加的，r16）。
 
-语法依据：Stash 官方文档 stash.wiki。这台机器打不开 stash.wiki，用的是用户请另一个模型 2026-10-13 下载的 44 页
-（放在仓库以外，每页的 SHA-256 与包里的清单一致；没有逐字比对原网页），见 docs/02“Stash”一节。Stash 没有能在电脑上运行的
+语法依据：Stash 官方文档 stash.wiki。这台机器打不开 stash.wiki，用的是用户请另一个模型 2026-10-13 下载的 44 项内容
+（42 个页面、站点的 llms.txt、从“配置样例”页摘出的 YAML；放在仓库以外，每个文件的 SHA-256 与包里的清单一致。
+我这里没法和原网页比对；GPT 审核 r16 时和当时的官网逐字节比过，44 项都一致），见 docs/02“Stash”一节。Stash 没有能在电脑上运行的
 内核，和 Loon、Quantumult X 一样只能按文档写，真机交给用户验（docs/09）。下面每一处写法后面的“文档：”指那份下载的页面。
 
 和 mihomo 的配置（emit_mihomo.py）共用规则顺序和组的结构。不同的地方：
@@ -9,21 +10,31 @@
 1. DNS。Stash 一直用假地址（文档“IPv6 兼容性”“编写高效的配置文件”两页），没有 mihomo 的 respect-rules、direct-nameserver；
    proxy-server-nameserver 文档标了 iOS 3.6 / macOS 4.3 才有（下载时最新的是 iOS 3.4.0、macOS 4.2.0），不用。
    这里 nameserver 填国内 DoH——文档“编写高效的配置文件”给中国用户的建议是用国内 DNS；局域网后缀交给 system。
-   走代理的连接不用本机的 nameserver：TCP 把域名交给节点（文档“IPv6 兼容性”：通常向代理服务器转发域名）；UDP 由 Stash 经代理
-   问 1.0.0.1 再按地址转发（文档“协议类型”：UDP 只以 IP 形式转发，转发前通过代理发起 DNS 查询，默认 1.0.0.1）。
+   走代理的连接一般不用本机的 nameserver：TCP 通常把域名交给节点（文档“IPv6 兼容性”：“通常会尽可能地”向代理服务器转发域名——
+   文档自己留了余地）；UDP 由 Stash 经代理去查再按地址转发（文档“协议类型”：UDP 只以 IP 形式转发，转发前通过代理发起 DNS 查询，
+   默认问 1.0.0.1；订阅里的节点可以用 udp-nameserver 改成别的）。
    本机的 nameserver 只在这几种时候用到：直连的连接；要真实地址的名单（fake-ip-filter）；没被任何域名规则接住、要按 IP 判断的
    域名（标准版最后的 GEOIP,CN）。最后一种和 Loon、Quantumult X 的标准版一样，国内 DNS 看得到这类域名，所以 Stash 也多出一份
    严格版（见下）。
-   没有采用 dns.follow-rule（让 DNS 查询按规则走，像 mihomo 那样把没分类的域名经代理交给境外 DNS）：文档写明“绝大部分场景下
-   不需要开启”，会影响 CDN、让延迟上升，还有“连代理服务器要先解析、解析又要经代理”的循环问题，解决办法 proxy-server-nameserver
-   要 3.6；另外订阅、GEOSITE 数据第一次下载时还没有节点，境外 DNS 只能直连去问。这些都没法在这里验证，所以没有做（docs/03）。
+   没有采用 dns.follow-rule（让 DNS 查询按规则走，像 mihomo 那样把没分类的域名经代理交给境外 DNS）。理由都是没有验证过的成本，
+   不是“做不到”（GPT 审核 r16 的 R16-F03 之后收窄的说法）：文档说“绝大部分场景下不需要开启”，DNS 经代理“可能”影响 CDN 的
+   就近优化、进网络引擎会让延迟略升——没有测过，也不等于一开国内网站就变慢（geosite:cn 仍可以交给国内 DNS、直连去问）；
+   “连代理服务器要先解析、解析又要经代理”的循环，文档给的三个条件满足一个即可，这份配置的 DNS 服务器本来就写成 IP；
+   订阅、GEOSITE 数据第一次下载时还没有节点，境外 DNS 只能直连去问；Stash 没有 direct-nameserver 那样的分工。
+   nameserver-policy 的 geosite: 键、一个键配多个服务器，在目标版本（iOS 3.4.0 / macOS 4.2.0）都已经支持，只是更早的版本不支持。
+   这些都没法在这里验证，所以没有做（docs/03）。
 2. 节点筛选为空。文档“策略组”：不包含任何代理的策略组会被当作 DIRECT；“远程代理集”：远程代理集为空时会以 DIRECT 替代。
    Stash 没有 mihomo 的 empty-fallback。这里给每个地区放一个连不上的占位节点（PLACEHOLDER_SERVER 的 1 号端口，没有程序在听，
    连接马上被拒绝），名字只会被这个地区的筛选正则选中（生成时用 Python 的正则核对，verify.check_stash 再查一遍）：
-   这个地区一个节点都没有时，组里只剩它，连接失败而不是直连。订阅整个没下载下来时文档说远程代理集会被当成 DIRECT，
-   自动测速等组会不会选到它，文档没写，要在真机上看（docs/09）。
+   这个地区一个节点都没有时，组里只剩它，连接失败而不是直连。文档“远程代理集”还说“远程代理集为空时候，会以 DIRECT 替代”
+   （什么情况算为空——订阅第一次就没下载下来、订阅里一个节点都没有——文档没细说，这是推断）：每条节点筛选的开头都排除
+   DIRECT、REJECT、REJECT-DROP 这几个名字（exclude_builtins；GPT 审核 r16 的 R16-F01——“其他地区”那条“六个地区都不是的都收”的
+   筛选，以前会把 DIRECT 这个名字也收进组里），生成时和 verify.check_stash 都核对。
+   替代进来的 DIRECT 在 App 里叫不叫这个名字、App 会不会在筛选之后另外把它塞进组里、自动测速等组会不会选到它，文档没写，
+   要在真机上看（docs/09）。
 3. 组。select / url-test / fallback / load-balance 都有（文档“策略组”）；节点用 include-all + filter 选（文档的例子就是这样写的）。
-   筛选正则和其他三端是同一条，Stash 用什么正则引擎文档没写——见 docs/02、docs/06（如果是不支持否定前瞻的引擎，筛选会出错）。
+   筛选正则和其他三端是同一条（只在开头多排除内置策略的名字，见上一条），Stash 用什么正则引擎文档没写——见 docs/02、docs/06
+   （如果是不支持否定前瞻的引擎，筛选会出错）。
    文档没有写 hidden，子组（某地区·自动 等）会显示在界面上。健康检查的网址写在订阅（proxy-providers 的 benchmark-url，
    文档“发布说明”2.6.5）和占位节点上——Stash 按节点测延迟；组上只写 interval、lazy（文档“策略组”的定时延迟测试）。
 4. 国内外域名分类、广告集合用 Stash 自带的 GEOSITE（文档“规则类型”：domain-list-community，不随 App 分发，首次用到时从
@@ -52,6 +63,10 @@ PLACEHOLDER_SUFFIX = "·无可用节点"
 PLACEHOLDER_SERVER = "127.0.0.1"      # 本机；1 号端口没有程序在听，连接马上被拒绝
 PLACEHOLDER_PORT = 1
 DOMAIN_TEXT = "domain-text"           # 文档“配置样例”的写法（“推荐使用 text 格式”）；“规则集合”一页另有 behavior: domain + format: text
+# Stash 的内置策略（文档“规则类型”：REJECT、REJECT-DROP 两个内置代理；DIRECT 是直连）。节点筛选一律不选这几个名字（不分大小写）：
+# 文档“远程代理集”说远程代理集为空时以 DIRECT 替代——“其他地区”的筛选是“六个地区都不是的都收”，以前会把这个名字也收进来
+# （GPT 审核 r16 的 R16-F01）。只在节点筛选上排除；业务组里写明的 DIRECT 照旧可以手动选。
+BUILTIN_POLICIES = ("DIRECT", "REJECT", "REJECT-DROP")
 
 
 class _QuotedWildcards(_Dumper):
@@ -84,17 +99,28 @@ def _region_of(m: Model, nf: NodeFilter) -> str:
     return nf.label[:-len(AUTO_SUFFIX)] if nf.label.endswith(AUTO_SUFFIX) else nf.label
 
 
+def exclude_builtins(rx: str) -> str:
+    """在地区筛选正则的开头（“(?i)^”之后）加一个否定前瞻：整个名字是内置策略（BUILTIN_POLICIES，不分大小写）时不选。
+    其余部分和其他三端的那一条逐字相同。"""
+    head = "(?i)^"
+    if not rx.startswith(head):
+        raise ValueError(f"Stash：地区筛选正则应该以 {head} 开头：{rx[:40]}")
+    return head + "(?!(?:" + "|".join(BUILTIN_POLICIES) + ")$)" + rx[len(head):]
+
+
 def filter_regex(m: Model, nf: NodeFilter) -> str:
-    """写进 Stash 的筛选正则。地区的那几条和其他三端相同（占位节点的名字本来就会被它选中）；
-    固定节点（local.yaml 的 PayPal 固定节点）的“名称完全相同”那一条，另外允许这个地区的占位节点，不然那个节点被删掉以后组是空的。"""
+    """写进 Stash 的筛选正则。地区的那几条 = 其他三端的同一条，开头另加“不选内置策略”（exclude_builtins；占位节点的名字
+    本来就会被它选中）；固定节点（local.yaml 的 PayPal 固定节点）的“名称完全相同”那一条，另外允许这个地区的占位节点，
+    不然那个节点被删掉以后组是空的（这一条只认两个写死的名字，不会选中内置策略，生成时照样核对）。"""
     if nf.pinned:
         ph = placeholders(m)[_region_of(m, nf)]
         return "^(?:" + lit(nf.pinned) + "|" + lit(ph) + ")$"
-    return nf.final_regex()
+    return exclude_builtins(nf.final_regex())
 
 
 def check_placeholders(m: Model, groups: List[GroupSpec]) -> None:
-    """每个按节点筛选的组，筛选正则要正好选中一个占位节点，而且是它自己地区的那个（用 Python 的正则判断；Stash 的引擎未知）。"""
+    """每个按节点筛选的组，筛选正则要正好选中一个占位节点，而且是它自己地区的那个；也不能选中内置策略的名字
+    （大小写的几种写法都试；GPT 审核 r16 的 R16-F01）。用 Python 的正则判断；Stash 的引擎未知。"""
     ph = placeholders(m)
     for g in groups:
         if g.nodes is None:
@@ -104,6 +130,9 @@ def check_placeholders(m: Model, groups: List[GroupSpec]) -> None:
         want = ph[_region_of(m, g.nodes)]
         if hit != [want]:
             raise ValueError(f"Stash：组 {g.name} 的筛选应该只选中占位节点 {want}，实际选中 {hit}")
+        builtin = [x for name in BUILTIN_POLICIES for x in (name, name.lower(), name.title()) if rx.search(x)]
+        if builtin:
+            raise ValueError(f"Stash：组 {g.name} 的筛选会选中内置策略 {builtin}（空订阅被替换成 DIRECT 时会被它收进组里）")
 
 
 class _Filters:
@@ -216,7 +245,7 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
         "follow-rule": False,
         "nameserver": list(dns["domestic_doh"]),
         # 局域网后缀交给系统 DNS（路由器 / 公司内网 DNS 才认识这些名字）。一个后缀一条、值写单个 system：
-        # 文档的例子里有 '+.internal.crop.com': system；值写成列表、键写 geosite: 要 iOS 3.4.0 / macOS 4.2.0（发布说明），这里没有用
+        # 文档的例子里有 '+.internal.crop.com': system；值写成列表、键写 geosite: 是 iOS 3.4.0 / macOS 4.2.0 加的（发布说明；目标版本支持，这里用不上）
         "nameserver-policy": {"+." + s: "system" for s in lan},
         # 这些名字拿真实地址（文档“配置样例”：列表里的域名不会被解析为 fake ip）：局域网后缀、要真实地址的名单
         "fake-ip-filter": fake_ip_filter,
@@ -255,11 +284,13 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("# 占位节点：每个地区一个，连本机一个没有程序在听的端口，连接马上失败。")
     out.append("# Stash 的文档说一个代理都没有的策略组会被当作直连（DIRECT）；放上占位节点，某个地区一个节点都没有时，")
     out.append("# 这个地区的组里只剩它，连接失败而不是直连。它的名字只会被这个地区的筛选正则选中。有真节点时不要选它。")
+    out.append("# 文档还说远程代理集为空时以 DIRECT 替代：下面每条节点筛选的开头都排除了 DIRECT、REJECT、REJECT-DROP 这几个名字。")
     out.append(_y({"proxies": dummy}).rstrip())
     out.append("")
     out.append(_y({"proxy-providers": providers}).rstrip())
     out.append("")
-    out.append("# 节点筛选（filter）：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写，和另外三个客户端是同一条。")
+    out.append("# 节点筛选（filter）：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写，和另外三个客户端是同一条，")
+    out.append("# 只在开头多一段 (?!(?:DIRECT|REJECT|REJECT-DROP)$)：整个名字是内置策略的不选。")
     out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
     out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
     out.append("# 同一条正则只写一次：第一次出现时用 &flt-xx 定义，之后用 *flt-xx 引用（YAML 的锚点 / 别名）。")

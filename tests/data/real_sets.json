@@ -137,7 +137,7 @@
    "to_domestic": 17701
   }
  },
- "generated": "2026-10-13",
+ "generated": "2026-10-14",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -4015,7 +4015,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "04c7f1e551b9ba5d5ee7c221fcba67d5d0d7c6139b9e983e4164b0e8fe2f3100",
+   "config_sha256": "84e5b80fab3a0a264281a84413b354f10b31cf2a8e6b0803ea19f748a895b2c1",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -7955,7 +7955,7 @@
    "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.10.13-2",
+ "source_version": "2026.10.14-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {

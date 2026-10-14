@@ -196,8 +196,8 @@ class LanDns(unittest.TestCase):
 
     def test_stash_uses_system_dns_for_lan_suffixes(self):
         """Stash（2026-10-13）：同一份局域网后缀，nameserver-policy 里每个后缀交给 system，fake-ip-filter 里拿真实地址，
-        规则第 2 段固定直连。不带点的名字和上游 private 集合没有像 mihomo 那样交给 system（文档没写 * 的意思；
-        geosite: 写在 nameserver-policy 里要 iOS 3.4.0 / macOS 4.2.0），见 docs/06。"""
+        规则第 2 段固定直连。不带点的名字和上游 private 集合没有像 mihomo 那样交给 system（第 14 项使用者选的是只改 mihomo；
+        文档没写单独一个 * 的意思；geosite: 写法目标版本 iOS 3.4.0 / macOS 4.2.0 支持，更早的不支持），见 docs/06。"""
         for client in ("stash", "stash-strict"):
             c = parsed(client)
             self.assertEqual(c["dns"]["nameserver-policy"], {"+." + s: "system" for s in self.lan}, client)

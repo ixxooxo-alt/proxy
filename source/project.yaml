@@ -3,7 +3,7 @@
 
 project:
   name: unified-proxy-rules
-  source_version: 2026.10.13-2        # 统一源版本，修改规则数据后递增
+  source_version: 2026.10.14-1        # 统一源版本，修改规则数据后递增
   docs_checked: 2026-09-23             # 官方语法与服务端点文档查阅日期
 
 # 目标客户端与语法依据（详见 docs/02-语法依据与能力矩阵.md）
@@ -29,7 +29,8 @@ targets:
     core: "Quantumult X 1.x（依据官方 sample.conf）"
     clients: [iPhone / iOS, iPad / iPadOS, Mac（Apple 芯片，官方支持的版本）]
   # 2026-10-13 加的（r16）。没有能在电脑上运行的内核，和 Loon、Quantumult X 一样只能按官方文档写、真机交给用户验。
-  # 文档用的是用户请另一个模型 2026-10-13 从 stash.wiki 下载的页面（44 页，校验值核对过；本机打不开 stash.wiki，没有逐字比对原网页）。
+  # 文档用的是用户请另一个模型 2026-10-13 从 stash.wiki 下载的内容：42 个页面、站点的 llms.txt、从“配置样例”页摘出的 YAML，共 44 项
+  # （校验值核对过；本机打不开 stash.wiki，没法和原网页比对；GPT 审核 r16 时和当时的官网逐字节比过，44 项都一致）。
   stash:
     core: "Stash（按 2026-10-13 下载的官方文档写，当时最新是 iOS 3.4.0、macOS 4.2.0；没有用到文档标了 iOS 3.6 / macOS 4.3 才有的写法；更早的版本没有核对）"
     clients: [iPhone / iOS, iPad / iPadOS, Mac]

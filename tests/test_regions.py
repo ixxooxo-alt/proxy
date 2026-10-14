@@ -23,7 +23,7 @@ import unittest
 import yaml
 
 from helpers import ROOT, build, emulate, load_yaml, model_and_plan, parsed, text
-from generator import emit_singbox, regions
+from generator import emit_singbox, emit_stash, regions
 from generator.model import SourceError, load
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -244,21 +244,23 @@ class GeneratedConfigs(unittest.TestCase):
             self.assertEqual(raw.count("&flt-hk "), 0)
 
     def test_stash(self):
-        """Stash（2026-10-13）：和 mihomo 用同一条正则，同一条只写一次（YAML 锚点 / 别名）；两份产物的组相同。"""
+        """Stash（2026-10-13）：和 mihomo 用同一条正则，同一条只写一次（YAML 锚点 / 别名）；两份产物的组相同。
+        r17 起每条只在开头多一段，排除 Stash 的内置策略名（DIRECT 等；GPT 审核 r16 的 R16-F01），后面和 mihomo 的逐字相同。"""
+        ex = emit_stash.exclude_builtins
         for client in ("stash", "stash-strict"):
             g = {x["name"]: x for x in parsed(client)["proxy-groups"]}
             for gid in SIX:
-                self.assertEqual(g[f"{NAME[gid]}·手动"]["filter"], self.rx[gid])
+                self.assertEqual(g[f"{NAME[gid]}·手动"]["filter"], ex(self.rx[gid]))
                 for suffix in self.AUTO_MODES:
-                    self.assertEqual(g[f"{NAME[gid]}·{suffix}"]["filter"], self.strict[gid], suffix)
-            self.assertEqual(g["其他地区"]["filter"], self.rx["other"])
-            self.assertEqual(g["PayPal·美国固定"]["filter"], self.rx["us"])
+                    self.assertEqual(g[f"{NAME[gid]}·{suffix}"]["filter"], ex(self.strict[gid]), suffix)
+            self.assertEqual(g["其他地区"]["filter"], ex(self.rx["other"]))
+            self.assertEqual(g["PayPal·美国固定"]["filter"], ex(self.rx["us"]))
             raw = text(client)
             for gid in SIX:
                 self.assertEqual(raw.count(f"&flt-{gid}-auto "), 1, gid)
                 self.assertEqual(raw.count(f"*flt-{gid}-auto\n"), 2, gid)
-                self.assertEqual(raw.count(self.strict[gid]), 1)
-                self.assertEqual(raw.count(self.rx[gid]), 1)
+                self.assertEqual(raw.count(ex(self.strict[gid])), 1)
+                self.assertEqual(raw.count(ex(self.rx[gid])), 1)
             self.assertEqual((raw.count("&flt-us "), raw.count("*flt-us\n")), (1, 1))
 
     def test_singbox_groups_nodes_at_build_time(self):

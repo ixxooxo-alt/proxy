@@ -928,6 +928,128 @@ class Socks5RecorderTool(unittest.TestCase):
             self.assertIn(word, reasons)
         self.assertEqual(len(rec.invalid), 5, rec.invalid)
 
+    def test_records_every_request_it_refuses(self):
+        """以前拒绝了却没记下的几种请求，现在都记进 invalid（2026-10-14，GPT 审核 r16 的 R16-F02，前三个照审核报告的探针写）：
+        地址类型不认识（回 05 08，RFC 1928 第 6 节）；请求只发了一部分就断开（记成“不完整”）；不支持的命令（回 05 07）；
+        握手只发了一个字节就断开。一个字节都没发就断开的连接不是不合规的报文：不进 invalid，只数在 empty 里；
+        正常 CONNECT 发完、对方关掉，不算异常。"""
+        import socket
+        import time
+        crr = self.crr
+        rec = crr.Socks5Recorder()
+        rec.start()
+
+        def talk(*chunks, half_close=True, reply_len=0):
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.settimeout(3)
+                for ch in chunks:
+                    s.sendall(ch)
+                    time.sleep(0.15)
+                if half_close:
+                    s.shutdown(socket.SHUT_WR)
+                out = b""
+                try:
+                    while True:
+                        d = s.recv(64)
+                        if not d:
+                            break
+                        out += d
+                except OSError:
+                    pass
+            time.sleep(0.3)
+            return out
+        try:
+            self.assertEqual(talk(b"\x05\x01\x00", b"\x05\x01\x00\x09", half_close=False)[2:4], b"\x05\x08")
+            self.assertEqual(talk(b"\x05\x01\x00", b"\x05\x01\x00\x01\x7f"), b"\x05\x00")
+            self.assertEqual(talk(b"\x05\x01\x00", b"\x05\x02\x00\x01" + bytes(6), half_close=False)[2:4], b"\x05\x07")
+            talk(b"\x05")
+            n_invalid = len(rec.invalid)
+            talk()                                     # 空连接
+            talk(b"\x05\x01\x00", b"\x05\x01\x00\x03\x09n.example\x01\xbb")      # 正常的 CONNECT
+        finally:
+            rec.close()
+        reasons = [why for why, _ in rec.invalid]
+        self.assertEqual(n_invalid, 4, rec.invalid)
+        self.assertEqual(len(rec.invalid), 4, "空连接、正常的 CONNECT 不该记进 invalid：" + repr(rec.invalid))
+        self.assertIn("地址类型不认识", reasons[0])
+        self.assertIn("请求不完整", reasons[1])
+        self.assertIn("不支持的命令", reasons[2])
+        self.assertIn("握手不完整", reasons[3])
+        self.assertEqual(rec.empty, 1)
+        self.assertEqual(rec.seen, [("tcp", "domain", "n.example")])
+
+    def test_dns_stub_keeps_queries_it_cannot_read(self):
+        """DNS 替身读不懂的查询记进 unparsed，close_stubs 关的时候报错，不把结果当成“没有收到查询”（2026-10-14，GPT 审核 r16 的
+        R16-F02 之后自查的同类问题：以前直接丢掉）。读得懂的照常记在 seen 里、照常回答，关的时候不报错。"""
+        import socket
+        import time
+        crr = self.crr
+        ok, bad = crr.DnsStub("ok", {}), crr.DnsStub("bad", {})
+        for st in (ok, bad):
+            st.start()
+        self.assertIsNotNone(crr.dns_query(ok.port, "good.example", 1))
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.sendto(b"\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x05short", ("127.0.0.1", bad.port))   # 名字没写完
+            time.sleep(0.3)
+        self.assertEqual(ok.seen, [("good.example", 1)])
+        self.assertEqual(ok.unparsed, [])
+        self.assertEqual(len(bad.unparsed), 1)
+        crr.close_stubs([ok])
+        with self.assertRaises(RuntimeError) as cm:
+            crr.close_stubs([bad])
+        self.assertIn("读不懂的查询", str(cm.exception))
+
+    def test_every_dns_stub_is_closed_through_close_stubs(self):
+        """出站核对里每个开了 DNS 替身的函数，都经 close_stubs 关掉替身（只有它会在收到读不懂的查询时报错）；
+        直接调替身的 close() 只许出现在 close_stubs 里面。读源码核对，不需要官方内核。"""
+        import ast
+        with open(self.crr.__file__, encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+
+        def calls(fn):
+            for node in ast.walk(fn):
+                if isinstance(node, ast.Call):
+                    f = node.func
+                    yield f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else None
+
+        funcs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
+        openers = [f.name for f in funcs if "DnsStub" in set(calls(f))]
+        self.assertGreaterEqual(len(openers), 6, openers)
+        for f in funcs:
+            if f.name in openers:
+                self.assertIn("close_stubs", set(calls(f)), f.name)
+        closes_by_hand = [f.name for f in funcs if f.name in openers and any(
+            isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "close"
+            and isinstance(n.func.value, ast.Name) and n.func.value.id in ("stub", "st", "s")
+            for n in ast.walk(f))]
+        self.assertEqual(closes_by_hand, [])
+
+    def test_code_closes_the_files_it_opens(self):
+        """读写文件都要关（2026-10-14 自查：r16 只改了 _refuse_if_blocked 那一处 ResourceWarning，同一类写法——open(...).read()、
+        json.load(open(...)) 这些——在出站核对的报错分支、tools/verify_with_upstream_source.py、tools/check_mutations.py 里还有 14 处，
+        测试走不到那些地方，测试日志里看不出来）。读源码核对 tools/、generator/、tests/ 和 build.py。"""
+        import ast
+        import glob
+        files = sorted(glob.glob(os.path.join(ROOT, "tools", "*.py")) + glob.glob(os.path.join(ROOT, "generator", "*.py"))
+                       + glob.glob(os.path.join(ROOT, "tests", "*.py")) + [os.path.join(ROOT, "build.py")])
+        self.assertGreater(len(files), 40)
+
+        def is_open(n):
+            return isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "open"
+
+        bad = []
+        for path in files:
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                if isinstance(node.func, ast.Attribute) and is_open(node.func.value):        # open(...).read() 这一类
+                    bad.append(f"{os.path.relpath(path, ROOT)}:{node.lineno}")
+                if any(is_open(a) for a in list(node.args) + [k.value for k in node.keywords]):   # json.load(open(...)) 这一类
+                    bad.append(f"{os.path.relpath(path, ROOT)}:{node.lineno}")
+        self.assertEqual(bad, [])
+
     def test_blocked_environment_is_an_error_not_a_result(self):
         """内核日志里出现 operation not permitted（运行环境不许开连接）时报错，不记成“没有解析”。读完日志要把文件关上
         （r15 漏了，测试日志里因此有一条 ResourceWarning；2026-10-13 起这里把它当作失败）。"""

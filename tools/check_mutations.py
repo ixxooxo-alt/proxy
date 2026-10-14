@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 141 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 153 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -21,10 +21,12 @@ TIMEOUT = 1800          # 一个变异最多等这么多秒
 def apply_edits(name, edits, dst):
     for rel, fn in edits:
         p = os.path.join(dst, rel)
-        s = open(p, encoding="utf-8").read()
+        with open(p, encoding="utf-8") as f:
+            s = f.read()
         s2 = fn(s)
         assert s2 != s, f"{name}: 变异没有生效 {rel}"
-        open(p, "w", encoding="utf-8").write(s2)
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(s2)
 
 
 def run_case(name, edits, expect_in_output=None, tests=None):
@@ -461,6 +463,36 @@ cases = [
         '    style = "\'" if data.startswith(("+", "*")) else None\n', "    style = None\n", 1))], "test_wildcard_keys_are_quoted_like_the_docs"),
     ("M141 模拟器不记 Stash 为了判断 IP 规则在本机解析过（严格版“不在本机解析”的检查失灵）", [("tests/emulate.py", lambda s: s.replace(
         '                if trace is not None:\n                    trace["resolved"] = True\n', "", 1))], "标准版里没被域名规则接住的域名应该要先解析"),
+    # ---- GPT 审核 r16（2026-10-14，r17）----
+    ("M142 Stash 的筛选又不排除内置策略的名字（“其他地区”又会收进 DIRECT；R16-F01）", [("generator/emit_stash.py", lambda s: s.replace(
+        "    return exclude_builtins(nf.final_regex())\n", "    return nf.final_regex()\n", 1))], "内置策略"),
+    ("M143 生成 Stash 配置时不核对筛选会不会选中内置策略（R16-F01）", [("generator/emit_stash.py", lambda s: s.replace(
+        "        if builtin:\n            raise ValueError(", "        if False:\n            raise ValueError(", 1))],
+     "test_build_refuses_a_filter_that_picks_a_builtin_policy"),
+    ("M144 结构检查不看筛选会不会选中内置策略（R16-F01）", [("generator/verify.py", lambda s: s.replace(
+        "            if builtin:\n                problems.append(", "            if False:\n                problems.append(", 1))],
+     "test_filter_that_picks_a_builtin_policy"),
+    ("M145 Stash 筛选排除内置策略排得太宽（名字以 DIRECT 等开头的节点也不选了）", [("generator/emit_stash.py", lambda s: s.replace(
+        '"|".join(BUILTIN_POLICIES) + ")$)"', '"|".join(BUILTIN_POLICIES) + "))"', 1))], "test_prefix_changes_nothing_for_node_names"),
+    ("M146 SOCKS5 接收端又不记地址类型不认识的请求（R16-F02）", [("tools/check_real_routes.py", lambda s: s.replace(
+        '                self._bad("请求里的地址类型不认识", str(atyp))\n', "", 1))], "test_records_every_request_it_refuses"),
+    ("M147 SOCKS5 接收端又不记只发了一部分就断开的握手、请求（R16-F02）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "            if got[0]:\n", "            if False:\n", 1))], "test_records_every_request_it_refuses"),
+    ("M148 SOCKS5 接收端又不记不支持的命令（R16-F02）", [("tools/check_real_routes.py", lambda s: s.replace(
+        '                self._bad("不支持的命令（这里只认 CONNECT、UDP ASSOCIATE）", str(cmd))\n', "", 1))],
+     "test_records_every_request_it_refuses"),
+    ("M149 SOCKS5 接收端把一个字节都没发的连接也记成不合规（正常的核对也会报错）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "            if got[0]:\n", "            if True:\n", 1))], "test_records_every_request_it_refuses"),
+    ("M150 DNS 替身又把读不懂的查询直接丢掉（R16-F02 之后自查的同类问题）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "                self.unparsed.append(data[:64].hex())\n", "                pass\n", 1))], "test_dns_stub_keeps_queries_it_cannot_read"),
+    ("M151 关 DNS 替身时收到过读不懂的查询也不报错", [("tools/check_real_routes.py", lambda s: s.replace(
+        "    if bad:\n        raise RuntimeError(\"DNS 替身", "    if False:\n        raise RuntimeError(\"DNS 替身", 1))],
+     "test_dns_stub_keeps_queries_it_cannot_read"),
+    ("M152 有一处出站核对直接关 DNS 替身（不经 close_stubs，读不懂的查询不报错）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        close_stubs([stub])\n", "        stub.close()\n", 1))], "test_every_dns_stub_is_closed_through_close_stubs"),
+    ("M153 出站核对的报错分支读内核日志又不关文件（和 r15 那条 ResourceWarning 同一类）", [("tools/check_real_routes.py", lambda s: s.replace(
+        '    with open(logp, encoding="utf-8", errors="replace") as f:\n        return f.read()[-n:]\n',
+        '    return open(logp, encoding="utf-8", errors="replace").read()[-n:]\n', 1))], "test_code_closes_the_files_it_opens"),
 ]
 
 

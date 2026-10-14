@@ -114,9 +114,11 @@ def check_stash(text: str, strict: bool = False) -> List[str]:
     """Stash（2026-10-13）：引用都找得到、组不循环；另查两条这份配置赖以成立的结构——
       每个按节点筛选的组（include-all + filter），筛选正则正好选中一个占位节点（名字以“·无可用节点”结尾的那几个）：
         Stash 的文档说没有代理的组会被当作直连，占位节点保证组永远不空（这里用 Python 的正则判断；Stash 的引擎未知）；
+        筛选也不能选中内置策略的名字（DIRECT、REJECT、REJECT-DROP，大小写的几种写法都试）：文档说远程代理集为空时以 DIRECT 替代
+        （2026-10-14，GPT 审核 r16 的 R16-F01：以前“其他地区”的筛选会收它，这里没有查）；
       严格版：每一条按 IP 判断的规则都带 no-resolve，国内域名清单（RULE-SET → 国内直连）排在广告集合、GEOSITE,geolocation-!cn 之后，
         最后一条是 MATCH,国外默认。"""
-    from .emit_stash import PLACEHOLDER_PORT, PLACEHOLDER_SERVER, PLACEHOLDER_SUFFIX
+    from .emit_stash import BUILTIN_POLICIES, PLACEHOLDER_PORT, PLACEHOLDER_SERVER, PLACEHOLDER_SUFFIX
     c = yaml.safe_load(text)
     problems = []
     groups = {g["name"]: list(g.get("proxies") or []) for g in c.get("proxy-groups", [])}
@@ -155,6 +157,9 @@ def check_stash(text: str, strict: bool = False) -> List[str]:
             hit = [p["name"] for p in holders if rx.search(p["name"])]
             if len(hit) != 1:
                 problems.append(f"组 {g['name']} 的筛选应该正好选中一个占位节点，实际 {hit}：选不中就可能变成空组（Stash 当作直连）")
+            builtin = [x for name in BUILTIN_POLICIES for x in (name, name.lower(), name.title()) if rx.search(x)]
+            if builtin:
+                problems.append(f"组 {g['name']} 的筛选会选中内置策略 {builtin}：订阅为空时 Stash 用 DIRECT 替代，会被它收进组里")
         elif not g.get("proxies"):
             problems.append(f"组 {g['name']} 没有成员（Stash 当作直连）")
     rules = c.get("rules", [])

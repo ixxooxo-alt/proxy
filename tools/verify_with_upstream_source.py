@@ -89,9 +89,11 @@ def check_mihomo(src: str, c: Checker):
     grp, ga = parse_structs(glob.glob(os.path.join(src, "adapter", "outboundgroup", "*.go")), "group")
     prov, pa = parse_structs([os.path.join(src, "adapter", "provider", "parser.go")], "provider")
     top = fields(cfg, {}, "RawConfig")
-    rules_src = open(os.path.join(src, "rules", "parser.go"), encoding="utf-8").read()
+    with open(os.path.join(src, "rules", "parser.go"), encoding="utf-8") as f:
+        rules_src = f.read()
     for fn in ("mihomo/mihomo-profile.yaml", "mihomo/mihomo-core.yaml"):
-        conf = yaml.safe_load(open(os.path.join(ROOT, "dist", fn), encoding="utf-8"))
+        with open(os.path.join(ROOT, "dist", fn), encoding="utf-8") as f:
+            conf = yaml.safe_load(f)
         c.keys(fn, conf, top)
         c.keys(fn + " dns", conf["dns"], fields(cfg, {}, "RawDNS"))
         c.keys(fn + " sniffer", conf["sniffer"], fields(cfg, {}, "RawSniffer"))
@@ -124,7 +126,8 @@ def check_singbox(src: str, c: Checker):
     st, al = parse_structs(glob.glob(os.path.join(src, "option", "*.go")), "json")
     F = lambda n: fields(st, al, n)  # noqa: E731
     for fn in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json"):
-        conf = json.load(open(os.path.join(ROOT, "dist", fn), encoding="utf-8"))
+        with open(os.path.join(ROOT, "dist", fn), encoding="utf-8") as f:
+            conf = json.load(f)
         c.keys(fn, conf, F("_Options") | F("Options"))
         c.keys(fn + " log", conf["log"], F("LogOptions"))
         c.keys(fn + " dns", conf["dns"], F("RawDNSOptions") | F("DNSClientOptions") | {"servers", "rules", "final", "fakeip"})

@@ -34,7 +34,8 @@ class StashStructure(unittest.TestCase):
 
     def test_groups_are_the_mihomo_groups(self):
         """组名、类型、成员、筛选正则、图标和 mihomo 的相同；只差写法：Stash 用 include-all（文档的例子），没有 hidden、
-        empty-fallback、组上的检测地址（Stash 按节点测，地址写在订阅和占位节点上）。"""
+        empty-fallback、组上的检测地址（Stash 按节点测，地址写在订阅和占位节点上）。
+        筛选正则 r17 起只在开头多一段，排除 Stash 的内置策略名（见 StashBuiltinPolicies）。"""
         st = {g["name"]: g for g in conf("stash")["proxy-groups"]}
         mh = {g["name"]: g for g in conf("mihomo-core")["proxy-groups"]}
         self.assertEqual(list(st), list(mh))
@@ -42,7 +43,7 @@ class StashStructure(unittest.TestCase):
             h = mh[name]
             self.assertEqual(g["type"], h["type"], name)
             self.assertEqual(g.get("proxies"), h.get("proxies"), name)
-            self.assertEqual(g.get("filter"), h.get("filter"), name)
+            self.assertEqual(g.get("filter"), emit_stash.exclude_builtins(h["filter"]) if "filter" in h else None, name)
             self.assertEqual(g.get("icon"), h.get("icon"), name)
             self.assertEqual(bool(g.get("include-all")), "filter" in h, name)
             for key in ("hidden", "empty-fallback", "url", "include-all-providers", "use"):
@@ -169,6 +170,55 @@ class StashPlaceholders(unittest.TestCase):
         self.assertEqual(verify.check_stash(t), [])
 
 
+def all_node_names():
+    """tests/node_names.yaml 里所有的节点名（各地区的期望、只进手动组的、已知的局限），去重保序。"""
+    names = [n for lst in NODE_NAMES["expect"].values() for n in lst]
+    names += [x["name"] for key in ("manual_only", "known_limits", "known_auto_limits") for x in NODE_NAMES[key]]
+    return list(dict.fromkeys(names))
+
+
+class StashBuiltinPolicies(unittest.TestCase):
+    """GPT 审核 r16 的 R16-F01（2026-10-14）：文档“远程代理集”说远程代理集为空时以 DIRECT 替代；“其他地区”的筛选是
+    “六个地区都不是的都收”，r16 会把 DIRECT 这个名字也收进组里。r17 起每条节点筛选的开头都排除内置策略的名字。
+    这里只能查正则本身（Python 的正则）：App 替代之后组里实际有什么、会不会另外塞进 DIRECT，要在真机上看（docs/09）。"""
+
+    NAMES = list(dict.fromkeys(x for n in emit_stash.BUILTIN_POLICIES for x in (n, n.lower(), n.title(), n.capitalize())))
+
+    def test_no_filter_picks_a_builtin_policy(self):
+        for client in STASH_CLIENTS:
+            for g in conf(client)["proxy-groups"]:
+                if "filter" in g:
+                    rx = re.compile(g["filter"])
+                    self.assertEqual([x for x in self.NAMES if rx.search(x)], [], f"{client}：{g['name']}")
+
+    def test_without_the_prefix_other_regions_would_pick_direct(self):
+        """前缀不是摆设：去掉它，“其他地区”那条会选中 DIRECT（r16 就是这样）；六个地区的本来就不会（名字里没有地区词）。"""
+        m, _ = model_and_plan()
+        rx = m.node_regexes()
+        self.assertTrue(re.search(rx["other"], "DIRECT"))
+        self.assertTrue(re.search(rx["other"], "reject-drop"))
+        self.assertFalse(re.search(emit_stash.exclude_builtins(rx["other"]), "DIRECT"))
+        for gid in [r["id"] for r in m.regions]:
+            self.assertFalse(re.search(rx[gid], "DIRECT"), gid)
+
+    def test_prefix_changes_nothing_for_node_names(self):
+        """前缀只排除这几个名字本身：tests/node_names.yaml 里的每个节点名，加不加前缀，宽、严两套筛选的结果都一样；
+        名字里只是含有 DIRECT 之类字样的节点照样按原来的规则选。"""
+        m, _ = model_and_plan()
+        names = all_node_names() + ["DIRECT 01", "🇭🇰 香港 Direct 02", "Reject 01", "REJECT-DROP-1", "directx", " DIRECT"]
+        regexes = [("宽", k, v) for k, v in m.node_regexes().items()] + [("严", k, v) for k, v in m.node_regexes_strict().items()]
+        for kind, gid, rx in regexes:
+            plain, wrapped = re.compile(rx), re.compile(emit_stash.exclude_builtins(rx))
+            for n in names:
+                self.assertEqual(bool(wrapped.search(n)), bool(plain.search(n)), (kind, gid, n))
+
+    def test_prefix_only_goes_after_the_documented_head(self):
+        """前缀加在“(?i)^”后面；不是这样开头的正则直接报错，不去猜该加在哪里。"""
+        self.assertEqual(emit_stash.exclude_builtins("(?i)^x"), "(?i)^(?!(?:DIRECT|REJECT|REJECT-DROP)$)x")
+        with self.assertRaises(ValueError):
+            emit_stash.exclude_builtins("^(?i)x")
+
+
 class StashVerifyCatches(unittest.TestCase):
     """写盘前的结构检查（verify.check_stash）要能拦住这几种坏配置。"""
 
@@ -215,6 +265,24 @@ class StashVerifyCatches(unittest.TestCase):
         probs = self.mutate("stash-strict", fn)
         self.assertTrue(any("规则集合不存在" in p for p in probs), probs)
         self.assertTrue(any("没有被任何规则引用" in p for p in probs), probs)
+
+    def test_filter_that_picks_a_builtin_policy(self):
+        """把“其他地区”的筛选换回 r16 的写法（没有排除内置策略的前缀）：结构检查要报出来。"""
+        m, _ = model_and_plan()
+
+        def fn(c):
+            g = next(x for x in c["proxy-groups"] if x["name"] == m.other_region["name"])
+            g["filter"] = m.node_regexes()["other"]
+        probs = self.mutate("stash", fn)
+        self.assertTrue(any("内置策略" in p and "DIRECT" in p for p in probs), probs)
+
+    def test_build_refuses_a_filter_that_picks_a_builtin_policy(self):
+        """生成时也核对：筛选不加前缀（会选中 DIRECT）时，生成器直接报错，不写出配置。"""
+        from unittest import mock
+        m, plan = model_and_plan()
+        with mock.patch.object(emit_stash, "exclude_builtins", side_effect=lambda rx: rx):
+            with self.assertRaisesRegex(ValueError, "内置策略"):
+                emit_stash.build(m, plan)
 
     def test_build_refuses_a_broken_stash_config(self):
         """生成时就核对占位节点：筛选正则选不中自己地区的占位节点时，生成器直接报错，不写出配置。"""
