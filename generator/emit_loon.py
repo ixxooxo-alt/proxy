@@ -55,7 +55,7 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['loon']['core']}")
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
     if strict:
-        L.append("# 这是【严格版】：没有命中任何域名规则的域名不在本机解析，直接交给“国外默认”；国内网站靠 [Remote Rule] 里的国内域名清单认出来。")
+        L.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 [Remote Rule] 里的国内域名清单认出来。")
         L.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 loon.conf。导入后请按 docs/09 的严格版一节验收。")
         L.append(f"# [Remote Rule] 的最后一条引用 {m.strict['publish_base']} 下的规则文件：那个文件还没有发布、改了名、"
                  "或者仓库改成私有时，这条订阅会加载失败，只收在它里面的国内网站（整段 .cn 等）会改走代理。")
@@ -171,7 +171,7 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     if strict:
         L.append("# ==== 8 国内 IP：只对原本就是 IP 的连接生效（no-resolve），不为域名做本机解析 ====")
         L.append("GEOIP,CN,国内直连,no-resolve")
-        L.append("# ==== 9 其余目标：包括没被任何域名规则接住的域名（不在本机解析，由代理那一端解析） ====")
+        L.append("# ==== 9 其余目标：包括没被任何域名规则接住的域名（不为判断规则在本机解析） ====")
     else:
         L.append("# ==== 8 国内 IP 兜底 ====")
         L.append("GEOIP,CN,国内直连")

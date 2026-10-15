@@ -33,7 +33,7 @@ class StashStructure(unittest.TestCase):
         self.assertEqual(conf("stash")["rules"], conf("mihomo-core")["rules"])
 
     def test_groups_are_the_mihomo_groups(self):
-        """组名、类型、成员、筛选正则、图标和 mihomo 的相同；只差写法：Stash 用 include-all（文档的例子），没有 hidden、
+        """组名、类型、成员、筛选正则、图标和 mihomo 的相同；只差写法：Stash 用 include-all（文档的例子），没有 hidden（10-13 的文档快照没写；审核方说现行页面有，没有核实、没有用）、
         empty-fallback、组上的检测地址（Stash 按节点测，地址写在订阅和占位节点上）。
         筛选正则 r17 起只在开头多一段，排除 Stash 的内置策略名（见 StashBuiltinPolicies）。"""
         st = {g["name"]: g for g in conf("stash")["proxy-groups"]}
@@ -47,7 +47,7 @@ class StashStructure(unittest.TestCase):
             self.assertEqual(g.get("icon"), h.get("icon"), name)
             self.assertEqual(bool(g.get("include-all")), "filter" in h, name)
             for key in ("hidden", "empty-fallback", "url", "include-all-providers", "use"):
-                self.assertNotIn(key, g, f"{name}：{key} 不在 Stash 的文档里（或者这里不该用）")
+                self.assertNotIn(key, g, f"{name}：{key} 这份配置不用（不在 10-13 的文档快照里，或者这里不该用）")
             if g["type"] in ("url-test", "fallback", "load-balance"):
                 self.assertEqual((g["interval"], g["lazy"]), (h["interval"], h["lazy"]), name)
             if g["type"] == "load-balance":

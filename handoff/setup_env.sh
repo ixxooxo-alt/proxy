@@ -144,6 +144,11 @@ download "https://github.com/SagerNet/sing-box/releases/download/v1.14.1/sing-bo
   "$V/bin/sing-box-1.14.1-linux-amd64.tar.gz" 12cb2816b52febb356f6a885b740cc8758c3f30b8ae0ca8edba80f0d2d35343f
 download "https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz" \
   "$V/bin/sing-box-1.12.0-linux-amd64.tar.gz" f59b1253ae0143997cb46915af30d14a33431dcbd7e39edacfcde8d73050faaf
+# sing-box 1.14.3（2026-10-15 加，r18）：只给一次性核对 handoff/notes/r18_singbox_1143_probes.py 用（待决事项第 22 项，
+# 使用者选了 ③）；全部检查（tools/run_checks.sh）仍用上面的 1.14.1 和 1.12.0。压缩包的 SHA-256 与 GPT 审核 r16 报告里写的
+# 官方发布摘要相同；GitHub 发布页本身那台机器读不到（接口返回 403），没有直接对照。
+download "https://github.com/SagerNet/sing-box/releases/download/v1.14.3/sing-box-1.14.3-linux-amd64.tar.gz" \
+  "$V/bin/sing-box-1.14.3-linux-amd64.tar.gz" e2bdf179c15a3652955dc44867e33ca0965c9c9b91b34267dcc5a5d639a5feee
 if [ ! -x "$V/bin/mihomo-linux-amd64-v1.19.31" ]; then
   gzip -dc "$V/bin/mihomo-linux-amd64-v1.19.31.gz" > "$V/bin/mihomo-linux-amd64-v1.19.31.part"
   chmod +x "$V/bin/mihomo-linux-amd64-v1.19.31.part"
@@ -151,10 +156,12 @@ if [ ! -x "$V/bin/mihomo-linux-amd64-v1.19.31" ]; then
 fi
 [ -x "$V/bin/sing-box-1.14.1-linux-amd64/sing-box" ] || tar -xzf "$V/bin/sing-box-1.14.1-linux-amd64.tar.gz" -C "$V/bin"
 [ -x "$V/bin/sing-box-1.12.0-linux-amd64/sing-box" ] || tar -xzf "$V/bin/sing-box-1.12.0-linux-amd64.tar.gz" -C "$V/bin"
+[ -x "$V/bin/sing-box-1.14.3-linux-amd64/sing-box" ] || tar -xzf "$V/bin/sing-box-1.14.3-linux-amd64.tar.gz" -C "$V/bin"
 check_file "$V/bin/mihomo-linux-amd64-v1.19.31" 08787faafea19c1ab0f83fa5a1b22363b7d03ea78da18091a4c883aecaaa5979
 check_file "$V/bin/sing-box-1.14.1-linux-amd64/sing-box" 9334a1c1fe97234911afaedd37226667ebdb3dab2abe383f2c4ae1387706dad9
 check_file "$V/bin/sing-box-1.12.0-linux-amd64/sing-box" 84b23a2304a6c4efa41dc027a78b7226a94ef6c63566b56a5a2721bdfe473446
-say "  mihomo v1.19.31、sing-box 1.14.1、sing-box 1.12.0：校验值都对"
+check_file "$V/bin/sing-box-1.14.3-linux-amd64/sing-box" 768d31fa7f68debc067bb4626539498a1e8751d36a7b99e1a54bee6a23815f93
+say "  mihomo v1.19.31、sing-box 1.14.1、sing-box 1.12.0、sing-box 1.14.3（只给一次性核对用）：校验值都对"
 
 say "== 3. 上游规则快照、上游源码、图标仓库（按登记的提交）=="
 # 规则证据用的两个快照：提交号登记在 source/evidence.yaml，改这里之前先改那里
@@ -204,6 +211,7 @@ cat > "$V/env.sh" <<EOF
 export MIHOMO_BIN="$V/bin/mihomo-linux-amd64-v1.19.31"
 export SINGBOX_BIN="$V/bin/sing-box-1.14.1-linux-amd64/sing-box"
 export SINGBOX112_BIN="$V/bin/sing-box-1.12.0-linux-amd64/sing-box"
+export SINGBOX1143_BIN="$V/bin/sing-box-1.14.3-linux-amd64/sing-box"
 export GEODATA_DIR="$V/geodata"
 export SRS_DIR="$V/srs"
 export BM7_SRC="$V/src/bm7"
@@ -217,7 +225,8 @@ export BM7_ORIGIN="blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-2
 EOF
 {
   echo "# $TODAY 取到的文件（handoff/setup_env.sh 生成）"
-  (cd "$V" && sha256sum bin/mihomo-linux-amd64-v1.19.31 bin/sing-box-1.14.1-linux-amd64/sing-box bin/sing-box-1.12.0-linux-amd64/sing-box geodata/* srs/*)
+  (cd "$V" && sha256sum bin/mihomo-linux-amd64-v1.19.31 bin/sing-box-1.14.1-linux-amd64/sing-box bin/sing-box-1.12.0-linux-amd64/sing-box \
+     bin/sing-box-1.14.3-linux-amd64/sing-box geodata/* srs/*)
   for d in domain-list-community bm7 mihomo sing-box icon; do echo "$(git -C "$V/src/$d" rev-parse HEAD)  src/$d"; done
 } > "$V/SOURCES.txt"
 

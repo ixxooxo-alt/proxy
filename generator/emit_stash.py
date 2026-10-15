@@ -35,14 +35,16 @@
 3. 组。select / url-test / fallback / load-balance 都有（文档“策略组”）；节点用 include-all + filter 选（文档的例子就是这样写的）。
    筛选正则和其他三端是同一条（只在开头多排除内置策略的名字，见上一条），Stash 用什么正则引擎文档没写——见 docs/02、docs/06
    （如果是不支持否定前瞻的引擎，筛选会出错）。
-   文档没有写 hidden，子组（某地区·自动 等）会显示在界面上。健康检查的网址写在订阅（proxy-providers 的 benchmark-url，
+   2026-10-13 下载的文档没有写 hidden，这里没有用，子组（某地区·自动 等）会显示在界面上。GPT 审核 r17（2026-10-15）说
+   现行的“策略组”页面有“隐藏策略组”一节（hidden: true）；stash.wiki 在这台机器上连不上，没有核对，目标版本认不认也不知道，
+   所以没有改（docs/06）。健康检查的网址写在订阅（proxy-providers 的 benchmark-url，
    文档“发布说明”2.6.5）和占位节点上——Stash 按节点测延迟；组上只写 interval、lazy（文档“策略组”的定时延迟测试）。
 4. 国内外域名分类、广告集合用 Stash 自带的 GEOSITE（文档“规则类型”：domain-list-community，不随 App 分发，首次用到时从
    github.com 下载）。
 
 严格版（strict=True）与标准版只差两处：
   1. GEOIP,CN 加 no-resolve（文档“规则类型”：可添加 no-resolve 以避免触发 DNS 解析）。这样全部按 IP 判断的规则都带 no-resolve，
-     没命中域名规则的域名不在本机解析，落到最后的 MATCH（国外默认）；
+     没命中域名规则的连接不为判断规则在本机解析域名，落到最后的 MATCH（国外默认）；
   2. 在 GEOSITE,geolocation-!cn 之后订阅 blackmatrix7 的 ChinaMax 域名清单（source/strict.yaml 的 domestic_lists.stash），
      交给“国内直连”——只接住两个 GEOSITE 集合都没收的域名。
 """
@@ -221,7 +223,7 @@ def build_rules_text(m: Model, plan: Plan, strict: bool) -> List[str]:
     if strict:
         section("8 国内 IP：只对原本就是 IP 的连接生效（no-resolve），不为域名做本机解析")
         add("GEOIP,CN,国内直连,no-resolve")
-        section("9 其余目标：包括没被任何域名规则接住的域名（不在本机解析，TCP 把域名交给节点）")
+        section("9 其余目标：包括没被任何域名规则接住的域名（不为判断规则在本机解析；按文档，TCP 一般把域名交给节点）")
     else:
         section("8 国内 IP 兜底（没被域名规则接住的域名在这里由本机的国内 DNS 解析）")
         add("GEOIP,CN,国内直连")
@@ -271,7 +273,7 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['stash']['core']}")
     out.append("# 适用：iPhone / iPad / Mac 共用同一份配置。Stash 没有能在电脑上运行的内核，这份配置只按官方文档核对过，导入后请按 docs/09 验收。")
     if strict:
-        out.append("# 这是【严格版】：没有命中任何域名规则的域名不在本机解析，直接交给“国外默认”；国内网站靠 GEOSITE,cn 和 rule-providers 里的国内域名清单认出来。")
+        out.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 GEOSITE,cn 和 rule-providers 里的国内域名清单认出来。")
         out.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 stash.yaml。")
     if not sub_urls:
         out.append("# ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。订阅要选 Clash / Stash 格式。")

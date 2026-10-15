@@ -171,24 +171,37 @@ def _parse_question(data: bytes):
     return ".".join(labels).lower(), qtype, i + 5
 
 
+STUB_POLL = 0.1                                       # DNS 替身轮询停止标记的间隔（秒）
+
+
 class DnsStub(threading.Thread):
     """只监听 127.0.0.1 的 UDP 端口。A 查询按 answers 作答（没有的给 DEFAULT_FOREIGN_IP），其他类型回空应答；
     记录收到的每一次查询。silent=True 时只记录、不回答（模拟“这个 DNS 服务器不应答”）。
     读不懂的查询记进 unparsed（前 64 个字节），不回答；close_stubs 关的时候有就报错（2026-10-14，GPT 审核 r16 的 R16-F02
-    之后自查：以前直接丢掉，看起来和“没有收到查询”一样，核对的结论会因此偏向“没问国内 DNS”）。"""
+    之后自查：以前直接丢掉，看起来和“没有收到查询”一样，核对的结论会因此偏向“没问国内 DNS”）。
+    停下用 stop()（close_stubs 调它）：接收按 STUB_POLL 秒的超时轮询停止标记，停下以前已经到了的查询都处理完、接收线程结束，
+    才关 socket（2026-10-15，GPT 审核 r17 的 R17-F01：以前 close 只关 socket、不等接收线程——已经收到、还没处理完的查询，
+    汇总的时候还不在 seen / unparsed 里；另一个线程关 socket 也不一定能打断阻塞着的接收）。"""
 
     def __init__(self, name: str, answers: dict, silent: bool = False):
         super().__init__(daemon=True)
         self.label, self.answers, self.seen, self.silent = name, answers, [], silent
         self.unparsed = []
+        self.stopped = False                           # stop() 等到接收线程结束以后才是 True
+        self._stop = threading.Event()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(("127.0.0.1", 0))
         self.port = self.sock.getsockname()[1]
 
     def run(self):
+        self.sock.settimeout(STUB_POLL)
         while True:
             try:
                 data, addr = self.sock.recvfrom(4096)
+            except socket.timeout:
+                if self._stop.is_set():
+                    return                             # 有数据时 recvfrom 不会超时：走到这里，停下以前到了的都处理完了
+                continue
             except OSError:
                 return
             try:
@@ -209,19 +222,34 @@ class DnsStub(threading.Thread):
             except OSError:
                 return
 
-    def close(self):
+    def stop(self, timeout: float = 5.0) -> bool:
+        """停止接收：已经到了的查询处理完、接收线程结束，再关 socket。返回接收线程是否在 timeout 秒内结束——
+        没有结束时 socket 不关（线程还在用），收到的查询可能没有记全。可以重复调用。"""
+        self._stop.set()
+        if self.is_alive():
+            self.join(timeout)
+        if self.is_alive():
+            return False
         self.sock.close()
+        self.stopped = True
+        return True
+
+    def close(self):
+        self.stop()
 
 
-def close_stubs(stubs) -> None:
-    """关掉一批 DNS 替身；有替身收到过读不懂的查询就报错，不把这一项的结果记下来（见 DnsStub）。"""
+def close_stubs(stubs, timeout: float = 5.0) -> None:
+    """停下一批 DNS 替身（每个都等它把已经到了的查询处理完，见 DnsStub.stop），再看有没有问题：收到过读不懂的查询、
+    或者接收线程在 timeout 秒内没有结束（这时收到的查询可能没有记全），就报错，不把这一项的结果记下来。
+    要先停下内核、再调它，然后才汇总 seen（2026-10-15，GPT 审核 r17 的 R17-F01）。可以重复调用。"""
     bad = []
     for st in stubs:
-        st.close()
+        if not st.stop(timeout):
+            bad.append(f"{st.label}：接收线程 {timeout:g} 秒内没有结束，收到的查询可能没有记全")
         if st.unparsed:
             bad.append(f"{st.label}：{st.unparsed[:2]}")
     if bad:
-        raise RuntimeError("DNS 替身收到了读不懂的查询，这一项的结果不记：" + "；".join(bad))
+        raise RuntimeError("DNS 替身收到了读不懂的查询或者没有停下，这一项的结果不记：" + "；".join(bad))
 
 
 def dns_query(port: int, host: str, qtype: int):
@@ -405,6 +433,7 @@ def mihomo_probe(binary: str, geodata_dir: str, config_text: str, targets: list,
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        close_stubs([stub])                            # 内核停了：替身把已经收到的处理完、线程结束，再往下（R17-F01）
         got = {}
         with open(logp, encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -430,7 +459,10 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
     """返回 (路由 {目标: (命中的规则, 出站)}, DNS {(主机, 类型): 服务器标签})。
     silent：这几个标签的 DNS 替身只收不答。hold > 0 时，查询都发完以后再等这么多秒，然后按“整个过程里哪些替身收到过
     这个名字这个类型的查询”重新认一遍——超时以后有没有改问别的服务器，只有这样才看得到。这种用法下 targets 要留空
-    （连接也会引起查询，会和查询用例混在一起）。"""
+    （连接也会引起查询，会和查询用例混在一起）。
+    2026-10-15（R17-F01 之后自查）：重新认的那一遍挪到内核停下、替身都处理完以后（以前在运行中、等完 hold 秒就认）。
+    逐条查询的归属仍在运行中认：替身先记下查询、再回答，内核收到回答才回给这里，所以回答的那个替身这时一定已经记下；
+    只收不答的替身，这里要等到超时（几秒）才往下走，也早已记下。"""
     if hold and targets:
         raise ValueError("hold 只用于单独核对 DNS 查询，targets 要留空")
     conf = json.loads(config_text)
@@ -488,10 +520,6 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
                     dns_got[(c["host"], c["type"])] = where
                 if hold:
                     time.sleep(hold)
-                    for c in dns_cases:
-                        late = sorted(k for k, v in stubs.items() if (c["host"].lower(), QTYPE[c["type"]]) in v.seen)
-                        if late:
-                            dns_got[(c["host"], c["type"])] = "+".join(late)
                 # 每个连接要等嗅探超时（没有后续数据），所以并发着发；按日志里的连接编号对应回去
                 with concurrent.futures.ThreadPoolExecutor(max_workers=24) as pool:
                     list(pool.map(lambda t: connect_once(mixed, t), targets))
@@ -502,6 +530,11 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
+        for c in dns_cases if hold else ():
+            late = sorted(k for k, v in stubs.items() if (c["host"].lower(), QTYPE[c["type"]]) in v.seen)
+            if late:
+                dns_got[(c["host"], c["type"])] = "+".join(late)
         conn_target, conn_result = {}, {}
         with open(logp, encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -596,6 +629,7 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
         out = {}
         for c in cases:
             name = rd.dial_name(c).lower().rstrip(".")
@@ -769,6 +803,7 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
 
         def asked_by(name):
             return [k for k, st in stubs.items() if any(q.lower().rstrip(".") == name for q, _ in st.seen)]
@@ -851,11 +886,16 @@ class Socks5Recorder(threading.Thread):
       - 关联（第 6 节）：控制用的 TCP 连接一断，这个关联就结束，之后发到那个 UDP 口的包不收。
     不合规的记进 invalid：[(原因, 细节)]，不算进 seen；出站核对遇到它就报错，不把结果记下来。
     2026-10-14（GPT 审核 r16 的 R16-F02）补齐了以前没记的几种拒绝：请求先核对 VER、RSV、CMD，再读地址；地址类型不是 1 / 3 / 4
-    的回 08（第 6 节：Address type not supported）并记下；不支持的命令回 07 并记下；握手或请求只发了一部分就断开、或者等了 8 秒
-    还没发完的，记成“不完整”。一个字节都没发就断开（或一直不发）的连接不是不合规的 SOCKS5 报文，不记进 invalid，只数在 empty 里
-    （内核建连接又放弃时会这样；把它算成不合规会让正常的核对也报错）。正常 CONNECT 的结束、UDP 控制连接的关闭不算异常。"""
+    的回 08（第 6 节：Address type not supported）并记下；不支持的命令回 07 并记下；握手或请求只发了一部分就断开的，记成“不完整”。
+    一个字节都没发就断开（或一直不发）的连接不是不合规的 SOCKS5 报文，不记进 invalid，只数在 empty 里
+    （内核建连接又放弃时会这样；把它算成不合规会让正常的核对也报错）。正常 CONNECT 的结束、UDP 控制连接的关闭不算异常。
+    2026-10-15（GPT 审核 r17）：收到一部分以后 IDLE_TIMEOUT 秒内没有收到下一段的，记成“超时”，和“不完整”（对方断开）分开——
+    IDLE_TIMEOUT 是每一次接收的等待上限，不是整个握手只许花这么久；超时说明不了对方违反 RFC，只说明这台机器上的这次采样没有等到，
+    所以仍进 invalid、这一项的结果不记。停下用 stop()：不再接新连接，已经连上来的都处理完（线程结束）才返回，
+    以前 close() 只关监听口、不等处理连接的线程，汇总时可能还有已经收到、没记下的请求（R17-F01 的同一类问题）。"""
 
     UDP_MAX_SECONDS = 30                               # 一个关联最多开这么久（控制连接一直不断时的保险）
+    IDLE_TIMEOUT = 8                                   # 握手、请求每一次接收最多等这么多秒（不是总时长）
 
     def __init__(self):
         super().__init__(daemon=True)
@@ -868,6 +908,7 @@ class Socks5Recorder(threading.Thread):
         self.empty = 0                                 # 一个字节都没发就断开 / 一直不发的连接数（不算不合规，见上）
         self._lock = threading.Lock()
         self._closing = threading.Event()
+        self._threads = []                             # 处理各个连接的线程，stop() 要等它们结束
 
     def run(self):
         self.sock.settimeout(0.3)
@@ -878,7 +919,10 @@ class Socks5Recorder(threading.Thread):
                 continue
             except OSError:
                 return
-            threading.Thread(target=self._serve, args=(c,), daemon=True).start()
+            t = threading.Thread(target=self._serve, args=(c,), daemon=True)
+            with self._lock:
+                self._threads.append(t)
+            t.start()
 
     def _note(self, transport: str, kind: str, addr: str) -> None:
         with self._lock:
@@ -893,14 +937,20 @@ class Socks5Recorder(threading.Thread):
         stage = ["握手"]
 
         class _Short(Exception):
-            """握手或请求还没收完，对方就断开了（或 8 秒内没发完）。"""
+            """握手或请求还没收完：对方断开了，或者（timed_out）IDLE_TIMEOUT 秒内没有收到下一段。"""
+
+            def __init__(self, detail: str, timed_out: bool = False):
+                super().__init__(detail)
+                self.timed_out = timed_out
 
         def need(n: int) -> bytes:
             buf = b""
             while len(buf) < n:
                 try:
                     part = c.recv(n - len(buf))
-                except OSError as e:                    # 含 socket.timeout
+                except socket.timeout:
+                    raise _Short(f"{self.IDLE_TIMEOUT:g} 秒内没有收到下一段", timed_out=True) from None
+                except OSError as e:                    # 连接被重置之类：也是对方断开
                     raise _Short(type(e).__name__) from None
                 if not part:
                     raise _Short("对方提前断开")
@@ -909,7 +959,7 @@ class Socks5Recorder(threading.Thread):
             return buf
 
         try:
-            c.settimeout(8)
+            c.settimeout(self.IDLE_TIMEOUT)
             ver, n = need(2)
             if ver != 5:
                 self._bad("握手的版本不是 5", str(ver))
@@ -939,16 +989,13 @@ class Socks5Recorder(threading.Thread):
             if cmd == 1:
                 self._note("tcp", kind, addr)
                 c.sendall(b"\x05\x00\x00\x01" + bytes(6))
-                try:
-                    while c.recv(4096):
-                        pass
-                except OSError:
-                    pass
+                self._hold(c)
             else:
                 self._associate(c, kind, addr, port)
         except _Short as e:
             if got[0]:
-                self._bad(f"{stage[0]}不完整（只收到一部分就断开或超时）", f"已收到 {got[0]} 个字节：{e}")
+                what = "超时（收到一部分以后没有等到下一段）" if e.timed_out else "不完整（只收到一部分就断开）"
+                self._bad(f"{stage[0]}{what}", f"已收到 {got[0]} 个字节：{e}")
             else:
                 with self._lock:
                     self.empty += 1
@@ -967,7 +1014,16 @@ class Socks5Recorder(threading.Thread):
             c.sendall(b"\x05\x00\x00\x01" + socket.inet_aton("127.0.0.1") + struct.pack("!H", u.getsockname()[1]))
             c.settimeout(None)
             end = time.time() + self.UDP_MAX_SECONDS
-            while time.time() < end and not self._closing.is_set():
+            while time.time() < end:
+                if self._closing.is_set():
+                    # stop() 时控制连接还开着：关联到这里结束，UDP 口里已经到了的包先读完（2026-10-15，R17-F01 的同一类问题）
+                    u.setblocking(False)
+                    while True:
+                        try:
+                            data, src = u.recvfrom(65535)
+                        except (BlockingIOError, InterruptedError):
+                            return
+                        self._take_udp(data, src, want_ip, want_port)
                 ready, _, _ = select.select([c, u], [], [], 0.3)
                 if c in ready:
                     try:
@@ -975,38 +1031,73 @@ class Socks5Recorder(threading.Thread):
                             return                     # 控制连接断了：关联结束，UDP 口跟着关
                     except OSError:
                         return
-                if u not in ready:
-                    continue
-                data, (src_ip, src_port) = u.recvfrom(65535)
-                if src_ip != want_ip or (want_port is not None and src_port != want_port):
-                    self._bad("UDP 包不是从这个关联的客户端地址发来的", f"{src_ip}:{src_port}")
-                    continue
-                if len(data) < 4 or data[0:2] != b"\x00\x00":
-                    self._bad("UDP 包的 RSV 不是 0", data[:4].hex())
-                    continue
-                if data[2] != 0:
-                    self._bad("UDP 包分了片（FRAG 不是 0），这里不重组，丢掉", str(data[2]))
-                    continue
-                pos = [3]                              # RSV(2) FRAG(1) 之后是目标地址
+                if u in ready:
+                    data, src = u.recvfrom(65535)
+                    self._take_udp(data, src, want_ip, want_port)
 
-                def take(k, data=data, pos=pos):
-                    out = data[pos[0]:pos[0] + k]
-                    if len(out) < k:
-                        raise ValueError("UDP 包太短")
-                    pos[0] += k
-                    return out
-                try:
-                    k2, a2, _ = _socks_addr(take)
-                    self._note("udp", k2, a2)
-                except (ValueError, OSError) as e:
-                    self._bad("UDP 包里的目标地址读不懂", str(e))
+    def _take_udp(self, data: bytes, src: tuple, want_ip: str, want_port) -> None:
+        """核对关联收到的一个 UDP 包（RFC 1928 第 7 节），合规的记进 seen，不合规的记进 invalid。"""
+        src_ip, src_port = src[0], src[1]
+        if src_ip != want_ip or (want_port is not None and src_port != want_port):
+            self._bad("UDP 包不是从这个关联的客户端地址发来的", f"{src_ip}:{src_port}")
+            return
+        if len(data) < 4 or data[0:2] != b"\x00\x00":
+            self._bad("UDP 包的 RSV 不是 0", data[:4].hex())
+            return
+        if data[2] != 0:
+            self._bad("UDP 包分了片（FRAG 不是 0），这里不重组，丢掉", str(data[2]))
+            return
+        pos = [3]                                      # RSV(2) FRAG(1) 之后是目标地址
 
-    def close(self):
-        self._closing.set()
+        def take(k):
+            out = data[pos[0]:pos[0] + k]
+            if len(out) < k:
+                raise ValueError("UDP 包太短")
+            pos[0] += k
+            return out
         try:
-            self.sock.close()
+            k2, a2, _ = _socks_addr(take)
+            self._note("udp", k2, a2)
+        except (ValueError, OSError) as e:
+            self._bad("UDP 包里的目标地址读不懂", str(e))
+
+    def _hold(self, c: socket.socket) -> None:
+        """CONNECT 回了成功以后：收下对方发来的（不转发），直到对方关掉、出错、IDLE_TIMEOUT 秒没有动静，或者 stop()。"""
+        c.settimeout(0.3)
+        idle_until = time.time() + self.IDLE_TIMEOUT
+        while not self._closing.is_set() and time.time() < idle_until:
+            try:
+                if not c.recv(4096):
+                    return
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            idle_until = time.time() + self.IDLE_TIMEOUT
+
+    def stop(self, timeout: float = None) -> bool:
+        """停下：不再接新连接；已经连上来的都处理完（线程结束）才返回。握手、请求收到一半的，要等到收完、对方断开或者
+        IDLE_TIMEOUT 秒超时（记进 invalid），所以默认最多等 IDLE_TIMEOUT + 2 秒。返回是不是都在 timeout 秒内结束了——
+        没有结束时 seen / invalid 可能没有记全，调用的地方要报错、不记结果。先停下内核再调它。可以重复调用。"""
+        timeout = self.IDLE_TIMEOUT + 2 if timeout is None else timeout
+        end = time.time() + timeout
+        self._closing.set()
+        if self.is_alive():
+            self.join(max(0.0, end - time.time()))     # 接连接的线程每 0.3 秒看一次停止标记
+        if self.is_alive():
+            return False
+        try:
+            self.sock.close()                          # 接连接的线程已经结束，这时关监听口不会和 accept 抢
         except OSError:
             pass
+        with self._lock:
+            threads = list(self._threads)
+        for t in threads:
+            t.join(max(0.0, end - time.time()))
+        return not any(t.is_alive() for t in threads)
+
+    def close(self):
+        self.stop()
 
 
 RECEIVED_NOTHING = "-"
@@ -1171,6 +1262,10 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        # 内核停了：测试节点、替身把已经收到的处理完、线程结束，再汇总（R17-F01）
+        if recorder and not recorder.stop():
+            raise RuntimeError(f"测试节点没有停下（{transport}），收到的请求可能没有记全，这一项的结果不记")
+        close_stubs(stubs.values())
         _refuse_if_blocked(logp, f"mihomo {outbound} {transport}")
         out = {}
         for h in hosts:
@@ -1261,6 +1356,10 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+        # 内核停了：测试节点、替身把已经收到的处理完、线程结束，再汇总（R17-F01）
+        if recorder and not recorder.stop():
+            raise RuntimeError(f"测试节点没有停下（{transport}），收到的请求可能没有记全，这一项的结果不记")
+        close_stubs(stubs.values())
         _refuse_if_blocked(logp, f"sing-box {outbound} {transport}")
         out = {}
         for h in hosts:

@@ -13,6 +13,9 @@ r15 的出站核对里，sing-box 1.14.1 经 SOCKS 出口转发“目标写成�
 另外都记内核日志里有没有 unsupported address。DNS 只在 resolve 那一项用到（本机替身，给每个名字一个本机地址）。
 
 用法（仓库根目录）：source ~/proxy-vendor/env.sh && python3 handoff/notes/r15_review_probes.py > handoff/notes/r15_review_probes.out
+
+2026-10-15（r18）：内核停下以后，先停下接收端和 DNS 替身（等它们把已经收到的处理完），再读它们的记录——GPT 审核 r17 的
+R17-F01 说的那一类问题，这里以前是直接读。handoff/notes/r18_singbox_1143_probes.py 用这里的函数在 sing-box 1.14.3 上再跑一遍。
 """
 import json
 import os
@@ -134,6 +137,10 @@ def socks_variants(binary: str) -> None:
                 time.sleep(1.0)
             finally:
                 stop(proc, log)
+            if not rec.stop():
+                raise RuntimeError("接收端没有停下，收到的包可能没有记全")
+            if stub:
+                crr.close_stubs([stub])
             text = read(logp)
             udp = [(k, a) for t, k, a in rec.seen if t == "udp"]
             print(f"  {title}")
@@ -146,9 +153,9 @@ def socks_variants(binary: str) -> None:
         except Exception as e:                        # noqa: BLE001  一次性核对：一项失败照样跑下一项
             print(f"  {title}：没有跑成（{type(e).__name__}: {e}）")
         finally:
-            rec.close()
+            rec.stop()
             if stub:
-                stub.close()
+                stub.stop()
             shutil.rmtree(tmp, ignore_errors=True)
 
 

@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 154 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 162 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -419,7 +419,7 @@ cases = [
     ("M123 SOCKS5 接收端又不看客户端提供的方法，一律选“不要认证”（GPT 审核 r15 的 R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
         "            if 0 not in methods:\n", "            if False:\n", 1))], "test_refuses_what_rfc1928_says_to_refuse"),
     ("M124 SOCKS5 接收端又收分了片的 UDP 包（FRAG 不是 0 也记成节点收到了；R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
-        "                if data[2] != 0:\n", "                if False:\n", 1))], "test_refuses_what_rfc1928_says_to_refuse"),
+        "        if data[2] != 0:\n", "        if False:\n", 1))], "test_refuses_what_rfc1928_says_to_refuse"),
     ("M125 控制连接断了以后 UDP 关联还在，接着收包（R15-F01）", [("tools/check_real_routes.py", lambda s: s.replace(
         "                        if not c.recv(4096):\n                            return", "                        if not c.recv(4096):\n                            pass", 1))],
      "test_refuses_what_rfc1928_says_to_refuse"),
@@ -496,6 +496,31 @@ cases = [
     ("M154 版本对比报告又认不出 Stash 带前缀的筛选（写成“未知的正则”）", [("tools/compare_versions.py", lambda s: s.replace(
         '            ("Stash宽 ", _stash_variant(new_loose)), ("Stash严 ", _stash_variant(new_strict)),\n', "", 1))],
      "test_stash_filters_get_their_own_label"),
+    # 2026-10-15（r18，GPT 审核 r17 的 R17-F01：停下时没等接收线程处理完就汇总）
+    ("M155 DNS 替身停下时又不等接收线程（只关 socket 就返回，r17 的样子）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        self._stop.set()\n        if self.is_alive():\n            self.join(timeout)\n        if self.is_alive():\n            return False\n",
+        "        self._stop.set()\n", 1))], "test_close_stubs_waits_for_a_query_already_received"),
+    ("M156 close_stubs 不管替身有没有停下（接收线程没结束也当没问题）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        if not st.stop(timeout):\n", "        if not st.stop(timeout) and False:\n", 1))],
+     "test_close_stubs_reports_a_receiver_that_does_not_finish"),
+    ("M157 有一处核对（sing-box 拨号）在替身停下以前就汇总", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）\n        out = {}\n",
+        "        out = {}\n", 1))], "test_every_dns_stub_is_closed_through_close_stubs"),
+    ("M158 测试节点停下时又不等处理连接的线程，一律说停好了", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        for t in threads:\n            t.join(max(0.0, end - time.time()))\n        return not any(t.is_alive() for t in threads)\n",
+        "        return True\n", 1))], "test_recorder_stop_waits_for_a_request_already_received"),
+    ("M159 有一处出站核对（mihomo）在测试节点停下以前就汇总", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        if recorder and not recorder.stop():\n"
+        "            raise RuntimeError(f\"测试节点没有停下（{transport}），收到的请求可能没有记全，这一项的结果不记\")\n", "", 1))],
+     "test_every_dns_stub_is_closed_through_close_stubs"),
+    ("M160 测试节点又把超时记成“不完整”（GPT 审核 r17 的建议：两种分开记）", [("tools/check_real_routes.py", lambda s: s.replace(
+        ", timed_out=True) from None\n", ") from None\n", 1))], "test_recorder_tells_a_timeout_from_a_cut_off"),
+    ("M161 测试节点停下时丢掉 UDP 口里已经到了、还没读的包", [("tools/check_real_routes.py", lambda s: s.replace(
+        "                if self._closing.is_set():\n                    # stop()", "                if self._closing.is_set():\n                    return\n                    # stop()", 1))],
+     "test_recorder_stop_keeps_udp_packets_already_received"),
+    ("M162 DNS 替身一停下就不收了（socket 里已经排着的查询不处理）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        self.sock.settimeout(STUB_POLL)\n        while True:\n", "        self.sock.settimeout(STUB_POLL)\n        while not self._stop.is_set():\n", 1))],
+     "test_close_stubs_waits_for_a_query_already_received"),
 ]
 
 

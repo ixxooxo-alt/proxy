@@ -999,9 +999,198 @@ class Socks5RecorderTool(unittest.TestCase):
             crr.close_stubs([bad])
         self.assertIn("读不懂的查询", str(cm.exception))
 
+    # 下面几项（2026-10-15，GPT 审核 r17 的 R17-F01）核对“停下时先把已经收到的处理完、线程结束，再汇总”。
+    # 不靠 sleep 估计时间：用 Event 把接收线程拦在处理之前，先后顺序是定死的。唯一的等待是“0.5 秒后关的那一方还没返回”，
+    # 方向是保守的——实现正确时它要等到放行才可能返回；实现回到以前（不等线程）时它立刻返回。
+
+    def _gate(self, name, when=lambda *a, **k: True):
+        """把 check_real_routes 里的函数 name 换成“先拦住、放行以后再照常调用”的版本（when 为真的那一次才拦）。
+        返回 (entered, release)；测试结束时自动放行、换回原函数。"""
+        import threading
+        crr = self.crr
+        real = getattr(crr, name)
+        entered, release = threading.Event(), threading.Event()
+
+        def gated(*a, **k):
+            if not entered.is_set() and when(*a, **k):
+                entered.set()
+                release.wait(10)
+            return real(*a, **k)
+        setattr(crr, name, gated)
+        self.addCleanup(setattr, crr, name, real)
+        self.addCleanup(release.set)
+        return entered, release
+
+    def _in_thread(self, fn):
+        """在另一个线程里调 fn，结果（返回值或 RuntimeError 的文字）放进返回的列表。"""
+        import threading
+        out = []
+
+        def run():
+            try:
+                out.append(fn())
+            except RuntimeError as e:
+                out.append("RuntimeError: " + str(e))
+        t = threading.Thread(target=run, daemon=True)
+        t.start()
+        return t, out
+
+    def test_close_stubs_waits_for_a_query_already_received(self):
+        """替身已经收到查询、还没处理完时，close_stubs 不能先返回；处理完以后它要报出这条读不懂的查询。
+        照审核报告的复现一写（同一个截断的查询）：r17 的 close_stubs 在这里直接返回、不报错，放行以后才记下这条查询。
+        拦住的时候再到一个正常的查询（还在 socket 里排着）：停下以前到了的也要处理完、记进 seen。"""
+        import socket
+        crr = self.crr
+        packet = bytes.fromhex("1234010000010000000000000573686f7274")
+        entered, release = self._gate("_parse_question")
+        st = crr.DnsStub("probe", {})
+        self.addCleanup(st.stop)
+        st.start()
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.sendto(packet, ("127.0.0.1", st.port))
+            self.assertTrue(entered.wait(5), "替身没有收到查询")
+            u.sendto(b"\x56\x78\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x06queued\x00\x00\x01\x00\x01", ("127.0.0.1", st.port))
+        t, out = self._in_thread(lambda: crr.close_stubs([st]))
+        t.join(0.5)
+        self.assertTrue(t.is_alive(), f"替身还没处理完收到的查询，close_stubs 就返回了：{out}")
+        self.assertEqual(st.unparsed, [])
+        release.set()
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual(len(out), 1, out)
+        self.assertIn("读不懂的查询", out[0])
+        self.assertIn(packet.hex(), out[0])
+        self.assertEqual(st.seen, [("queued", 1)], "停下以前已经到了的查询没有处理")
+        self.assertTrue(st.stopped)
+
+    def test_close_stubs_reports_a_receiver_that_does_not_finish(self):
+        """接收线程在限定时间里没有结束（这里一直拦着），close_stubs 要报错，不能当作“没有问题”——这时收到的查询可能没有记全。"""
+        import socket
+        crr = self.crr
+        entered, release = self._gate("_parse_question")
+        st = crr.DnsStub("probe", {})
+        self.addCleanup(st.stop)
+        st.start()
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.sendto(b"\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02ok\x00\x00\x01\x00\x01", ("127.0.0.1", st.port))
+        self.assertTrue(entered.wait(5), "替身没有收到查询")
+        with self.assertRaises(RuntimeError) as cm:
+            crr.close_stubs([st], timeout=0.3)
+        self.assertIn("没有结束", str(cm.exception))
+        self.assertFalse(st.stopped)
+        release.set()
+        self.assertTrue(st.stop(5))
+        self.assertEqual(st.seen, [("ok", 1)])
+
+    def test_recorder_stop_waits_for_a_request_already_received(self):
+        """测试节点已经收到 CONNECT、还没记下时，stop() 不能先返回；记下以后返回 True。r17 的 close() 不等处理连接的线程。"""
+        import socket
+        import struct
+        crr = self.crr
+        entered, release = self._gate("_socks_addr", when=lambda read, atyp=None: atyp is not None)   # 只拦请求里的地址
+        rec = crr.Socks5Recorder()
+        self.addCleanup(rec.stop)
+        rec.start()
+        host = "slow.example"
+        with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+            s.sendall(b"\x05\x01\x00")
+            self.assertEqual(s.recv(2), b"\x05\x00")
+            s.sendall(b"\x05\x01\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443))
+            self.assertTrue(entered.wait(5), "测试节点没有收到请求")
+            t, out = self._in_thread(rec.stop)
+            t.join(0.5)
+            self.assertTrue(t.is_alive(), f"测试节点还没记下收到的请求，stop() 就返回了：{out}")
+            self.assertEqual(rec.seen, [])
+            release.set()
+            t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual(out, [True])
+        self.assertEqual(rec.seen, [("tcp", "domain", host)])
+
+    def test_recorder_stop_reports_a_connection_that_does_not_finish(self):
+        """处理连接的线程在限定时间里没有结束（一直拦着），stop() 返回 False；出站核对见到 False 就报错、不记结果。"""
+        import socket
+        import struct
+        crr = self.crr
+        entered, release = self._gate("_socks_addr", when=lambda read, atyp=None: atyp is not None)
+        rec = crr.Socks5Recorder()
+        self.addCleanup(rec.stop)
+        rec.start()
+        with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+            s.sendall(b"\x05\x01\x00")
+            s.recv(2)
+            s.sendall(b"\x05\x01\x00\x01" + bytes([192, 0, 2, 1]) + struct.pack("!H", 443))
+            self.assertTrue(entered.wait(5), "测试节点没有收到请求")
+            self.assertFalse(rec.stop(timeout=1.0))
+            self.assertFalse(rec.is_alive(), "接连接的线程该停了（没停下的是处理连接的那个）")
+            release.set()
+            self.assertTrue(rec.stop())
+        self.assertEqual(rec.seen, [("tcp", "ip", "192.0.2.1")])
+
+    def test_recorder_stop_keeps_udp_packets_already_received(self):
+        """UDP 关联还开着时停下：UDP 口里已经到了、还没读的包，要先读完再结束（R17-F01 之后自查的同一类问题）。
+        第一个包处理时拦住，这时第二个包到了、停止标记也设上了，放行以后第二个包也要记下。"""
+        import socket
+        import struct
+        import time
+        crr = self.crr
+        entered, release = self._gate("_socks_addr", when=lambda read, atyp=None: atyp is None)   # 只拦 UDP 包里的地址
+        rec = crr.Socks5Recorder()
+        self.addCleanup(rec.stop)
+        rec.start()
+
+        def packet(host):
+            return b"\x00\x00\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443) + b"x"
+        with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as c:
+            c.sendall(b"\x05\x01\x00")
+            c.recv(2)
+            c.sendall(b"\x05\x03\x00\x01" + bytes(6))
+            rep = c.recv(10)
+            relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+                u.sendto(packet("first.example"), relay)
+                self.assertTrue(entered.wait(5), "测试节点没有收到第一个 UDP 包")
+                u.sendto(packet("second.example"), relay)
+            t, out = self._in_thread(rec.stop)
+            self.assertTrue(rec._closing.wait(5))
+            time.sleep(0.2)                            # 只为让第二个包确实进了 UDP 口（本机回环上几乎是立刻），不是等被测的代码
+            release.set()
+            t.join(10)
+            self.assertFalse(t.is_alive())
+        self.assertEqual(out, [True])
+        self.assertEqual(rec.seen, [("udp", "domain", "first.example"), ("udp", "domain", "second.example")])
+        self.assertEqual(rec.invalid, [])
+
+    def test_recorder_tells_a_timeout_from_a_cut_off(self):
+        """收到一部分以后一直没有下一段（超时）和只收到一部分就断开（不完整）分开记（GPT 审核 r17 的建议：IDLE_TIMEOUT 是每一次
+        接收的等待上限，不是总时长；超时说明不了对方违反 RFC）。两种都进 invalid。这里把 IDLE_TIMEOUT 调成 0.5 秒。"""
+        import socket
+        crr = self.crr
+        rec = crr.Socks5Recorder()
+        rec.IDLE_TIMEOUT = 0.5
+        self.addCleanup(rec.stop)
+        rec.start()
+        with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+            s.sendall(b"\x05")                         # 握手只发一个字节，然后不动
+            s.settimeout(5)
+            self.assertEqual(s.recv(10), b"", "测试节点该在超时以后断开")
+        with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+            s.sendall(b"\x05")
+            s.shutdown(socket.SHUT_WR)                 # 握手只发一个字节就断开
+            s.settimeout(5)
+            self.assertEqual(s.recv(10), b"")
+        self.assertTrue(rec.stop())
+        reasons = [why for why, _ in rec.invalid]
+        self.assertEqual(len(reasons), 2, rec.invalid)
+        self.assertIn("握手超时", reasons[0])
+        self.assertIn("握手不完整", reasons[1])
+        self.assertEqual(rec.empty, 0)
+
     def test_every_dns_stub_is_closed_through_close_stubs(self):
         """出站核对里每个开了 DNS 替身的函数，都经 close_stubs 关掉替身（只有它会在收到读不懂的查询时报错）；
-        直接调替身的 close() 只许出现在 close_stubs 里面。读源码核对，不需要官方内核。"""
+        直接调替身的 close() / stop() 只许出现在 close_stubs 里面。读源码核对，不需要官方内核。
+        2026-10-15（R17-F01）起还要：内核停下（terminate）以后、读 seen / invalid / empty 汇总以前，先在 finally 以外调一次
+        close_stubs（开了测试节点的，还要先调它的 stop()）；finally 里那一次只管出错时收尾。"""
         import ast
         with open(self.crr.__file__, encoding="utf-8") as f:
             tree = ast.parse(f.read())
@@ -1012,14 +1201,35 @@ class Socks5RecorderTool(unittest.TestCase):
                     f = node.func
                     yield f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else None
 
+        def call_lines(fn, name, outside_finally=False):
+            skip = set()
+            if outside_finally:
+                for t in ast.walk(fn):
+                    if isinstance(t, ast.Try):
+                        for stmt in t.finalbody:
+                            skip.update(id(n) for n in ast.walk(stmt))
+            return [n.lineno for n in ast.walk(fn) if isinstance(n, ast.Call) and id(n) not in skip
+                    and (n.func.id if isinstance(n.func, ast.Name) else n.func.attr if isinstance(n.func, ast.Attribute) else None) == name]
+
         funcs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
         openers = [f.name for f in funcs if "DnsStub" in set(calls(f))]
         self.assertGreaterEqual(len(openers), 6, openers)
         for f in funcs:
-            if f.name in openers:
-                self.assertIn("close_stubs", set(calls(f)), f.name)
+            if f.name not in openers:
+                continue
+            self.assertIn("close_stubs", set(calls(f)), f.name)
+            stopped_core = max(call_lines(f, "terminate"), default=None)
+            self.assertIsNotNone(stopped_core, f.name)
+            reads = [n.lineno for n in ast.walk(f) if isinstance(n, ast.Attribute) and n.attr in ("seen", "invalid", "empty")
+                     and n.lineno > stopped_core]
+            first_read = min(reads, default=10 ** 9)
+            early = [ln for ln in call_lines(f, "close_stubs", outside_finally=True) if stopped_core < ln < first_read]
+            self.assertTrue(early, f"{f.name}：内核停下以后、汇总以前没有调 close_stubs")
+            if "Socks5Recorder" in set(calls(f)):
+                stops = [ln for ln in call_lines(f, "stop", outside_finally=True) if stopped_core < ln < first_read]
+                self.assertTrue(stops, f"{f.name}：内核停下以后、汇总以前没有停下测试节点")
         closes_by_hand = [f.name for f in funcs if f.name in openers and any(
-            isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "close"
+            isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in ("close", "stop")
             and isinstance(n.func.value, ast.Name) and n.func.value.id in ("stub", "st", "s")
             for n in ast.walk(f))]
         self.assertEqual(closes_by_hand, [])
