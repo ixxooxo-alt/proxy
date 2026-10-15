@@ -1,0 +1,110 @@
+sing-box 1.14.3：sing-box version 1.14.3（Revision 7054cac51244）
+sing-box 1.14.1（对照）：sing-box version 1.14.1（Revision 1ac1a339cb12）
+
+== 1. 最小核对（handoff/notes/r15_review_probes.py 的同一批配置），sing-box 1.14.3 ==
+ SOCKS 出口 → 本机 SOCKS5 接收端：
+  最简（没有路由规则，final 直接是 SOCKS 出口）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    日志里的 unsupported address：0 行
+  加 selector（final 是只含 SOCKS 出口的选择组）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    日志里的 unsupported address：0 行
+  加 sniff（路由第一条是 sniff 动作）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    日志里的 unsupported address：0 行
+  sniff + selector
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    日志里的 unsupported address：0 行
+  加 resolve（路由第一条是 resolve 动作，交给本机 DNS 替身）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('ip', '127.0.1.1'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    DNS 替身收到的查询：['udp-probe.example', 'udp-probe.example']（udp-probe.example 的回答是 127.0.1.1）
+    日志里的 unsupported address：0 行
+  resolve + selector（先解析成地址，再交给选择组）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('ip', '127.0.1.1'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    DNS 替身收到的查询：['udp-probe.example', 'udp-probe.example']（udp-probe.example 的回答是 127.0.1.1）
+    日志里的 unsupported address：0 行
+  selector 换成 urltest（final 是只含 SOCKS 出口的自动测速组）
+    客户端握手：域名 ok，IPv4 ok
+    接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
+    日志里的 unsupported address：0 行
+ 配对的服务端（同一版本；服务端只记日志、一律拒绝）：
+  shadowsocks：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+  trojan：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+  vmess：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+  shadowsocks（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+  trojan（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+  vmess（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
+
+== 2. 实际配置的出站核对：1.14.1 与 1.14.3 对照 ==
+配置：这一版生成的 sing-box/sing-box-1.14.json（统一源 2026.10.15-1，SHA-256 358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda）
+
+  outbound_resolve（走代理的组换成测试出口）：8 个主机
+    singbox-socks-tcp：两个版本相同（左 1.14.1，右 1.14.3）
+        qwen.ai：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        download.microsoft.com：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        chatgpt.com：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        never-listed-site.org：DNS dns-foreign，节点收到 ip  |  DNS dns-foreign，节点收到 ip
+        www.qq.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        www.apple.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        tlu.dl.delivery.mp.microsoft.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        time.windows.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+    singbox-socks-udp：3 个主机不同（左 1.14.1，右 1.14.3）
+      ≠ qwen.ai：DNS none，节点收到 -  |  DNS none，节点收到 domain
+      ≠ download.microsoft.com：DNS none，节点收到 -  |  DNS none，节点收到 domain
+      ≠ chatgpt.com：DNS none，节点收到 -  |  DNS none，节点收到 domain
+        never-listed-site.org：DNS dns-foreign，节点收到 ip  |  DNS dns-foreign，节点收到 ip
+        www.qq.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        www.apple.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        tlu.dl.delivery.mp.microsoft.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+        time.windows.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+    singbox-wireguard-tcp：两个版本相同（左 1.14.1，右 1.14.3）
+        qwen.ai：DNS dns-foreign  |  DNS dns-foreign
+        download.microsoft.com：DNS dns-foreign  |  DNS dns-foreign
+        chatgpt.com：DNS dns-foreign  |  DNS dns-foreign
+        never-listed-site.org：DNS dns-foreign  |  DNS dns-foreign
+        www.qq.com：DNS dns-cn  |  DNS dns-cn
+        www.apple.com：DNS dns-cn  |  DNS dns-cn
+        tlu.dl.delivery.mp.microsoft.com：DNS dns-cn  |  DNS dns-cn
+        time.windows.com：DNS dns-cn  |  DNS dns-cn
+
+  outbound_switched（默认直连、可以切换的组也切到测试出口）：4 个主机
+    singbox-socks-tcp：两个版本相同（左 1.14.1，右 1.14.3）
+        www.apple.com：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        www.apple.com.cn：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        api.bilibili.com：DNS none，节点收到 domain  |  DNS none，节点收到 domain
+        www.qq.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+    singbox-socks-udp：3 个主机不同（左 1.14.1，右 1.14.3）
+      ≠ www.apple.com：DNS none，节点收到 -  |  DNS none，节点收到 domain
+      ≠ www.apple.com.cn：DNS none，节点收到 -  |  DNS none，节点收到 domain
+      ≠ api.bilibili.com：DNS none，节点收到 -  |  DNS none，节点收到 domain
+        www.qq.com：DNS dns-cn，节点收到 -  |  DNS dns-cn，节点收到 -
+    singbox-wireguard-tcp：两个版本相同（左 1.14.1，右 1.14.3）
+        www.apple.com：DNS dns-foreign  |  DNS dns-foreign
+        www.apple.com.cn：DNS dns-foreign  |  DNS dns-foreign
+        api.bilibili.com：DNS dns-foreign  |  DNS dns-foreign
+        www.qq.com：DNS dns-cn  |  DNS dns-cn
+
+实际配置的出站核对：六组（三个场景 × 两批主机）里两个版本结果不同的 2 组，没有跑成的 0 组
+
+== 3. 实际配置的全套核对（tools/check_real_routes.py，1.14.3 当 1.14 版的内核；人工期望按 1.14.1 写） ==
+退出码 1；最后一行“6 处不一致”；标着“不符合”的 2 段（完整输出：handoff/notes/r18_singbox_1143_full.out）
+  [不符合] 出站时的解析 8 个主机 × 3 种出口（走代理的组换成 SOCKS 走 TCP、SOCKS 走 UDP、WireGuard 端点走 TCP；SOCKS 出口连本机的 SOCKS5 接收端）：有 3 条不一致
+    qwen.ai：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    download.microsoft.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    chatgpt.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    never-listed-site.org：socks-tcp → dns-foreign，节点收到 ip，socks-udp → dns-foreign，节点收到 ip，wireguard-tcp → dns-foreign
+    www.qq.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn
+    www.apple.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn
+    tlu.dl.delivery.mp.microsoft.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn
+    time.windows.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn
+  [不符合] 默认直连的组切到代理以后 4 个主机 × 3 种出口（走代理的组换成 SOCKS 走 TCP、SOCKS 走 UDP、WireGuard 端点走 TCP；SOCKS 出口连本机的 SOCKS5 接收端）：有 3 条不一致
+    www.apple.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    www.apple.com.cn：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    api.bilibili.com：socks-tcp → none，节点收到 domain，socks-udp → none，节点收到 domain，wireguard-tcp → dns-foreign
+    www.qq.com：socks-tcp → dns-cn，节点收到 -，socks-udp → dns-cn，节点收到 -，wireguard-tcp → dns-cn

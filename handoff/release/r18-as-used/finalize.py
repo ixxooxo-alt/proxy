@@ -135,7 +135,7 @@ STALE = {k: [] for k in (
 STALE.update({"44 页": ["docs/02-语法依据与能力矩阵.md", "docs/06-已知限制与待决事项.md", "docs/07-需求对照.md", "00-审核说明.md", "docs/05-验收记录.md"],
               "原话见 `docs/00` 最后": ["handoff/README.md", "00-审核说明.md"],             # 这两处是在说这种写法本身
               "154 类全部被发现": [H8], "r17：统一源 2026.10.14-1": [H8], "2247 个名字": [H8, "docs/02-语法依据与能力矩阵.md"],
-              "8 秒还没发完": [H8], "境外域名都不在本机解析": [H8, "docs/03-DNS决策表.md"]})          # docs/03 那一处是在说以前的写法
+              "8 秒还没发完": [H8], "境外域名都不在本机解析": [H8, "docs/03-DNS决策表.md", "00-审核说明.md"]})   # 这两处是在说以前的写法
 # 第 22 项的 ① ② 等你定：不能写成已经定了
 STALE.update({k: ["docs/00-需求原文.md"] for k in ("第 22 项已定", "第 22 项你选了 ①", "第 22 项你选了 ②")})
 
@@ -515,8 +515,8 @@ assert full.count("[符合] 境外 DNS 不应答") == 2 and full.count("[不符�
 assert "名字会交给国内 DNS 的 17701 个：路由是国内直连 / 直连 / 拦截的 17701 个；归默认直连、可以切换的组的 0 个；走代理组的 0 个" in full
 assert "不合规" not in full and "读不懂的查询" not in full and "没有停下" not in full and "operation not permitted" not in full
 
-ONEOFF_TIMES = (f"R17-F01 的复现脚本{window(ra, rb)}、sing-box 1.14.3{window(xa, xb)}、sing-box UDP 的定位用改过收尾的接收端重跑{window(pa, pb)}、"
-                f"Stash 带前缀的筛选在 ICU 上{window(qa, qb)}")
+ONEOFF_TIMES = (f"R17-F01 的复现脚本{window(ra, rb)}、Stash 带前缀的筛选在 ICU 上{window(qa, qb)}、"
+                f"sing-box UDP 的定位用改过收尾的接收端重跑{window(pa, pb)}、sing-box 1.14.3{window(xa, xb)}")
 
 values = {"ICU_TIME": icu_time, "LONG_TIME": long_time, "MUT_CELL": mut_cell, "CMP_CELL": CMP_CELL,
           "freeze_utc": freeze[:16], "freeze_full": freeze, "freeze_hm": freeze[11:16], "mut_window": mwin, "mut_start_hm": segs[0]["start"][11:16],
