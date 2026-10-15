@@ -188,7 +188,7 @@ class DnsStub(threading.Thread):
         self.label, self.answers, self.seen, self.silent = name, answers, [], silent
         self.unparsed = []
         self.stopped = False                           # stop() 等到接收线程结束以后才是 True
-        self._stop = threading.Event()
+        self._dns_stop_event = threading.Event()   # 不能叫 _stop：Python 3.12 及以前 Thread 自己有 _stop 方法（R18-F01）
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(("127.0.0.1", 0))
         self.port = self.sock.getsockname()[1]
@@ -199,7 +199,7 @@ class DnsStub(threading.Thread):
             try:
                 data, addr = self.sock.recvfrom(4096)
             except socket.timeout:
-                if self._stop.is_set():
+                if self._dns_stop_event.is_set():
                     return                             # 有数据时 recvfrom 不会超时：走到这里，停下以前到了的都处理完了
                 continue
             except OSError:
@@ -225,7 +225,7 @@ class DnsStub(threading.Thread):
     def stop(self, timeout: float = 5.0) -> bool:
         """停止接收：已经到了的查询处理完、接收线程结束，再关 socket。返回接收线程是否在 timeout 秒内结束——
         没有结束时 socket 不关（线程还在用），收到的查询可能没有记全。可以重复调用。"""
-        self._stop.set()
+        self._dns_stop_event.set()
         if self.is_alive():
             self.join(timeout)
         if self.is_alive():
@@ -433,6 +433,7 @@ def mihomo_probe(binary: str, geodata_dir: str, config_text: str, targets: list,
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         close_stubs([stub])                            # 内核停了：替身把已经收到的处理完、线程结束，再往下（R17-F01）
         got = {}
         with open(logp, encoding="utf-8", errors="replace") as f:
@@ -454,17 +455,41 @@ def mihomo_probe(binary: str, geodata_dir: str, config_text: str, targets: list,
 QTYPE = {"A": 1, "AAAA": 28, "HTTPS": 65, "TXT": 16}
 
 
+def _dns_where(ips, asked: list, fake_net, hold: bool = False) -> str:
+    """sing-box 一条查询用例的去向。ips：内核回给这里的地址（None = 没有应答）；asked：替身都停下以后，收到过这个名字
+    这个类型的查询的替身。hold（不应答的那一遍）：收到过的替身就是结果（看整个观察时间里谁收到过，和以前一样）。"""
+    if hold and asked:
+        return "+".join(asked)
+    if ips and fake_net is not None and all(ipaddress.ip_address(x) in fake_net for x in ips):
+        return "dns-fakeip" if not asked else "dns-fakeip+" + "+".join(asked)
+    if asked:
+        return "+".join(asked)
+    return "没有应答" if ips is None else "没有服务器收到查询"
+
+
 def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dns_cases: list, dns_map: dict,
                   silent: tuple = (), hold: float = 0.0):
     """返回 (路由 {目标: (命中的规则, 出站)}, DNS {(主机, 类型): 服务器标签})。
-    silent：这几个标签的 DNS 替身只收不答。hold > 0 时，查询都发完以后再等这么多秒，然后按“整个过程里哪些替身收到过
-    这个名字这个类型的查询”重新认一遍——超时以后有没有改问别的服务器，只有这样才看得到。这种用法下 targets 要留空
-    （连接也会引起查询，会和查询用例混在一起）。
-    2026-10-15（R17-F01 之后自查）：重新认的那一遍挪到内核停下、替身都处理完以后（以前在运行中、等完 hold 秒就认）。
-    逐条查询的归属仍在运行中认：替身先记下查询、再回答，内核收到回答才回给这里，所以回答的那个替身这时一定已经记下；
-    只收不答的替身，这里要等到超时（几秒）才往下走，也早已记下。"""
+    silent：这几个标签的 DNS 替身只收不答。hold > 0 时，查询都发完以后再等这么多秒——超时以后有没有改问别的服务器，
+    只有这样才看得到；这种用法下 targets 要留空。
+    查询用例的去向在内核停下、替身都处理完以后，按“哪些替身收到过这个名字这个类型的查询”认（_dns_where）；
+    targets 和 dns_cases 都有时分两遍，各起一次内核（连接也会引起查询，同一个名字的记录会混在一起）。
+    2026-10-15（GPT 审核 r18 的 R18-F03）：以前逐条查询在运行中按各替身记录的条数增量认，上一条迟到的记录会算给下一条——
+    客户端等到超时，说明不了只收不答的替身已经记下；r18 写的“回答的那个替身一定已经记下”只对回答的那一个成立。"""
     if hold and targets:
         raise ValueError("hold 只用于单独核对 DNS 查询，targets 要留空")
+    if targets and dns_cases:
+        _, dns_got = _singbox_run(binary, srs_dir, config_text, [], dns_cases, dns_map, silent, hold)
+        routes, _ = _singbox_run(binary, srs_dir, config_text, targets, [], dns_map, silent, hold)
+        return routes, dns_got
+    return _singbox_run(binary, srs_dir, config_text, targets, dns_cases, dns_map, silent, hold)
+
+
+def _singbox_run(binary: str, srs_dir: str, config_text: str, targets: list, dns_cases: list, dns_map: dict,
+                 silent: tuple = (), hold: float = 0.0):
+    """singbox_probe 的一遍：起一次内核，只发连接或者只发查询（见 singbox_probe）。"""
+    if targets and dns_cases:
+        raise ValueError("一遍里不能既有连接又有查询：连接也会引起查询，分不清记录是哪一条引起的")
     conf = json.loads(config_text)
     stubs = {tag: DnsStub(tag, dns_map, silent=tag in silent) for tag in ("dns-cn", "dns-foreign", "dns-local")}
     for st in stubs.values():
@@ -500,24 +525,14 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
         with open(cfg, "w", encoding="utf-8") as f:
             json.dump(conf, f, ensure_ascii=False)
         logp = os.path.join(tmp, "log.txt")
-        dns_got = {}
+        dns_got, answers = {}, []
         with open(logp, "w", encoding="utf-8") as log:
             proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
             try:
                 if not wait_port(mixed, proc) or not wait_log(logp, lambda: None, "sing-box started", proc):
                     raise RuntimeError("sing-box 没有启动成功：" + _log_tail(logp))
                 for c in dns_cases:
-                    before = {k: len(v.seen) for k, v in stubs.items()}
-                    ips = dns_query(dns_in, c["host"], QTYPE[c["type"]])
-                    time.sleep(0.05)
-                    asked = [k for k, v in stubs.items() if len(v.seen) > before[k]]
-                    if ips and fake_net is not None and all(ipaddress.ip_address(x) in fake_net for x in ips):
-                        where = "dns-fakeip" if not asked else "dns-fakeip+" + "+".join(asked)
-                    elif len(asked) == 1:
-                        where = asked[0]
-                    else:
-                        where = "+".join(asked) if asked else ("没有应答" if ips is None else "没有服务器收到查询")
-                    dns_got[(c["host"], c["type"])] = where
+                    answers.append(dns_query(dns_in, c["host"], QTYPE[c["type"]]))
                 if hold:
                     time.sleep(hold)
                 # 每个连接要等嗅探超时（没有后续数据），所以并发着发；按日志里的连接编号对应回去
@@ -530,11 +545,12 @@ def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dn
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
-        for c in dns_cases if hold else ():
-            late = sorted(k for k, v in stubs.items() if (c["host"].lower(), QTYPE[c["type"]]) in v.seen)
-            if late:
-                dns_got[(c["host"], c["type"])] = "+".join(late)
+        for c, ips in zip(dns_cases, answers):
+            key = (c["host"].lower().rstrip("."), QTYPE[c["type"]])
+            asked = [k for k, v in stubs.items() if key in v.seen]
+            dns_got[(c["host"], c["type"])] = _dns_where(ips, sorted(asked) if hold else asked, fake_net, hold)
         conn_target, conn_result = {}, {}
         with open(logp, encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -629,6 +645,7 @@ def singbox_dial_probe(binary: str, srs_dir: str, model, plan, variant: str, cas
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
         out = {}
         for c in cases:
@@ -803,6 +820,7 @@ def mihomo_dial_probe(binary: str, geodata_dir: str, model, config_text: str, ca
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
 
         def asked_by(name):
@@ -1013,10 +1031,13 @@ class Socks5Recorder(threading.Thread):
             u.bind(("127.0.0.1", 0))
             c.sendall(b"\x05\x00\x00\x01" + socket.inet_aton("127.0.0.1") + struct.pack("!H", u.getsockname()[1]))
             c.settimeout(None)
-            end = time.time() + self.UDP_MAX_SECONDS
-            while time.time() < end:
+            end = time.monotonic() + self.UDP_MAX_SECONDS
+            while time.monotonic() < end:
                 if self._closing.is_set():
-                    # stop() 时控制连接还开着：关联到这里结束，UDP 口里已经到了的包先读完（2026-10-15，R17-F01 的同一类问题）
+                    # stop()：控制连接已经断了的，关联早已结束，UDP 口里的包不再收（RFC 1928 第 6 节；2026-10-15，GPT 审核 r18 的
+                    # R18-F02——以前这里没看控制连接，断开以后才到的包也记进了 seen）；还开着的，关联到这里结束，已经到了的包先读完
+                    if self._control_closed(c):
+                        return
                     u.setblocking(False)
                     while True:
                         try:
@@ -1034,6 +1055,15 @@ class Socks5Recorder(threading.Thread):
                 if u in ready:
                     data, src = u.recvfrom(65535)
                     self._take_udp(data, src, want_ip, want_port)
+
+    @staticmethod
+    def _control_closed(c: socket.socket) -> bool:
+        """UDP 关联的控制连接是不是已经断了（读得到 EOF，或者出错）。只偷看，不取走数据，不等待。"""
+        try:
+            ready, _, _ = select.select([c], [], [], 0)
+            return bool(ready) and c.recv(1, socket.MSG_PEEK) == b""
+        except OSError:
+            return True
 
     def _take_udp(self, data: bytes, src: tuple, want_ip: str, want_port) -> None:
         """核对关联收到的一个 UDP 包（RFC 1928 第 7 节），合规的记进 seen，不合规的记进 invalid。"""
@@ -1064,8 +1094,8 @@ class Socks5Recorder(threading.Thread):
     def _hold(self, c: socket.socket) -> None:
         """CONNECT 回了成功以后：收下对方发来的（不转发），直到对方关掉、出错、IDLE_TIMEOUT 秒没有动静，或者 stop()。"""
         c.settimeout(0.3)
-        idle_until = time.time() + self.IDLE_TIMEOUT
-        while not self._closing.is_set() and time.time() < idle_until:
+        idle_until = time.monotonic() + self.IDLE_TIMEOUT
+        while not self._closing.is_set() and time.monotonic() < idle_until:
             try:
                 if not c.recv(4096):
                     return
@@ -1073,17 +1103,17 @@ class Socks5Recorder(threading.Thread):
                 continue
             except OSError:
                 return
-            idle_until = time.time() + self.IDLE_TIMEOUT
+            idle_until = time.monotonic() + self.IDLE_TIMEOUT
 
     def stop(self, timeout: float = None) -> bool:
         """停下：不再接新连接；已经连上来的都处理完（线程结束）才返回。握手、请求收到一半的，要等到收完、对方断开或者
         IDLE_TIMEOUT 秒超时（记进 invalid），所以默认最多等 IDLE_TIMEOUT + 2 秒。返回是不是都在 timeout 秒内结束了——
         没有结束时 seen / invalid 可能没有记全，调用的地方要报错、不记结果。先停下内核再调它。可以重复调用。"""
         timeout = self.IDLE_TIMEOUT + 2 if timeout is None else timeout
-        end = time.time() + timeout
+        end = time.monotonic() + timeout
         self._closing.set()
         if self.is_alive():
-            self.join(max(0.0, end - time.time()))     # 接连接的线程每 0.3 秒看一次停止标记
+            self.join(max(0.0, end - time.monotonic()))     # 接连接的线程每 0.3 秒看一次停止标记
         if self.is_alive():
             return False
         try:
@@ -1093,7 +1123,7 @@ class Socks5Recorder(threading.Thread):
         with self._lock:
             threads = list(self._threads)
         for t in threads:
-            t.join(max(0.0, end - time.time()))
+            t.join(max(0.0, end - time.monotonic()))
         return not any(t.is_alive() for t in threads)
 
     def close(self):
@@ -1262,6 +1292,7 @@ def mihomo_outbound_probe(binary: str, geodata_dir: str, model, config_text: str
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         # 内核停了：测试节点、替身把已经收到的处理完、线程结束，再汇总（R17-F01）
         if recorder and not recorder.stop():
             raise RuntimeError(f"测试节点没有停下（{transport}），收到的请求可能没有记全，这一项的结果不记")
@@ -1356,6 +1387,7 @@ def singbox_outbound_probe(binary: str, srs_dir: str, config_text: str, hosts: l
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    proc.wait()
         # 内核停了：测试节点、替身把已经收到的处理完、线程结束，再汇总（R17-F01）
         if recorder and not recorder.stop():
             raise RuntimeError(f"测试节点没有停下（{transport}），收到的请求可能没有记全，这一项的结果不记")

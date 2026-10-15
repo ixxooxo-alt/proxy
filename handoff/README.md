@@ -221,3 +221,9 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 4. **变异检查分了两段**：第一段跑完 127 类时工作环境停了（04:40 前后），06:09 重新启动以后先核对代码状态哈希和运行环境（`handoff/release/r18-as-used/vendor_check.py`，结果在 `~/proxy-work/vendor18b-check.txt`），再用 `run_mutations.sh` 带上剩下的 35 个编号跑第二段；`segments.json` 里两段都列上。
 5. **出这一版用的脚本**在 `handoff/release/r18-as-used/`（照 r17 的改：类数 162；r18 的数字；一次性核对多了 `r18_close_race_probe.py`、`r18_singbox_1143_probes.py`）。
 6. **交付**：r18 推到同一个分支，没有动 `main`（`main` 仍是 r11）。审完使用者说可以，才更新 `main`。
+
+## 16. r19 送审稿（2026-10-15，同一个云端会话；先审后跑）
+
+1. **状态**：GPT 审了 r18（审核 PR #3，报告存在 `docs/evidence/gpt-r18/`），R18-F01–F03 和两条建议已按 `docs/08` 第 14 轮改了。使用者定了**先审后跑**（`docs/00` 最后一节）：这一稿只跑了快速检查（`tools/run_checks.sh` 一遍；全部测试另在 `python3.12`、`python3.11` 上各一遍），没有定稿、没有跑变异检查、没有更新 `docs/05` 等处的数字、没有打包。
+2. **等 GPT 审完以后**：按它的意见改 → 再做最终版才有的改动：严格版配置注释“能打开，会慢”那一句（R18-S02，`source/strict.yaml` 和三个 `emit_*.py`），因此统一源、生成器版本号要升，文档里的版本号、README 的 “This is r18” 等要跟着改 → 照 `handoff/release/README.md` 出 r19（变异 166 类；`handoff/release/r19-as-used/` 照 r18 的改；快照要不要重新生成看版本号改了以后 mihomo 配置的摘要，照 r18 的做法）。`docs/08` 第 14 轮“验证”一节的送审稿检查结果保留，最终版的结果另写。
+3. **Python 版本**：README 写支持 3.10+，这台机器上有 3.11、3.12、3.13（系统自带，PyYAML 6.0.1），没有 3.10。以后出版本时全部测试至少在 3.12 上也跑一遍（R18-F01 只在 3.12 及以前出现）。

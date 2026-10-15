@@ -1000,8 +1000,9 @@ class Socks5RecorderTool(unittest.TestCase):
         self.assertIn("读不懂的查询", str(cm.exception))
 
     # 下面几项（2026-10-15，GPT 审核 r17 的 R17-F01）核对“停下时先把已经收到的处理完、线程结束，再汇总”。
-    # 不靠 sleep 估计时间：用 Event 把接收线程拦在处理之前，先后顺序是定死的。唯一的等待是“0.5 秒后关的那一方还没返回”，
-    # 方向是保守的——实现正确时它要等到放行才可能返回；实现回到以前（不等线程）时它立刻返回。
+    # 用 Event 把接收线程拦在处理之前，先后顺序是定死的；“包已经进了 UDP 口”“服务端已经读到 EOF”也是等到看得见了再往下。
+    # 剩下一处要给时间：先确认关的那一方已经设了停止标记，再看它 0.5 秒内有没有返回——实现正确时它要等到放行才可能返回，
+    # 实现回到以前（不等线程）时它设完标记就返回；“返回得太早”只能这样看（GPT 审核 r18 的 R18-S01）。其余的超时只防卡死。
 
     def _gate(self, name, when=lambda *a, **k: True):
         """把 check_real_routes 里的函数 name 换成“先拦住、放行以后再照常调用”的版本（when 为真的那一次才拦）。
@@ -1051,6 +1052,7 @@ class Socks5RecorderTool(unittest.TestCase):
             self.assertTrue(entered.wait(5), "替身没有收到查询")
             u.sendto(b"\x56\x78\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x06queued\x00\x00\x01\x00\x01", ("127.0.0.1", st.port))
         t, out = self._in_thread(lambda: crr.close_stubs([st]))
+        self.assertTrue(st._dns_stop_event.wait(5), "close_stubs 没有开始停替身")
         t.join(0.5)
         self.assertTrue(t.is_alive(), f"替身还没处理完收到的查询，close_stubs 就返回了：{out}")
         self.assertEqual(st.unparsed, [])
@@ -1098,6 +1100,7 @@ class Socks5RecorderTool(unittest.TestCase):
             s.sendall(b"\x05\x01\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443))
             self.assertTrue(entered.wait(5), "测试节点没有收到请求")
             t, out = self._in_thread(rec.stop)
+            self.assertTrue(rec._closing.wait(5))
             t.join(0.5)
             self.assertTrue(t.is_alive(), f"测试节点还没记下收到的请求，stop() 就返回了：{out}")
             self.assertEqual(rec.seen, [])
@@ -1132,7 +1135,6 @@ class Socks5RecorderTool(unittest.TestCase):
         第一个包处理时拦住，这时第二个包到了、停止标记也设上了，放行以后第二个包也要记下。"""
         import socket
         import struct
-        import time
         crr = self.crr
         entered, release = self._gate("_socks_addr", when=lambda read, atyp=None: atyp is None)   # 只拦 UDP 包里的地址
         rec = crr.Socks5Recorder()
@@ -1151,9 +1153,9 @@ class Socks5RecorderTool(unittest.TestCase):
                 u.sendto(packet("first.example"), relay)
                 self.assertTrue(entered.wait(5), "测试节点没有收到第一个 UDP 包")
                 u.sendto(packet("second.example"), relay)
+                self._wait_udp_queued(relay[1])
             t, out = self._in_thread(rec.stop)
             self.assertTrue(rec._closing.wait(5))
-            time.sleep(0.2)                            # 只为让第二个包确实进了 UDP 口（本机回环上几乎是立刻），不是等被测的代码
             release.set()
             t.join(10)
             self.assertFalse(t.is_alive())
@@ -1185,6 +1187,131 @@ class Socks5RecorderTool(unittest.TestCase):
         self.assertIn("握手超时", reasons[0])
         self.assertIn("握手不完整", reasons[1])
         self.assertEqual(rec.empty, 0)
+
+    def _wait_udp_queued(self, port):
+        """等到本机 UDP 口 port 的接收队列里有数据（Linux 的 /proc/net/udp；读不到就跳过这一项）。等的是看得见的条件，
+        不是估计时间；5 秒只防卡死（GPT 审核 r18 的 R18-S01：以前这里是 sleep(0.2)）。"""
+        import time
+        deadline = time.monotonic() + 5
+        while True:
+            try:
+                with open("/proc/net/udp", encoding="ascii") as f:
+                    rows = [r.split() for r in f.read().splitlines()[1:]]
+            except OSError:
+                self.skipTest("没有 /proc/net/udp，确认不了包已经进了 UDP 口")
+            queued = [int(r[4].split(":")[1], 16) for r in rows if int(r[1].rsplit(":", 1)[1], 16) == port]
+            if queued and queued[0] > 0:
+                return
+            self.assertLess(time.monotonic(), deadline, "包一直没有进 UDP 口")
+            time.sleep(0.01)
+
+    def test_recorder_stop_ignores_udp_packets_after_the_control_connection_closed(self):
+        """控制连接已经断了（服务端读得到 EOF）以后才到的 UDP 包：关联早已结束，停下时不能记进 seen（GPT 审核 r18 的 R18-F02，
+        照报告的固定顺序复现）。和上一项成对：控制连接还开着时，已经到了的包要读完。"""
+        import select
+        import socket
+        import struct
+        crr = self.crr
+        entered, release = self._gate("_socks_addr", when=lambda read, atyp=None: atyp is None)
+        rec = crr.Socks5Recorder()
+        self.addCleanup(rec.stop)
+        server_side = []
+        real_associate = rec._associate
+        rec._associate = lambda c, *a: (server_side.append(c), real_associate(c, *a))[1]
+        rec.start()
+
+        def packet(host):
+            return b"\x00\x00\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443) + b"x"
+        c = socket.create_connection(("127.0.0.1", rec.port), timeout=5)
+        self.addCleanup(c.close)
+        c.sendall(b"\x05\x01\x00")
+        c.recv(2)
+        c.sendall(b"\x05\x03\x00\x01" + bytes(6))
+        rep = c.recv(10)
+        relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.sendto(packet("before.example"), relay)
+            self.assertTrue(entered.wait(5), "测试节点没有收到第一个 UDP 包")
+            c.close()                                  # 关掉控制连接，等到服务端确实读得到 EOF
+            self.assertTrue(select.select(server_side, [], [], 5)[0], "服务端没有看到控制连接断开")
+            self.assertEqual(server_side[0].recv(1, socket.MSG_PEEK), b"")
+            u.sendto(packet("after-close.example"), relay)   # 这以后才发
+            self._wait_udp_queued(relay[1])
+        t, out = self._in_thread(rec.stop)
+        self.assertTrue(rec._closing.wait(5))
+        release.set()
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual(out, [True])
+        self.assertEqual(rec.seen, [("udp", "domain", "before.example")])
+        self.assertEqual(rec.invalid, [])
+
+    # 2026-10-15 在 Python 3.11.17、3.12.3、3.13.16 上取的 threading.Thread 的成员名（类上的和实例上的，不含 __x__），取并集
+    THREAD_MEMBERS = ("_after_fork _args _bootstrap _bootstrap_inner _daemonic _delete _handle _ident _initialized "
+                      "_invoke_excepthook _is_stopped _kwargs _name _native_id _reset_internal_locks _set_ident _set_native_id "
+                      "_set_tstate_lock _started _stderr _stop _target _tstate_lock _wait_for_tstate_lock daemon getName ident "
+                      "isDaemon is_alive join name native_id run setDaemon setName start").split()
+
+    def test_threads_do_not_shadow_thread_internals(self):
+        """继承 threading.Thread 的 DnsStub、Socks5Recorder，自己赋值的属性和定义的方法不能和 Thread 的成员同名（run 除外，
+        那是本来就要覆盖的）。GPT 审核 r18 的 R18-F01：DnsStub 的停止标记叫 _stop，盖住了 Python 3.12 及以前 Thread 自己的
+        _stop 方法，正常停下就报 TypeError——在 3.13 上看不出来，所以名单取几个版本的并集，再加上这次运行的解释器的。读源码核对。"""
+        import ast
+        import inspect
+        import threading
+        crr = self.crr
+        members = set(self.THREAD_MEMBERS) | {n for n in set(dir(threading.Thread)) | set(vars(threading.Thread()))
+                                              if not (n.startswith("__") and n.endswith("__"))}
+        clash = []
+        for cls in (crr.DnsStub, crr.Socks5Recorder):
+            tree = ast.parse(inspect.getsource(cls))
+            own = {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Store)
+                   and isinstance(n.value, ast.Name) and n.value.id == "self"}
+            own |= {k for k in vars(cls) if not (k.startswith("__") and k.endswith("__"))} - {"run"}
+            clash += [f"{cls.__name__}.{n}" for n in sorted(own & members)]
+        self.assertEqual(clash, [], "和 threading.Thread 的成员同名")
+
+    def test_dns_attribution_uses_name_and_type_after_stubs_stop(self):
+        """sing-box 查询用例的去向：替身都停下以后，按名字和类型认（GPT 审核 r18 的 R18-F03）。照报告的反例：上一条 late.example
+        客户端等到超时，记录在这之后才进只收不答的国内替身；下一条 fake.example 拿到 fake-ip，没有替身收到。
+        以前在运行中按条数增量认，得到的是“没有应答”和“dns-fakeip+dns-cn”。"""
+        import ipaddress
+        crr = self.crr
+        fake = ipaddress.ip_network("198.18.0.0/15")
+        seen = {"dns-cn": [("late.example", 1)], "dns-foreign": [], "dns-local": []}
+
+        def where(host, qtype, ips, hold=False):
+            return crr._dns_where(ips, [k for k, v in seen.items() if (host, qtype) in v], fake, hold)
+        self.assertEqual(where("late.example", 1, None), "dns-cn")
+        self.assertEqual(where("fake.example", 1, ["198.18.0.2"]), "dns-fakeip")
+        self.assertEqual(where("late.example", 65, []), "没有服务器收到查询")       # 同一个名字、别的类型，不算
+        self.assertEqual(where("late.example", 1, ["198.18.0.3"]), "dns-fakeip+dns-cn")
+        self.assertEqual(where("late.example", 1, ["198.18.0.3"], hold=True), "dns-cn")
+        self.assertEqual(where("nobody.example", 1, None), "没有应答")
+
+    def test_singbox_probe_runs_queries_and_connections_separately(self):
+        """连接和查询都有时分两遍，各起一次内核（R18-F03：连接也会引起查询，同一个名字的记录会混在一起）；一遍里两样都有就拒绝。
+        读源码：_singbox_run 里不再按替身记录的条数增量认（没有 len(….seen)）。不需要官方内核。"""
+        import ast
+        import inspect
+        crr = self.crr
+        calls, real = [], crr._singbox_run
+
+        def fake(binary, srs_dir, config_text, targets, dns_cases, dns_map, silent=(), hold=0.0):
+            calls.append((list(targets), list(dns_cases)))
+            return {t: ("rule", "out") for t in targets}, {(c["host"], c["type"]): "dns-cn" for c in dns_cases}
+        crr._singbox_run = fake
+        self.addCleanup(setattr, crr, "_singbox_run", real)
+        q = [{"host": "a.example", "type": "A"}]
+        routes, dns = crr.singbox_probe("sing-box", "srs", "{}", ["a.example"], q, {})
+        self.assertEqual(calls, [([], q), (["a.example"], [])])
+        self.assertEqual((routes, dns), ({"a.example": ("rule", "out")}, {("a.example", "A"): "dns-cn"}))
+        with self.assertRaises(ValueError):
+            real("sing-box", "srs", "{}", ["a.example"], q, {})
+        counts = [n for n in ast.walk(ast.parse(inspect.getsource(real)))
+                  if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "len" and n.args
+                  and isinstance(n.args[0], ast.Attribute) and n.args[0].attr == "seen"]
+        self.assertEqual(counts, [], "查询用例又按替身记录的条数增量认了")
 
     def test_every_dns_stub_is_closed_through_close_stubs(self):
         """出站核对里每个开了 DNS 替身的函数，都经 close_stubs 关掉替身（只有它会在收到读不懂的查询时报错）；
