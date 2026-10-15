@@ -216,7 +216,8 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
    - 自查的同一类：`Socks5Recorder` 也改成 `stop()` 等处理连接的线程（默认最多 `IDLE_TIMEOUT` + 2 秒），UDP 关联停下时先读完已经到了的包；`IDLE_TIMEOUT`（8 秒）是每次接收的等待上限，超时和“不完整”分开记。
    - 回归测试都用 Event 定先后（`_gate` 把 `check_real_routes` 里的某个函数换成“先拦住、放行以后照常调用”的版本），不要改回 sleep。
    - 严格版“不在本机解析”的说法改成“不为判断规则在本机解析”，三份严格版配置的注释跟着改了，所以统一源 2026.10.15-1、生成器 1.10.1。
-2. **第 22 项 ③**：sing-box 1.14.3 的官方程序登记在 `handoff/setup_env.sh`（`SINGBOX1143_BIN`，只给一次性核对用；全部检查仍用 1.14.1 和 1.12.0）。这个会话没有重跑 `setup_env.sh`（它会重新取上游数据，登记的提交取不到时会换成当天最新的），是手工下载、核对校验值，再在 `~/proxy-vendor/env.sh`、`SOURCES.txt` 里各加一行。核对脚本 `handoff/notes/r18_singbox_1143_probes.py`：最小核对用 `r15_review_probes.py` 的函数；实际配置跑 `singbox_outbound_probe`（1.14.1、1.14.3 对照）和整套 `tools/check_real_routes.py`（1.14.3 当 1.14 版的内核，完整输出在 `r18_singbox_1143_full.out`）。结论：1.14.3 不再丢那种 UDP 包；**① ② 仍等使用者定**，先要他手机上 SFA 的版本号。
+2. **第 22 项 ③**：sing-box 1.14.3 的官方程序登记在 `handoff/setup_env.sh`（`SINGBOX1143_BIN`，只给一次性核对用；全部检查仍用 1.14.1 和 1.12.0）。这个会话没有重跑 `setup_env.sh`（它会重新取上游数据，登记的提交取不到时会换成当天最新的），是手工下载、核对校验值，再在 `~/proxy-vendor/env.sh`、`SOURCES.txt` 里各加一行。核对脚本 `handoff/notes/r18_singbox_1143_probes.py`：最小核对用 `r15_review_probes.py` 的函数；实际配置跑 `singbox_outbound_probe`（1.14.1、1.14.3 对照）和整套 `tools/check_real_routes.py`（1.14.3 当 1.14 版的内核，完整输出在 `r18_singbox_1143_full.out`）。结论：1.14.3 不再丢那种 UDP 包。使用者看了结果、问了 ① ② 的区别以后选了 ① 维持现状（2026-10-15）：配置不改，第 22 项移到 `docs/06`“2026-10-15 你定下的事项”；剩下要他看 SFA 的版本，不到 1.14.3 就升级。
 3. **stash.wiki 在这台机器上连不上**（经代理访问返回 403）：审核方说现行的“策略组”页面有 `hidden: true`，没能核对，文档里写成“审核方说的、没有核对”。以后能访问时先核对再决定要不要用。
-4. **出这一版用的脚本**在 `handoff/release/r18-as-used/`（照 r17 的改：类数 162；r18 的数字；一次性核对多了 `r18_close_race_probe.py`、`r18_singbox_1143_probes.py`）。
-5. **交付**：r18 推到同一个分支，没有动 `main`（`main` 仍是 r11）。审完使用者说可以，才更新 `main`。
+4. **变异检查分了两段**：第一段跑完 127 类时工作环境停了（04:40 前后），06:09 重新启动以后先核对代码状态哈希和运行环境（`handoff/release/r18-as-used/vendor_check.py`，结果在 `~/proxy-work/vendor18b-check.txt`），再用 `run_mutations.sh` 带上剩下的 35 个编号跑第二段；`segments.json` 里两段都列上。
+5. **出这一版用的脚本**在 `handoff/release/r18-as-used/`（照 r17 的改：类数 162；r18 的数字；一次性核对多了 `r18_close_race_probe.py`、`r18_singbox_1143_probes.py`）。
+6. **交付**：r18 推到同一个分支，没有动 `main`（`main` 仍是 r11）。审完使用者说可以，才更新 `main`。

@@ -73,16 +73,19 @@ DOC_NEEDLES_R18 = (
                    "43 service groups", "81 policy groups", "270 targets", "stash-strict.yaml", "15 on mihomo", "561 community-sourced",
                    "Thirteen rounds of external input", "unsupported address", "item 22 of `docs/06`", "One rule source. Five clients.",
                    "tests were run on Linux (Python 3.13) in a cloud session on 2026-10-15 (UTC)", "DIRECT, REJECT and REJECT-DROP",
-                   "official 1.14.3 binary was run here", "None of r12–r18 was pushed", "not resolved locally for rule matching"]),
+                   "official 1.14.3 binary was run here", "None of r12–r18 was pushed", "not resolved locally for rule matching",
+                   "the owner then chose to keep the config unchanged"]),
     ("README.zh-CN.md", ["自动测试 311 项", "2026.10.15-1", "（r18：处理 GPT 对 r17 的审核", "632 个人工写期望", "2290 个假节点",
                          "每条 12–16 KB", "81 个策略组", "270 个目标", "mihomo 15 条", "r14 起两个内核都是 0 个", "Python 3.13.16",
                          "561 条社区来源规则", "外部意见一共 13 轮", "这一版的检查是 2026-10-15（UTC）在云端会话里跑的", "sing-box 17,701 个代表主机",
                          "`docs/06` 第 22 项", "`dist/stash/stash.yaml`", "r12–r18 做完时都没有立刻推到", "r18 按你选的 ③ 在本机跑了 1.14.3 的官方程序"]),
     ("PROJECT_STATE.md", ["r18：统一源 2026.10.15-1", "生成器 1.10.1", "T31 第 13 轮", "第 22 项", "确认 311 项通过", "需要再跑一次 311 项",
-                          "r13–r18 在 `claude/r12-gpt-review-handling-q4onlv` 分支", "`2026.10.15-1` 是 r18", "**1.14.3 不再丢**"]),
+                          "r13–r18 在 `claude/r12-gpt-review-handling-q4onlv` 分支", "`2026.10.15-1` 是 r18", "**1.14.3 不再丢**",
+                          "第 22 项 2026-10-15 定了（先 ③ 核对 1.14.3，再选 ① 维持现状）", "r18：2026-10-15 02:14 定稿以后，变异检查跑完 127 类时"]),
     ("00-审核说明.md", ["## 本轮（r18，统一源 2026.10.15-1）改了什么", "305 → 311 项", "154 → 162 类", "公开产物仍是 15 个",
                         "**这一轮检查的时间**：2026-10-15（UTC）", "R17-F01", "## 本轮请重点看", "“2026-10-15（r18）”七节",
-                        "**第 22 项（使用者选了 ③）**", "`handoff/notes/r18_close_race_probe.py`"]),
+                        "**第 22 项（使用者选了 ③）**", "`handoff/notes/r18_close_race_probe.py`",
+                        "使用者看了结果、问了 ① ② 的区别以后选了 ① 维持现状"]),
     ("docs/05-验收记录.md", ["311 项全部通过", "逐一注入 162 类错误", "2026.10.15-1（r18", "Python 3.13.16，PyYAML 6.0.1", "2290 个假节点",
                              "860 个 120 / 400 个字符", "270 个目标", "mihomo 15 条", "`tests/test_real_data.py`，57 项",
                              "`tests/test_strict.py`，34 项", "`tests/test_stash.py`，29 项", "`tests/test_regions.py`，66 项", "`tests/test_compare_versions.py`，14 项",
@@ -107,21 +110,23 @@ DOC_NEEDLES_R18 = (
                                       "| ① 维持现状 | **配置不变**", "## 2026-10-07 你定下的事项", "870 条服务规则", "105,317 条", "632 个带期望的节点名",
                                       "**r17 起每条节点筛选的开头都排除 DIRECT、REJECT、REJECT-DROP 这几个名字**", "不能把占位节点当成已经验证的安全保证",
                                       "那只是可能退回以后的表现，没有验证", "**先看你手机上 SFA 的版本**", "不是说把 `resolve` 放到一条已经终止的路由动作后面",
-                                      "2026-10-15 你选了 ③（先取 1.14.3 核对），核对做完了"]),
+                                      "## 2026-10-15 你定下的事项", "| 先 ③（取 1.14.3 核对），看了结果以后 ① 维持现状 |",
+                                      "看了结果、问了 ① ② 的区别以后选了 ① 维持现状"]),
     (H8, ["## 第 13 轮：2026-10-15，GPT 审核 r17", "## 第 12 轮：2026-10-14，GPT 审核 r16", "305 → 311 项", "154 → 162 类", "docs/evidence/gpt-r17/",
           "r15_review_probes.out", "## 第 11 轮", "270 个目标", "r17_stash_filters_icu.out", "### 第 22 项：你选的 ③（2026-10-15）",
           "r18_close_race_probe.out", "r18_singbox_1143_probes.out"]),
     ("docs/09-真机验收操作清单.md", ["对应统一源 2026.10.15-1", "81 个策略组", "111,182 条", "unsupported address", "## 1b. 严格版", "## 1c. Stash",
                                      "afpapi.alimama.com", "courier-push-apple.com.akadns.net", "251,780 字节", "分四种情况",
-                                     "r12–r18 交付时都没有推 `main`", "处理 GPT 对 r17 的审核（2026-10-15，r18）"]),
+                                     "r12–r18 交付时都没有推 `main`", "处理 GPT 对 r17 的审核（2026-10-15，r18）", "你看了结果选了 ① 维持现状（配置不改）"]),
     ("docs/01-导入、更新、诊断与回滚.md", ["2026.10.15-1", "81 个策略组", "--bm7", "DNS 覆写", "v1.19.20", "f250126", "2001:2::", "stash.yaml",
                                           "**r12–r18 交付时都没有推到 `main`**"]),
     ("docs/07-需求对照.md", ["### 2026-10-12 至 10-13", "R14-F02", "cd63eba", "### 2026-10-13（GPT 审核 r15 之后，r16）", "632 个人工写期望的节点名",
-                             "### 2026-10-14（GPT 审核 r16 之后，r17）", "### 2026-10-15（GPT 审核 r17 之后，r18）", "“22 项选 3”"]),
+                             "### 2026-10-14（GPT 审核 r16 之后，r17）", "### 2026-10-15（GPT 审核 r17 之后，r18）", "“22 项选 3”", "“那就 1”"]),
     ("docs/00-需求原文.md", ["## 补充（2026-10-12 至 10-13", "改吧 改完连 stash 一起写最好再让他审核终版",
                              "## 补充（2026-10-14，r16 交付以后，GPT 审完 r16；对话中给出，照录）", "> r16 仍有 3 处需要处理，尚不能认定为真机验收通过的终版。",
-                             "## 补充（2026-10-15，r17 交付以后，GPT 审完 r17；对话中给出，照录）", "> 22 项选 3 **r17 已落实上一轮三项的主要修复，本轮未确认新增配置层面的错误。**"]),
-    ("handoff/README.md", ["## 15. r18 的补充", "r13–r18", "第 10–15 节", "SINGBOX1143_BIN"]),
+                             "## 补充（2026-10-15，r17 交付以后，GPT 审完 r17；对话中给出，照录）", "> 22 项选 3 **r17 已落实上一轮三项的主要修复，本轮未确认新增配置层面的错误。**",
+                             "## 补充（2026-10-15，r18 出版本期间；对话中给出，照录）", "> 22 项 选 1 和 2 的区别是什么", "> 那就 1"]),
+    ("handoff/README.md", ["## 15. r18 的补充", "r13–r18", "第 10–15 节", "SINGBOX1143_BIN", "**变异检查分了两段**"]),
 )
 # 旧的说法不应再作为现状出现（历史记录里的除外：docs/00 只追加，docs/08 是逐轮的记录）
 STALE = {k: [] for k in (
@@ -136,8 +141,9 @@ STALE.update({"44 页": ["docs/02-语法依据与能力矩阵.md", "docs/06-已�
               "原话见 `docs/00` 最后": ["handoff/README.md", "00-审核说明.md"],             # 这两处是在说这种写法本身
               "154 类全部被发现": [H8], "r17：统一源 2026.10.14-1": [H8], "2247 个名字": [H8, "docs/02-语法依据与能力矩阵.md"],
               "8 秒还没发完": [H8], "境外域名都不在本机解析": [H8, "docs/03-DNS决策表.md", "00-审核说明.md"]})   # 这两处是在说以前的写法
-# 第 22 项的 ① ② 等你定：不能写成已经定了
-STALE.update({k: ["docs/00-需求原文.md"] for k in ("第 22 项已定", "第 22 项你选了 ①", "第 22 项你选了 ②")})
+# 第 22 项 2026-10-15 定了（① 维持现状）：不能再写成还等你定
+STALE.update({k: [] for k in ("① ② 仍等你定", "① ② 还等你", "① ② 仍等使用者", "① ② 等你看了", "① ② 看了版本再定", "① ② 看了结果再定",
+                             "waiting for the owner's decision", "decides what, if anything, to change")})
 
 
 def read(p):
@@ -594,6 +600,9 @@ for p, needles in DOC_NEEDLES_R18:
     for n in needles:
         assert n in s, (p, n)
 assert state in read("docs/05-验收记录.md")
+d06 = read("docs/06-已知限制与待决事项.md")
+pending = d06[d06.index("## 需要你决定的事项"):d06.index("## 2026-10-15 你定下的事项")]
+assert "\n| 22 |" not in pending, "第 22 项还在“需要你决定的事项”里"
 doc05 = read("docs/05-验收记录.md")
 for rel in man["outputs"]:
     assert short(rel) in doc05, rel
