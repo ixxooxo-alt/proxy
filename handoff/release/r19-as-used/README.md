@@ -20,3 +20,4 @@
 10. **数字核对**：`python3 handoff/release/r19-as-used/finalize.py ~/proxy-work/mut19 --dry`，再不带 `--dry` 跑（最后打印“核对通过”）。
 11. `bash handoff/release/code_state.sh`：与第 2 步记下的相同。
 12. **打包**：`python3 handoff/release/pack.py ~/proxy-work/proxy-rules-review-2026.10.17-r19.zip`，再 `bash handoff/release/verify_package.sh ~/proxy-work/proxy-rules-review-2026.10.17-r19.zip`。
+13. **交付以后改文档**（GPT 审核 r19 的 R19-F02，只改文档）：`bash handoff/release/code_state.sh`（与定稿时相同）、再跑一遍 `finalize.py`（“核对通过”），然后 `pack.py ~/proxy-work/proxy-rules-review-2026.10.17-r19b.zip`、`verify_package.sh` 同一个包。
