@@ -228,4 +228,5 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 2. **改了什么**：`docs/08` 第 14、15 轮。要记住的写法：继承 `threading.Thread` 的类不要用 Thread 自己的成员名（`_stop`、`_started` 这些；`test_threads_do_not_shadow_thread_internals` 会查）；SOCKS5 测试节点停下时清 UDP 队列，每读一个包以前看控制连接；sing-box 的查询用例和连接分两遍跑，查询的去向用 `_attribute_dns` 在替身都停下以后认。
 3. **Python 版本**：README 写支持 3.10+，这台机器上有 3.11、3.12、3.13（系统自带，PyYAML 6.0.1），没有 3.10。出版本时全部测试至少在 3.12 上也跑一遍（R18-F01 只在 3.12 及以前出现）；r19 起写进了出版本的步骤（`handoff/release/r19-as-used/README.md`）。
 4. **出这一版用的脚本**在 `handoff/release/r19-as-used/`（照 r18 的改：类数 170；一次性核对只重跑每版都跑的两个——`r15_review_probes.py`、`r17_stash_filters_icu.py`；r18 的两个一次性核对没有重跑）。
-5. **交付**：r19 推到同一个分支，没有动 `main`（`main` 仍是 r11）。
+5. **变异检查分了两段**：第一段跑完 123 类时（10:45 前后）机器停了，11:47 重新启动；核对代码状态和运行环境以后，用 `run_mutations.sh` 带上剩下的 47 个编号跑第二段（和 r18 那次的做法相同，见 `handoff/release/r19-as-used/README.md` 第 3 步）。
+6. **交付**：r19 推到同一个分支，没有动 `main`（`main` 仍是 r11）。
