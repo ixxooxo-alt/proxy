@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-15 07:32:25
+运行时间（UTC）：2026-10-17 13:26:44
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：7ff519e8ee51dd7ebcd85f6960d47f8cc5e8d79132559754f9d2da70fb2c56a4
+统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
 命令：python3 tools/verify_with_upstream_source.py --mihomo-src /root/proxy-vendor/src/mihomo --singbox-src /root/proxy-vendor/src/sing-box
 
 检查了 4589 个字段 / 取值

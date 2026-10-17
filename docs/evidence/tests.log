@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-15 07:08:35
+运行时间（UTC）：2026-10-17 13:08:45
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：7ff519e8ee51dd7ebcd85f6960d47f8cc5e8d79132559754f9d2da70fb2c56a4
+统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
 命令：python3 -m unittest discover -s tests -v
 
 test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 15 个公开产物到 out（订阅为占位符）
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 15 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmppybu4sq1/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpluk8g50s/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -52,8 +52,8 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpslrjtf45/report.md
-报告已写入 /tmp/tmpslrjtf45/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpdfyq6asq/report.md
+报告已写入 /tmp/tmpdfyq6asq/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同， ... ok
@@ -118,7 +118,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmp5lqjvjoz（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmpawzkex67（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -128,8 +128,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmpfooma603（订阅为占位符）
-私密产物已写入 ../../../tmp/tmpfooma603/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmp13uo6kh6（订阅为占位符）
+私密产物已写入 ../../../tmp/tmp13uo6kh6/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -219,10 +219,18 @@ test_close_stubs_waits_for_a_query_already_received (test_real_data.Socks5Record
 替身已经收到查询、还没处理完时，close_stubs 不能先返回；处理完以后它要报出这条读不懂的查询。 ... ok
 test_code_closes_the_files_it_opens (test_real_data.Socks5RecorderTool.test_code_closes_the_files_it_opens)
 读写文件都要关（2026-10-14 自查：r16 只改了 _refuse_if_blocked 那一处 ResourceWarning，同一类写法——open(...).read()、 ... ok
+test_dns_attribution_uses_name_and_type_after_stubs_stop (test_real_data.Socks5RecorderTool.test_dns_attribution_uses_name_and_type_after_stubs_stop)
+sing-box 查询用例的去向：替身都停下以后，按名字和类型认（GPT 审核 r18 的 R18-F03）。照报告的反例：上一条 late.example ... ok
+test_dns_attribution_uses_the_real_stubs_after_they_stop (test_real_data.Socks5RecorderTool.test_dns_attribution_uses_the_real_stubs_after_they_stop)
+用真的 DNS 替身、真的 UDP 核对 _attribute_dns（_singbox_run 认查询去向用的就是它；GPT 审核 r19 送审稿的 R19-S01： ... ok
 test_dns_stub_keeps_queries_it_cannot_read (test_real_data.Socks5RecorderTool.test_dns_stub_keeps_queries_it_cannot_read)
 DNS 替身读不懂的查询记进 unparsed，close_stubs 关的时候报错，不把结果当成“没有收到查询”（2026-10-14，GPT 审核 r16 的 ... ok
 test_every_dns_stub_is_closed_through_close_stubs (test_real_data.Socks5RecorderTool.test_every_dns_stub_is_closed_through_close_stubs)
 出站核对里每个开了 DNS 替身的函数，都经 close_stubs 关掉替身（只有它会在收到读不懂的查询时报错）； ... ok
+test_recorder_stop_ignores_udp_packets_after_the_control_connection_closed (test_real_data.Socks5RecorderTool.test_recorder_stop_ignores_udp_packets_after_the_control_connection_closed)
+控制连接已经断了（服务端读得到 EOF）以后才到的 UDP 包：关联早已结束，停下时不能记进 seen（GPT 审核 r18 的 R18-F02， ... ok
+test_recorder_stop_ignores_udp_packets_after_the_control_connection_closes_mid_drain (test_real_data.Socks5RecorderTool.test_recorder_stop_ignores_udp_packets_after_the_control_connection_closes_mid_drain)
+停下时清 UDP 口的队列，清到一半控制连接断了：看到断开以后才到的包不能记进 seen（GPT 审核 r19 送审稿的 R19-F01， ... ok
 test_recorder_stop_keeps_udp_packets_already_received (test_real_data.Socks5RecorderTool.test_recorder_stop_keeps_udp_packets_already_received)
 UDP 关联还开着时停下：UDP 口里已经到了、还没读的包，要先读完再结束（R17-F01 之后自查的同一类问题）。 ... ok
 test_recorder_stop_reports_a_connection_that_does_not_finish (test_real_data.Socks5RecorderTool.test_recorder_stop_reports_a_connection_that_does_not_finish)
@@ -236,6 +244,10 @@ test_records_every_request_it_refuses (test_real_data.Socks5RecorderTool.test_re
 test_records_names_and_addresses (test_real_data.Socks5RecorderTool.test_records_names_and_addresses) ... ok
 test_refuses_what_rfc1928_says_to_refuse (test_real_data.Socks5RecorderTool.test_refuses_what_rfc1928_says_to_refuse)
 RFC 1928 要求拒绝或丢掉的，接收端不能记成“节点收到了”（2026-10-13，GPT 审核 r15 的 R15-F01，三个反例照审核报告的复现写）： ... ok
+test_singbox_probe_runs_queries_and_connections_separately (test_real_data.Socks5RecorderTool.test_singbox_probe_runs_queries_and_connections_separately)
+连接和查询都有时分两遍，各起一次内核（R18-F03：连接也会引起查询，同一个名字的记录会混在一起）；一遍里两样都有就拒绝。 ... ok
+test_threads_do_not_shadow_thread_internals (test_real_data.Socks5RecorderTool.test_threads_do_not_shadow_thread_internals)
+继承 threading.Thread 的 DnsStub、Socks5Recorder，自己赋值的属性和定义的方法不能和 Thread 的成员同名（run 除外， ... ok
 test_standard_configs_do_resolve_unlisted_hosts (test_real_data.StrictWithRealSets.test_standard_configs_do_resolve_unlisted_hosts)
 对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。 ... ok
 test_strict_configs_never_resolve_for_rule_matching (test_real_data.StrictWithRealSets.test_strict_configs_never_resolve_for_rule_matching) ... ok
@@ -497,7 +509,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 311 tests in 262.090s
+Ran 317 tests in 186.164s
 
 OK
 退出码：0

@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-10-15 07:13:28
+运行时间（UTC）：2026-10-17 13:12:14
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：7ff519e8ee51dd7ebcd85f6960d47f8cc5e8d79132559754f9d2da70fb2c56a4
+统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
 命令：python3 tools/check_real_routes.py --mihomo /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 --singbox /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box --geodata-dir /root/proxy-vendor/geodata --srs-dir /root/proxy-vendor/srs --bm7 /root/proxy-vendor/src/bm7 --singbox-112 /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box --dlc /root/proxy-vendor/src/domain-list-community --geodata-origin MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同 --srs-origin SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出 --bm7-origin blackmatrix7/ios_rule_script 固定快照 51d2e1d（2026-09-21）
 
-统一源 2026.10.15-1；用例与排除项共 290 条，不同的目标 270 个；DNS 去向用例 sing-box 22 条、mihomo 15 条，拨号解析用例 sing-box 12 条、mihomo 12 条
+统一源 2026.10.17-1；用例与排除项共 290 条，不同的目标 270 个；DNS 去向用例 sing-box 22 条、mihomo 15 条，拨号解析用例 sing-box 12 条、mihomo 12 条
 数据文件：
   [mihomo] geosite.dat：SHA-256 79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134（4253623 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
   [mihomo] geoip.metadb：SHA-256 2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2（8389459 字节；MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同）
