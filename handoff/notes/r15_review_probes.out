@@ -7,7 +7,7 @@ sing-box 1.14.1（sing-box version 1.14.1）
   加 selector（final 是只含 SOCKS 出口的选择组）
     客户端握手：域名 ok，IPv4 ok
     接收端收到的 UDP 包（类型, 目标）：[('ip', '192.0.2.10')]；不合规的报文：没有
-    日志里的 unsupported address：1 行，例如 DEBUG[0000] [4181067039 3ms] connection: packet upload closed: unsupported address
+    日志里的 unsupported address：1 行，例如 DEBUG[0000] [2276570780 2ms] connection: packet upload closed: unsupported address
   加 sniff（路由第一条是 sniff 动作）
     客户端握手：域名 ok，IPv4 ok
     接收端收到的 UDP 包（类型, 目标）：[('domain', 'udp-probe.example'), ('ip', '192.0.2.10')]；不合规的报文：没有
@@ -15,7 +15,7 @@ sing-box 1.14.1（sing-box version 1.14.1）
   sniff + selector
     客户端握手：域名 ok，IPv4 ok
     接收端收到的 UDP 包（类型, 目标）：[('ip', '192.0.2.10')]；不合规的报文：没有
-    日志里的 unsupported address：1 行，例如 DEBUG[0000] [2696300230 3ms] connection: packet upload closed: unsupported address
+    日志里的 unsupported address：1 行，例如 DEBUG[0000] [2302458851 2ms] connection: packet upload closed: unsupported address
   加 resolve（路由第一条是 resolve 动作，交给本机 DNS 替身）
     客户端握手：域名 ok，IPv4 ok
     接收端收到的 UDP 包（类型, 目标）：[('ip', '127.0.1.1'), ('ip', '192.0.2.10')]；不合规的报文：没有
@@ -29,13 +29,13 @@ sing-box 1.14.1（sing-box version 1.14.1）
   selector 换成 urltest（final 是只含 SOCKS 出口的自动测速组）
     客户端握手：域名 ok，IPv4 ok
     接收端收到的 UDP 包（类型, 目标）：[('ip', '192.0.2.10')]；不合规的报文：没有
-    日志里的 unsupported address：1 行，例如 DEBUG[0000] [1279297368 4ms] connection: packet upload closed: unsupported address
+    日志里的 unsupported address：1 行，例如 DEBUG[0000] [3458854590 1ms] connection: packet upload closed: unsupported address
  配对的服务端（同一版本；服务端只记日志、一律拒绝）：
   shadowsocks：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
   trojan：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
   vmess：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
-  shadowsocks（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443']；unsupported address 1 行，例如 DEBUG[0000] [2678305485 0ms] connection: packet upload closed: unsupported address
-  trojan（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443']；unsupported address 1 行，例如 DEBUG[0000] [3946192682 2ms] connection: packet upload closed: unsupported address
+  shadowsocks（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443']；unsupported address 1 行，例如 DEBUG[0000] [1771884269 0ms] connection: packet upload closed: unsupported address
+  trojan（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443']；unsupported address 1 行，例如 DEBUG[0000] [1596027098 3ms] connection: packet upload closed: unsupported address
   vmess（隔一个选择组）：客户端握手 域名 ok、IPv4 ok；服务端日志里入站的 UDP 连接去：['192.0.2.10:443', 'udp-probe.example:443']；unsupported address 0 行
 
 sing-box 1.12.0（sing-box version 1.12.0）
