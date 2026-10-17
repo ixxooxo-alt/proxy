@@ -56,7 +56,7 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
     if strict:
         L.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 [Remote Rule] 里的国内域名清单认出来。")
-        L.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 loon.conf。导入后请按 docs/09 的严格版一节验收。")
+        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 loon.conf。导入后请按 docs/09 的严格版一节验收。")
         L.append(f"# [Remote Rule] 的最后一条引用 {m.strict['publish_base']} 下的规则文件：那个文件还没有发布、改了名、"
                  "或者仓库改成私有时，这条订阅会加载失败，只收在它里面的国内网站（整段 .cn 等）会改走代理。")
     if not sub_urls:

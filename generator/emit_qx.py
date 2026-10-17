@@ -60,7 +60,7 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
     if strict:
         L.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 [filter_remote] 里的国内域名清单认出来。")
-        L.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 quantumultx.conf。")
+        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 quantumultx.conf。")
         L.append("# 这一份依赖 [filter_remote] 最后那条“域名兜底”加载成功，Quantumult X 的规则先后也没有完整的官方说明：导入后请按 docs/09 的严格版一节验收。")
         L.append(f"# 国内域名清单和域名兜底都在 {m.strict['publish_base']} 下：文件还没有发布、改了名、或者仓库改成私有时加载会失败——"
                  "国内清单失败，国内网站改走代理；域名兜底失败，回到标准版的行为（没命中的域名又在本机解析），App 不会有任何提示。")

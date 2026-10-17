@@ -19,7 +19,7 @@
 ## 二、定稿，跑全部检查
 
 6. **定稿**：代码不再改了，记下代码状态哈希：`bash handoff/release/code_state.sh`。定稿之前先跑一遍第 9 步的版本对比、看一眼报告（有没有“未知的正则”这种认不出来的地方）——r17 是定稿以后才跑的，报告认不出 Stash 的新筛选，只好改工具、重新定稿。从这里到打包，`build.py`、`generator/`、`source/`、`tests/`、`tools/`、`.gitignore` 一个字都不能动；动了就重新定稿，后面全部重来（r12 定稿了三次）。
-7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 118 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时；r15 是 122 类，r16 是 141 类，r17 是 154 类，r18 是 162 类）。等它的时候可以写文档。
+7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 118 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时；r15 是 122 类，r16 是 141 类，r17 是 154 类，r18 是 162 类，r19 是 170 类）。等它的时候可以写文档。
    云端机器闲置会被回收，后台进程跟着没了、日志还在：把剩下的编号再跑一段（脚本开头有说明）。
 8. 变异跑完以后：`bash tools/run_checks.sh`（7–10 分钟；重写 `docs/evidence/*.log`）。最后一行必须是“全部检查通过。”。
 9. **版本对比**（旧版本从 git 里检出来，见 `handoff/README.md` 第 2 节）：

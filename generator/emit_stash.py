@@ -274,7 +274,7 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("# 适用：iPhone / iPad / Mac 共用同一份配置。Stash 没有能在电脑上运行的内核，这份配置只按官方文档核对过，导入后请按 docs/09 验收。")
     if strict:
         out.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 GEOSITE,cn 和 rule-providers 里的国内域名清单认出来。")
-        out.append("# 清单里没有的国内网站会走代理（能打开，会慢）；遇到了可以在 App 里切回标准版 stash.yaml。")
+        out.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 stash.yaml。")
     if not sub_urls:
         out.append("# ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。订阅要选 Clash / Stash 格式。")
     out.append("# 证书：本配置不含任何 MITM 证书或密码。")
