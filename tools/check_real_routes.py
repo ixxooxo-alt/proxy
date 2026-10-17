@@ -467,6 +467,20 @@ def _dns_where(ips, asked: list, fake_net, hold: bool = False) -> str:
     return "没有应答" if ips is None else "没有服务器收到查询"
 
 
+def _attribute_dns(dns_cases: list, answers: list, stubs: dict, fake_net, hold: bool = False) -> dict:
+    """查询用例的去向 {(主机, 类型): 结果}：按“哪些替身收到过这个名字这个类型的查询”认（_dns_where）。answers 是内核
+    逐条回给这里的地址。要在内核停下、替身都停下（close_stubs）以后调——没有停下的替身，收到的查询可能还没记下（R18-F03）；
+    有没停下的就报错。2026-10-16（GPT 审核 r19 送审稿的 R19-S01）从 _singbox_run 里拿出来，好让测试直接用真的替身核对。"""
+    if not all(st.stopped for st in stubs.values()):
+        raise RuntimeError("替身还没有停下，收到的查询可能还没记下，不能认查询的去向")
+    out = {}
+    for c, ips in zip(dns_cases, answers):
+        key = (c["host"].lower().rstrip("."), QTYPE[c["type"]])
+        asked = [k for k, v in stubs.items() if key in v.seen]
+        out[(c["host"], c["type"])] = _dns_where(ips, sorted(asked) if hold else asked, fake_net, hold)
+    return out
+
+
 def singbox_probe(binary: str, srs_dir: str, config_text: str, targets: list, dns_cases: list, dns_map: dict,
                   silent: tuple = (), hold: float = 0.0):
     """返回 (路由 {目标: (命中的规则, 出站)}, DNS {(主机, 类型): 服务器标签})。
@@ -525,7 +539,7 @@ def _singbox_run(binary: str, srs_dir: str, config_text: str, targets: list, dns
         with open(cfg, "w", encoding="utf-8") as f:
             json.dump(conf, f, ensure_ascii=False)
         logp = os.path.join(tmp, "log.txt")
-        dns_got, answers = {}, []
+        answers = []
         with open(logp, "w", encoding="utf-8") as log:
             proc = subprocess.Popen([binary, "run", "-c", cfg, "-D", tmp, "--disable-color"], stdout=log, stderr=subprocess.STDOUT)
             try:
@@ -547,10 +561,7 @@ def _singbox_run(binary: str, srs_dir: str, config_text: str, targets: list, dns
                     proc.kill()
                     proc.wait()
         close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）
-        for c, ips in zip(dns_cases, answers):
-            key = (c["host"].lower().rstrip("."), QTYPE[c["type"]])
-            asked = [k for k, v in stubs.items() if key in v.seen]
-            dns_got[(c["host"], c["type"])] = _dns_where(ips, sorted(asked) if hold else asked, fake_net, hold)
+        dns_got = _attribute_dns(dns_cases, answers, stubs, fake_net, hold)
         conn_target, conn_result = {}, {}
         with open(logp, encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -1034,17 +1045,15 @@ class Socks5Recorder(threading.Thread):
             end = time.monotonic() + self.UDP_MAX_SECONDS
             while time.monotonic() < end:
                 if self._closing.is_set():
-                    # stop()：控制连接已经断了的，关联早已结束，UDP 口里的包不再收（RFC 1928 第 6 节；2026-10-15，GPT 审核 r18 的
-                    # R18-F02——以前这里没看控制连接，断开以后才到的包也记进了 seen）；还开着的，关联到这里结束，已经到了的包先读完
-                    if self._control_closed(c):
-                        return
-                    u.setblocking(False)
-                    while True:
-                        try:
-                            data, src = u.recvfrom(65535)
-                        except (BlockingIOError, InterruptedError):
+                    # stop()：UDP 口里已经到了的包读完再结束这个关联，但每读一个以前都先看控制连接——看到它断了，关联就此结束，
+                    # 后面的包不再收（RFC 1928 第 6 节）。GPT 审核 r18 的 R18-F02：以前这里不看控制连接；审核 r19 送审稿的 R19-F01：
+                    # 只在进来时看一次，清到一半断开以后才到的包还会记下。看到断开以前读到的包照常核对（关联到看到断开时才算结束）
+                    while not self._control_closed(c):
+                        if not select.select([u], [], [], 0)[0]:
                             return
+                        data, src = u.recvfrom(65535)
                         self._take_udp(data, src, want_ip, want_port)
+                    return
                 ready, _, _ = select.select([c, u], [], [], 0.3)
                 if c in ready:
                     try:

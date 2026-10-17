@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 166 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 170 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -525,7 +525,7 @@ cases = [
     ("M163 DNS 替身的停止标记又叫 _stop（盖住 Python 3.12 及以前 Thread 自己的 _stop 方法）", [("tools/check_real_routes.py",
         lambda s: s.replace("self._dns_stop_event", "self._stop"))], "test_threads_do_not_shadow_thread_internals"),
     ("M164 测试节点停下时又不看控制连接（断开以后才到的 UDP 包也记下）", [("tools/check_real_routes.py", lambda s: s.replace(
-        "                    if self._control_closed(c):\n                        return\n", "", 1))],
+        "                    while not self._control_closed(c):\n", "                    while True:\n", 1))],
      "test_recorder_stop_ignores_udp_packets_after_the_control_connection_closed"),
     ("M165 sing-box 的查询和连接又放在同一遍里", [("tools/check_real_routes.py", lambda s: s.replace(
         "    if targets and dns_cases:\n        _, dns_got = _singbox_run(", "    if False:\n        _, dns_got = _singbox_run(", 1))],
@@ -533,6 +533,23 @@ cases = [
     ("M166 不应答的那一遍以外，拿到 fake-ip 的查询也只记收到它的替身", [("tools/check_real_routes.py", lambda s: s.replace(
         "    if hold and asked:\n        return \"+\".join(asked)\n", "    if asked:\n        return \"+\".join(asked)\n", 1))],
      "test_dns_attribution_uses_name_and_type_after_stubs_stop"),
+    # 2026-10-17（GPT 审核 r19 送审稿的 R19-F01、R19-S01）
+    ("M167 停下时清 UDP 队列又只在开头看一次控制连接（清到一半断开以后的包也记下）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "                    while not self._control_closed(c):\n                        if not select.select([u], [], [], 0)[0]:\n",
+        "                    if self._control_closed(c):\n                        return\n                    while True:\n"
+        "                        if not select.select([u], [], [], 0)[0]:\n", 1))],
+     "test_recorder_stop_ignores_udp_packets_after_the_control_connection_closes_mid_drain"),
+    ("M168 查询用例的去向只看名字、不看类型（审核报告里那一处改法）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        asked = [k for k, v in stubs.items() if key in v.seen]\n",
+        "        asked = [k for k, v in stubs.items() if any(q == key[0] for q, qt in v.seen)]\n", 1))],
+     "test_dns_attribution_uses_the_real_stubs_after_they_stop"),
+    ("M169 替身没停下也认查询的去向", [("tools/check_real_routes.py", lambda s: s.replace(
+        "    if not all(st.stopped for st in stubs.values()):\n", "    if False:\n", 1))],
+     "test_dns_attribution_uses_the_real_stubs_after_they_stop"),
+    ("M170 sing-box 在替身停下以前就认查询的去向", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）\n        dns_got = _attribute_dns(dns_cases, answers, stubs, fake_net, hold)\n",
+        "        dns_got = _attribute_dns(dns_cases, answers, stubs, fake_net, hold)\n        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）\n", 1))],
+     "test_every_dns_stub_is_closed_through_close_stubs"),
 ]
 
 

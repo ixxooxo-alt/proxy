@@ -1246,6 +1246,104 @@ class Socks5RecorderTool(unittest.TestCase):
         self.assertEqual(rec.seen, [("udp", "domain", "before.example")])
         self.assertEqual(rec.invalid, [])
 
+    def test_recorder_stop_ignores_udp_packets_after_the_control_connection_closes_mid_drain(self):
+        """停下时清 UDP 口的队列，清到一半控制连接断了：看到断开以后才到的包不能记进 seen（GPT 审核 r19 送审稿的 R19-F01，
+        照报告的固定顺序）。第一个包处理时拦住；排进第二个包，停下、放行；第二个包在清队列时取出、又拦住；这时关掉控制连接、
+        等服务端读得到 EOF，再发第三个包、等它进了 UDP 口，然后放行。断开以前取出的第二个包照常记下。"""
+        import select
+        import socket
+        import struct
+        import threading
+        crr = self.crr
+        real = crr._socks_addr
+        gates = [(threading.Event(), threading.Event()) for _ in range(2)]
+        taken = []
+
+        def gated(read, atyp=None):
+            if atyp is None and len(taken) < len(gates):  # 只拦 UDP 包里的地址，前两个
+                entered, release = gates[len(taken)]
+                taken.append(1)
+                entered.set()
+                release.wait(10)
+            return real(read, atyp)
+        crr._socks_addr = gated
+        self.addCleanup(setattr, crr, "_socks_addr", real)
+        for _, release in gates:
+            self.addCleanup(release.set)
+        rec = crr.Socks5Recorder()
+        self.addCleanup(rec.stop)
+        server_side = []
+        real_associate = rec._associate
+        rec._associate = lambda c, *a: (server_side.append(c), real_associate(c, *a))[1]
+        rec.start()
+
+        def packet(host):
+            return b"\x00\x00\x00\x03" + bytes([len(host)]) + host.encode() + struct.pack("!H", 443) + b"x"
+        c = socket.create_connection(("127.0.0.1", rec.port), timeout=5)
+        self.addCleanup(c.close)
+        c.sendall(b"\x05\x01\x00")
+        c.recv(2)
+        c.sendall(b"\x05\x03\x00\x01" + bytes(6))
+        rep = c.recv(10)
+        relay = (socket.inet_ntoa(rep[4:8]), struct.unpack("!H", rep[8:10])[0])
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.sendto(packet("first.example"), relay)
+            self.assertTrue(gates[0][0].wait(5), "测试节点没有收到第一个 UDP 包")
+            u.sendto(packet("drain.example"), relay)
+            self._wait_udp_queued(relay[1])
+            t, out = self._in_thread(rec.stop)
+            self.assertTrue(rec._closing.wait(5))
+            gates[0][1].set()
+            self.assertTrue(gates[1][0].wait(5), "清队列时没有取出第二个包")
+            c.close()                                  # 清到一半：关掉控制连接，等到服务端确实读得到 EOF
+            self.assertTrue(select.select(server_side, [], [], 5)[0], "服务端没有看到控制连接断开")
+            self.assertEqual(server_side[0].recv(1, socket.MSG_PEEK), b"")
+            u.sendto(packet("after-close.example"), relay)
+            self._wait_udp_queued(relay[1])
+            gates[1][1].set()
+            t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual(out, [True])
+        self.assertEqual(rec.seen, [("udp", "domain", "first.example"), ("udp", "domain", "drain.example")])
+        self.assertEqual(rec.invalid, [])
+
+    def test_dns_attribution_uses_the_real_stubs_after_they_stop(self):
+        """用真的 DNS 替身、真的 UDP 核对 _attribute_dns（_singbox_run 认查询去向用的就是它；GPT 审核 r19 送审稿的 R19-S01：
+        原来那项测试在测试里自己写了一遍按名字和类型的匹配）。late.example 的 A 查询到了只收不答的国内替身，但拦在记下以前
+        （像内核停下时还没处理完的那一条）；同名的 HTTPS 查询到了境外替身；fake.example 拿到 fake-ip，没有替身收到。
+        替身没停下时不许认；停下以后，A 只算国内、HTTPS 只算境外——只看名字不看类型会把两边混在一起。"""
+        import ipaddress
+        import socket
+        import struct
+        crr = self.crr
+        entered, release = self._gate("_parse_question", when=lambda data: data[12:17] == b"\x04late" and data[-4:-2] == b"\x00\x01")
+        stubs = {"dns-cn": crr.DnsStub("dns-cn", {}, silent=True), "dns-foreign": crr.DnsStub("dns-foreign", {}),
+                 "dns-local": crr.DnsStub("dns-local", {})}
+        for st in stubs.values():
+            self.addCleanup(st.stop)
+            st.start()
+
+        def query(name, qtype):
+            labels = b"".join(bytes([len(x)]) + x.encode() for x in name.split("."))
+            return b"\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00" + labels + b"\x00" + struct.pack("!HH", qtype, 1)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as u:
+            u.settimeout(5)
+            u.sendto(query("late.example", 65), ("127.0.0.1", stubs["dns-foreign"].port))
+            u.recvfrom(4096)                           # 境外替身回答了：这一条已经记下
+            u.sendto(query("late.example", 1), ("127.0.0.1", stubs["dns-cn"].port))
+            self.assertTrue(entered.wait(5), "国内替身没有收到查询")
+        cases = [{"host": "late.example", "type": "A"}, {"host": "fake.example", "type": "A"},
+                 {"host": "late.example", "type": "HTTPS"}]
+        answers, fake = [None, ["198.18.0.2"], []], ipaddress.ip_network("198.18.0.0/15")
+        with self.assertRaises(RuntimeError):
+            crr._attribute_dns(cases, answers, stubs, fake)
+        t, out = self._in_thread(lambda: crr.close_stubs(stubs.values()))
+        release.set()
+        t.join(10)
+        self.assertEqual(out, [None])
+        self.assertEqual(crr._attribute_dns(cases, answers, stubs, fake),
+                         {("late.example", "A"): "dns-cn", ("fake.example", "A"): "dns-fakeip", ("late.example", "HTTPS"): "dns-foreign"})
+
     # 2026-10-15 在 Python 3.11.17、3.12.3、3.13.16 上取的 threading.Thread 的成员名（类上的和实例上的，不含 __x__），取并集
     THREAD_MEMBERS = ("_after_fork _args _bootstrap _bootstrap_inner _daemonic _delete _handle _ident _initialized "
                       "_invoke_excepthook _is_stopped _kwargs _name _native_id _reset_internal_locks _set_ident _set_native_id "
@@ -1349,6 +1447,7 @@ class Socks5RecorderTool(unittest.TestCase):
             self.assertIsNotNone(stopped_core, f.name)
             reads = [n.lineno for n in ast.walk(f) if isinstance(n, ast.Attribute) and n.attr in ("seen", "invalid", "empty")
                      and n.lineno > stopped_core]
+            reads += [ln for ln in call_lines(f, "_attribute_dns") if ln > stopped_core]   # 它也读替身的记录（R19-S01）
             first_read = min(reads, default=10 ** 9)
             early = [ln for ln in call_lines(f, "close_stubs", outside_finally=True) if stopped_core < ln < first_read]
             self.assertTrue(early, f"{f.name}：内核停下以后、汇总以前没有调 close_stubs")
