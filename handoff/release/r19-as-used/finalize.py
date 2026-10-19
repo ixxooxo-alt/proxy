@@ -72,12 +72,12 @@ DOC_NEEDLES_R19 = (
                    "43 service groups", "81 policy groups", "270 targets", "stash-strict.yaml", "15 on mihomo", "561 community-sourced",
                    "Fifteen rounds of external input", "unsupported address", "item 22 of `docs/06`", "One rule source. Five clients.",
                    "tests were run on Linux (Python 3.13; the unit tests also on 3.12 and 3.11) in a cloud session on 2026-10-17 (UTC)",
-                   "DIRECT, REJECT and REJECT-DROP", "official 1.14.3 binary was run here", "None of r12–r19 was pushed",
+                   "DIRECT, REJECT and REJECT-DROP", "official 1.14.3 binary was run here", "r12–r18 were not pushed to `main` straight away",
                    "not resolved locally for rule matching", "the owner then chose to keep the config unchanged", "hid a method of Python's own `Thread` class"]),
     ("README.zh-CN.md", ["自动测试 317 项", "2026.10.17-1", "（r19：处理 GPT 对 r18 和对 r19 送审稿的两次审核", "632 个人工写期望", "2290 个假节点",
                          "每条 12–16 KB", "81 个策略组", "270 个目标", "mihomo 15 条", "r14 起两个内核都是 0 个", "Python 3.13.16",
                          "561 条社区来源规则", "外部意见一共 15 轮", "这一版的检查是 2026-10-17（UTC）在云端会话里跑的", "sing-box 17,701 个代表主机",
-                         "`docs/06` 第 22 项", "`dist/stash/stash.yaml`", "r12–r19 做完时都没有立刻推到", "r18 按你选的 ③ 在本机跑了 1.14.3 的官方程序"]),
+                         "`docs/06` 第 22 项", "`dist/stash/stash.yaml`", "r12–r18 做完时都没有推到", "r18 按你选的 ③ 在本机跑了 1.14.3 的官方程序"]),
     ("PROJECT_STATE.md", ["r19：统一源 2026.10.17-1", "生成器 1.10.2", "T32 第 14、15 轮", "第 22 项", "确认 317 项通过", "需要再跑一次 317 项",
                           "r13–r19 在 `claude/r12-gpt-review-handling-q4onlv` 分支", "`2026.10.17-1` 是 r19", "**1.14.3 不再丢**",
                           "第 22 项 2026-10-15 定了（先 ③ 核对 1.14.3，再选 ① 维持现状）", "已验证（317 项；变异检查：170 类全部被发现）"]),
@@ -116,10 +116,10 @@ DOC_NEEDLES_R19 = (
           "r18_close_race_probe.out", "r18_singbox_1143_probes.out"]),
     ("docs/09-真机验收操作清单.md", ["对应统一源 2026.10.17-1", "81 个策略组", "111,182 条", "unsupported address", "## 1b. 严格版", "## 1c. Stash",
                                      "afpapi.alimama.com", "courier-push-apple.com.akadns.net", "251,780 字节", "分四种情况",
-                                     "r12–r19 交付时都没有推 `main`", "处理 GPT 对 r17 的审核（2026-10-15，r18）", "你看了结果选了 ① 维持现状（配置不改）",
+                                     "2026-10-19 起 `main` 是 r19，可以用了", "处理 GPT 对 r17 的审核（2026-10-15，r18）", "你看了结果选了 ① 维持现状（配置不改）",
                                      "导入过 r18（或 r17）的不用重新导入"]),
     ("docs/01-导入、更新、诊断与回滚.md", ["2026.10.17-1", "81 个策略组", "--bm7", "DNS 覆写", "v1.19.20", "f250126", "2001:2::", "stash.yaml",
-                                          "**r12–r19 交付时都没有推到 `main`**"]),
+                                          "**2026-10-19 你说可以以后，`main` 更新到了 r19**"]),
     ("docs/07-需求对照.md", ["### 2026-10-12 至 10-13", "R14-F02", "cd63eba", "### 2026-10-13（GPT 审核 r15 之后，r16）", "632 个人工写期望的节点名",
                              "### 2026-10-14（GPT 审核 r16 之后，r17）", "### 2026-10-15（GPT 审核 r17 之后，r18）", "“22 项选 3”", "“那就 1”",
                              "### 2026-10-15 至 10-17（GPT 审核 r18 和 r19 送审稿之后，r19）", "“可以 这样避免耗费太多 token”"]),
@@ -148,9 +148,13 @@ STALE.update({"44 页": ["docs/02-语法依据与能力矩阵.md", "docs/06-已�
 STALE.update({k: [] for k in (
     "tests-311", "311 automated", "自动测试 311 项", "311 项全部通过", "确认 311 项通过", "注入 162 类", "已验证（311 项", "（311 项；",
     "这份说明对应 `2026.10.15-1`", "source version **2026.10.15-1**", "对应统一源 2026.10.15-1", "This is r18.", "Thirteen rounds of external input",
-    "外部意见一共 13 轮", "r12–r18 都没有推到", "r12–r18 交付时都没有推", "r12–r18 做完时", "None of r12–r18", "`tests/test_real_data.py`，57 项",
+    "外部意见一共 13 轮", "None of r12–r18", "`tests/test_real_data.py`，57 项",
     "**运行环境：与 r17 相同**", "与上一版（r17）对比", "这一版（r18）是", "r13–r18 在 `claude/", "## 这一稿：r19 送审稿")})
 STALE.update({"会走代理（能打开，会慢）": ["00-审核说明.md"], "162 类全部被发现": [H8]})   # 00-审核说明 里是在说以前的写法
+# 2026-10-19 main 更新到 r19 以后：发布以前的现状说法不应再出现（handoff/README.md 各版那几节是当时的记录）
+STALE.update({k: [] for k in ("None of r12–r19", "r12–r19 交付时都没有推", "r12–r19 都没有推到", "r12–r19 做完时", "`main` 现在还是 r11",
+                             "`main` 还是 r11", "main may still hold")})
+STALE.update({"`main` 仍是 r11": ["handoff/README.md"], "`main` 还是 r11": ["docs/07-需求对照.md"]})   # 这两处是各版当时的记录
 # 第 22 项 2026-10-15 定了（① 维持现状）：不能再写成还等你定
 STALE.update({k: [] for k in ("① ② 仍等你定", "① ② 还等你", "① ② 仍等使用者", "① ② 等你看了", "① ② 看了版本再定", "① ② 看了结果再定",
                              "waiting for the owner's decision", "decides what, if anything, to change")})
