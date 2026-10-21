@@ -9,7 +9,7 @@ from unittest import mock
 
 import yaml
 
-from helpers import ROOT, build, outputs
+from helpers import ROOT, build, outputs, simple_spec
 from generator import verify
 
 
@@ -239,7 +239,7 @@ class Verifier(unittest.TestCase):
                        "DNS 规则指向不存在的服务器 没有这个服务器", "dns.final 指向不存在的服务器 也没有这个"):
             self.assertIn(needle, text)
         self.assertNotIn("不存在的规则集 geosite-x", text)
-        self.assertEqual(verify.check_outputs(outputs()), [], "当前产物本身不应有任何结构问题")
+        self.assertEqual(verify.check_outputs(outputs(), spec=simple_spec()), [], "当前产物本身不应有任何结构问题")
 
     def test_detects_broken_dial_resolver_references(self):
         """拨号解析用到的 DNS 服务器（审核 r9 的 F02 之后新用到的字段）：路由规则的 resolve 动作、出站的 domain_resolver、

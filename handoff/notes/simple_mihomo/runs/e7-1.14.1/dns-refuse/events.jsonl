@@ -1,0 +1,31 @@
+{"kind": "lab_ready", "base": 50100, "nodes": ["n1", "n2", "n3", "n4", "n5"], "t": 1792593519.204}
+{"kind": "node_connect", "node": "n1", "host": "www.gstatic.com", "port": 80, "t": 1792593519.401}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792593519.402}
+{"kind": "node_connect", "node": "n3", "host": "www.gstatic.com", "port": 80, "t": 1792593519.411}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792593519.413}
+{"kind": "node_connect", "node": "n5", "host": "www.gstatic.com", "port": 80, "t": 1792593519.422}
+{"kind": "probe", "node": "n5", "method": "HEAD", "t": 1792593519.423}
+{"kind": "node_connect", "node": "n4", "host": "www.gstatic.com", "port": 80, "t": 1792593519.431}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792593519.432}
+{"kind": "node_connect", "node": "n2", "host": "www.gstatic.com", "port": 80, "t": 1792593519.451}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792593519.454}
+{"kind": "node_connect", "node": "n1", "host": "1.1.1.1", "port": 53, "t": 1792593521.489}
+{"kind": "node_connect", "node": "n1", "host": "1.1.1.1", "port": 53, "t": 1792593521.49}
+{"kind": "dns", "server": "foreign", "via": "n1", "proto": "tcp", "name": "unlisted-warmup-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "93.184.216.34", "t": 1792593521.491}
+{"kind": "dns", "server": "foreign", "via": "n1", "proto": "tcp", "name": "unlisted-warmup-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "93.184.216.34", "t": 1792593521.492}
+{"kind": "dns", "server": "foreign", "via": "n1", "proto": "tcp", "name": "unlisted-warmup-dns-refuse.qzx-lab-probe.net", "qtype": 28, "ans": null, "t": 1792593521.492}
+{"kind": "node_connect", "node": "n5", "host": "93.184.216.34", "port": 50100, "t": 1792593521.535}
+{"kind": "hello", "node": "n5", "method": "GET", "path": "/hello", "t": 1792593521.537}
+{"kind": "mode", "node": "n1", "old": "up", "new": "refuse", "t": 1792593522.574}
+{"kind": "node_connect", "node": "n3", "host": "www.gstatic.com", "port": 80, "t": 1792593582.651}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792593582.653}
+{"kind": "node_connect", "node": "n5", "host": "www.gstatic.com", "port": 80, "t": 1792593582.663}
+{"kind": "probe", "node": "n5", "method": "HEAD", "t": 1792593582.665}
+{"kind": "node_connect", "node": "n4", "host": "www.gstatic.com", "port": 80, "t": 1792593582.671}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792593582.673}
+{"kind": "node_connect", "node": "n2", "host": "www.gstatic.com", "port": 80, "t": 1792593582.693}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792593582.694}
+{"kind": "node_connect", "node": "n3", "host": "1.1.1.1", "port": 53, "t": 1792593582.781}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after0-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593582.783}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after1-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593589.808}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after2-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593596.838}

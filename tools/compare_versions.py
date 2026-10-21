@@ -20,6 +20,7 @@
      节点筛选正则太长，对比时换成“宽 hk”“严 hk”“上一版 hk”这样的标记。
   4. 严格版：当前这一版的严格版相对同一版的标准版改了什么（同一套拆分办法），以及它引用的自有远程规则文件的规模、
      和上一版相比有没有变。
+  5. 简易版（2026-10-21 起，docs/10）：当前这一版的十份简易版相对同一版对应的完整版改了什么（同一套拆分办法）。
 只读取文件，不联网。r6 → r7 那一次的对比（当时的规则写在 project.yaml 里，结构不同）保留在
 docs/evidence/节点名称分组-r6与r7对比.md，不再重算。
 """
@@ -37,7 +38,7 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-from generator.emit_stash import exclude_builtins  # noqa: E402
+from generator.emit_stash import exclude_builtins, exclude_placeholders  # noqa: E402
 from generator.model import load  # noqa: E402
 from generator.regions import flag  # noqa: E402
 from generator.util import safe_stdout  # noqa: E402
@@ -71,7 +72,14 @@ COMMUNITY = {
 OUTPUTS = ("loon/loon.conf", "quantumultx/quantumultx.conf", "mihomo/mihomo-profile.yaml", "mihomo/mihomo-core.yaml",
            "sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json",
            "loon/loon-strict.conf", "quantumultx/quantumultx-strict.conf",
-           "stash/stash.yaml", "stash/stash-strict.yaml")          # Stash 是 2026-10-13 加的（r16）
+           "stash/stash.yaml", "stash/stash-strict.yaml",          # Stash 是 2026-10-13 加的（r16）
+           # 简易版（2026-10-21，docs/10）
+           "loon/loon-simple.conf", "quantumultx/quantumultx-simple.conf", "mihomo/mihomo-simple-profile.yaml",
+           "mihomo/mihomo-simple-core.yaml", "sing-box/sing-box-simple-1.14.json", "sing-box/sing-box-simple-1.12.json",
+           "loon/loon-simple-strict.conf", "quantumultx/quantumultx-simple-strict.conf",
+           "stash/stash-simple.yaml", "stash/stash-simple-strict.yaml")
+# 简易版：（简易版, 同一版对应的完整版）
+SIMPLE_PAIRS = tuple((rel, rel.replace("-simple", "", 1)) for rel in OUTPUTS if "-simple" in rel)
 # 严格版（2026-10-06 起；Stash 的 2026-10-13 起）：（严格版, 同一个 App 的标准版）；以及严格版引用的自有远程规则文件
 STRICT_PAIRS = (("loon/loon-strict.conf", "loon/loon.conf"), ("quantumultx/quantumultx-strict.conf", "quantumultx/quantumultx.conf"),
                 ("stash/stash-strict.yaml", "stash/stash.yaml"))
@@ -327,6 +335,16 @@ def _stash_variant(rxs):
         except ValueError:
             pass
     return out
+
+
+def simple_label_sets(m):
+    """简易版里新出现的几条筛选（2026-10-21）：“全部节点”（国外默认用）、它写进 Stash 的那条（开头多排除内置策略名和占位节点）、
+    mihomo“境外DNS”用反引号连起来的六条严筛选。"""
+    strict = m.node_regexes_strict()
+    joined = "`".join(strict[r["id"]] for r in m.regions)
+    any_rx = m.node_regex_any()
+    return [("全部节点", {"": any_rx}), ("Stash全部节点", {"": exclude_builtins(exclude_placeholders(m, any_rx))}),
+            ("严 六个地区连在一起（境外DNS）", {"": joined})]
 
 
 def label_sets(old_loose, old_strict, new_loose, new_strict):
@@ -586,6 +604,9 @@ def outputs_section(L, old_dir, labels, old_label, new_label):
     for rel in OUTPUTS:
         a, b = os.path.join(old_dir, "dist", rel), os.path.join(ROOT, "dist", rel)
         L += [f"### `{rel}`", ""]
+        if os.path.exists(b) and not os.path.exists(a) and rel in dict(SIMPLE_PAIRS):      # 先认简易版：Stash 也有简易版
+            L += [f"{old_label} 没有这个文件，是这一版新增的简易版（2026-10-21，`docs/10`）。它和同一版完整版的差别见第七节。", ""]
+            continue
         if os.path.exists(b) and not os.path.exists(a) and rel.startswith("stash/"):
             L += [f"{old_label} 没有这个文件：Stash 的配置是 2026-10-13 新增的（r16），和 mihomo 那份的关系见 `docs/02`“Stash”一节"
                   + ("；严格版和同一版标准版的差别见第六节。" if rel in dict(STRICT_PAIRS) else "。"), ""]
@@ -656,6 +677,29 @@ def strict_section(L, old_dir, labels, old_label, new_label):
     L.append("")
 
 
+def simple_section(L, labels, new_label):
+    """简易版：当前这一版的每份简易版相对同一版对应的完整版改了什么。当前这一版没有简易版时什么都不写。"""
+    dist = os.path.join(ROOT, "dist")
+    if not any(os.path.exists(os.path.join(dist, rel)) for rel, _ in SIMPLE_PAIRS):
+        return
+    L += [f"## 七、简易版：{new_label} 的简易版相对同一版的完整版", "",
+          "简易版（2026-10-21，`docs/10`）每个地区一个组、里面直接是节点，自己选、不自动换；“国外默认”是七个地区再接全部节点；"
+          "mihomo、sing-box 的境外 DNS 和规则下载另走内部的“境外DNS”组。下面比的是**同一版里**简易版和对应的完整版（不是和上一版比），"
+          "拆分办法和第五节相同。两份文件是同一版的，筛选标记都用这一版的：`<筛选：宽 hk>` / `<筛选：严 hk>`、写进 Stash 的 "
+          "`<筛选：Stash宽 hk>`；简易版新出现的是 `<筛选：全部节点>`、写进 Stash 的 `<筛选：Stash全部节点>`（开头多排除内置策略名和"
+          "七个占位节点）、mihomo 境外DNS 的 `<筛选：严 六个地区连在一起（境外DNS）>`（六条严筛选用反引号连起来）。", ""]
+    for simple_rel, full_rel in SIMPLE_PAIRS:
+        a, b = os.path.join(dist, full_rel), os.path.join(dist, simple_rel)
+        L += [f"### `{simple_rel}` 对照 `{full_rel}`", ""]
+        if not (os.path.exists(a) and os.path.exists(b)):
+            L += ["缺文件，没有比。", ""]
+            continue
+        with open(a, encoding="utf-8") as fa, open(b, encoding="utf-8") as fb:
+            ta, tb = fa.read(), fb.read()
+        L.append(f"大小：完整版 {len(ta.encode('utf-8')):,} 字节，简易版 {len(tb.encode('utf-8')):,} 字节。")
+        L += output_diff_lines(ta, tb, simple_rel, labels, {})
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--old", required=True)
@@ -684,9 +728,13 @@ def main(argv=None) -> int:
     expect, indep = names_section(L, comp(old_loose), comp(old_strict), comp(new_loose), comp(new_strict),
                                   a.old_label, a.new_label)
     community_section(L, expect, indep, comp(old_loose), comp(new_loose), a.old_label, a.new_label)
-    labels = Labels(label_sets(old_loose, old_strict, new_loose, new_strict))
+    labels = Labels(label_sets(old_loose, old_strict, new_loose, new_strict) + simple_label_sets(m))
     outputs_section(L, a.old, labels, a.old_label, a.new_label)
     strict_section(L, a.old, labels, a.old_label, a.new_label)
+    # 第七节比的是同一版的两份文件：只用这一版的标记（两版正则相同时，上面那套会先标成“上一版”）
+    same_version = Labels([("宽 ", new_loose), ("严 ", new_strict), ("Stash宽 ", _stash_variant(new_loose)),
+                           ("Stash严 ", _stash_variant(new_strict))] + simple_label_sets(m))
+    simple_section(L, same_version, a.new_label)
 
     text = "\n".join(L) + "\n"
     if a.write:

@@ -9,13 +9,33 @@ import unittest
 
 import yaml
 
-from helpers import ROOT, load_yaml, model_and_plan, parsed
+from helpers import ROOT, is_simple, load_yaml, model_and_plan, parsed
 
 from generator import emit_mihomo, emit_singbox, nodes as nodeconv, verify
 from generator.model import build_plan, load, most_specific
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import dns_route_consistency as drc  # noqa: E402
+
+
+# 完整版和简易版（2026-10-21）都查。简易版的 DNS 只差一处：mihomo、sing-box 的境外 DNS 经内部的“境外DNS”组去问
+# （mihomo 写成地址后面的 #境外DNS，sing-box 是 dns-foreign 的 detour），见 foreign_servers、foreign_detour
+MIHOMO_CLIENTS = ("mihomo-profile", "mihomo-core", "mihomo-simple-profile", "mihomo-simple-core")
+SINGBOX_CLIENTS = ("singbox-1.14", "singbox-1.12", "singbox-simple-1.14", "singbox-simple-1.12")
+STASH_ALL = ("stash", "stash-strict", "stash-simple", "stash-simple-strict")
+
+
+def foreign_servers(client: str) -> list:
+    """mihomo 的 nameserver（境外 DoH）应有的写法：完整版是统一源里的地址；简易版每个地址后面加 #内部组名。"""
+    m, _ = model_and_plan()
+    if is_simple(client):
+        return [u + "#" + m.simple["foreign_dns_group"] for u in m.dns["foreign_doh"]]
+    return list(m.dns["foreign_doh"])
+
+
+def foreign_detour(client: str) -> str:
+    """sing-box 的 dns-foreign 经哪个出站发出：完整版是国外默认；简易版是内部组。"""
+    return model_and_plan()[0].simple["foreign_dns_group"] if is_simple(client) else "国外默认"
 
 
 class _NotInAnySet:
@@ -50,7 +70,7 @@ class LanDns(unittest.TestCase):
         cls.hc = m.hc
 
     def test_mihomo_sends_lan_suffixes_to_system_dns_first(self):
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in MIHOMO_CLIENTS:
             dns = parsed(client)["dns"]
             policy = list(dns["nameserver-policy"].items())
             key, servers = policy[0]
@@ -72,7 +92,7 @@ class LanDns(unittest.TestCase):
         期望是按设计人工写的；官方内核的实际拨号结果另在 test_real_data 里对快照核对。"""
         m, _ = model_and_plan()
         suffixes = ",".join("+." + s for s in self.lan)
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in MIHOMO_CLIENTS:
             dns = parsed(client)["dns"]
             self.assertEqual(list(dns["proxy-server-nameserver-policy"].items()), [(suffixes, ["system"]), ("*", ["system"])], client)
             self.assertEqual(dns["proxy-server-nameserver"], list(m.dns["domestic_doh"]), client)
@@ -130,7 +150,7 @@ class LanDns(unittest.TestCase):
         self.assertEqual(list(model_and_plan()[0].project["lan"]["domain_suffix"]), self.lan)
 
     def test_singbox_uses_local_dns_for_lan_suffixes(self):
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in SINGBOX_CLIENTS:
             dns = parsed(client)["dns"]
             local_tags = {s["tag"] for s in dns["servers"] if s.get("type") == "local" or s.get("address") == "local"}
             first = dns["rules"][0]
@@ -152,8 +172,8 @@ class LanDns(unittest.TestCase):
                     {"name": "地址节点 v6", "type": "socks5", "server": "2001:db8::7", "port": 1080}]
         conv, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(m))
         self.assertEqual(report, [])
-        for variant in ("1.14", "1.12"):
-            text = emit_singbox.build(m, plan, variant, nodes=conv, renamed=renamed)
+        for variant, simple in (("1.14", False), ("1.12", False), ("1.14", True), ("1.12", True)):
+            text = emit_singbox.build(m, plan, variant, nodes=conv, renamed=renamed, simple=simple)
             conf = json.loads(text)
             self.assertEqual(verify.check_singbox(text), [], variant)
             local = [s["tag"] for s in conf["dns"]["servers"] if s.get("type") == "local"]
@@ -176,7 +196,7 @@ class LanDns(unittest.TestCase):
             self.assertLess(i_resolve, i_direct, "先解析、再交给直连")
             self.assertEqual([r for r in rules[:i_resolve] if "outbound" in r], [], "它前面只有 sniff / hijack-dns 这类动作")
         # 没有节点的公开模板里同样有这条 resolve 规则
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in SINGBOX_CLIENTS:
             self.assertTrue(any(r.get("action") == "resolve" and r.get("server") == emit_singbox.LOCAL_DNS_TAG
                                 for r in parsed(client)["route"]["rules"]), client)
 
@@ -188,17 +208,19 @@ class LanDns(unittest.TestCase):
             self.assertFalse(emit_singbox.is_lan_name(host, lan), host)
 
     def test_loon_and_qx_use_system_dns_for_lan_suffixes(self):
-        host = parsed("loon")["sections"]["Host"]
-        self.assertEqual([h for h in host if h.endswith("= server:system")],
-                         [f"*.{s} = server:system" for s in self.lan])
-        qx = parsed("quantumultx")["sections"]["dns"]
-        self.assertEqual([x for x in qx if x.endswith("/system")], [f"server=/*.{s}/system" for s in self.lan])
+        for client in ("loon", "loon-strict", "loon-simple", "loon-simple-strict"):
+            host = parsed(client)["sections"]["Host"]
+            self.assertEqual([h for h in host if h.endswith("= server:system")],
+                             [f"*.{s} = server:system" for s in self.lan], client)
+        for client in ("quantumultx", "quantumultx-strict", "quantumultx-simple", "quantumultx-simple-strict"):
+            qx = parsed(client)["sections"]["dns"]
+            self.assertEqual([x for x in qx if x.endswith("/system")], [f"server=/*.{s}/system" for s in self.lan], client)
 
     def test_stash_uses_system_dns_for_lan_suffixes(self):
         """Stash（2026-10-13）：同一份局域网后缀，nameserver-policy 里每个后缀交给 system，fake-ip-filter 里拿真实地址，
         规则第 2 段固定直连。不带点的名字和上游 private 集合没有像 mihomo 那样交给 system（第 14 项使用者选的是只改 mihomo；
         文档没写单独一个 * 的意思；geosite: 写法目标版本 iOS 3.4.0 / macOS 4.2.0 支持，更早的不支持），见 docs/06。"""
-        for client in ("stash", "stash-strict"):
+        for client in STASH_ALL:
             c = parsed(client)
             self.assertEqual(c["dns"]["nameserver-policy"], {"+." + s: "system" for s in self.lan}, client)
             for s in self.lan:
@@ -216,9 +238,11 @@ class LanDns(unittest.TestCase):
           3. 没有 fallback：境外查询失败时不安排别的服务器（mihomo v1.19.31 dns/resolver.go 的 ipExchange：没有 fallback 时直接返回）。
         官方内核的实际去向仍由 tools/check_real_routes.py 核对、记进快照。"""
         m, _ = model_and_plan()
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in MIHOMO_CLIENTS:
             dns = parsed(client)["dns"]
-            self.assertEqual(dns["nameserver"], list(m.dns["foreign_doh"]), f"{client}：默认的 nameserver 必须是境外 DoH")
+            self.assertEqual(dns["nameserver"], foreign_servers(client), f"{client}：默认的 nameserver 必须是境外 DoH")
+            # 完整版：这些 DoH 连接按规则走（respect-rules），落到国外默认、从代理出去；简易版：地址后面写了组名，经那个组出去
+            # （写了组名的地址 respect-rules 不再管，v1.19.31 config/config.go 的 parseNameServer）
             self.assertTrue(dns["respect-rules"], f"{client}：境外 DoH 的连接要按规则走（经代理）")
             for key in ("fallback", "fallback-filter"):
                 self.assertNotIn(key, dns, f"{client}：境外查询不安排 {key}")
@@ -231,7 +255,7 @@ class LanDns(unittest.TestCase):
           3. dns-foreign 是统一源里的境外 DoH，经“国外默认”发出（detour），DNS 的 final 也是它。"""
         m, _ = model_and_plan()
         foreign_host = m.dns["foreign_doh"][0].split("://", 1)[1].split("/", 1)[0]
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in SINGBOX_CLIENTS:
             c = parsed(client)
             rules = c["route"]["rules"]
             resolves = [(i, r) for i, r in enumerate(rules) if r.get("action") == "resolve"]
@@ -246,8 +270,8 @@ class LanDns(unittest.TestCase):
                              f"{client}：带匹配条件的 resolve 只有局域网那一条，用系统 DNS")
             servers = {s["tag"]: s for s in c["dns"]["servers"]}
             fs = servers["dns-foreign"]
-            self.assertEqual((fs["type"], fs["server"], fs.get("detour")), ("https", foreign_host, "国外默认"),
-                             f"{client}：dns-foreign 必须是境外 DoH，并且经国外默认发出")
+            self.assertEqual((fs["type"], fs["server"], fs.get("detour")), ("https", foreign_host, foreign_detour(client)),
+                             f"{client}：dns-foreign 必须是境外 DoH，并且经{foreign_detour(client)}发出")
             self.assertEqual(c["dns"]["final"], "dns-foreign", client)
 
     def test_policy_lookup_follows_mihomos_domain_trie(self):
@@ -293,7 +317,7 @@ class LanDns(unittest.TestCase):
         rules = [r for r in plan.exceptions + plan.product_for("mihomo") if r.kind in ("domain", "suffix")]
         self.assertGreater(len(rules), 500)
         sets = {"cn": _NotInAnySet(), "private": _NotInAnySet()}
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in MIHOMO_CLIENTS:
             conf = parsed(client)
             dns = conf["dns"]
             keys = list(dns["nameserver-policy"])
@@ -307,7 +331,7 @@ class LanDns(unittest.TestCase):
                 pat = ("+." + r.value) if r.kind == "suffix" else r.value
                 self.assertEqual(dns["nameserver-policy"].get(pat), list(m.dns["domestic_doh"]), f"{client} {pat}")
                 self.assertIn(f"{'DOMAIN-SUFFIX' if r.kind == 'suffix' else 'DOMAIN'},{r.value},DIRECT", conf["rules"], client)
-            foreign = list(m.dns["foreign_doh"])
+            foreign = foreign_servers(client)
             self.assertEqual(dns["nameserver"], foreign, client)
             wrong = []
             checked = {True: 0, False: 0}
@@ -326,13 +350,17 @@ class LanDns(unittest.TestCase):
             self.assertGreater(checked[False], 50, client)
 
     def test_mihomo_provider_health_check_matches_groups(self):
-        for client in ("mihomo-profile", "mihomo-core"):
+        """订阅上的检查间隔和组上的一致（mihomo 按订阅上的检查；简易版两边都是 1 小时，完整版 300 秒）。"""
+        simple_iv = model_and_plan()[0].simple["health_check_interval_s"]
+        for client in MIHOMO_CLIENTS:
+            want = simple_iv if is_simple(client) else self.hc["interval_s"]
             conf = parsed(client)
             for name, prov in conf.get("proxy-providers", {}).items():
-                self.assertEqual(prov["health-check"]["interval"], self.hc["interval_s"], f"{client} {name}")
-            for g in conf["proxy-groups"]:
-                if "interval" in g:
-                    self.assertEqual(g["interval"], self.hc["interval_s"], f"{client} {g['name']}")
+                self.assertEqual(prov["health-check"]["interval"], want, f"{client} {name}")
+            groups = [g for g in conf["proxy-groups"] if "interval" in g]
+            self.assertTrue(groups, client)
+            for g in groups:
+                self.assertEqual(g["interval"], want, f"{client} {g['name']}")
 
 
 if __name__ == "__main__":

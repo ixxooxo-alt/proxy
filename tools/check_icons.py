@@ -8,7 +8,8 @@
   python3 tools/check_icons.py --icon-repo <目录>
 
 检查的内容：
-  1. 带图标的客户端产物（Loon、Quantumult X、mihomo，2026-10-13 起还有 Stash）里，每个策略组的图标地址都指向检出目录里存在的文件；
+  1. 带图标的客户端产物（Loon、Quantumult X、mihomo，2026-10-13 起还有 Stash；2026-10-21 起连同各自的简易版）里，
+     每个策略组的图标地址都指向检出目录里存在的文件；同一个组名在各份产物里用的是同一个地址；
   2. 那个文件是 PNG，宽高和目录名一致（256px 目录里是 256×256）；
   3. source/icons.yaml 的 available 和目录里实际有的图一致（仓库里多了图只提示，少了图算失败）；
   4. 图标仓库自己公布的地址清单（icon-urls.json）里对应的地址，和本工程生成的逐个相同；清单里没有的组不比、单独列出
@@ -151,13 +152,21 @@ def main(argv=None) -> int:
         for x in bad[:20]:
             print("      " + x)
         failures += [f"{rel}：{x}" for x in bad]
-    counts = {rel: len(got) for rel, got in per_output.items()}
-    if len(set(counts.values())) != 1:
-        failures.append(f"各端带图标的策略组数量不一样：{counts}")
-    same = all(got == next(iter(per_output.values())) for got in per_output.values())
-    print(f"  [{'符合' if same else '不符合'}] 各端同一个策略组用的是同一个地址")
-    if not same:
-        failures.append("各端同一个策略组的图标地址不一样")
+    # 数量：完整版各端相同；简易版（2026-10-21）各端相同，mihomo 另多一个藏起来的内部组（simple.foreign_dns_group）
+    dns_group = model.simple["foreign_dns_group"]
+    for layout, rels in (("完整版", [r for r in per_output if "-simple" not in r]), ("简易版", [r for r in per_output if "-simple" in r])):
+        counts = {rel: len([n for n in per_output[rel] if n != dns_group]) for rel in rels}
+        if len(set(counts.values())) > 1:
+            failures.append(f"{layout}各端带图标的策略组数量不一样：{counts}")
+    # 地址：同一个组名在每份产物里都用同一个地址（借用别的组的图时，地址和那个组的相同，见 icons.yaml 的 renamed）
+    by_name = {}
+    for got in per_output.values():
+        for name, url in got.items():
+            by_name.setdefault(name, set()).add(url)
+    differ = sorted(n for n, urls in by_name.items() if len(urls) > 1)
+    print(f"  [{'符合' if not differ else '不符合'}] 各端同一个策略组用的是同一个地址（{len(by_name)} 个组名）")
+    if differ:
+        failures.append("各端同一个策略组的图标地址不一样：" + "、".join(differ))
     print(f"用到的图片 {len(seen_urls)} 张，合计 {total_bytes:,} 字节（客户端显示图标时要下载；缓存不缓存、多久刷新由各客户端决定，没有核对）")
 
     listing = os.path.join(a.icon_repo, "icon-urls.json")

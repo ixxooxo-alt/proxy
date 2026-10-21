@@ -1,0 +1,59 @@
++0000 2026-10-21 14:38:29 [36mINFO[0m network: updated default interface eth0, index 4
++0000 2026-10-21 14:38:29 [36mINFO[0m network: updated network environment: gateway 192.0.2.1, gateway_mac 02:fc:00:00:00:05
++0000 2026-10-21 14:38:29 [36mINFO[0m inbound/mixed[mixed-in]: tcp server started at 127.0.0.1:50107
++0000 2026-10-21 14:38:29 [36mINFO[0m clash-api: restful api listening at 127.0.0.1:50108
++0000 2026-10-21 14:38:29 [36mINFO[0m sing-box started (0.02s)
++0000 2026-10-21 14:38:29 [36mINFO[0m outbound/socks[美国 02]: outbound connection to www.gstatic.com:80
++0000 2026-10-21 14:38:29 [36mINFO[0m outbound/socks[日本 01]: outbound connection to www.gstatic.com:80
++0000 2026-10-21 14:38:29 [36mINFO[0m outbound/socks[香港 01]: outbound connection to www.gstatic.com:80
++0000 2026-10-21 14:38:29 [36mINFO[0m outbound/socks[美国 01]: outbound connection to www.gstatic.com:80
++0000 2026-10-21 14:38:29 [36mINFO[0m outbound/socks[🇯🇵 Tokyo 02]: outbound connection to www.gstatic.com:80
++0000 2026-10-21 14:38:29 [37mDEBUG[0m outbound/urltest[境外DNS]: outbound 日本 01 available: 25ms
++0000 2026-10-21 14:38:29 [37mDEBUG[0m outbound/urltest[境外DNS]: outbound 香港 01 available: 45ms
++0000 2026-10-21 14:38:29 [37mDEBUG[0m outbound/urltest[境外DNS]: outbound 美国 02 available: 64ms
++0000 2026-10-21 14:38:29 [37mDEBUG[0m outbound/urltest[境外DNS]: outbound 美国 01 available: 86ms
++0000 2026-10-21 14:38:29 [37mDEBUG[0m outbound/urltest[境外DNS]: outbound 🇯🇵 Tokyo 02 available: 126ms
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 0ms] inbound/mixed[mixed-in]: inbound connection from 127.0.0.1:37164
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 0ms] inbound/mixed[mixed-in]: inbound connection to unlisted-warmup-fd-refuse.qzx-lab-probe.net:50100
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 0ms] router: match[0] => sniff
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 0ms] router: sniffed protocol: http, domain: unlisted-warmup-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 1ms] router: match[65] => resolve(dns-foreign)
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 1ms] dns: lookup domain unlisted-warmup-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 1ms] outbound/socks[日本 01]: outbound connection to 1.1.1.1:53
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 1ms] outbound/socks[日本 01]: outbound connection to 1.1.1.1:53
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 27ms] dns: exchanged unlisted-warmup-fd-refuse.qzx-lab-probe.net NOERROR 60
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 27ms] dns: exchanged A unlisted-warmup-fd-refuse.qzx-lab-probe.net. 60 IN A 93.184.216.34
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 27ms] dns: lookup succeed for unlisted-warmup-fd-refuse.qzx-lab-probe.net: 93.184.216.34
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 27ms] router: resolved [93.184.216.34]
++0000 2026-10-21 14:38:31 [36mINFO[0m [[38;5;150m3596866438[0m 27ms] outbound/socks[美国 02]: outbound connection to 93.184.216.34:50100
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 91ms] connection: connection download finished
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 91ms] connection: connection upload finished
++0000 2026-10-21 14:38:31 [37mDEBUG[0m [[38;5;150m3596866438[0m 92ms] inbound/mixed[mixed-in]: connection closed: read http request: read tcp 127.0.0.1:50107->127.0.0.1:37164: use of closed network connection
++0000 2026-10-21 14:38:33 [36mINFO[0m [[38;5;226m532822738[0m 0ms] inbound/mixed[mixed-in]: inbound connection from 127.0.0.1:37176
++0000 2026-10-21 14:38:33 [36mINFO[0m [[38;5;226m532822738[0m 0ms] inbound/mixed[mixed-in]: inbound connection to cnsite-fd-refuse.qzx-lab-probe.net:50100
++0000 2026-10-21 14:38:33 [37mDEBUG[0m [[38;5;226m532822738[0m 0ms] router: match[0] => sniff
++0000 2026-10-21 14:38:33 [37mDEBUG[0m [[38;5;226m532822738[0m 0ms] router: sniffed protocol: http, domain: cnsite-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:33 [37mDEBUG[0m [[38;5;226m532822738[0m 1ms] router: match[65] => resolve(dns-foreign)
++0000 2026-10-21 14:38:33 [37mDEBUG[0m [[38;5;226m532822738[0m 1ms] dns: lookup domain cnsite-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:33 [36mINFO[0m [[38;5;226m532822738[0m 1ms] outbound/socks[日本 01]: outbound connection to 1.1.1.1:53
++0000 2026-10-21 14:38:34 [37mDEBUG[0m [[38;5;226m532822738[0m 27ms] dns: exchanged cnsite-fd-refuse.qzx-lab-probe.net NOERROR 60
++0000 2026-10-21 14:38:34 [36mINFO[0m [[38;5;226m532822738[0m 27ms] dns: exchanged A cnsite-fd-refuse.qzx-lab-probe.net. 60 IN A 223.5.5.5
++0000 2026-10-21 14:38:34 [36mINFO[0m [[38;5;226m532822738[0m 27ms] dns: lookup succeed for cnsite-fd-refuse.qzx-lab-probe.net: 223.5.5.5
++0000 2026-10-21 14:38:34 [37mDEBUG[0m [[38;5;226m532822738[0m 27ms] router: resolved [223.5.5.5]
++0000 2026-10-21 14:38:34 [37mDEBUG[0m [[38;5;226m532822738[0m 27ms] router: match[66] rule_set=geoip-cn => route(国内直连)
++0000 2026-10-21 14:38:34 [36mINFO[0m [[38;5;226m532822738[0m 27ms] outbound/direct[DIRECT]: outbound connection to 223.5.5.5:50100
++0000 2026-10-21 14:38:39 [31mERROR[0m [[38;5;226m532822738[0m 5.2s] connection: open connection to [223.5.5.5] using outbound/selector[国内直连]: dial tcp 223.5.5.5:50100: i/o timeout
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;226m532822738[0m 5.2s] inbound/mixed[mixed-in]: connection closed: (open connection to [223.5.5.5] using outbound/selector[国内直连]: dial tcp 223.5.5.5:50100: i/o timeout | Get "http://cnsite-fd-refuse.qzx-lab-probe.net:50100/hello": EOF)
++0000 2026-10-21 14:38:39 [36mINFO[0m [[38;5;188m2716526635[0m 0ms] inbound/mixed[mixed-in]: inbound connection from 127.0.0.1:52220
++0000 2026-10-21 14:38:39 [36mINFO[0m [[38;5;188m2716526635[0m 0ms] inbound/mixed[mixed-in]: inbound connection to unlisted-fd-refuse.qzx-lab-probe.net:50100
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 0ms] router: match[0] => sniff
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 0ms] router: sniffed protocol: http, domain: unlisted-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 1ms] router: match[65] => resolve(dns-foreign)
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 1ms] dns: lookup domain unlisted-fd-refuse.qzx-lab-probe.net
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 12ms] dns: exchanged unlisted-fd-refuse.qzx-lab-probe.net NOERROR 60
++0000 2026-10-21 14:38:39 [36mINFO[0m [[38;5;188m2716526635[0m 12ms] dns: exchanged A unlisted-fd-refuse.qzx-lab-probe.net. 60 IN A 93.184.216.34
++0000 2026-10-21 14:38:39 [36mINFO[0m [[38;5;188m2716526635[0m 12ms] dns: lookup succeed for unlisted-fd-refuse.qzx-lab-probe.net: 93.184.216.34
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 12ms] router: resolved [93.184.216.34]
++0000 2026-10-21 14:38:39 [36mINFO[0m [[38;5;188m2716526635[0m 12ms] outbound/socks[美国 02]: outbound connection to 93.184.216.34:50100
++0000 2026-10-21 14:38:39 [31mERROR[0m [[38;5;188m2716526635[0m 13ms] connection: open connection to [93.184.216.34] using outbound/selector[美国]: dial tcp 127.0.0.1:50115: connect: connection refused
++0000 2026-10-21 14:38:39 [37mDEBUG[0m [[38;5;188m2716526635[0m 13ms] inbound/mixed[mixed-in]: connection closed: (open connection to [93.184.216.34] using outbound/selector[美国]: dial tcp 127.0.0.1:50115: connect: connection refused | Get "http://unlisted-fd-refuse.qzx-lab-probe.net:50100/hello": EOF)

@@ -11,7 +11,7 @@ import unittest
 
 import yaml
 
-from helpers import STASH_CLIENTS, load_yaml, model_and_plan, outputs, parsed, text
+from helpers import STASH_CLIENTS, is_strict, load_yaml, model_and_plan, outputs, parsed, text
 
 from generator import emit_stash, verify
 
@@ -25,7 +25,7 @@ def conf(client):
 class StashStructure(unittest.TestCase):
     def test_generated_outputs_pass_the_structure_check(self):
         for client in STASH_CLIENTS:
-            self.assertEqual(verify.check_stash(text(client), strict=client == "stash-strict"), [], client)
+            self.assertEqual(verify.check_stash(text(client), strict=is_strict(client)), [], client)
 
     def test_standard_rules_are_the_mihomo_rules(self):
         """标准版的规则和 mihomo 的逐条相同（同一份产品规则、同样的 GEOSITE 和 GEOIP 写法；顺序也一样）。
@@ -225,7 +225,7 @@ class StashVerifyCatches(unittest.TestCase):
     def mutate(self, client, fn):
         c = conf(client)
         fn(c)
-        return verify.check_stash(yaml.safe_dump(c, allow_unicode=True, sort_keys=False), strict=client == "stash-strict")
+        return verify.check_stash(yaml.safe_dump(c, allow_unicode=True, sort_keys=False), strict=is_strict(client))
 
     def test_missing_placeholder(self):
         probs = self.mutate("stash", lambda c: c["proxies"].pop(0))

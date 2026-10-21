@@ -11,8 +11,10 @@
 这里不重复。"""
 import copy
 import json
+import os
 import random
 import re
+import sys
 import unittest
 
 import yaml
@@ -24,6 +26,9 @@ from generator.groups import NodeFilter
 from generator.model import SourceError, _check_simple
 from generator.nodes import convert
 from test_regions import country_names, expected as sample_expected, reference, word_names
+
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import real_data as rd  # noqa: E402
 
 # ---- 按 docs/10 人工写的期望 ----
 REGIONS = ["香港", "日本", "韩国", "台湾", "新加坡", "美国"]
@@ -193,6 +198,37 @@ class SameAsFullOutsideGroups(unittest.TestCase):
             self.assertEqual(keep(a), keep(b), client)
             a.pop("outbounds"), b.pop("outbounds")
             self.assertEqual(a, b, client)
+
+
+class OfficialRecordsApply(unittest.TestCase):
+    """官方内核的核对记录（tests/data/real_sets.json，tools/check_real_routes.py 写的）是拿完整版的配置跑的。简易版的规则段、
+    DNS 段只在境外 DNS 走的路上不同：mihomo 的地址后面多了 #境外DNS、多一条把 GEO 数据下载交给它的规则；sing-box 的
+    dns-foreign、规则集下载的 detour 是它。把这几处换回完整版的写法，“决定连接和查询交给谁”的那部分（real_data 的
+    routing_digest）就和完整版的一模一样——那些记录对简易版同样成立。换掉的那几处（境外 DNS 实际经哪个组、那个组的节点
+    挂了会怎样）由 handoff/notes/simple_mihomo 的 E6、E7 用官方内核实测。"""
+
+    def test_routing_digest_equals_the_full_one_apart_from_the_dns_path(self):
+        checked = 0
+        for client in SIMPLE_CLIENTS:
+            fam = family(client)
+            if fam not in WITH_DNS_GROUP:
+                continue
+            t = text(client)
+            if fam == "mihomo":
+                c = yaml.safe_load(t)
+                extra = [r for r in c["rules"] if r.endswith("," + DNS_GROUP)]
+                self.assertEqual(extra, [f"DOMAIN,testingcf.jsdelivr.net,{DNS_GROUP}"], client)
+                c["rules"] = [r for r in c["rules"] if r not in extra]
+                c = json.loads(json.dumps(c, ensure_ascii=False).replace("#" + DNS_GROUP, ""))
+                norm = yaml.safe_dump(c, allow_unicode=True)
+            else:
+                norm = t.replace(f'"detour": "{DNS_GROUP}"', f'"detour": "{FD}"').replace(
+                    f'"download_detour": "{DNS_GROUP}"', f'"download_detour": "{FD}"')
+            self.assertNotEqual(rd.routing_digest(CLIENT_FILES[client], t), rd.routing_digest(CLIENT_FILES[client], norm))
+            self.assertEqual(rd.routing_digest(CLIENT_FILES[client], norm),
+                             rd.routing_digest(CLIENT_FILES[FULL_OF[client]], text(FULL_OF[client])), client)
+            checked += 1
+        self.assertEqual(checked, 4)
 
 
 class GroupStructure(unittest.TestCase):

@@ -33,7 +33,7 @@ import unittest
 import yaml
 
 from helpers import (CLIENT_FILES, LOON_CLIENTS, LQ_STRICT_OF, QX_CLIENTS, ROOT, STASH_CLIENTS, STRICT_CLIENTS, STRICT_OF,
-                     emulate, family, is_strict, load_yaml, model_and_plan, parsed, route, text)
+                     emulate, family, full_of, is_strict, load_yaml, model_and_plan, parsed, route, text)
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import real_data as rd  # noqa: E402
@@ -57,8 +57,14 @@ def fx_for(client):
 OFFICIAL_RECORD = {"mihomo-core": "mihomo", "mihomo-profile": "mihomo", "singbox-1.14": "singbox", "singbox-1.12": "singbox112"}
 
 
+def expect_key(client):
+    """探针的期望按“类”记（mihomo、singbox、loon……），严格版另记一份（loon-strict 等）。简易版的规则和对应的完整版相同，
+    用同一份期望：loon-simple 查 loon，loon-simple-strict 查 loon-strict。"""
+    return full_of(client) if is_strict(client) else family(client)
+
+
 def want(probe, client):
-    exp = probe["expect"][client if is_strict(client) else family(client)]
+    exp = probe["expect"][expect_key(client)]
     return "REJECT" if family(client) == "singbox" and exp == "广告拦截" else exp
 
 
@@ -530,7 +536,7 @@ class StrictWithRealSets(unittest.TestCase):
         """对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。"""
         for client in STRICT_OF:
             hosts = self.resolved_hosts(client)
-            self.assertGreater(len(hosts), 10 if client == "stash" else 20, client)
+            self.assertGreater(len(hosts), 10 if family(client) == "stash" else 20, client)
             self.assertIn("never-listed-site.org", hosts)
 
     def test_where_strict_and_standard_differ(self):
@@ -538,7 +544,7 @@ class StrictWithRealSets(unittest.TestCase):
         for std, strict in STRICT_OF.items():
             a, b = fx_for(std), fx_for(strict)
             differ = sorted({p["host"] or p["ip"] for p in self.probes if route(std, conn(p), a) != route(strict, conn(p), b)})
-            declared = sorted({p["host"] or p["ip"] for p in self.probes if p["expect"][strict] != p["expect"][std]})
+            declared = sorted({p["host"] or p["ip"] for p in self.probes if p["expect"][expect_key(strict)] != p["expect"][expect_key(std)]})
             self.assertEqual(differ, declared, strict)
             self.assertIn("unknown-cn.example", differ)
 

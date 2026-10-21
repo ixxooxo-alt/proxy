@@ -1,0 +1,28 @@
+境外DNS 的成员： ['日本 01', '🇯🇵 Tokyo 02', '香港 01', '美国 01', '美国 02'] ；国外默认： ['日本', '香港', '韩国', '台湾', '新加坡', '美国', '其他地区', '日本 01', '🇯🇵 Tokyo 02', '香港 01', '美国 01', '美国 02']
+sing-box check： 0 
+[fd-refuse] now：{'国外默认': '美国', '美国': '美国 02', '境外DNS': '日本 01'}；境外DNS 用的是 n1；预热请求 ('node=n5', 0.092)
+  [fd-refuse] cnsite-fd-refuse.qzx-lab-probe.net -> ('oserr:ConnectionResetError', 5.029)
+  [fd-refuse] unlisted-fd-refuse.qzx-lab-probe.net -> ('oserr:ConnectionResetError', 0.014)
+  [fd-refuse] t=9.37 cnsite-fd-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 succeed；去向 ['国内直连 -> 223.5.5.5']
+  [fd-refuse] t=9.38 unlisted-fd-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 succeed；去向 ['美国 -> 93.184.216.34']
+  [fd-refuse] 境外 DNS 替身收到的查询经过：['n1']
+[dns-refuse] now：{'国外默认': '美国', '美国': '美国 02', '境外DNS': '日本 01'}；境外DNS 用的是 n1；预热请求 ('node=n5', 0.094)
+  [dns-refuse] 手动测速：200 {"美国 01":85,"美国 02":67,"香港 01":44,"🇯🇵 Tokyo 02":126}
+；境外DNS 现在用 香港 01
+  [dns-refuse] t=0.0 cnsite-seq0-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=5.01 cnsite-seq1-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=10.01 cnsite-seq2-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=15.02 cnsite-seq3-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=20.02 cnsite-seq4-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=25.02 cnsite-seq5-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=30.03 cnsite-seq6-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=35.03 cnsite-seq7-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=40.04 cnsite-seq8-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=45.04 cnsite-seq9-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=50.05 cnsite-seq10-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=55.05 cnsite-seq11-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 failed；去向 []；境外DNS=日本 01
+  [dns-refuse] t=65.23 cnsite-after0-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 succeed；去向 ['国内直连 -> 223.5.5.5']；境外DNS=香港 01
+  [dns-refuse] t=72.26 cnsite-after1-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 succeed；去向 ['国内直连 -> 223.5.5.5']；境外DNS=香港 01
+  [dns-refuse] t=79.29 cnsite-after2-dns-refuse.qzx-lab-probe.net: oserr:ConnectionResetError；解析 succeed；去向 ['国内直连 -> 223.5.5.5']；境外DNS=香港 01
+  [dns-refuse] 境外 DNS 替身收到的查询经过：['n1', 'n3']
+done

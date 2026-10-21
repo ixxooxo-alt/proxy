@@ -1,0 +1,62 @@
+mihomo -t： 0 configuration file <scratch>/e6/config.yaml test is successful
+[alive] now： {'国外默认': '美国', '美国': '美国 02', '日本': '日本 01', 'OpenAI': '日本', 'Microsoft': 'DIRECT', '境外DNS': '日本 01'} 境外DNS 用的是 n1
+  [alive] HTTP 没被规则认出的域名（走国外默认）: unlisted-alive.qzx-lab-probe.net -> ('node=n5', 0.094)
+  [alive] HTTP 没被规则认出、境外 DNS 会答国内地址的域名: cnsite-alive.qzx-lab-probe.net -> ('node=direct', 0.031)
+  [alive] HTTP 系统联网检测 captive.apple.com（规则直连）: captive.apple.com -> ('node=direct', 0.003)
+  [alive] HTTP geosite:cn 里的国内域名: www.baidu.com -> ('node=direct', 0.003)
+  [alive] HTTP OpenAI（服务组 -> 日本 -> 日本 01，节点正常）: tcp-alive.openai.com -> ('node=n1', 0.024)
+  [alive] HTTP geolocation-!cn 里的境外域名（国外默认）: alive.wikipedia.org -> ('node=n5', 0.065)
+  [alive] HTTP Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里: loop-alive.onmicrosoft.com -> ('node=direct', 0.031)
+  [alive] DNS www.msftconnecttest.com: ('rcode=0 93.184.216.34', 0.03)
+  [alive] DNS www.msftncsi.com: ('rcode=0 93.184.216.34', 0.03)
+  [alive] DNS captive.apple.com: ('rcode=0 93.184.216.34', 0.03)
+  [alive] DNS time.apple.com: ('rcode=0 127.0.0.1', 0.0)
+  [alive] DNS unlisted-alive.qzx-lab-probe.net: ('rcode=0 198.18.0.5', 0.0)
+  [alive] DNS www.baidu.com: ('rcode=0 198.18.0.6', 0.0)
+  [alive] DNS nas-alive: ('rcode=0 127.0.0.1', 0.0)
+  [alive] UDP udp-alive.openai.com: sent
+  [alive] POST /configs/geo -> 500 '{"message":"can\'t download GeoSite database file: Get \\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@relea' (10.03s)
+  [alive] 境外 DNS 替身收到的查询经过：['n1']；GEO 数据下载连到：['n1']
+[fd-refuse] now： {'国外默认': '美国', '美国': '美国 02', '日本': '日本 01', 'OpenAI': '日本', 'Microsoft': 'DIRECT', '境外DNS': '日本 01'} 境外DNS 用的是 n1
+  [fd-refuse] HTTP 没被规则认出的域名（走国外默认）: unlisted-fd-refuse.qzx-lab-probe.net -> ('HTTP/1.1 502 Bad Gateway', 3.106)
+  [fd-refuse] HTTP 没被规则认出、境外 DNS 会答国内地址的域名: cnsite-fd-refuse.qzx-lab-probe.net -> ('node=direct', 0.032)
+  [fd-refuse] HTTP 系统联网检测 captive.apple.com（规则直连）: captive.apple.com -> ('node=direct', 0.003)
+  [fd-refuse] HTTP geosite:cn 里的国内域名: www.baidu.com -> ('node=direct', 0.002)
+  [fd-refuse] HTTP OpenAI（服务组 -> 日本 -> 日本 01，节点正常）: tcp-fd-refuse.openai.com -> ('node=n1', 0.024)
+  [fd-refuse] HTTP geolocation-!cn 里的境外域名（国外默认）: fd-refuse.wikipedia.org -> ('HTTP/1.1 502 Bad Gateway', 3.503)
+  [fd-refuse] HTTP Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里: loop-fd-refuse.onmicrosoft.com -> ('node=direct', 0.03)
+  [fd-refuse] DNS www.msftconnecttest.com: ('rcode=0 93.184.216.34', 0.03)
+  [fd-refuse] DNS www.msftncsi.com: ('rcode=0 93.184.216.34', 0.02)
+  [fd-refuse] DNS captive.apple.com: ('rcode=0 93.184.216.34', 0.03)
+  [fd-refuse] DNS time.apple.com: ('rcode=0 127.0.0.1', 0.0)
+  [fd-refuse] DNS unlisted-fd-refuse.qzx-lab-probe.net: ('rcode=0 198.18.0.5', 0.0)
+  [fd-refuse] DNS www.baidu.com: ('rcode=0 198.18.0.6', 0.0)
+  [fd-refuse] DNS nas-fd-refuse: ('rcode=0 127.0.0.1', 0.0)
+  [fd-refuse] UDP udp-fd-refuse.openai.com: sent
+  [fd-refuse] POST /configs/geo -> 500 '{"message":"can\'t download GeoSite database file: Get \\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@relea' (10.03s)
+  [fd-refuse] 境外 DNS 替身收到的查询经过：['n1']；GEO 数据下载连到：['n1']
+[fd-blackhole] now： {'国外默认': '美国', '美国': '美国 02', '日本': '日本 01', 'OpenAI': '日本', 'Microsoft': 'DIRECT', '境外DNS': '日本 01'} 境外DNS 用的是 n1
+  [fd-blackhole] HTTP 没被规则认出的域名（走国外默认）: unlisted-fd-blackhole.qzx-lab-probe.net -> ('HTTP/1.1 502 Bad Gateway', 5.029)
+  [fd-blackhole] HTTP 没被规则认出、境外 DNS 会答国内地址的域名: cnsite-fd-blackhole.qzx-lab-probe.net -> ('node=direct', 0.035)
+  [fd-blackhole] HTTP 系统联网检测 captive.apple.com（规则直连）: captive.apple.com -> ('node=direct', 0.004)
+  [fd-blackhole] HTTP geosite:cn 里的国内域名: www.baidu.com -> ('node=direct', 0.003)
+  [fd-blackhole] HTTP OpenAI（服务组 -> 日本 -> 日本 01，节点正常）: tcp-fd-blackhole.openai.com -> ('node=n1', 0.025)
+  [fd-blackhole] HTTP geolocation-!cn 里的境外域名（国外默认）: fd-blackhole.wikipedia.org -> ('HTTP/1.1 502 Bad Gateway', 5.002)
+  [fd-blackhole] HTTP Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里: loop-fd-blackhole.onmicrosoft.com -> ('node=direct', 0.029)
+  [fd-blackhole] DNS www.msftconnecttest.com: ('rcode=0 93.184.216.34', 0.03)
+  [fd-blackhole] DNS www.msftncsi.com: ('rcode=0 93.184.216.34', 0.02)
+  [fd-blackhole] DNS captive.apple.com: ('rcode=0 93.184.216.34', 0.03)
+  [fd-blackhole] DNS time.apple.com: ('rcode=0 127.0.0.1', 0.0)
+  [fd-blackhole] DNS unlisted-fd-blackhole.qzx-lab-probe.net: ('rcode=0 198.18.0.5', 0.0)
+  [fd-blackhole] DNS www.baidu.com: ('rcode=0 198.18.0.6', 0.0)
+  [fd-blackhole] DNS nas-fd-blackhole: ('rcode=0 127.0.0.1', 0.0)
+  [fd-blackhole] UDP udp-fd-blackhole.openai.com: sent
+  [fd-blackhole] POST /configs/geo -> 500 '{"message":"can\'t download GeoSite database file: Get \\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@relea' (10.04s)
+  [fd-blackhole] 境外 DNS 替身收到的查询经过：['n1']；GEO 数据下载连到：['n1']
+[dns-refuse] now： {'国外默认': '美国', '美国': '美国 02', '日本': '日本 01', 'OpenAI': '日本', 'Microsoft': 'DIRECT', '境外DNS': '日本 01'} 境外DNS 用的是 n1
+  [dns-refuse] 第一次恢复：2.12 秒；境外DNS 现在用 香港 01
+  [dns-refuse] 境外 DNS 替身收到的查询经过：['n3']；GEO 数据下载连到：[]
+[dns-blackhole] now： {'国外默认': '美国', '美国': '美国 02', '日本': '日本 01', 'OpenAI': '日本', 'Microsoft': 'DIRECT', '境外DNS': '日本 01'} 境外DNS 用的是 n1
+  [dns-blackhole] 第一次恢复：14.19 秒；境外DNS 现在用 香港 01
+  [dns-blackhole] 境外 DNS 替身收到的查询经过：['n3']；GEO 数据下载连到：[]
+done

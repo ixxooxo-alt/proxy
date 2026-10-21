@@ -15,7 +15,7 @@ import re
 import unittest
 from urllib.parse import unquote
 
-from helpers import build, model_and_plan, parsed, text
+from helpers import CLIENT_FILES, build, is_simple, model_and_plan, parsed, text
 
 from generator import model as model_mod
 
@@ -32,11 +32,22 @@ PUBLISHED = {
     "PayPal·美国固定": BASE + "PayPal%C2%B7%E7%BE%8E%E5%9B%BD%E5%9B%BA%E5%AE%9A.png",
     "香港·手动优先": BASE + "%E9%A6%99%E6%B8%AF%C2%B7%E6%89%8B%E5%8A%A8%E4%BC%98%E5%85%88.png",
 }
-WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict", "stash", "stash-strict")
+WITH_ICONS = ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "loon-strict", "quantumultx-strict", "stash", "stash-strict",
+              # 简易版（2026-10-21）
+              "loon-simple", "quantumultx-simple", "mihomo-simple-profile", "mihomo-simple-core", "loon-simple-strict",
+              "quantumultx-simple-strict", "stash-simple", "stash-simple-strict")
 # Loon / Quantumult X / mihomo / Stash 的策略组总数：业务组 43 个（2026-10-06 加了 Apple Push，之前是 42 个）+ 专用入口 1 个
 # （PayPal·美国固定；Netflix·解锁入口 2026-10-07 取消，待决事项第 3 项）+ 地区入口 7 个 + 六个地区各 5 个模式组 30 个。
+# 简易版（2026-10-21，docs/10）：业务组 43 + PayPal·美国固定 + 六个地区 + 其他地区 = 51 个；mihomo 另有藏起来的“境外DNS”，52 个。
 # 增减策略组时要同时改这里
 GROUPS = 81
+GROUPS_SIMPLE = 51
+
+
+def group_count(client: str) -> int:
+    if not is_simple(client):
+        return GROUPS
+    return GROUPS_SIMPLE + (1 if client.startswith("mihomo") else 0)
 
 
 def icons_in(client: str, source: str = None) -> dict:
@@ -78,16 +89,20 @@ class Icons(unittest.TestCase):
     def test_every_group_carries_its_own_icon(self):
         m, _ = model_and_plan()
         renamed = m.icons["renamed"]
+        self.assertEqual(sorted(set(WITH_ICONS)), sorted(c for c in CLIENT_FILES if not c.startswith("singbox")))
         for client in WITH_ICONS:
             names = group_names(client)
             icons = icons_in(client)
-            self.assertEqual(len(names), GROUPS, client)
+            self.assertEqual(len(names), group_count(client), client)
             self.assertEqual(sorted(icons), sorted(names), f"{client}：每个策略组都要有图标，也不能多出别的")
             for name, url in icons.items():
                 self.assertTrue(url.startswith(BASE) and url.endswith(".png"), f"{client} {name}: {url}")
                 file_name = unquote(url[len(BASE):-len(".png")])
                 self.assertEqual(file_name, renamed.get(name, name), f"{client} {name} 写的不是它自己的图：{url}")
-            self.assertEqual(len(set(icons.values())), len(icons), f"{client}：两个组用了同一个地址")
+            # 借用别的组的图（简易版的“境外DNS”用“国外默认”的，使用者 2026-10-21 定的“图标就用旧的”）是唯一允许的重复
+            borrowed = [n for n in names if renamed.get(n) in names]
+            self.assertEqual(borrowed, ["境外DNS"] if client.startswith("mihomo-simple") else [], client)
+            self.assertEqual(len(set(icons.values())), len(icons) - len(borrowed), f"{client}：两个组用了同一个地址")
             # 这一个不在图标仓库的地址清单（icon-urls.json）里：图是 2026-10-06 单独加的（提交 f250126），
             # 图标仓库在 README 里给的链接就是这个写法
             self.assertEqual(icons["Apple Push"], BASE + "Apple%20Push.png", client)
@@ -96,6 +111,8 @@ class Icons(unittest.TestCase):
         for client in WITH_ICONS:
             icons = icons_in(client)
             for name, url in PUBLISHED.items():
+                if is_simple(client) and name == "香港·手动优先":
+                    continue          # 简易版没有模式组
                 self.assertEqual(icons[name], url, f"{client} {name}")
 
     def test_urls_are_safe_inside_a_comma_separated_line(self):
@@ -104,16 +121,17 @@ class Icons(unittest.TestCase):
             for name, url in icons_in(client).items():
                 self.assertRegex(url, r"^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/-]+$", f"{client} {name}")
         # 每个组一行，图标参数在行尾，而且只出现一次
-        for client, mark in (("loon", "img-url = "), ("quantumultx", "img-url="),
-                             ("loon-strict", "img-url = "), ("quantumultx-strict", "img-url=")):
+        for client in ("loon", "quantumultx", "loon-strict", "quantumultx-strict",
+                       "loon-simple", "quantumultx-simple", "loon-simple-strict", "quantumultx-simple-strict"):
+            mark = "img-url = " if client.startswith("loon") else "img-url="
             lines = [ln for ln in text(client).splitlines() if mark in ln and not ln.startswith("#")]
-            self.assertEqual(len(lines), GROUPS, client)
+            self.assertEqual(len(lines), group_count(client), client)
             for ln in lines:
                 self.assertEqual(ln.count("img-url"), 1, ln[:60])
                 self.assertRegex(ln, r"img-url ?= ?https://\S+\.png$", ln[:60])
 
     def test_singbox_has_no_icon_fields(self):
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in ("singbox-1.14", "singbox-1.12", "singbox-simple-1.14", "singbox-simple-1.12"):
             conf = json.loads(text(client))
             keys = {k for o in conf["outbounds"] for k in o}
             self.assertFalse({k for k in keys if "icon" in k or "img" in k}, client)
@@ -124,7 +142,7 @@ class Icons(unittest.TestCase):
         ic = m.icons
         self.assertTrue(ic["enabled"])
         self.assertRegex(ic["checked_commit"], r"^[0-9a-f]{40}$")
-        used = {m.icon_file(n) for n in group_names("mihomo-core")}
+        used = {m.icon_file(n) for c in ("mihomo-core", "mihomo-simple-core") for n in group_names(c)}
         # 已经写进配置、图还没有传到图标仓库的组登记在 pending 里。现在没有：2026-10-06 加的 Apple Push 当天下午
         # 由用户传到了图标仓库（提交 f250126），已经挪进 available。以后再有这样的组，这里和 icons.yaml 一起改
         self.assertEqual(ic["pending"], [])
@@ -156,17 +174,18 @@ class Icons(unittest.TestCase):
         off = copy.copy(m)
         off.icons = {**m.icons, "enabled": False}
         files = build.render_public(off, plan)
-        strip = {"loon/loon.conf": r",img-url = \S+$", "quantumultx/quantumultx.conf": r", img-url=\S+$",
-                 "loon/loon-strict.conf": r",img-url = \S+$", "quantumultx/quantumultx-strict.conf": r", img-url=\S+$",
-                 "mihomo/mihomo-core.yaml": r"^    icon: \S+\n", "mihomo/mihomo-profile.yaml": r"^    icon: \S+\n",
-                 "stash/stash.yaml": r"^    icon: \S+\n", "stash/stash-strict.yaml": r"^    icon: \S+\n"}
+        icon_param = {"loon": r",img-url = \S+$", "quantumultx": r", img-url=\S+$", "mihomo": r"^    icon: \S+\n",
+                      "stash": r"^    icon: \S+\n"}
+        strip = {CLIENT_FILES[c]: icon_param[CLIENT_FILES[c].split("/", 1)[0]] for c in WITH_ICONS}     # 完整版、简易版都算
+        self.assertEqual(len(strip), 16)
         on = build.render_public(m, plan)
         for rel, pattern in strip.items():
             self.assertNotIn("ixxooxo-alt/icon", files[rel], rel)
             without = re.sub(pattern, "", on[rel], flags=re.M)
             # Loon / Quantumult X 的那一行说明图标的注释在关掉以后仍然保留，所以两边逐字相同
             self.assertEqual(without, files[rel], f"{rel}：关掉图标后，除了图标参数以外还有别的地方变了")
-        for rel in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json"):
+        for rel in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json",
+                    "sing-box/sing-box-simple-1.14.json", "sing-box/sing-box-simple-1.12.json"):
             self.assertEqual(on[rel], files[rel], rel)
 
     def test_missing_icon_fails_the_public_build_but_not_a_private_one(self):

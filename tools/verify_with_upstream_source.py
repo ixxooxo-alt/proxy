@@ -91,7 +91,8 @@ def check_mihomo(src: str, c: Checker):
     top = fields(cfg, {}, "RawConfig")
     with open(os.path.join(src, "rules", "parser.go"), encoding="utf-8") as f:
         rules_src = f.read()
-    for fn in ("mihomo/mihomo-profile.yaml", "mihomo/mihomo-core.yaml"):
+    for fn in ("mihomo/mihomo-profile.yaml", "mihomo/mihomo-core.yaml",
+               "mihomo/mihomo-simple-profile.yaml", "mihomo/mihomo-simple-core.yaml"):      # 简易版 2026-10-21 起
         with open(os.path.join(ROOT, "dist", fn), encoding="utf-8") as f:
             conf = yaml.safe_load(f)
         c.keys(fn, conf, top)
@@ -125,7 +126,8 @@ def check_mihomo(src: str, c: Checker):
 def check_singbox(src: str, c: Checker):
     st, al = parse_structs(glob.glob(os.path.join(src, "option", "*.go")), "json")
     F = lambda n: fields(st, al, n)  # noqa: E731
-    for fn in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json"):
+    for fn in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json",
+               "sing-box/sing-box-simple-1.14.json", "sing-box/sing-box-simple-1.12.json"):
         with open(os.path.join(ROOT, "dist", fn), encoding="utf-8") as f:
             conf = json.load(f)
         c.keys(fn, conf, F("_Options") | F("Options"))

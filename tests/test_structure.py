@@ -5,7 +5,8 @@ import re
 import unittest
 from urllib.parse import urlparse
 
-from helpers import CLIENT_FILES, LOON_CLIENTS, QX_CLIENTS, ROOT, build, family, load_yaml, model_and_plan, outputs, parsed, text
+from helpers import (CLIENT_FILES, FULL_CLIENTS, LOON_CLIENTS, QX_CLIENTS, ROOT, SIMPLE_OF, build, family, is_simple, load_yaml,
+                     model_and_plan, outputs, parsed, text)
 from generator import strict as strict_mod
 from generator.util import valid_domain
 
@@ -72,7 +73,8 @@ class Structure(unittest.TestCase):
             self.assertEqual(groups_of(client)["国内直连"]["members"], ["DIRECT"], client)
 
     def test_region_entries(self):
-        for client in CLIENT_FILES:
+        """完整版的地区入口（选模式）。简易版的地区组里直接是节点，在 test_simple.py 里查。"""
+        for client in FULL_CLIENTS:
             gs = groups_of(client)
             for r in REGIONS:
                 mem = gs[r]["members"]
@@ -93,13 +95,13 @@ class Structure(unittest.TestCase):
                 is_node_group = name in ALL_REGION_ENTRIES or "·" in name
                 if is_node_group:
                     self.assertFalse(set(g["members"]) & BUILTINS, f"{client} {name} 含 DIRECT/REJECT")
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in ("mihomo-profile", "mihomo-core", "mihomo-simple-profile", "mihomo-simple-core"):
             for g in parsed(client)["proxy-groups"]:
                 if g.get("include-all-providers"):
                     self.assertEqual(g.get("empty-fallback"), "REJECT", g["name"])
         # Stash 没有 empty-fallback：按节点筛选的组都要有 filter（不然 include-all 会把全部节点和占位节点都收进来），
         # 筛选正好选中自己地区的占位节点由 tests/test_stash.py 核对
-        for client in ("stash", "stash-strict"):
+        for client in ("stash", "stash-strict", "stash-simple", "stash-simple-strict"):
             for g in parsed(client)["proxy-groups"]:
                 if g.get("include-all"):
                     self.assertIn("filter", g, g["name"])
@@ -111,6 +113,8 @@ class Structure(unittest.TestCase):
         这条退路是客户端自己选节点，说不清落地的节点不能进。"""
         codes = {"香港": "HK", "日本": "JP", "韩国": "KR", "台湾": "TW", "新加坡": "SG", "美国": "US"}
         for client in ("mihomo-profile", "stash", "stash-strict") + LOON_CLIENTS + QX_CLIENTS:
+            if is_simple(client):
+                continue              # 简易版没有模式组
             gs = groups_of(client)
             for r in REGIONS:
                 g = gs[f"{r}·手动优先"]
@@ -149,10 +153,10 @@ class Structure(unittest.TestCase):
             self.assertIn("filter", g, client)
 
     def test_final_is_foreign_default(self):
-        self.assertEqual(parsed("mihomo-profile")["rules"][-1], "MATCH,国外默认")
-        for client in ("stash", "stash-strict"):
+        for client in ("mihomo-profile", "mihomo-simple-profile", "stash", "stash-strict", "stash-simple", "stash-simple-strict"):
             self.assertEqual(parsed(client)["rules"][-1], "MATCH,国外默认", client)
-        self.assertEqual(parsed("singbox-1.14")["route"]["final"], "国外默认")
+        for client in ("singbox-1.14", "singbox-simple-1.14"):
+            self.assertEqual(parsed(client)["route"]["final"], "国外默认", client)
         for client in LOON_CLIENTS + QX_CLIENTS:
             self.assertEqual(parsed(client)["final"], "国外默认", client)
 
@@ -234,22 +238,25 @@ class Structure(unittest.TestCase):
                 self.assertIn("REPLACE-ME.invalid", text(client))
 
     def test_mihomo_flavors_and_control_plane(self):
-        core = parsed("mihomo-core")
-        prof = parsed("mihomo-profile")
-        self.assertTrue(core["external-controller"].startswith("127.0.0.1:"))
-        self.assertFalse(core["allow-lan"])
-        self.assertEqual(core["bind-address"], "127.0.0.1")
-        for k in ("tun", "external-controller", "mixed-port", "allow-lan"):
-            self.assertNotIn(k, prof, f"托管版不应包含 {k}")
-        self.assertTrue(prof["profile"]["store-selected"])
-        dns = prof["dns"]
-        self.assertTrue(dns["respect-rules"])
-        self.assertIn("proxy-server-nameserver", dns)
-        self.assertFalse(dns["ipv6"])
+        for core_name, prof_name in (("mihomo-core", "mihomo-profile"), ("mihomo-simple-core", "mihomo-simple-profile")):
+            core = parsed(core_name)
+            prof = parsed(prof_name)
+            self.assertTrue(core["external-controller"].startswith("127.0.0.1:"))
+            self.assertFalse(core["allow-lan"])
+            self.assertEqual(core["bind-address"], "127.0.0.1")
+            for k in ("tun", "external-controller", "mixed-port", "allow-lan"):
+                self.assertNotIn(k, prof, f"{prof_name}：托管版不应包含 {k}")
+            self.assertTrue(prof["profile"]["store-selected"])
+            dns = prof["dns"]
+            self.assertTrue(dns["respect-rules"])
+            self.assertIn("proxy-server-nameserver", dns)
+            self.assertFalse(dns["ipv6"])
 
     def test_singbox_integrity_and_versions(self):
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in ("singbox-1.14", "singbox-1.12", "singbox-simple-1.14", "singbox-simple-1.12"):
             c = parsed(client)
+            # 规则集下载走的出站：完整版是国外默认；简易版是内部的“境外DNS”（docs/10 第六节的方案 2）
+            via = "境外DNS" if is_simple(client) else "国外默认"
             tags = [o["tag"] for o in c["outbounds"]]
             self.assertEqual(len(tags), len(set(tags)), "出站 tag 重复")
             rs_tags = {r["tag"] for r in c["route"]["rule_set"]}
@@ -264,14 +271,15 @@ class Structure(unittest.TestCase):
             for s in c["dns"]["servers"]:
                 if "detour" in s:
                     self.assertIn(s["detour"], tags)
-            if client == "singbox-1.14":
+            if client.endswith("1.14"):
                 self.assertIn("http_clients", c)
                 self.assertEqual(c["route"]["default_http_client"], c["http_clients"][0]["tag"])
+                self.assertEqual([x["detour"] for x in c["http_clients"]], [via], client)
                 self.assertFalse(any("download_detour" in r for r in c["route"]["rule_set"]))
             else:
                 self.assertNotIn("http_clients", c)
-                self.assertTrue(all(r.get("download_detour") == "国外默认" for r in c["route"]["rule_set"]
-                                    if r["type"] == "remote"))
+                self.assertTrue(all(r.get("download_detour") == via for r in c["route"]["rule_set"]
+                                    if r["type"] == "remote"), client)
             # 内联规则集只有一个（DNS 上“走代理组的产品域名”），不带下载相关的字段；其余都是远程的二进制规则集
             inline = [r for r in c["route"]["rule_set"] if r["type"] == "inline"]
             self.assertEqual([r["tag"] for r in inline], ["product-proxied"])
@@ -304,7 +312,7 @@ class Structure(unittest.TestCase):
         sing-box：DNS 规则和路由规则引用同一个规则集标签 geosite-cn，这个标签只定义一次（一个地址、一份下载）。
         mihomo：路由的 GEOSITE,cn 和 nameserver-policy 的 geosite:cn 都读同一个 geosite.dat（geox-url 里只有一个 geosite 地址）。
         Loon / Quantumult X 的标准版没有国内域名集合；严格版只在路由一边用清单，DNS 一边没有按域名分流的设置。"""
-        for client in ("singbox-1.14", "singbox-1.12"):
+        for client in ("singbox-1.14", "singbox-1.12", "singbox-simple-1.14", "singbox-simple-1.12"):
             c = parsed(client)
             dns_cn = [r["rule_set"] for r in c["dns"]["rules"] if r.get("server") == "dns-cn" and "rule_set" in r]
             route_cn = [r["rule_set"] for r in c["route"]["rules"] if r.get("outbound") == "国内直连" and "rule_set" in r]
@@ -313,7 +321,7 @@ class Structure(unittest.TestCase):
             defs = [x for x in c["route"]["rule_set"] if x["tag"] == "geosite-cn"]
             self.assertEqual(len(defs), 1, client)
             self.assertEqual(defs[0]["type"], "remote")
-        for client in ("mihomo-profile", "mihomo-core"):
+        for client in ("mihomo-profile", "mihomo-core", "mihomo-simple-profile", "mihomo-simple-core"):
             c = parsed(client)
             self.assertIn("GEOSITE,cn,国内直连", c["rules"], client)
             policy = [k for k in c["dns"]["nameserver-policy"] if k.startswith("geosite:")]
@@ -335,7 +343,8 @@ class Structure(unittest.TestCase):
                     re.compile(rx)
                     self.assertTrue(rx.endswith("$"), f"QX 正则被逗号截断：{rx}")
                     found += 1
-            self.assertGreater(found, 30, loon)
+            # 完整版：Loon 13 条筛选、Quantumult X 26 个策略各一条；简易版：Loon 8 条、Quantumult X 9 个策略（docs/10）
+            self.assertEqual(found, 17 if is_simple(loon) else 39, loon)
 
     def test_node_name_screening(self):
         m, _ = model_and_plan()

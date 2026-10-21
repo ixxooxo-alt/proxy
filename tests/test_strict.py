@@ -14,8 +14,9 @@ import os
 import re
 import unittest
 
-from helpers import (CLIENT_FILES, LOON_CLIENTS, LQ_STRICT_OF, QX_CLIENTS, ROOT, STRICT_CLIENTS, STRICT_OF, build, emulate,
-                     expected, family, load_yaml, model_and_plan, outputs, parsed, route, text)
+from helpers import (CLIENT_FILES, LOON_CLIENTS, LQ_STRICT_OF, QX_CLIENTS, ROOT, STANDARD_CLIENTS, STRICT_CLIENTS, STRICT_OF,
+                     build, emulate, expected, family, full_of, load_yaml, model_and_plan, outputs, parsed, route, simple_spec,
+                     text)
 
 from generator import strict as strict_mod
 from generator import verify
@@ -42,17 +43,19 @@ def own_rules(rel):
 
 
 class StrictOutputs(unittest.TestCase):
-    def test_fifteen_public_outputs(self):
+    def test_public_outputs(self):
         files = outputs()
         want = set(CLIENT_FILES.values()) | set(strict_mod.OWN_FILES) | {"manifest.json"}
         self.assertEqual(set(files), want)
-        # 2026-10-07 多了 Quantumult X 严格版的上游大清单副本（待决事项第 19 项）；2026-10-13 多了 Stash 的标准版和严格版
-        self.assertEqual(len(files), 15)
+        # 2026-10-07 多了 Quantumult X 严格版的上游大清单副本（待决事项第 19 项）；2026-10-13 多了 Stash 的标准版和严格版（共 15 个）；
+        # 2026-10-21 多了十份简易版（docs/10），严格版的简易版和完整版共用那 4 个规则文件
+        self.assertEqual(len(files), 25)
 
     def test_standard_configs_do_not_use_any_strict_part(self):
         """标准版不引用自有远程规则文件、不订阅国内域名集合；Loon 标准版的 GEOIP,CN 仍然会解析（没有 no-resolve）。"""
         base = model_and_plan()[0].strict["publish_base"]
-        for client in ("loon", "quantumultx", "mihomo-profile", "mihomo-core", "singbox-1.14", "singbox-1.12", "stash"):
+        self.assertEqual(len(STANDARD_CLIENTS), 14, "七份完整版的标准版、七份简易版的标准版")
+        for client in STANDARD_CLIENTS:
             self.assertNotIn(base, text(client), client)
             self.assertNotIn("ChinaMax", text(client), client)
             self.assertNotIn("严格版", text(client), client)
@@ -66,7 +69,7 @@ class StrictOutputs(unittest.TestCase):
         for std, strict in LQ_STRICT_OF.items():
             a, b = sections(std), sections(strict)
             self.assertEqual(list(a), list(b), f"{strict} 的段落和标准版不一样")
-            rule_sec = {"loon": ("Rule", "Remote Rule"), "quantumultx": ("filter_local", "filter_remote")}[std]
+            rule_sec = {"loon": ("Rule", "Remote Rule"), "quantumultx": ("filter_local", "filter_remote")}[family(std)]
             for name in a:
                 if name not in rule_sec:
                     self.assertEqual(a[name], b[name], f"{strict} 的 [{name}] 和标准版不一样")
@@ -196,7 +199,7 @@ class StrictBehaviour(unittest.TestCase):
                 if trace.get("resolved"):
                     resolved.append(h)
             # Stash 的标准版有 GEOSITE 集合，没被接住的域名比 Loon / QX 少，但仍然有
-            self.assertGreater(len(resolved), 10 if client == "stash" else 20,
+            self.assertGreater(len(resolved), 10 if family(client) == "stash" else 20,
                                f"{client}：标准版里没被域名规则接住的域名应该要先解析（严格版要解决的就是这个）")
             self.assertIn("never-listed-site.org", resolved)
 
@@ -298,7 +301,8 @@ class StrictBehaviour(unittest.TestCase):
             for c in CASES["cases"]:
                 conn = emulate.Conn(host=c.get("host"), ip=c.get("ip"))
                 a, b = route(std, conn, fx), route(strict, conn, fx)
-                declared = strict in (c.get("per_client") or {})
+                # 简易版的严格版用完整版严格版的那一项（loon-simple-strict 查 loon-strict），见 helpers.expected
+                declared = bool({strict, full_of(strict)} & set(c.get("per_client") or {}))
                 if (a != b) != (declared and expected(c, strict) != expected(c, std)):
                     diff.append(f"{c.get('host') or c.get('ip')}：标准版 {a}，严格版 {b}，用例里{'写了' if declared else '没写'}严格版的期望")
             self.assertEqual(diff, [], strict)
@@ -441,7 +445,7 @@ class StrictVerifier(unittest.TestCase):
         return verify.own_files(m, outputs())
 
     def test_generated_outputs_pass(self):
-        self.assertEqual(verify.check_outputs(outputs(), own=self.own()), [])
+        self.assertEqual(verify.check_outputs(outputs(), own=self.own(), spec=simple_spec()), [])
 
     def test_loon_breakages_are_caught(self):
         t = text("loon-strict")
@@ -507,17 +511,27 @@ class StrictVerifier(unittest.TestCase):
         """生成流程里，严格版的结构检查不合格时整个生成失败（不会留下一份“看起来是严格版、其实会解析”的文件）。"""
         m, plan = model_and_plan()
         files = build.render_public(m, plan)
-        files["loon/loon-strict.conf"] = files["loon/loon-strict.conf"].replace("GEOIP,CN,国内直连,no-resolve", "GEOIP,CN,国内直连")
-        self.assertTrue(verify.check_outputs(files, own=verify.own_files(m, files)))
+        self.assertEqual(verify.check_outputs(files, own=verify.own_files(m, files), spec=simple_spec()), [])
+        # 完整版和简易版的严格版各改坏一处：两份都要被点名（以前只看“有没有报错”，别的问题也能让它通过）
+        for rel in ("loon/loon-strict.conf", "loon/loon-simple-strict.conf"):
+            files[rel] = files[rel].replace("GEOIP,CN,国内直连,no-resolve", "GEOIP,CN,国内直连")
+        probs = verify.check_outputs(files, own=verify.own_files(m, files), spec=simple_spec())
+        for rel in ("loon/loon-strict.conf", "loon/loon-simple-strict.conf"):
+            self.assertTrue(any(p.startswith(rel + "：") and "no-resolve" in p for p in probs), rel)
 
 
 class StrictFamilies(unittest.TestCase):
     def test_family_and_expectation_lookup(self):
-        self.assertEqual([family(c) for c in LOON_CLIENTS + QX_CLIENTS], ["loon", "loon", "quantumultx", "quantumultx"])
+        self.assertEqual([family(c) for c in LOON_CLIENTS + QX_CLIENTS], ["loon"] * 4 + ["quantumultx"] * 4)
         case = {"expect": "甲", "per_client": {"loon": "乙", "loon-strict": "丙"}}
         self.assertEqual(expected(case, "loon"), "乙")
         self.assertEqual(expected(case, "loon-strict"), "丙")
         self.assertEqual(expected(case, "quantumultx-strict"), "甲")
+        # 简易版（2026-10-21）：规则和对应的完整版相同，期望也查同一项；只对简易版成立的可以写简易版自己的名字
+        self.assertEqual(expected(case, "loon-simple"), "乙")
+        self.assertEqual(expected(case, "loon-simple-strict"), "丙")
+        self.assertEqual(expected({"expect": "甲", "per_client": {"loon-simple-strict": "丁", "loon-strict": "丙"}},
+                                  "loon-simple-strict"), "丁")
         self.assertEqual(expected({"expect": "甲", "per_client": {"quantumultx": "乙"}}, "quantumultx-strict"), "乙",
                          "没给严格版单独写期望时，跟同一个 App 的标准版")
         self.assertEqual(expected({"expect": "甲"}, "mihomo-core"), "甲")

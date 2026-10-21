@@ -8,7 +8,8 @@ mihomo 用的是 regexp2（源码可查），sing-box 的分组在生成时用 P
 这仍然不是真机验证：没有经过 Loon / Quantumult X 自己的配置解析，不是 iOS 上的那一份 ICU，
 而且“它们用的是 ICU”本身是推断。
 
-检查的正则（每个地区两条：手动组用的宽的、自动 / 故障转移 / 负载均衡用的严的；“其他地区”一条，共 13 条）：
+检查的正则（每个地区两条：手动组用的宽的、自动 / 故障转移 / 负载均衡用的严的；“其他地区”一条，共 13 条；
+2026-10-21 起另有简易版“国外默认”用的“全部节点”一条，共 14 条——它要等于宽的七条取并集，这里也拿 ICU 的结果核对这一点）：
   1. 当前统一源的（--public 时不读 source/local.yaml）：和 Python 的结果、tests/node_names.yaml 的手写期望对比；
      带上了你自己的 local.yaml 时只和 Python 对比（你的补充会改变分组，手写期望不再适用）。
   2. 加上 tests/local_overlay_sample.yaml 那份虚构的“本地补充”之后的：local.yaml 里写了 node_names 时，
@@ -175,14 +176,19 @@ def overlay_expect_auto():
     return {e["name"]: sorted(e.get("auto", [g for g in e["groups"] if g != "other"])) for e in d["expect"]}
 
 
-def overlay_regexes():
-    """当前词表加上那份虚构的本地补充后拼出的正则（不读、不写 source/local.yaml）。返回 (宽的, 严的)。"""
+def overlay_spec():
+    """当前词表加上那份虚构的本地补充（不读、不写 source/local.yaml）。"""
     with open(os.path.join(ROOT, "source", "regions.yaml"), encoding="utf-8") as f:
         data = yaml.safe_load(f)
     spec, errors = regions.parse(data, overlay_sample()[0])
     if errors:
         raise ValueError("本地补充样例与当前词表冲突：" + "；".join(errors))
-    return regions.compose_all(spec)
+    return spec
+
+
+def overlay_regexes():
+    """当前词表加上那份虚构的本地补充后拼出的正则。返回 (宽的, 严的)。"""
+    return regions.compose_all(overlay_spec())
 
 
 def stress_names(spec, length):
@@ -216,27 +222,29 @@ def stress_names(spec, length):
     return list(dict.fromkeys(out))
 
 
-def long_name_check(spec, loose, strict, engine, label):
-    """长名字 × 13 条正则：每次匹配都要在 SLOW_MS 内结束、不出错，分组要和逐步判断（Classifier）相同。
+def long_name_check(spec, loose, strict, engine, label, any_rx=None):
+    """长名字 × 13 条正则（给了 any_rx 时再加“全部节点”那一条，共 14 条）：每次匹配都要在 SLOW_MS 内结束、不出错，
+    分组要和逐步判断（Classifier）相同；“全部节点”要正好选中逐步判断里进了某个组的那些。
     engine(正则) 返回一个 名字 → 是否匹配 的函数。返回 (问题列表, 给人看的一行结果)。"""
     cl = regions.Classifier(spec)
-    compiled = ([(0, k, engine(v)) for k, v in loose.items()] + [(1, k, engine(v)) for k, v in strict.items()])
+    compiled = ([(0, k, engine(v)) for k, v in loose.items()] + [(1, k, engine(v)) for k, v in strict.items()]
+                + ([(2, ANY, engine(any_rx))] if any_rx else []))
     problems, slowest, count = [], (0.0, "", ""), 0
     for length in LONG_LENGTHS:
         names = stress_names(spec, length)
         count += len(names)
-        got = {n: ([], []) for n in names}
+        got = {n: ([], [], []) for n in names}
         for which, gid, match in compiled:
             for n in names:
                 t = time.perf_counter()
                 try:
                     hit = match(n)
                 except ValueError as e:
-                    problems.append(f"{'严' if which else '宽'} {gid}：{n[:30]!r}…（{len(n)} 个字符）{e}")
+                    problems.append(f"{KIND_LABEL[which]} {gid}：{n[:30]!r}…（{len(n)} 个字符）{e}")
                     continue
                 dt = time.perf_counter() - t
                 if dt > slowest[0]:
-                    slowest = (dt, f"{'严' if which else '宽'} {gid}", f"{n[:16]}…（{len(n)} 个字符）")
+                    slowest = (dt, f"{KIND_LABEL[which]} {gid}", f"{n[:16]}…（{len(n)} 个字符）")
                 if hit:
                     got[n][which].append(gid)
         for n in names:
@@ -244,11 +252,39 @@ def long_name_check(spec, loose, strict, engine, label):
             if sorted(got[n][0]) != sorted(v.groups) or sorted(got[n][1]) != sorted(v.auto):
                 problems.append(f"{n[:30]!r}…（{len(n)} 个字符）：{label} {sorted(got[n][0])} / {sorted(got[n][1])}，"
                                 f"逐步判断 {sorted(v.groups)} / {sorted(v.auto)}")
+            if any_rx and bool(got[n][2]) != bool(v.groups):
+                problems.append(f"{n[:30]!r}…（{len(n)} 个字符）：{label} 的全部节点 {'选中' if got[n][2] else '没选中'}，"
+                                f"逐步判断 {sorted(v.groups) or '不进任何组'}")
     if slowest[0] * 1000 > SLOW_MS:
         problems.append(f"最慢的一次匹配用了 {slowest[0] * 1000:.0f} 毫秒（上限 {SLOW_MS}）：{slowest[1]}，{slowest[2]}")
     line = (f"长名字（{'、'.join(str(x) for x in LONG_LENGTHS)} 个字符两档，共 {count} 个）× {len(compiled)} 条正则，{label}："
             + ("全部按时结束，分组与逐步判断完全一致" if not problems else f"有 {len(problems)} 个问题")
             + f"；最慢的一次 {slowest[0] * 1000:.1f} 毫秒（{slowest[1]}，{slowest[2]}）")
+    return problems, line
+
+
+ANY = "all"                                   # “全部节点”那一条（简易版的“国外默认”用）
+KIND_LABEL = {0: "宽", 1: "严", 2: "全部节点"}
+
+
+def any_check(lib, suf, any_rx, loose, names, label):
+    """“全部节点”那一条：ICU 的结果和 Python 相同，而且等于宽的七条（Python）取并集。返回 (问题列表, 一行结果)。"""
+    try:
+        icu = ICURegex(lib, suf, any_rx)
+    except ValueError as e:
+        return [f"ICU 不接受全部节点那一条：{e}"], f"{label}：ICU 不接受全部节点那一条"
+    py = re.compile(any_rx)
+    wide = [re.compile(v) for v in loose.values()]
+    problems = []
+    for n in names:
+        a, b, u = icu.search(n), bool(py.search(n)), any(r.search(n) for r in wide)
+        if a != b:
+            problems.append(f"{n!r}：ICU={a} Python={b}")
+        elif a != u:
+            problems.append(f"{n!r}：全部节点 {a}，宽的七条取并集 {u}")
+    icu.close()
+    line = (f"{label}：全部节点那一条（{len(any_rx.encode('utf-8'))} 字节）× {len(names)} 个节点名，ICU 与 Python "
+            + ("完全一致，也等于宽的七条取并集" if not problems else f"有 {len(problems)} 处问题"))
     return problems, line
 
 
@@ -291,7 +327,8 @@ def main(argv=None) -> int:
     if a.long_names_only:
         model = load(ROOT, include_local=not a.public)
         problems, line = long_name_check(model.region_spec, model.node_regexes(), model.node_regexes_strict(),
-                                         lambda rx: (lambda n, c=re.compile(rx): bool(c.search(n))), "Python")
+                                         lambda rx: (lambda n, c=re.compile(rx): bool(c.search(n))), "Python",
+                                         model.node_regex_any())
         print(line)
         for x in problems[:20]:
             print("  " + x)
@@ -325,6 +362,12 @@ def main(argv=None) -> int:
         for x in (diffs + wrong)[:20]:
             print("  " + x)
         failed = failed or bool(diffs or wrong)
+    # 简易版“国外默认”的全部节点（2026-10-21）
+    problems, line = any_check(lib, suf, model.node_regex_any(), rxs, names, "简易版")
+    print(line)
+    for x in problems[:20]:
+        print("  " + x)
+    failed = failed or bool(problems)
     # 各端每刷新一次节点列表要匹配多少次：Loon 13 条筛选各一次；Quantumult X 每个策略各一条（6 个手动 + 18 个自动类 + 其他地区 + PayPal）
     loon = (len(rxs) * avgs[0] + len(strict) * avgs[1]) * 300 / 1000
     qx = ((len(rxs) + 1) * avgs[0] + 3 * len(strict) * avgs[1]) * 300 / 1000
@@ -347,11 +390,21 @@ def main(argv=None) -> int:
         for x in (o_diffs + o_wrong)[:20]:
             print("  " + x)
         failed = failed or bool(o_diffs or o_wrong)
+    o_any = regions.compose_any(overlay_spec())
+    problems, line = any_check(lib, suf, o_any, o_loose, o_names, "带本地补充样例")
+    print(line)
+    for x in problems[:20]:
+        print("  " + x)
+    failed = failed or bool(problems)
+    o_none = [n for n, e in o_expect.items() if not e]
+    hit = [n for n in o_none if re.search(o_any, n)]
+    print(f"带本地补充样例：期望不进任何组的 {len(o_none)} 个名字，全部节点那一条{'一个都没选' if not hit else f'选中了 {hit}'}")
+    failed = failed or bool(hit)
 
     # 长名字：ICU、Python 各跑一遍，都和逐步判断比
     for label, engine in (("ICU", lambda rx: ICURegex(lib, suf, rx).search),
                           ("Python", lambda rx: (lambda n, c=re.compile(rx): bool(c.search(n))))):
-        problems, line = long_name_check(model.region_spec, rxs, strict, engine, label)
+        problems, line = long_name_check(model.region_spec, rxs, strict, engine, label, model.node_regex_any())
         print(line)
         for x in problems[:20]:
             print("  " + x)

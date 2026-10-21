@@ -15,6 +15,9 @@ mihomo 也有两条自检：把 proxy-server-nameserver 清空（分别只留 re
 这次启动不开 TUN、不设系统代理、不监听代理端口，控制接口只监听 127.0.0.1 的一个临时端口，结束后立即退出。
 同样的检查再做一遍“带本地补充”的配置：在临时目录里给统一源配上 tests/local_overlay_sample.yaml 那份虚构的
 node_names（补充词、指定节点），生成私密版的 mihomo 配置交给内核分组（不读、不写你的 source/local.yaml）。
+简易版（2026-10-21，docs/10）：两份 mihomo 简易版跑 mihomo -t，四份 sing-box 简易版（模板、带样例节点）跑 sing-box check；
+mihomo 简易版也用同一批假节点实际分一次组：六个地区和“其他地区”对宽的那套期望；“国外默认”前七项是写明的七个地区、
+后面是全部节点（不含提示行），首次选中日本；“境外DNS”正好是六个地区严筛选的并集，藏起来。
 
 用法：
   python3 tools/check_official.py --mihomo <mihomo 可执行文件> --singbox <sing-box 1.14 可执行文件> \\
@@ -79,10 +82,9 @@ def overlay_model(tmp: str):
     return m, build_plan(m)
 
 
-def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: list, expect: dict, expect_auto: dict) -> list:
-    """用官方内核实际分一次组。返回问题列表（空 = 与期望和 Python 的结果完全一致）。
-    names：假节点的名字；expect：{名字: 期望进哪些地区的手动组}；expect_auto：{名字: 期望进哪个地区的自动类组}
-    （都只比其中列出的名字）。"""
+def mihomo_groups(mihomo: str, home: str, profile_text: str, model, names: list):
+    """把配置里的订阅换成一个装着假节点的本地文件订阅，用官方内核启动一次，从控制接口读出全部组。
+    返回 (组 {组名: 控制接口给的那一项}, 问题列表)；启动失败时组是 None。"""
     port = _free_port()
     with open(os.path.join(home, "fake-nodes.yaml"), "w", encoding="utf-8") as f:
         yaml.safe_dump({"proxies": [{"name": n, "type": "ss", "server": "127.0.0.1", "port": 1,
@@ -95,7 +97,7 @@ def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: lis
     text, n1 = re.subn(r"(?ms)^proxy-providers:\n.*?(?=^proxy-groups:)", lambda _m: provider, profile_text)
     text = text.replace("geo-auto-update: true", "geo-auto-update: false")
     if n1 != 1 or "include-all-providers: true" not in text:
-        return ["没能把公开配置改写成带假节点的测试配置（生成器的输出格式变了？）"]
+        return None, ["没能把公开配置改写成带假节点的测试配置（生成器的输出格式变了？）"]
     text = f"external-controller: 127.0.0.1:{port}\n" + text
     path = os.path.join(home, "grouping.yaml")
     with open(path, "w", encoding="utf-8") as f:
@@ -120,13 +122,24 @@ def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: lis
                 continue
         if got is None:
             out = proc.stdout.read().decode("utf-8", "replace") if proc.poll() is not None else "（60 秒内控制接口没有响应）"
-            return ["mihomo 没有启动成功：" + out[-600:]]
+            return None, ["mihomo 没有启动成功：" + out[-600:]]
     finally:
         proc.terminate()
         try:
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
             proc.kill()
+    return got, []
+
+
+def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: list, expect: dict, expect_auto: dict) -> list:
+    """用官方内核实际分一次组（完整版）。返回问题列表（空 = 与期望和 Python 的结果完全一致）。
+    names：假节点的名字；expect：{名字: 期望进哪些地区的手动组}；expect_auto：{名字: 期望进哪个地区的自动类组}
+    （都只比其中列出的名字）。"""
+    got, problems = mihomo_groups(mihomo, home, profile_text, model, names)
+    if got is None:
+        return problems
+
     def members_of(group):
         return set(got[group].get("all") or []) - {"REJECT", "COMPATIBLE"}
 
@@ -139,7 +152,6 @@ def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: lis
     rxs, strict = model.node_regexes(), model.node_regexes_strict()
     region_group = {r["id"]: r["name"] + "·手动" for r in model.regions}
     region_group[model.other_region["id"]] = model.other_region["name"]
-    problems = []
     # 宽的那套：各地区的手动组 + 其他地区
     members = {}
     for gid, group in region_group.items():
@@ -190,6 +202,76 @@ def mihomo_grouping(mihomo: str, home: str, profile_text: str, model, names: lis
     return problems
 
 
+def mihomo_simple_grouping(mihomo: str, home: str, profile_text: str, model, names: list, expect: dict, expect_auto: dict) -> list:
+    """简易版（docs/10）用官方内核实际分一次组。期望：六个地区、其他地区按宽的那套（expect）；“国外默认”前七项是写明的
+    七个地区（顺序照配置）、后面是全部节点（进了任何一个地区的，即 expect 不为空的），首次选中第一项；“境外DNS”正好是
+    名字只指向一个地区的节点（expect_auto 不为空的），藏起来；PayPal·美国固定是美国宽的那条。也和 Python 按同一套正则算的比。"""
+    got, problems = mihomo_groups(mihomo, home, profile_text, model, names)
+    if got is None:
+        return problems
+    conf = yaml.safe_load(profile_text)
+    by_name = {g["name"]: g for g in conf["proxy-groups"]}
+    rxs, strict = model.node_regexes(), model.node_regexes_strict()
+    any_rx = re.compile(model.node_regex_any())
+    dns_group = model.simple["foreign_dns_group"]
+
+    def order_of(group):
+        return [x for x in (got[group].get("all") or []) if x not in ("REJECT", "COMPATIBLE")]
+
+    region_name = {r["id"]: r["name"] for r in model.regions}
+    region_name[model.other_region["id"]] = model.other_region["name"]
+    members = {}
+    for gid, group in region_name.items():
+        if group not in got:
+            problems.append(f"mihomo 里没有组 {group}")
+            continue
+        members[gid] = set(order_of(group))
+        py = {n for n in names if re.search(rxs[gid], n)}
+        if members[gid] != py:
+            problems.append(f"{group}：mihomo 与 Python 不一致（只在 mihomo：{sorted(members[gid] - py)[:5]}；"
+                            f"只在 Python：{sorted(py - members[gid])[:5]}）")
+        first = order_of(group)[:1]
+        if first and got[group].get("now") != first[0]:
+            problems.append(f"{group} 首次选中的是 {got[group].get('now')}，应该是第一个节点 {first[0]}")
+    for n, want in expect.items():
+        have = sorted(g for g, mem in members.items() if n in mem)
+        if have != want:
+            problems.append(f"{n!r}：期望进 {want}，mihomo 分到 {have}")
+    fd = next(g["name"] for g in conf["proxy-groups"] if g.get("proxies") and g.get("filter") and g["type"] == "select")
+    explicit = list(by_name[fd]["proxies"])
+    fd_all = order_of(fd)
+    if fd_all[:len(explicit)] != explicit:
+        problems.append(f"{fd} 的前 {len(explicit)} 项应该是写明的 {explicit}，实际 {fd_all[:len(explicit)]}")
+    if got[fd].get("now") != explicit[0]:
+        problems.append(f"{fd} 首次选中的是 {got[fd].get('now')}，应该是 {explicit[0]}")
+    nodes = set(fd_all[len(explicit):])
+    py = {n for n in names if any_rx.search(n)}
+    if nodes != py:
+        problems.append(f"{fd}：节点和 Python 按全部节点那条算的不一致（只在 mihomo：{sorted(nodes - py)[:5]}；只在 Python：{sorted(py - nodes)[:5]}）")
+    want = {n for n, e in expect.items() if e}             # 手写期望里进了某个地区的；提示行（期望为空）不该进
+    if nodes & set(expect) != want:
+        problems.append(f"{fd}：和手写期望不符（多：{sorted((nodes & set(expect)) - want)[:5]}；少：{sorted(want - nodes)[:5]}）")
+    if dns_group not in got:
+        problems.append(f"mihomo 里没有组 {dns_group}")
+    else:
+        dns = set(order_of(dns_group))
+        py = {n for n in names if any(re.search(strict[r["id"]], n) for r in model.regions)}
+        want = {n for n, e in expect_auto.items() if e}
+        if dns != py:
+            problems.append(f"{dns_group}：mihomo 与 Python 不一致（只在 mihomo：{sorted(dns - py)[:5]}；只在 Python：{sorted(py - dns)[:5]}）")
+        if dns & set(expect_auto) != want:
+            problems.append(f"{dns_group}：和手写期望不符（多：{sorted((dns & set(expect_auto)) - want)[:5]}；少：{sorted(want - dns)[:5]}）")
+        if got[dns_group].get("type") != "URLTest" or got[dns_group].get("hidden") is not True:
+            problems.append(f"{dns_group} 应该是藏起来的自动测速组：类型 {got[dns_group].get('type')}，hidden {got[dns_group].get('hidden')}")
+    fixed = model.special_entries["paypal_fixed"]
+    if fixed["name"] not in got or set(order_of(fixed["name"])) != {n for n in names if re.search(rxs[fixed["region"]], n)}:
+        problems.append(f"{fixed['name']} 应该是美国宽的那条筛选出来的节点")
+    print(f"  节点 {len(names)} 个；" + "、".join(f"{region_name[g]} {len(m)}" for g, m in members.items())
+          + f"；{fd} {len(fd_all)} 项（写明的 {len(explicit)} 个 + 节点 {len(nodes)} 个）；"
+          + (f"{dns_group} {len(order_of(dns_group))} 个" if dns_group in got else ""))
+    return problems
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mihomo", required=True)
@@ -206,6 +288,7 @@ def main(argv=None):
         samples = yaml.safe_load(f)["proxies"]
     converted, report, renamed = nodeconv.convert(samples, emit_singbox.reserved_tags(m))
     private = {v: emit_singbox.build(m, plan, v, converted, renamed) for v in ("1.14", "1.12")}
+    private_simple = {v: emit_singbox.build(m, plan, v, converted, renamed, simple=True) for v in ("1.14", "1.12")}
 
     print(f"mihomo：{version(a.mihomo, ['-v'])}")
     print(f"sing-box：{version(a.singbox, ['version'])}")
@@ -241,7 +324,8 @@ def main(argv=None):
                     shutil.copy(sp, os.path.join(home, dst))
                     with open(sp, "rb") as f:
                         print(f"地理数据 {src}：SHA-256 {hashlib.sha256(f.read()).hexdigest()}")
-        for rel in ("mihomo/mihomo-core.yaml", "mihomo/mihomo-profile.yaml"):
+        for rel in ("mihomo/mihomo-core.yaml", "mihomo/mihomo-profile.yaml",
+                    "mihomo/mihomo-simple-core.yaml", "mihomo/mihomo-simple-profile.yaml"):
             p = os.path.join(tmp, os.path.basename(rel))
             with open(p, "w", encoding="utf-8") as f:
                 f.write(files[rel])
@@ -262,12 +346,14 @@ def main(argv=None):
             check(f"自检：mihomo -t，{label}", [a.mihomo, "-t", "-d", home, "-f", p], expect_ok=False)
 
         # sing-box：公开模板 + 带样例节点的私密配置
-        jobs = [(a.singbox, "sing-box-1.14.json", files["sing-box/sing-box-1.14.json"]),
-                (a.singbox, "sing-box-1.12.json（在 1.14 上）", files["sing-box/sing-box-1.12.json"]),
-                (a.singbox, "样例节点 sing-box-1.14.json", private["1.14"])]
-        if a.singbox_112:
-            jobs += [(a.singbox_112, "sing-box-1.12.json（在 1.12 上）", files["sing-box/sing-box-1.12.json"]),
-                     (a.singbox_112, "样例节点 sing-box-1.12.json（在 1.12 上）", private["1.12"])]
+        jobs = []
+        for pre, priv in (("", private), ("simple-", private_simple)):        # 完整版、简易版（2026-10-21）
+            jobs += [(a.singbox, f"sing-box-{pre}1.14.json", files[f"sing-box/sing-box-{pre}1.14.json"]),
+                     (a.singbox, f"sing-box-{pre}1.12.json（在 1.14 上）", files[f"sing-box/sing-box-{pre}1.12.json"]),
+                     (a.singbox, f"样例节点 sing-box-{pre}1.14.json", priv["1.14"])]
+            if a.singbox_112:
+                jobs += [(a.singbox_112, f"sing-box-{pre}1.12.json（在 1.12 上）", files[f"sing-box/sing-box-{pre}1.12.json"]),
+                         (a.singbox_112, f"样例节点 sing-box-{pre}1.12.json（在 1.12 上）", priv["1.12"])]
         for i, (binary, label, text) in enumerate(jobs):
             p = os.path.join(tmp, f"sb{i}.json")
             with open(p, "w", encoding="utf-8") as f:
@@ -290,6 +376,17 @@ def main(argv=None):
         names, expect = sample_names()
         probs = mihomo_grouping(a.mihomo, home, files["mihomo/mihomo-profile.yaml"], m, names, expect, sample_expect_auto())
         label = "mihomo 实际分组（手动组用宽的、自动类组用严的）与手写期望、Python 结果一致"
+        print(f"[{'符合' if not probs else '不符合'}] {label}")
+        for x in probs[:20]:
+            print("    " + x)
+        if probs:
+            failures.append(label)
+
+        # 简易版（2026-10-21）：同一批假节点，看六个地区、国外默认、境外DNS 各收进了谁
+        print("mihomo 实际分组：简易版（mihomo-simple-profile.yaml）：")
+        probs = mihomo_simple_grouping(a.mihomo, home, files["mihomo/mihomo-simple-profile.yaml"], m, names, expect,
+                                       sample_expect_auto())
+        label = "简易版：mihomo 实际分组（地区组用宽的、国外默认是七个地区加全部节点、境外DNS 是严的并集）与手写期望、Python 结果一致"
         print(f"[{'符合' if not probs else '不符合'}] {label}")
         for x in probs[:20]:
             print("    " + x)

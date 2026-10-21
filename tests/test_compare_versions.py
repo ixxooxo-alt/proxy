@@ -3,6 +3,7 @@
 import contextlib
 import io
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -197,7 +198,8 @@ class AgainstItself(unittest.TestCase):
         self.assertEqual(cv._stash_variant({"hk": "^old-without-icase"}), {})
 
     def test_comparing_the_project_with_itself_reports_no_change(self):
-        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同，
+        """拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时二十份配置（完整版十份：标准版七份、严格版三份，Stash 的两份是 r16 加的；
+        2026-10-21 起另有简易版十份）都逐字节相同，
         严格版一节照常列出它和标准版的差别，自有远程规则文件和“上一版”一模一样。
         顺带核对 --out：结果写到指定的文件，缺省的那份（docs/evidence/与上一版的对比.md）不动。"""
         default = os.path.join(ROOT, cv.OUT)
@@ -225,9 +227,21 @@ class AgainstItself(unittest.TestCase):
         self.assertIn("只是自动 / 故障转移 / 负载均衡的成员变了（0 个）", out)
         self.assertRegex(out, r"\| 乙 \| (\d+) \| 0 \| \1 \| 0 \|")
         if os.path.exists(os.path.join(ROOT, "dist", "loon", "loon.conf")):
-            self.assertEqual(out.count("逐字节相同。"), 10)
-            self.assertEqual(len(cv.OUTPUTS), 10)
-            self.assertNotIn("顺序变了", out)
+            self.assertEqual(out.count("逐字节相同。"), 20)
+            self.assertEqual(len(cv.OUTPUTS), 20)
+            # 第七节（2026-10-21）：同一版的简易版对照完整版，十对都列出，而且确实有差别（策略组不同）
+            self.assertIn("## 七、简易版：乙 的简易版相对同一版的完整版", out)
+            self.assertEqual(len(cv.SIMPLE_PAIRS), 10)
+            for simple_rel, full_rel in cv.SIMPLE_PAIRS:
+                self.assertIn(f"### `{simple_rel}` 对照 `{full_rel}`", out)
+            self.assertNotIn("<筛选：未知的正则>", out)
+            # 和自己比：第一到六节没有任何顺序变化。第七节（简易版对照完整版）只有 Loon 的 [Remote Filter] 顺序不同——
+            # 简易版里 F-OTHER 的定义排在几个地区后面（跟着组的先后）；这些是按名字引用的筛选定义，先后不影响分流
+            before_simple, simple_part = out.split("## 七、", 1)
+            self.assertNotIn("顺序变了", before_simple)
+            moved = re.findall(r"^### `([^`]+)` 对照[^\n]*\n(?:(?!^### )[\s\S])*?^\*\*([^*]+)\*\*：[^\n]*顺序变了", simple_part, re.M)
+            self.assertEqual(sorted(moved), [("loon/loon-simple-strict.conf", "Remote Filter"), ("loon/loon-simple.conf", "Remote Filter")])
+            self.assertEqual(simple_part.count("顺序变了"), 2)
             self.assertIn("## 六、严格版：乙 的严格版相对同一版的标准版", out)
             self.assertIn("### `loon/loon-strict.conf` 对照 `loon/loon.conf`", out)
             self.assertIn("### `stash/stash-strict.yaml` 对照 `stash/stash.yaml`", out)
@@ -254,6 +268,8 @@ class StrictSection(unittest.TestCase):
             self.assertEqual(text.count("是这一版新增的严格版"), 2)
             self.assertEqual(text.count("缺文件，没有比。"), 6, "上一版目录是空的：六份标准版都没法比")
             self.assertEqual(text.count("Stash 的配置是 2026-10-13 新增的"), 2, "Stash 的两份写明是这一版新增的")
+            # 简易版（2026-10-21）：十份都写明是这一版新增的，Stash 的两份不能被说成“Stash 是 2026-10-13 新增的”
+            self.assertEqual(text.count("是这一版新增的简易版"), 10)
             L = []
             cv.strict_section(L, old, labels, "甲", "乙")
             self.assertEqual("\n".join(L).count("甲 没有这个文件。"), len(cv.OWN_RULE_FILES))

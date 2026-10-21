@@ -1,0 +1,22 @@
+{"kind": "lab_ready", "base": 50200, "nodes": ["n1", "n2", "n3", "n4", "n5"], "t": 1792593629.775}
+{"kind": "node_connect", "node": "n1", "host": "www.gstatic.com", "port": 80, "t": 1792593629.934}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792593629.935}
+{"kind": "node_connect", "node": "n3", "host": "www.gstatic.com", "port": 80, "t": 1792593629.944}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792593629.946}
+{"kind": "node_connect", "node": "n5", "host": "www.gstatic.com", "port": 80, "t": 1792593629.955}
+{"kind": "probe", "node": "n5", "method": "HEAD", "t": 1792593629.956}
+{"kind": "node_connect", "node": "n4", "host": "www.gstatic.com", "port": 80, "t": 1792593629.965}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792593629.967}
+{"kind": "node_connect", "node": "n2", "host": "www.gstatic.com", "port": 80, "t": 1792593629.984}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792593629.987}
+{"kind": "node_connect", "node": "n1", "host": "1.1.1.1", "port": 53, "t": 1792593632.056}
+{"kind": "dns", "server": "foreign", "via": "n1", "proto": "tcp", "name": "unlisted-warmup-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "93.184.216.34", "t": 1792593632.058}
+{"kind": "node_connect", "node": "n5", "host": "93.184.216.34", "port": 50200, "t": 1792593632.101}
+{"kind": "hello", "node": "n5", "method": "GET", "path": "/hello", "t": 1792593632.103}
+{"kind": "mode", "node": "n1", "old": "up", "new": "refuse", "t": 1792593633.139}
+{"kind": "node_connect", "node": "n3", "host": "1.1.1.1", "port": 53, "t": 1792593693.219}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after0-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593693.22}
+{"kind": "node_connect", "node": "n3", "host": "1.1.1.1", "port": 53, "t": 1792593700.268}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after1-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593700.269}
+{"kind": "node_connect", "node": "n3", "host": "1.1.1.1", "port": 53, "t": 1792593707.316}
+{"kind": "dns", "server": "foreign", "via": "n3", "proto": "tcp", "name": "cnsite-after2-dns-refuse.qzx-lab-probe.net", "qtype": 1, "ans": "223.5.5.5", "t": 1792593707.317}

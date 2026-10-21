@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 170 个，可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 196 个（2026-10-21 加了简易版的 M171–M196），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -344,7 +344,7 @@ cases = [
     ("M98 上游的 Loon 广告集合里有一条 IP 规则不带 no-resolve（改的是快照里的记录：Loon 严格版会为它在本机解析）",
      [("tests/data/real_sets.json", lambda s: s.replace('"ip_resolving": 0', '"ip_resolving": 1', 1))], "no-resolve"),
     ("M99 sing-box：境外 DNS（dns-foreign）不再经“国外默认”发出（从本机直接连境外 DoH）", [("generator/emit_singbox.py", lambda s: s.replace(
-        '"server": host_of(dns["foreign_doh"][0]), "detour": "国外默认"}', '"server": host_of(dns["foreign_doh"][0])}', 1))],
+        '"server": host_of(dns["foreign_doh"][0]), "detour": via}', '"server": host_of(dns["foreign_doh"][0])}', 1))],
      "经国外默认发出"),
     ("M100 核对工具又只读 A 记录、按“没有 A 记录”判空应答（AAAA 拿到地址、HTTPS 拿到记录也记成 empty）", [("tools/check_real_routes.py", lambda s: s.replace(
         "            elif rtype == 28:\n                ips.append(socket.inet_ntop(socket.AF_INET6, data[i:i + 16]))\n", "", 1).replace(
@@ -458,7 +458,7 @@ cases = [
     ("M138 生成 Stash 配置时不核对占位节点", [("generator/emit_stash.py", lambda s: s.replace(
         "    check_placeholders(m, groups)\n", "", 1))], "test_build_refuses_a_broken_stash_config"),
     ("M139 结构检查不看筛选能不能选中占位节点", [("generator/verify.py", lambda s: s.replace(
-        "            if len(hit) != 1:\n", "            if False:\n", 1))], "test_missing_placeholder"),
+        "            elif len(hit) != 1:\n", "            elif False:\n", 1))], "test_missing_placeholder"),
     ("M140 Stash 的 DNS 段里 +. 开头的写法又不加引号（和文档的例子不一样）", [("generator/emit_stash.py", lambda s: s.replace(
         '    style = "\'" if data.startswith(("+", "*")) else None\n', "    style = None\n", 1))], "test_wildcard_keys_are_quoted_like_the_docs"),
     ("M141 模拟器不记 Stash 为了判断 IP 规则在本机解析过（严格版“不在本机解析”的检查失灵）", [("tests/emulate.py", lambda s: s.replace(
@@ -550,6 +550,101 @@ cases = [
         "        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）\n        dns_got = _attribute_dns(dns_cases, answers, stubs, fake_net, hold)\n",
         "        dns_got = _attribute_dns(dns_cases, answers, stubs, fake_net, hold)\n        close_stubs(stubs.values())                    # 内核停了：替身把已经收到的处理完、线程结束，再汇总（R17-F01）\n", 1))],
      "test_every_dns_stub_is_closed_through_close_stubs"),
+    # ---- 简易版（2026-10-21，docs/10）----
+    ("M171 简易版的地区组用了严的筛选（只收名字只指向本地区的，人来选的组应该用宽的）", [("generator/groups.py", lambda s: s.replace(
+        '            nodes=NodeFilter(label=r["id"], regex=node_rx[r["id"]]),\n            comment="手选：',
+        '            nodes=NodeFilter(label=r["id"], regex=node_rx_strict[r["id"]]),\n            comment="手选：', 1))],
+     "test_region_groups_are_the_full_manual_groups"),
+    ("M172 简易版的国外默认漏了全部节点（只剩七个地区）", [("generator/groups.py", lambda s: s.replace(
+        '        if role == "foreign_default":\n            spec.nodes = NodeFilter(label=ALL_LABEL, regex=m.node_regex_any())\n',
+        '        if False:\n            spec.nodes = NodeFilter(label=ALL_LABEL, regex=m.node_regex_any())\n', 1))],
+     "test_foreign_default"),
+    ("M173 全部节点那条正则不再排除提示行常用词（剩余流量这类会混进国外默认）", [("generator/regions.py", lambda s: s.replace(
+        "        weak = self.weak()\n        if weak is not None:\n            sign = _alt([self.txt(s.ids + [s.other.id]), self.any_flag()])",
+        "        weak = self.weak()\n        if False:\n            sign = _alt([self.txt(s.ids + [s.other.id]), self.any_flag()])", 1))],
+     "test_info_lines_and_placeholders"),
+    ("M174 境外DNS 用宽的筛选（说不清落地的节点也进来）", [("generator/groups.py", lambda s: s.replace(
+        '                             any_of=tuple(node_rx_strict[r["id"]] for r in m.regions)),',
+        '                             any_of=tuple(node_rx[r["id"]] for r in m.regions)),', 1))],
+     "test_foreign_dns_group"),
+    ("M175 境外DNS 也收其他地区的节点（可能有回国节点）", [("generator/groups.py", lambda s: s.replace(
+        '                             any_of=tuple(node_rx_strict[r["id"]] for r in m.regions)),',
+        '                             any_of=tuple(node_rx_strict[r["id"]] for r in m.regions) + (node_rx[m.other_region["id"]],)),', 1))],
+     "test_foreign_dns_group"),
+    ("M176 mihomo 简易版的境外 DNS 地址不写 #境外DNS（又跟着国外默认走）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '        foreign = [u + "#" + dns_group for u in foreign]\n', '        foreign = list(foreign)\n', 1))],
+     "test_mihomo_unmatched_names_ask_only_the_foreign_doh"),
+    ("M177 mihomo 简易版没有把 GEO 数据的下载交给境外DNS", [("generator/emit_mihomo.py", lambda s: s.replace(
+        "    if dns_group:\n        # 内核按规则下载 GEO 数据", "    if False:\n        # 内核按规则下载 GEO 数据", 1))],
+     "test_mihomo"),
+    ("M178 mihomo 简易版订阅上的检查间隔仍是完整版的 300 秒", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '    interval_s = m.simple["health_check_interval_s"] if simple else hc["interval_s"]\n', '    interval_s = hc["interval_s"]\n', 1))],
+     "test_mihomo_provider_health_check_matches_groups"),
+    ("M179 境外DNS 不藏起来", [("generator/groups.py", lambda s: s.replace(
+        '            name=sp["foreign_dns_group"], kind="url-test", role="foreign_dns", hidden=True,',
+        '            name=sp["foreign_dns_group"], kind="url-test", role="foreign_dns", hidden=False,', 1))],
+     "test_foreign_dns_group"),
+    ("M180 mihomo 的境外DNS 不写 max-failed-times（几个连接接连失败也不马上重测）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        "    elif g.max_failed_times:\n", "    elif False:\n", 1))],
+     "test_foreign_dns_group"),
+    ("M181 sing-box 简易版的境外 DNS 和规则集下载仍经国外默认", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    via = m.simple["foreign_dns_group"] if simple else "国外默认"     # 境外 DNS 和规则集下载走的出站\n',
+        '    via = "国外默认"\n', 1))],
+     "test_singbox_unmatched_names_ask_only_dns_foreign"),
+    ("M182 sing-box 的 idle_timeout 照旧 30 分钟（检查间隔 1 小时时内核起不来）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    return "30m" if interval_s <= 1800 else f"{interval_s}s"\n', '    return "30m"\n', 1))],
+     "test_foreign_dns_group"),
+    ("M183 sing-box 的国外默认在没有节点时也塞一个占位出站", [("generator/emit_singbox.py", lambda s: s.replace(
+        "            members += pick(g.nodes, allow_empty=bool(members))\n", "            members += pick(g.nodes)\n", 1))],
+     "test_foreign_default"),
+    ("M184 Stash 的国外默认不排除占位节点，生成时的核对也去掉", [("generator/emit_stash.py", lambda s: s.replace(
+        "    if nf.label == ALL_LABEL:\n        return exclude_builtins(exclude_placeholders(m, nf.final_regex()))\n",
+        "    if nf.label == ALL_LABEL:\n        return exclude_builtins(nf.final_regex())\n", 1).replace(
+        "        if g.members:\n            if hit:\n", "        if g.members:\n            if False:\n", 1))],
+     "test_generated_outputs_pass_the_structure_check"),
+    ("M185 Quantumult X 把 server-tag-regex 写在写明的成员前面", [("generator/emit_qx.py", lambda s: s.replace(
+        '        parts = [_pol(x) for x in g.members]\n        if g.nodes is not None:\n            parts.append(f"server-tag-regex={_regex(g.nodes)}")\n',
+        '        parts = ([f"server-tag-regex={_regex(g.nodes)}"] if g.nodes is not None else []) + [_pol(x) for x in g.members]\n', 1))],
+     "test_generated_outputs_pass"),
+    ("M186 Loon 的国外默认漏了 F-ALL（有写明的成员时不再接筛选）", [("generator/emit_loon.py", lambda s: s.replace(
+        "        if g.nodes is not None:\n            members.append(_filter_name(g.nodes))\n",
+        "        if g.nodes is not None and not g.members:\n            members.append(_filter_name(g.nodes))\n", 1))],
+     "test_foreign_default"),
+    ("M187 写盘前检查又悄悄跳过新文件名（以前按完整文件名认）", [("generator/verify.py", lambda s: s.replace(
+        "    m = CONFIG_NAME.match(base)\n    if not m:\n        return None\n",
+        '    m = CONFIG_NAME.match(base)\n    if not m or "-simple" in base:\n        return None\n', 1).replace(
+        '            if base.endswith(CONFIG_SUFFIXES) and base != "manifest.json":\n', "            if False:\n", 1))],
+     "test_simple_files_are_not_skipped"),
+    ("M188 写盘前检查不管 DNS 地址后面的 #组名 是不是真有这个组（mihomo 会把它当网卡名）", [("generator/verify.py", lambda s: s.replace(
+        '            if "=" not in part and part not in known | {"RULES"}:\n', "            if False:\n", 1))],
+     "test_layout_breakage_is_caught"),
+    ("M189 写盘前检查不管 sing-box 的检查间隔超过 idle_timeout", [("generator/verify.py", lambda s: s.replace(
+        "            elif iv > idle:\n", "            elif False:\n", 1))],
+     "test_layout_breakage_is_caught"),
+    ("M190 漏生成一份简易版（Stash 简易版的严格版）", [("build.py", lambda s: s.replace(
+        '    "stash/stash-simple-strict.yaml": lambda m, p: emit_stash.build(m, p, strict=True, simple=True),\n', "", 1))],
+     "test_every_full_output_has_a_simple_one"),
+    ("M191 测试按简易版自己的名字查期望（简易版的严格版用了标准版的期望）", [("tests/helpers.py", lambda s: s.replace(
+        "    if full_of(client) in pc:\n        return pc[full_of(client)]\n", "", 1))],
+     "test_family_and_expectation_lookup"),
+    ("M192 简易版的检查间隔不再要求不少于 60 秒", [("generator/model.py", lambda s: s.replace(
+        'isinstance(iv, bool) or iv < 60):', 'isinstance(iv, bool) or iv < 0):', 1))],
+     "test_bad_values_are_rejected"),
+    ("M193 简易版的文件头不写“简易版”", [("generator/emit_loon.py", lambda s: s.replace(
+        '    if simple:\n        L += simple_header(m, "loon-strict.conf" if strict else "loon.conf")\n', "", 1))],
+     "test_simple_header"),
+    ("M194 写盘前检查不再核对国外默认的七个地区", [("generator/verify.py", lambda s: s.replace(
+        '    elif fd["kind"] != "select" or sorted(fd["members"]) != sorted(regions) or not fd["nodes"]:\n',
+        '    elif fd["kind"] != "select":\n', 1))],
+     "test_layout_breakage_is_caught"),
+    ("M195 节点转换只避开完整版的组名（节点叫“境外DNS”时简易版 sing-box 重名）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    groups = build_groups(m, MODES) + build_groups(m, MODES, "simple", foreign_dns=True)\n',
+        "    groups = build_groups(m, MODES)\n", 1))],
+     "test_reserved_tags_cover_both_layouts"),
+    ("M196 简易版的地区组嵌套了组（不再只按节点筛选）", [("generator/groups.py", lambda s: s.replace(
+        '            name=r["name"], kind="select", role="region_simple",\n',
+        '            name=r["name"], kind="select", role="region_simple", members=["DIRECT"],\n', 1))],
+     "test_region_groups_are_the_full_manual_groups"),
 ]
 
 

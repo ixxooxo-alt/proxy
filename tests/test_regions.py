@@ -417,12 +417,14 @@ class Portability(unittest.TestCase):
 
     @staticmethod
     def all_regexes():
+        """宽 7 条、严 6 条，加上简易版“国外默认”用的全部节点 1 条（2026-10-21）。"""
         m = model_and_plan()[0]
         return ([("宽 " + k, v) for k, v in m.node_regexes().items()]
-                + [("严 " + k, v) for k, v in m.node_regexes_strict().items()])
+                + [("严 " + k, v) for k, v in m.node_regexes_strict().items()]
+                + [("全部节点", m.node_regex_any())])
 
     def test_no_character_with_special_meaning(self):
-        self.assertEqual(len(self.all_regexes()), 13)
+        self.assertEqual(len(self.all_regexes()), 14)
         for gid, rx in self.all_regexes():
             for bad in (",", '"', "`", "=", " ", "\n", "\t"):
                 self.assertNotIn(bad, rx, f"{gid} 含 {bad!r}")
