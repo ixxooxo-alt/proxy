@@ -1,3 +1,5 @@
+<p align="center"><img src="promo.gif" alt="proxy promo" width="100%"></p>
+
 <p align="center"><img src="docs/assets/banner.svg" alt="proxy-routing — one rule source, five clients" width="100%"></p>
 
 # proxy-routing
