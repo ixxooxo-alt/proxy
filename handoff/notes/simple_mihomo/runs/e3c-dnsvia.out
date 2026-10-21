@@ -1,0 +1,20 @@
+mihomo -t： 0 configuration file <OPT>/runs/e3c-dnsvia/config.yaml test is successful
+[refuse] now： {'国外默认': '全部节点', '全部节点': '美国 02', 'OpenAI': '日本', '日本': '日本·自动', '日本·自动': '日本 01', 'Microsoft': 'DIRECT'}
+  [refuse] HTTP 没被规则认出的域名: unlisted-refuse.qzx-lab-probe.net -> ('HTTP/1.1 502 Bad Gateway', 2.769)
+  [refuse] HTTP 没被规则认出、境外 DNS 会答国内地址的域名: cnsite-refuse.qzx-lab-probe.net -> ('node=direct', 0.026)
+  [refuse] HTTP 系统联网检测 captive.apple.com（规则直连）: captive.apple.com -> ('node=direct', 0.001)
+  [refuse] HTTP geosite:cn 里的国内域名: www.baidu.com -> ('node=direct', 0.001)
+  [refuse] HTTP OpenAI（服务组 -> 日本 -> 日本·自动，节点正常）: tcp-refuse.openai.com -> ('node=n1', 0.022)
+  [refuse] HTTP geolocation-!cn 里的境外域名（国外默认）: refuse.wikipedia.org -> ('HTTP/1.1 502 Bad Gateway', 3.382)
+  [refuse] HTTP Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里: loop-refuse.onmicrosoft.com -> ('node=direct', 0.026)
+  [refuse] DNS www.msftconnecttest.com: ('rcode=0 93.184.216.34', 0.02)
+  [refuse] DNS www.msftncsi.com: ('rcode=0 93.184.216.34', 0.02)
+  [refuse] DNS captive.apple.com: ('rcode=0 93.184.216.34', 0.02)
+  [refuse] DNS time.apple.com: ('rcode=0 127.0.0.1', 0.0)
+  [refuse] DNS connectivitycheck.platform.hicloud.com: ('rcode=0 198.18.0.4', 0.0)
+  [refuse] DNS unlisted-refuse.qzx-lab-probe.net: ('rcode=0 198.18.0.5', 0.0)
+  [refuse] DNS www.baidu.com: ('rcode=0 198.18.0.6', 0.0)
+  [refuse] DNS nas-refuse: ('rcode=0 127.0.0.1', 0.0)
+  [refuse] UDP udp-refuse.openai.com: sent
+  [refuse] POST /configs/geo -> 500 '{"message":"can\'t download GeoSite database file: Get \\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@relea' (2.98s)
+done

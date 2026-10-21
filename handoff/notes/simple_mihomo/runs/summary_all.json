@@ -1,0 +1,521 @@
+[
+ {
+  "run": "t30-refuse-seq",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 40.005,
+  "auto_left_n1_after_s": 0.7,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 0.5,
+   "done_after_s": 0.6,
+   "res": "node=n2",
+   "secs": 0.136
+  },
+  "checks_at": [
+   -0.2,
+   29.8,
+   40.5,
+   59.9
+  ]
+ },
+ {
+  "run": "t180-refuse-seq",
+  "provider_interval": 180,
+  "group_interval": 180,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 182.091,
+  "auto_left_n1_after_s": 0.3,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 0.1,
+   "done_after_s": 0.2,
+   "res": "node=n2",
+   "secs": 0.137
+  },
+  "checks_at": [
+   0.2,
+   180.2
+  ]
+ },
+ {
+  "run": "t300-refuse-seq",
+  "provider_interval": 300,
+  "group_interval": 300,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 302.061,
+  "auto_left_n1_after_s": 1.7,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 1.5,
+   "done_after_s": 1.6,
+   "res": "node=n2",
+   "secs": 0.136
+  },
+  "checks_at": [
+   0.0,
+   300.0,
+   303.6
+  ]
+ },
+ {
+  "run": "t30-reset-seq",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "reset",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.011,
+  "auto_left_n1_after_s": 1.2,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 0.4,
+   "done_after_s": 1.2,
+   "res": "node=n2",
+   "secs": 0.882
+  },
+  "checks_at": [
+   -0.2,
+   29.8,
+   32.8,
+   59.9
+  ]
+ },
+ {
+  "run": "t30-blackhole-seq",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "blackhole",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.097,
+  "auto_left_n1_after_s": 40.3,
+  "failed_reqs": 6,
+  "first_ok_other": {
+   "start_after_s": 42.3,
+   "done_after_s": 42.4,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   0.1,
+   30.1,
+   60.1,
+   90.1
+  ]
+ },
+ {
+  "run": "t180-blackhole-seq",
+  "provider_interval": 180,
+  "group_interval": 180,
+  "mode": "blackhole",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 182.049,
+  "auto_left_n1_after_s": 191.5,
+  "failed_reqs": 28,
+  "first_ok_other": {
+   "start_after_s": 196.2,
+   "done_after_s": 196.3,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   -0.0,
+   179.9,
+   360.0
+  ]
+ },
+ {
+  "run": "t300-blackhole-seq",
+  "provider_interval": 300,
+  "group_interval": 300,
+  "mode": "blackhole",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 302.076,
+  "auto_left_n1_after_s": 312.5,
+  "failed_reqs": 45,
+  "first_ok_other": {
+   "start_after_s": 316.6,
+   "done_after_s": 316.7,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   -0.1,
+   299.9,
+   599.9
+  ]
+ },
+ {
+  "run": "t30-blackhole-burst",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "blackhole",
+  "traffic": "burst(k=4)",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.01,
+  "auto_left_n1_after_s": 40.3,
+  "failed_reqs": 36,
+  "first_ok_other": {
+   "start_after_s": 45.0,
+   "done_after_s": 45.2,
+   "res": "node=n2",
+   "secs": 0.128
+  },
+  "checks_at": [
+   -0.1,
+   29.9,
+   59.9,
+   89.9
+  ]
+ },
+ {
+  "run": "t180-blackhole-burst",
+  "provider_interval": 180,
+  "group_interval": 180,
+  "mode": "blackhole",
+  "traffic": "burst(k=4)",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 182.051,
+  "auto_left_n1_after_s": null,
+  "failed_reqs": 40,
+  "first_ok_other": null,
+  "checks_at": [
+   0.1,
+   180.1
+  ]
+ },
+ {
+  "run": "t30-blackhole-burst6",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "blackhole",
+  "traffic": "burst(k=6)",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.077,
+  "auto_left_n1_after_s": 13.1,
+  "failed_reqs": 12,
+  "first_ok_other": {
+   "start_after_s": 12.9,
+   "done_after_s": 13.1,
+   "res": "node=n2",
+   "secs": 0.127
+  },
+  "checks_at": [
+   -0.2,
+   29.8,
+   40.0,
+   59.9
+  ]
+ },
+ {
+  "run": "t30-blackhole-burst-mft3",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "blackhole",
+  "traffic": "burst(k=4)",
+  "mft": 3,
+  "select": "auto",
+  "t_fail": 32.005,
+  "auto_left_n1_after_s": 10.2,
+  "failed_reqs": 8,
+  "first_ok_other": {
+   "start_after_s": 10.0,
+   "done_after_s": 10.1,
+   "res": "node=n2",
+   "secs": 0.127
+  },
+  "checks_at": [
+   0.1,
+   30.0,
+   37.0,
+   60.0,
+   90.0
+  ]
+ },
+ {
+  "run": "t180-blackhole-burst-mft3",
+  "provider_interval": 180,
+  "group_interval": 180,
+  "mode": "blackhole",
+  "traffic": "burst(k=4)",
+  "mft": 3,
+  "select": "auto",
+  "t_fail": 182.07,
+  "auto_left_n1_after_s": 13.3,
+  "failed_reqs": 8,
+  "first_ok_other": {
+   "start_after_s": 13.0,
+   "done_after_s": 13.1,
+   "res": "node=n2",
+   "secs": 0.125
+  },
+  "checks_at": [
+   -0.2,
+   179.8,
+   190.0
+  ]
+ },
+ {
+  "run": "t30-egress-seq",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "egress",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.015,
+  "auto_left_n1_after_s": 30.3,
+  "failed_reqs": 15,
+  "first_ok_other": {
+   "start_after_s": 30.4,
+   "done_after_s": 30.5,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   -0.1,
+   29.9,
+   59.9,
+   89.9
+  ]
+ },
+ {
+  "run": "t180-egress-seq",
+  "provider_interval": 180,
+  "group_interval": 180,
+  "mode": "egress",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 182.088,
+  "auto_left_n1_after_s": 181.5,
+  "failed_reqs": 91,
+  "first_ok_other": {
+   "start_after_s": 182.3,
+   "done_after_s": 182.5,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   -0.0,
+   180.0,
+   360.0
+  ]
+ },
+ {
+  "run": "t300-egress-seq",
+  "provider_interval": 300,
+  "group_interval": 300,
+  "mode": "egress",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 302.017,
+  "auto_left_n1_after_s": 302.0,
+  "failed_reqs": 150,
+  "first_ok_other": {
+   "start_after_s": 301.8,
+   "done_after_s": 301.9,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   -0.0,
+   299.9,
+   600.0
+  ]
+ },
+ {
+  "run": "t30-refuse-idle",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "refuse",
+  "traffic": "idle",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.051,
+  "auto_left_n1_after_s": 60.3,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 60.2,
+   "done_after_s": 60.3,
+   "res": "node=n2",
+   "secs": 0.136
+  },
+  "checks_at": [
+   -0.0,
+   30.0,
+   92.3,
+   120.0
+  ],
+  "traffic_on_at": 92.064,
+  "checks_during_idle": [
+   30.0
+  ],
+  "first_reqs_after_on": [
+   [
+    0.2,
+    "node=n2",
+    0.136
+   ],
+   [
+    2.3,
+    "node=n2",
+    0.125
+   ],
+   [
+    4.5,
+    "node=n2",
+    0.124
+   ]
+  ]
+ },
+ {
+  "run": "t30-blackhole-idle",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "blackhole",
+  "traffic": "idle",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": 32.048,
+  "auto_left_n1_after_s": 100.5,
+  "failed_reqs": 6,
+  "first_ok_other": {
+   "start_after_s": 102.0,
+   "done_after_s": 102.1,
+   "res": "node=n2",
+   "secs": 0.123
+  },
+  "checks_at": [
+   0.0,
+   30.0,
+   120.0,
+   150.0
+  ],
+  "traffic_on_at": 92.059,
+  "checks_during_idle": [
+   30.0
+  ],
+  "first_reqs_after_on": [
+   [
+    0.0,
+    "HTTP/1.1 502 Bad Gateway",
+    5.001
+   ],
+   [
+    7.0,
+    "HTTP/1.1 502 Bad Gateway",
+    5.001
+   ],
+   [
+    14.0,
+    "HTTP/1.1 502 Bad Gateway",
+    5.002
+   ]
+  ]
+ },
+ {
+  "run": "t30-refuse-seq-fixed",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "fixed",
+  "t_fail": 32.002,
+  "auto_left_n1_after_s": 30.3,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 1.9,
+   "done_after_s": 2.0,
+   "res": "node=n2",
+   "secs": 0.124
+  },
+  "checks_at": [
+   0.0,
+   30.0,
+   60.0,
+   90.0
+  ]
+ },
+ {
+  "run": "t30-viahk-refuse",
+  "provider_interval": 30,
+  "group_interval": 30,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto[['国外默认', '香港']]",
+  "t_fail": 32.076,
+  "auto_left_n1_after_s": 30.2,
+  "failed_reqs": 0,
+  "first_ok_other": {
+   "start_after_s": 0.6,
+   "done_after_s": 0.7,
+   "res": "node=n4",
+   "secs": 0.043
+  },
+  "checks_at": [
+   -0.2,
+   29.8,
+   59.9,
+   89.9
+  ]
+ },
+ {
+  "run": "gi-prov300-group30",
+  "provider_interval": 300,
+  "group_interval": 30,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": null,
+  "auto_left_n1_after_s": null,
+  "failed_reqs": 0,
+  "first_ok_other": null,
+  "checks_at": [
+   -0.0
+  ]
+ },
+ {
+  "run": "gi-prov30-group300",
+  "provider_interval": 30,
+  "group_interval": 300,
+  "mode": "refuse",
+  "traffic": "seq",
+  "mft": "默认5",
+  "select": "auto",
+  "t_fail": null,
+  "auto_left_n1_after_s": null,
+  "failed_reqs": 0,
+  "first_ok_other": null,
+  "checks_at": [
+   0.0,
+   30.0,
+   60.0,
+   90.0
+  ]
+ }
+]

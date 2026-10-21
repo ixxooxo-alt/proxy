@@ -1,0 +1,46 @@
+{
+ "run": "t180-blackhole-burst-mft3",
+ "params": {
+  "interval": 180,
+  "mode": "blackhole",
+  "traffic": "burst",
+  "period": 3,
+  "k": 4,
+  "select": "auto",
+  "mft": 3,
+  "t_fail": 182,
+  "t_end": 230
+ },
+ "t_fail": 182.07,
+ "checks_at": [
+  -0.2,
+  179.8,
+  190.0
+ ],
+ "now_changes": [
+  [
+   2.026,
+   "日本 01",
+   "日本·自动"
+  ],
+  [
+   195.405,
+   "🇯🇵 Tokyo 02",
+   "日本·自动"
+  ]
+ ],
+ "auto_left_n1_after_s": 13.3,
+ "auto_now_after": "🇯🇵 Tokyo 02",
+ "reqs_after_fail_until_first_ok": 8,
+ "bad_results": [
+  "HTTP/1.1 502 Bad Gateway"
+ ],
+ "first_ok_other": {
+  "start_after_s": 13.0,
+  "done_after_s": 13.1,
+  "res": "node=n2",
+  "secs": 0.125
+ },
+ "ok_via_n1_after_fail": 0,
+ "last_req": "node=n2"
+}

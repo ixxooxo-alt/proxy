@@ -1,0 +1,46 @@
+proxies:
+- name: 🇯🇵 Tokyo 02
+  type: socks5
+  server: 127.0.0.1
+  port: 48112
+  udp: false
+- name: 日本-美国 03
+  type: socks5
+  server: 127.0.0.1
+  port: 48113
+  udp: false
+- name: 剩余流量：10GB
+  type: socks5
+  server: 127.0.0.1
+  port: 48114
+  udp: false
+- name: 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 48115
+  udp: false
+- name: 德国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 48117
+  udp: false
+- name: 官网 example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 48118
+  udp: false
+- name: 请更新订阅
+  type: socks5
+  server: 127.0.0.1
+  port: 48119
+  udp: false
+- name: 香港 01 | 官网：abc.com
+  type: socks5
+  server: 127.0.0.1
+  port: 48120
+  udp: false
+- name: 香港·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 48121
+  udp: false

@@ -1,0 +1,43 @@
+{
+ "run": "t30-reset-seq",
+ "params": {
+  "interval": 30,
+  "mode": "reset",
+  "traffic": "seq",
+  "period": 2,
+  "select": "auto",
+  "t_fail": 32,
+  "t_end": 75
+ },
+ "t_fail": 32.011,
+ "checks_at": [
+  -0.2,
+  29.8,
+  32.8,
+  59.9
+ ],
+ "now_changes": [
+  [
+   2.025,
+   "日本 01",
+   "日本·自动"
+  ],
+  [
+   33.192,
+   "🇯🇵 Tokyo 02",
+   "日本·自动"
+  ]
+ ],
+ "auto_left_n1_after_s": 1.2,
+ "auto_now_after": "🇯🇵 Tokyo 02",
+ "reqs_after_fail_until_first_ok": 0,
+ "bad_results": [],
+ "first_ok_other": {
+  "start_after_s": 0.4,
+  "done_after_s": 1.2,
+  "res": "node=n2",
+  "secs": 0.882
+ },
+ "ok_via_n1_after_fail": 0,
+ "last_req": "node=n2"
+}

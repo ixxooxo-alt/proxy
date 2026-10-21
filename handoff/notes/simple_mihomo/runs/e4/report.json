@@ -1,0 +1,81 @@
+{
+ "core": {
+  "check_rc": 0,
+  "check_last": "configuration file <OPT>/runs/e4/core/mihomo-core-simple.yaml test is successful",
+  "groups_total": 58,
+  "groups_hidden": 6,
+  "groups_visible": 52,
+  "full_total": 81,
+  "full_hidden": 24,
+  "no_icon": [
+   "全部节点"
+  ],
+  "size_bytes": 279583,
+  "auto_groups_interval_lazy": [
+   [
+    300,
+    true
+   ]
+  ],
+  "provider_hc": {
+   "enable": true,
+   "url": "https://www.gstatic.com/generate_204",
+   "expected-status": "204",
+   "interval": 300,
+   "timeout": 5000,
+   "lazy": true
+  }
+ },
+ "profile": {
+  "check_rc": 0,
+  "check_last": "configuration file <OPT>/runs/e4/profile/mihomo-profile-simple.yaml test is successful",
+  "groups_total": 58,
+  "groups_hidden": 6,
+  "groups_visible": 52,
+  "full_total": 81,
+  "full_hidden": 24,
+  "no_icon": [
+   "全部节点"
+  ],
+  "size_bytes": 279341,
+  "auto_groups_interval_lazy": [
+   [
+    300,
+    true
+   ]
+  ],
+  "provider_hc": {
+   "enable": true,
+   "url": "https://www.gstatic.com/generate_204",
+   "expected-status": "204",
+   "interval": 300,
+   "timeout": 5000,
+   "lazy": true
+  }
+ },
+ "core_vs_profile_diff": [
+  "--- core",
+  "+++ profile",
+  "@@ -1,4 +0,0 @@",
+  "-mixed-port: 7890",
+  "-allow-lan: false",
+  "-bind-address: 127.0.0.1",
+  "-external-controller: 127.0.0.1:9090",
+  "@@ -22,9 +17,0 @@",
+  "-tun:",
+  "-  enable: false",
+  "-  stack: mixed",
+  "-  auto-route: true",
+  "-  auto-detect-interface: true",
+  "-  dns-hijack:",
+  "-  - any:53",
+  "-  - tcp://any:53",
+  "-  strict-route: true"
+ ],
+ "core_keys_differ": [
+  "proxy-groups"
+ ],
+ "profile_keys_differ": [
+  "proxy-groups"
+ ]
+}

@@ -1,0 +1,114 @@
+{
+ "sample_count": 649,
+ "truth_count": 603,
+ "lengths": {
+  "A": 374,
+  "B": 66495,
+  "C": 66526,
+  "D": 5646
+ },
+ "A": {
+  "count": 618,
+  "extra_vs_truth": [
+   "Expires 2026-12-31",
+   "TG群 @example",
+   "到期时间：2026-12-31",
+   "官方 TG 频道",
+   "官网 example.com",
+   "客服 QQ 123456",
+   "工单请到官网提交",
+   "已用 20G",
+   "总流量 100G",
+   "网站 example.com",
+   "请更新订阅",
+   "过滤掉 3 条线路",
+   "过滤掉12条线路",
+   "邮箱 support@example.com",
+   "防失联地址 example.com"
+  ],
+  "missing_vs_truth": [],
+  "info_names_let_in": [
+   "Expires 2026-12-31",
+   "TG群 @example",
+   "到期时间：2026-12-31",
+   "官方 TG 频道",
+   "官网 example.com",
+   "客服 QQ 123456",
+   "工单请到官网提交",
+   "已用 20G",
+   "总流量 100G",
+   "网站 example.com",
+   "请更新订阅",
+   "过滤掉 3 条线路",
+   "过滤掉12条线路",
+   "邮箱 support@example.com",
+   "防失联地址 example.com"
+  ],
+  "order_first10": [
+   "🇭🇰 香港 01",
+   "🇭🇰 香港 IPLC 01",
+   "🇭🇰香港-01",
+   "🇭🇰 HK-01",
+   "🇭🇰 Hong Kong 01",
+   "HK 01 | IEPL",
+   "香港 01 | 1.0x",
+   "【香港】IPLC 01",
+   "香港丨01",
+   "[HK] 香港 01"
+  ]
+ },
+ "B": {
+  "count": 603,
+  "extra_vs_truth": [],
+  "missing_vs_truth": [],
+  "info_names_let_in": [],
+  "order_first10": [
+   "🇭🇰 香港 01",
+   "🇭🇰 香港 IPLC 01",
+   "🇭🇰香港-01",
+   "🇭🇰 HK-01",
+   "🇭🇰 Hong Kong 01",
+   "HK 01 | IEPL",
+   "香港 01 | 1.0x",
+   "【香港】IPLC 01",
+   "香港丨01",
+   "[HK] 香港 01"
+  ]
+ },
+ "C": {
+  "count": 603,
+  "extra_vs_truth": [],
+  "missing_vs_truth": [],
+  "info_names_let_in": [],
+  "order_first10": [
+   "🇭🇰 香港 01",
+   "🇭🇰 香港 IPLC 01",
+   "🇭🇰香港-01",
+   "🇭🇰 HK-01",
+   "🇭🇰 Hong Kong 01",
+   "HK 01 | IEPL",
+   "香港 01 | 1.0x",
+   "【香港】IPLC 01",
+   "香港丨01",
+   "[HK] 香港 01"
+  ]
+ },
+ "D": {
+  "count": 603,
+  "extra_vs_truth": [],
+  "missing_vs_truth": [],
+  "info_names_let_in": [],
+  "order_first10": [
+   "🇭🇰 香港 01",
+   "🇭🇰 香港 IPLC 01",
+   "🇭🇰香港-01",
+   "🇭🇰 HK-01",
+   "🇭🇰 Hong Kong 01",
+   "HK 01 | IEPL",
+   "香港 01 | 1.0x",
+   "【香港】IPLC 01",
+   "香港丨01",
+   "[HK] 香港 01"
+  ]
+ }
+}

@@ -1,0 +1,21 @@
+proxies:
+- name: 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 48811
+  udp: false
+- name: 🇯🇵 Tokyo 02
+  type: socks5
+  server: 127.0.0.1
+  port: 48812
+  udp: false
+- name: 日本 03
+  type: socks5
+  server: 127.0.0.1
+  port: 48813
+  udp: false
+- name: 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 48814
+  udp: false

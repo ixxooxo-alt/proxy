@@ -1,0 +1,44 @@
+{
+ "run": "t300-egress-seq",
+ "params": {
+  "interval": 300,
+  "mode": "egress",
+  "traffic": "seq",
+  "period": 2,
+  "select": "auto",
+  "t_fail": 302,
+  "t_end": 640
+ },
+ "t_fail": 302.017,
+ "checks_at": [
+  -0.0,
+  299.9,
+  600.0
+ ],
+ "now_changes": [
+  [
+   2.036,
+   "日本 01",
+   "日本·自动"
+  ],
+  [
+   604.038,
+   "🇯🇵 Tokyo 02",
+   "日本·自动"
+  ]
+ ],
+ "auto_left_n1_after_s": 302.0,
+ "auto_now_after": "🇯🇵 Tokyo 02",
+ "reqs_after_fail_until_first_ok": 150,
+ "bad_results": [
+  "HTTP/1.1 502 Bad Gateway"
+ ],
+ "first_ok_other": {
+  "start_after_s": 301.8,
+  "done_after_s": 301.9,
+  "res": "node=n2",
+  "secs": 0.124
+ },
+ "ok_via_n1_after_fail": 0,
+ "last_req": "node=n2"
+}

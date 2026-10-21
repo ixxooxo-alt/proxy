@@ -1,0 +1,2404 @@
+{
+ "check": [
+  0,
+  "configuration file <OPT>/runs/e3d-dnsfallback/config.yaml test is successful"
+ ],
+ "phases": [
+  {
+   "phase": "alive",
+   "http": {
+    "没被规则认出的域名": {
+     "host": "unlisted-alive.qzx-lab-probe.net",
+     "res": "node=n5",
+     "secs": 0.13
+    },
+    "没被规则认出、境外 DNS 会答国内地址的域名": {
+     "host": "cnsite-alive.qzx-lab-probe.net",
+     "res": "node=direct",
+     "secs": 0.069
+    },
+    "系统联网检测 captive.apple.com（规则直连）": {
+     "host": "captive.apple.com",
+     "res": "node=direct",
+     "secs": 0.002
+    },
+    "geosite:cn 里的国内域名": {
+     "host": "www.baidu.com",
+     "res": "node=direct",
+     "secs": 0.002
+    },
+    "OpenAI（服务组 -> 日本 -> 日本·自动，节点正常）": {
+     "host": "tcp-alive.openai.com",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 0.001
+    },
+    "geolocation-!cn 里的境外域名（国外默认）": {
+     "host": "alive.wikipedia.org",
+     "res": "node=n5",
+     "secs": 0.065
+    },
+    "Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里": {
+     "host": "loop-alive.onmicrosoft.com",
+     "res": "node=direct",
+     "secs": 0.067
+    },
+    "再试：没被规则认出的域名": {
+     "host": "unlisted2-alive.qzx-lab-probe.net",
+     "res": "node=n5",
+     "secs": 0.128
+    },
+    "再试：境外 DNS 会答国内地址的域名": {
+     "host": "cnsite2-alive.qzx-lab-probe.net",
+     "res": "node=direct",
+     "secs": 0.067
+    }
+   },
+   "dns": {
+    "www.msftconnecttest.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.06
+    },
+    "www.msftncsi.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.06
+    },
+    "captive.apple.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.06
+    },
+    "time.apple.com": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    },
+    "connectivitycheck.platform.hicloud.com": {
+     "res": "rcode=0 198.18.0.4",
+     "secs": 0.0
+    },
+    "unlisted-alive.qzx-lab-probe.net": {
+     "res": "rcode=0 198.18.0.5",
+     "secs": 0.0
+    },
+    "www.baidu.com": {
+     "res": "rcode=0 198.18.0.6",
+     "secs": 0.0
+    },
+    "nas-alive": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    }
+   },
+   "udp": {
+    "udp-alive.openai.com": "sent"
+   },
+   "select": {
+    "国外默认": [
+     204,
+     ""
+    ],
+    "全部节点": [
+     204,
+     ""
+    ],
+    "Microsoft": [
+     204,
+     ""
+    ]
+   },
+   "now": {
+    "国外默认": "全部节点",
+    "全部节点": "美国 02",
+    "OpenAI": "日本",
+    "日本": "日本·自动",
+    "日本·自动": "REJECT",
+    "Microsoft": "DIRECT",
+    "境外DNS出口": "国外默认"
+   },
+   "t_mode": 4.03,
+   "dns_group_now_end": "国外默认",
+   "geo_update": {
+    "status": 500,
+    "body": "{\"message\":\"can't download GeoSite database file: Get \\\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat\\\": net/http: TLS handshake timeout\"}\n",
+    "secs": 10.03
+   },
+   "lab_events": [
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.04
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n4",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n2",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 0.0
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.06
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.07
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.07
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.07
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.07
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "unlisted-alive.qzx-lab-probe.net",
+     "port": 49600,
+     "t": 4.13
+    },
+    {
+     "kind": "hello",
+     "node": "n5",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.13
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.19
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.19
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.19
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.19
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 4.2
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.2
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.2
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 4.2
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.23
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.23
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.23
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.23
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.23
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.23
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.23
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.23
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.23
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "alive.wikipedia.org",
+     "port": 49600,
+     "t": 4.27
+    },
+    {
+     "kind": "hello",
+     "node": "n5",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.27
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.33
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.33
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.33
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.33
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "loop-alive.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.33
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "loop-alive.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.33
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "loop-alive.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.33
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "loop-alive.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.33
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 4.37
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.4
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.4
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.4
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.4
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.46
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.46
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.46
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.46
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 4.52
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.52
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.53
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 4.53
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "time.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.56
+    },
+    {
+     "kind": "dns",
+     "server": "system",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "nas-alive",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 4.56
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.59
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.59
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.59
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.59
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted2-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.6
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted2-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.6
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted2-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.6
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "unlisted2-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.6
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "unlisted2-alive.qzx-lab-probe.net",
+     "port": 49600,
+     "t": 10.66
+    },
+    {
+     "kind": "hello",
+     "node": "n5",
+     "method": "GET",
+     "path": "/hello",
+     "t": 10.66
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.72
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.72
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.72
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.72
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.72
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.72
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 10.72
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n5",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 10.72
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.76
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-alive.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 10.76
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 10.76
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "testingcf.jsdelivr.net",
+     "port": 443,
+     "t": 10.8
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "testingcf.jsdelivr.net",
+     "port": 443,
+     "t": 10.81
+    },
+    {
+     "kind": "hello",
+     "node": "n5",
+     "method": "\u0016\u0003\u0001\u0005�\u0001\u0000\u0005�\u0003\u0003�f�'�D�}��ܭ�t��\u0001�H�\u0007\u001a״!�s�\u0001\u0012\u001b�",
+     "path": "�CI1�x�a�\b��L��S\u0015",
+     "t": 20.77
+    },
+    {
+     "kind": "hello",
+     "node": "n5",
+     "method": "\u0016\u0003\u0001\u0005�\u0001\u0000\u0005�\u0003\u0003g#o<�F�h\b���\u0019��:����y@\u00026�",
+     "path": "�\u0014'���",
+     "t": 20.78
+    }
+   ]
+  },
+  {
+   "phase": "refuse",
+   "http": {
+    "没被规则认出的域名": {
+     "host": "unlisted-refuse.qzx-lab-probe.net",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 2.994
+    },
+    "没被规则认出、境外 DNS 会答国内地址的域名": {
+     "host": "cnsite-refuse.qzx-lab-probe.net",
+     "res": "node=direct",
+     "secs": 0.048
+    },
+    "系统联网检测 captive.apple.com（规则直连）": {
+     "host": "captive.apple.com",
+     "res": "node=direct",
+     "secs": 0.002
+    },
+    "geosite:cn 里的国内域名": {
+     "host": "www.baidu.com",
+     "res": "node=direct",
+     "secs": 0.003
+    },
+    "OpenAI（服务组 -> 日本 -> 日本·自动，节点正常）": {
+     "host": "tcp-refuse.openai.com",
+     "res": "node=n1",
+     "secs": 0.023
+    },
+    "geolocation-!cn 里的境外域名（国外默认）": {
+     "host": "refuse.wikipedia.org",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 3.599
+    },
+    "Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里": {
+     "host": "loop-refuse.onmicrosoft.com",
+     "res": "node=direct",
+     "secs": 0.047
+    },
+    "再试：没被规则认出的域名": {
+     "host": "unlisted2-refuse.qzx-lab-probe.net",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 1.997
+    },
+    "再试：境外 DNS 会答国内地址的域名": {
+     "host": "cnsite2-refuse.qzx-lab-probe.net",
+     "res": "node=direct",
+     "secs": 0.047
+    }
+   },
+   "dns": {
+    "www.msftconnecttest.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "www.msftncsi.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "captive.apple.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "time.apple.com": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    },
+    "connectivitycheck.platform.hicloud.com": {
+     "res": "rcode=0 198.18.0.4",
+     "secs": 0.0
+    },
+    "unlisted-refuse.qzx-lab-probe.net": {
+     "res": "rcode=0 198.18.0.5",
+     "secs": 0.0
+    },
+    "www.baidu.com": {
+     "res": "rcode=0 198.18.0.6",
+     "secs": 0.0
+    },
+    "nas-refuse": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    }
+   },
+   "udp": {
+    "udp-refuse.openai.com": "sent"
+   },
+   "select": {
+    "国外默认": [
+     204,
+     ""
+    ],
+    "全部节点": [
+     204,
+     ""
+    ],
+    "Microsoft": [
+     204,
+     ""
+    ]
+   },
+   "now": {
+    "国外默认": "全部节点",
+    "全部节点": "美国 02",
+    "OpenAI": "日本",
+    "日本": "日本·自动",
+    "日本·自动": "日本 01",
+    "Microsoft": "DIRECT",
+    "境外DNS出口": "国外默认"
+   },
+   "t_mode": 4.01,
+   "dns_group_now_end": "香港·自动",
+   "geo_update": {
+    "status": 500,
+    "body": "{\"message\":\"can't download GeoSite database file: Get \\\"https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat\\\": EOF\"}\n",
+    "secs": 3.58
+   },
+   "lab_events": [
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.04
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.04
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n4",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n4",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n2",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.0
+    },
+    {
+     "kind": "mode",
+     "node": "n5",
+     "old": "up",
+     "new": "refuse",
+     "t": 3.01
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 4.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 4.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 4.03
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 4.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n4",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 4.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 7.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 7.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 7.02
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 7.02
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 7.03
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 7.03
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 7.03
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 7.03
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 7.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 7.05
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 7.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 7.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 7.05
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 7.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 7.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 7.05
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 7.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "tcp-refuse.openai.com",
+     "port": 49600,
+     "t": 7.07
+    },
+    {
+     "kind": "hello",
+     "node": "n1",
+     "method": "GET",
+     "path": "/hello",
+     "t": 7.07
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.7
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.7
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.7
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.7
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-refuse.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.7
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-refuse.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 10.7
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-refuse.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 10.7
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-refuse.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.7
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 10.72
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.74
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.74
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.75
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.75
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.79
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.79
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.79
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.79
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.83
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.83
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.83
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.83
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "time.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 10.86
+    },
+    {
+     "kind": "dns",
+     "server": "system",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "nas-refuse",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 10.86
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 10.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 10.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-refuse.openai.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-refuse.openai.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 10.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-refuse.openai.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-refuse.openai.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 10.88
+    },
+    {
+     "kind": "node_udp_assoc",
+     "node": "n1",
+     "t": 10.9
+    },
+    {
+     "kind": "node_udp_packet",
+     "node": "n1",
+     "atyp": 1,
+     "dst": "93.184.216.34",
+     "port": 443,
+     "t": 10.9
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 16.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 16.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 16.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 16.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 16.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 16.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 16.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 16.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 18.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 18.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 18.88
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 18.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 18.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 18.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 18.88
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 18.88
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 18.9
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-refuse.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 18.9
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 18.9
+    }
+   ]
+  },
+  {
+   "phase": "blackhole",
+   "http": {
+    "没被规则认出的域名": {
+     "host": "unlisted-blackhole.qzx-lab-probe.net",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 10.004
+    },
+    "没被规则认出、境外 DNS 会答国内地址的域名": {
+     "host": "cnsite-blackhole.qzx-lab-probe.net",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 10.003
+    },
+    "系统联网检测 captive.apple.com（规则直连）": {
+     "host": "captive.apple.com",
+     "res": "node=direct",
+     "secs": 0.003
+    },
+    "geosite:cn 里的国内域名": {
+     "host": "www.baidu.com",
+     "res": "node=direct",
+     "secs": 0.002
+    },
+    "OpenAI（服务组 -> 日本 -> 日本·自动，节点正常）": {
+     "host": "tcp-blackhole.openai.com",
+     "res": "node=n1",
+     "secs": 0.023
+    },
+    "geolocation-!cn 里的境外域名（国外默认）": {
+     "host": "blackhole.wikipedia.org",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 5.002
+    },
+    "Microsoft 手动切成 DIRECT，域名在境外 DNS 策略里": {
+     "host": "loop-blackhole.onmicrosoft.com",
+     "res": "node=direct",
+     "secs": 0.047
+    },
+    "再试：没被规则认出的域名": {
+     "host": "unlisted2-blackhole.qzx-lab-probe.net",
+     "res": "HTTP/1.1 502 Bad Gateway",
+     "secs": 5.047
+    },
+    "再试：境外 DNS 会答国内地址的域名": {
+     "host": "cnsite2-blackhole.qzx-lab-probe.net",
+     "res": "node=direct",
+     "secs": 0.047
+    }
+   },
+   "dns": {
+    "www.msftconnecttest.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "www.msftncsi.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "captive.apple.com": {
+     "res": "rcode=0 93.184.216.34",
+     "secs": 0.04
+    },
+    "time.apple.com": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    },
+    "connectivitycheck.platform.hicloud.com": {
+     "res": "rcode=0 198.18.0.4",
+     "secs": 0.0
+    },
+    "unlisted-blackhole.qzx-lab-probe.net": {
+     "res": "rcode=0 198.18.0.5",
+     "secs": 0.0
+    },
+    "www.baidu.com": {
+     "res": "rcode=0 198.18.0.6",
+     "secs": 0.0
+    },
+    "nas-blackhole": {
+     "res": "rcode=0 127.0.0.1",
+     "secs": 0.0
+    }
+   },
+   "udp": {
+    "udp-blackhole.openai.com": "sent"
+   },
+   "select": {
+    "国外默认": [
+     204,
+     ""
+    ],
+    "全部节点": [
+     204,
+     ""
+    ],
+    "Microsoft": [
+     204,
+     ""
+    ]
+   },
+   "now": {
+    "国外默认": "全部节点",
+    "全部节点": "美国 02",
+    "OpenAI": "日本",
+    "日本": "日本·自动",
+    "日本·自动": "REJECT",
+    "Microsoft": "DIRECT",
+    "境外DNS出口": "国外默认"
+   },
+   "t_mode": 4.02,
+   "dns_group_now_end": "香港·自动",
+   "lab_events": [
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.05
+    },
+    {
+     "kind": "node_connect",
+     "node": "n5",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.04
+    },
+    {
+     "kind": "node_connect",
+     "node": "n4",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n2",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": -0.01
+    },
+    {
+     "kind": "mode",
+     "node": "n5",
+     "old": "up",
+     "new": "blackhole",
+     "t": 3.01
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 4.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 4.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 4.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 4.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 9.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 9.02
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 14.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 14.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 14.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 14.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 19.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 19.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 19.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 19.03
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 19.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 19.04
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "www.gstatic.com",
+     "port": 80,
+     "t": 19.05
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 24.03
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 24.03
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 24.03
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 24.03
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "www.baidu.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 24.03
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 24.03
+    },
+    {
+     "kind": "node_connect",
+     "node": "n1",
+     "host": "tcp-blackhole.openai.com",
+     "port": 49600,
+     "t": 24.04
+    },
+    {
+     "kind": "hello",
+     "node": "n1",
+     "method": "GET",
+     "path": "/hello",
+     "t": 24.04
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 24.06
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.08
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.08
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.08
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.08
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-blackhole.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 29.08
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-blackhole.onmicrosoft.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 29.08
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-blackhole.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 29.08
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "loop-blackhole.onmicrosoft.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 29.08
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 29.1
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.12
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.12
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.13
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftconnecttest.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.13
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.17
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.17
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.17
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "www.msftncsi.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.17
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.21
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.21
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.21
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "captive.apple.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.21
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "time.apple.com",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 29.24
+    },
+    {
+     "kind": "dns",
+     "server": "system",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "nas-blackhole",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 29.24
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 29.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 29.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-blackhole.openai.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-blackhole.openai.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 29.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-blackhole.openai.com",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 29.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "udp-blackhole.openai.com",
+     "qtype": 28,
+     "ans": null,
+     "t": 29.26
+    },
+    {
+     "kind": "node_udp_assoc",
+     "node": "n1",
+     "t": 29.28
+    },
+    {
+     "kind": "node_udp_packet",
+     "node": "n1",
+     "atyp": 1,
+     "dst": "93.184.216.34",
+     "port": 443,
+     "t": 29.28
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 35.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 35.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 35.26
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 35.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-blackhole.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 35.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-blackhole.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 35.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-blackhole.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 35.26
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "unlisted2-blackhole.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "93.184.216.34",
+     "t": 35.26
+    },
+    {
+     "kind": "node_blackhole",
+     "node": "n5",
+     "t": 35.29
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 40.31
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "8.8.8.8",
+     "port": 53,
+     "t": 40.31
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 40.31
+    },
+    {
+     "kind": "node_connect",
+     "node": "n3",
+     "host": "1.1.1.1",
+     "port": 53,
+     "t": 40.31
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 40.31
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 40.31
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 40.31
+    },
+    {
+     "kind": "dns",
+     "server": "foreign",
+     "via": "n3",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "223.5.5.5",
+     "t": 40.31
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 1,
+     "ans": "127.0.0.1",
+     "t": 40.33
+    },
+    {
+     "kind": "dns",
+     "server": "domestic",
+     "via": "direct",
+     "proto": "tcp",
+     "name": "cnsite2-blackhole.qzx-lab-probe.net",
+     "qtype": 28,
+     "ans": null,
+     "t": 40.33
+    },
+    {
+     "kind": "hello",
+     "node": "direct",
+     "method": "GET",
+     "path": "/hello",
+     "t": 40.33
+    }
+   ]
+  }
+ ]
+}

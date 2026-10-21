@@ -1,0 +1,43 @@
+{
+ "run": "t30-refuse-seq-fixed",
+ "params": {
+  "interval": 30,
+  "mode": "refuse",
+  "traffic": "seq",
+  "period": 2,
+  "select": "fixed",
+  "t_fail": 32,
+  "t_end": 100
+ },
+ "t_fail": 32.002,
+ "checks_at": [
+  0.0,
+  30.0,
+  60.0,
+  90.0
+ ],
+ "now_changes": [
+  [
+   2.047,
+   "日本 01",
+   "🇯🇵 Tokyo 02"
+  ],
+  [
+   62.313,
+   "🇯🇵 Tokyo 02",
+   "🇯🇵 Tokyo 02"
+  ]
+ ],
+ "auto_left_n1_after_s": 30.3,
+ "auto_now_after": "🇯🇵 Tokyo 02",
+ "reqs_after_fail_until_first_ok": 0,
+ "bad_results": [],
+ "first_ok_other": {
+  "start_after_s": 1.9,
+  "done_after_s": 2.0,
+  "res": "node=n2",
+  "secs": 0.124
+ },
+ "ok_via_n1_after_fail": 0,
+ "last_req": "node=n2"
+}

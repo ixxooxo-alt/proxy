@@ -1,0 +1,292 @@
+{
+ "check": [
+  0,
+  "configuration file <OPT>/runs/e1/config.yaml test is successful"
+ ],
+ "start": {
+  "国外默认": {
+   "type": "Selector",
+   "now": "日本",
+   "hidden": false,
+   "all": [
+    "日本",
+    "香港",
+    "韩国",
+    "台湾",
+    "新加坡",
+    "美国",
+    "其他地区",
+    "全部节点"
+   ]
+  },
+  "OpenAI": {
+   "type": "Selector",
+   "now": "日本",
+   "hidden": false,
+   "all": [
+    "日本",
+    "国外默认",
+    "香港",
+    "韩国",
+    "台湾",
+    "新加坡",
+    "美国",
+    "其他地区",
+    "DIRECT"
+   ]
+  },
+  "日本": {
+   "type": "Selector",
+   "now": "日本·自动",
+   "hidden": false,
+   "all": [
+    "日本·自动",
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03"
+   ]
+  },
+  "日本·自动": {
+   "type": "URLTest",
+   "now": "日本 01",
+   "hidden": true,
+   "all": [
+    "日本 01",
+    "🇯🇵 Tokyo 02"
+   ]
+  },
+  "香港": {
+   "type": "Selector",
+   "now": "香港·自动",
+   "hidden": false,
+   "all": [
+    "香港·自动",
+    "香港 01",
+    "香港 01 | 官网：abc.com",
+    "香港·无可用节点"
+   ]
+  },
+  "香港·自动": {
+   "type": "URLTest",
+   "now": "香港 01",
+   "hidden": true,
+   "all": [
+    "香港 01",
+    "香港 01 | 官网：abc.com",
+    "香港·无可用节点"
+   ]
+  },
+  "美国": {
+   "type": "Selector",
+   "now": "美国·自动",
+   "hidden": false,
+   "all": [
+    "美国·自动",
+    "日本-美国 03",
+    "美国 01"
+   ]
+  },
+  "美国·自动": {
+   "type": "URLTest",
+   "now": "美国 01",
+   "hidden": true,
+   "all": [
+    "美国 01"
+   ]
+  },
+  "韩国": {
+   "type": "Selector",
+   "now": "韩国·自动",
+   "hidden": false,
+   "all": [
+    "韩国·自动"
+   ]
+  },
+  "韩国·自动": {
+   "type": "URLTest",
+   "now": "REJECT",
+   "hidden": true,
+   "all": [
+    "REJECT"
+   ]
+  },
+  "其他地区": {
+   "type": "Selector",
+   "now": "德国 01",
+   "hidden": false,
+   "all": [
+    "德国 01"
+   ]
+  },
+  "全部节点": {
+   "type": "Selector",
+   "now": "日本 01",
+   "hidden": false,
+   "all": [
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03",
+    "香港 01",
+    "美国 01",
+    "德国 01",
+    "官网 example.com",
+    "请更新订阅",
+    "香港 01 | 官网：abc.com"
+   ]
+  },
+  "T-全部节点-并集": {
+   "type": "Selector",
+   "now": "日本 01",
+   "hidden": false,
+   "all": [
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03",
+    "香港 01",
+    "美国 01",
+    "德国 01",
+    "香港 01 | 官网：abc.com"
+   ]
+  },
+  "T-全部节点-反引号": {
+   "type": "Selector",
+   "now": "香港 01",
+   "hidden": false,
+   "all": [
+    "香港 01",
+    "香港 01 | 官网：abc.com",
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03",
+    "美国 01",
+    "德国 01"
+   ]
+  },
+  "T-日本-include-all": {
+   "type": "Selector",
+   "now": "日本·自动",
+   "hidden": false,
+   "all": [
+    "日本·自动",
+    "日本·无可用节点",
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03"
+   ]
+  },
+  "T-日本-exclude含间隔号": {
+   "type": "Selector",
+   "now": "日本 01",
+   "hidden": false,
+   "all": [
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03"
+   ]
+  },
+  "T-日本-反引号": {
+   "type": "Selector",
+   "now": "🇯🇵 Tokyo 02",
+   "hidden": false,
+   "all": [
+    "🇯🇵 Tokyo 02",
+    "日本·自动",
+    "日本 01",
+    "日本-美国 03"
+   ]
+  },
+  "T-日本-不写filter": {
+   "type": "Selector",
+   "now": "日本·自动",
+   "hidden": false,
+   "all": [
+    "日本·自动",
+    "日本 01",
+    "🇯🇵 Tokyo 02",
+    "日本-美国 03",
+    "剩余流量：10GB",
+    "香港 01",
+    "美国 01",
+    "德国 01",
+    "官网 example.com",
+    "请更新订阅",
+    "香港 01 | 官网：abc.com",
+    "香港·无可用节点"
+   ]
+  }
+ },
+ "GLOBAL_all": [
+  "DIRECT",
+  "REJECT",
+  "日本·无可用节点",
+  "国外默认",
+  "OpenAI",
+  "香港",
+  "香港·自动",
+  "日本",
+  "日本·自动",
+  "韩国",
+  "韩国·自动",
+  "台湾",
+  "台湾·自动",
+  "新加坡",
+  "新加坡·自动",
+  "美国",
+  "美国·自动",
+  "其他地区",
+  "全部节点",
+  "T-全部节点-并集",
+  "T-全部节点-反引号",
+  "T-日本-include-all",
+  "T-日本-exclude含间隔号",
+  "T-日本-反引号",
+  "T-日本-不写filter"
+ ],
+ "put": {
+  "日本<-日本·自动": [
+   204,
+   ""
+  ],
+  "日本<-香港 01(不是成员)": [
+   400,
+   "{\"message\":\"Selector update error: proxy not exist\"}\n"
+  ],
+  "日本<-日本 01": [
+   204,
+   ""
+  ],
+  "国外默认<-全部节点": [
+   204,
+   ""
+  ],
+  "全部节点<-美国 01": [
+   204,
+   ""
+  ]
+ },
+ "after_put": {
+  "国外默认": "全部节点",
+  "日本": "日本 01",
+  "全部节点": "美国 01",
+  "OpenAI": "日本"
+ },
+ "req_openai_like": [
+  "node=n6",
+  0.084
+ ],
+ "after_restart": {
+  "国外默认": "全部节点",
+  "日本": "日本 01",
+  "全部节点": "美国 01"
+ },
+ "after_node_gone": {
+  "国外默认": "全部节点",
+  "日本": "日本·自动",
+  "全部节点": "🇯🇵 Tokyo 02"
+ },
+ "after_node_gone_all_日本": [
+  "日本·自动",
+  "🇯🇵 Tokyo 02",
+  "日本-美国 03"
+ ]
+}

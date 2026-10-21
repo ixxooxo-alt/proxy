@@ -1,0 +1,435 @@
+{"ev": "start", "check": [0, "configuration file <scratch>/simple-design/mihomo/o"], "params": {"interval": 30, "mode": "blackhole", "traffic": "burst", "period": 3, "k": 4, "select": "auto", "mft": 3, "t_fail": 32, "t_end": 100}, "t": 0.0}
+{"ev": "now", "auto": "日本 01", "jp": "日本·自动", "t": 2.038}
+{"ev": "req", "tag": "b1.3", "res": "node=n1", "secs": 0.031, "t": 2.04}
+{"ev": "req", "tag": "b1.0", "res": "node=n1", "secs": 0.037, "t": 2.041}
+{"ev": "req", "tag": "b1.2", "res": "node=n1", "secs": 0.032, "t": 2.041}
+{"ev": "req", "tag": "b1.1", "res": "node=n1", "secs": 0.033, "t": 2.041}
+{"ev": "req", "tag": "b2.3", "res": "node=n1", "secs": 0.025, "t": 5.03}
+{"ev": "req", "tag": "b2.1", "res": "node=n1", "secs": 0.026, "t": 5.03}
+{"ev": "req", "tag": "b2.2", "res": "node=n1", "secs": 0.026, "t": 5.03}
+{"ev": "req", "tag": "b2.0", "res": "node=n1", "secs": 0.027, "t": 5.03}
+{"ev": "req", "tag": "b3.0", "res": "node=n1", "secs": 0.027, "t": 8.03}
+{"ev": "req", "tag": "b3.1", "res": "node=n1", "secs": 0.026, "t": 8.031}
+{"ev": "req", "tag": "b3.2", "res": "node=n1", "secs": 0.027, "t": 8.031}
+{"ev": "req", "tag": "b3.3", "res": "node=n1", "secs": 0.027, "t": 8.031}
+{"ev": "req", "tag": "b4.3", "res": "node=n1", "secs": 0.024, "t": 11.029}
+{"ev": "req", "tag": "b4.0", "res": "node=n1", "secs": 0.026, "t": 11.029}
+{"ev": "req", "tag": "b4.2", "res": "node=n1", "secs": 0.025, "t": 11.029}
+{"ev": "req", "tag": "b4.1", "res": "node=n1", "secs": 0.026, "t": 11.029}
+{"ev": "req", "tag": "b5.3", "res": "node=n1", "secs": 0.031, "t": 14.036}
+{"ev": "req", "tag": "b5.2", "res": "node=n1", "secs": 0.031, "t": 14.036}
+{"ev": "req", "tag": "b5.1", "res": "node=n1", "secs": 0.032, "t": 14.036}
+{"ev": "req", "tag": "b5.0", "res": "node=n1", "secs": 0.033, "t": 14.036}
+{"ev": "req", "tag": "b6.3", "res": "node=n1", "secs": 0.024, "t": 17.029}
+{"ev": "req", "tag": "b6.1", "res": "node=n1", "secs": 0.025, "t": 17.029}
+{"ev": "req", "tag": "b6.0", "res": "node=n1", "secs": 0.025, "t": 17.029}
+{"ev": "req", "tag": "b6.2", "res": "node=n1", "secs": 0.025, "t": 17.029}
+{"ev": "req", "tag": "b7.2", "res": "node=n1", "secs": 0.024, "t": 20.029}
+{"ev": "req", "tag": "b7.1", "res": "node=n1", "secs": 0.025, "t": 20.029}
+{"ev": "req", "tag": "b7.0", "res": "node=n1", "secs": 0.025, "t": 20.029}
+{"ev": "req", "tag": "b7.3", "res": "node=n1", "secs": 0.024, "t": 20.029}
+{"ev": "req", "tag": "b8.2", "res": "node=n1", "secs": 0.025, "t": 23.03}
+{"ev": "req", "tag": "b8.1", "res": "node=n1", "secs": 0.026, "t": 23.03}
+{"ev": "req", "tag": "b8.0", "res": "node=n1", "secs": 0.026, "t": 23.03}
+{"ev": "req", "tag": "b8.3", "res": "node=n1", "secs": 0.025, "t": 23.03}
+{"ev": "req", "tag": "b9.1", "res": "node=n1", "secs": 0.025, "t": 26.03}
+{"ev": "req", "tag": "b9.3", "res": "node=n1", "secs": 0.025, "t": 26.03}
+{"ev": "req", "tag": "b9.2", "res": "node=n1", "secs": 0.026, "t": 26.03}
+{"ev": "req", "tag": "b9.0", "res": "node=n1", "secs": 0.026, "t": 26.03}
+{"ev": "req", "tag": "b10.0", "res": "node=n1", "secs": 0.024, "t": 29.029}
+{"ev": "req", "tag": "b10.1", "res": "node=n1", "secs": 0.024, "t": 29.029}
+{"ev": "req", "tag": "b10.2", "res": "node=n1", "secs": 0.024, "t": 29.029}
+{"ev": "req", "tag": "b10.3", "res": "node=n1", "secs": 0.024, "t": 29.029}
+{"ev": "fail", "node": "n1", "mode": "blackhole", "lab": "n1=blackhole", "t": 32.005}
+{"ev": "req", "tag": "b11.1", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.001, "t": 37.006}
+{"ev": "req", "tag": "b11.2", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.001, "t": 37.006}
+{"ev": "req", "tag": "b11.0", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 37.007}
+{"ev": "req", "tag": "b11.3", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 37.008}
+{"ev": "req", "tag": "b12.0", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 42.01}
+{"ev": "req", "tag": "b12.1", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 42.01}
+{"ev": "req", "tag": "b12.2", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 42.01}
+{"ev": "req", "tag": "b12.3", "res": "HTTP/1.1 502 Bad Gateway", "secs": 5.002, "t": 42.012}
+{"ev": "req", "tag": "b13.0", "res": "node=n2", "secs": 0.127, "t": 42.139}
+{"ev": "req", "tag": "b13.2", "res": "node=n2", "secs": 0.127, "t": 42.14}
+{"ev": "req", "tag": "b13.3", "res": "node=n2", "secs": 0.127, "t": 42.14}
+{"ev": "req", "tag": "b13.1", "res": "node=n2", "secs": 0.128, "t": 42.14}
+{"ev": "now", "auto": "🇯🇵 Tokyo 02", "jp": "日本·自动", "t": 42.226}
+{"ev": "req", "tag": "b14.0", "res": "node=n2", "secs": 0.127, "t": 45.139}
+{"ev": "req", "tag": "b14.1", "res": "node=n2", "secs": 0.127, "t": 45.139}
+{"ev": "req", "tag": "b14.2", "res": "node=n2", "secs": 0.127, "t": 45.139}
+{"ev": "req", "tag": "b14.3", "res": "node=n2", "secs": 0.126, "t": 45.139}
+{"ev": "req", "tag": "b15.3", "res": "node=n2", "secs": 0.125, "t": 48.138}
+{"ev": "req", "tag": "b15.1", "res": "node=n2", "secs": 0.126, "t": 48.139}
+{"ev": "req", "tag": "b15.2", "res": "node=n2", "secs": 0.126, "t": 48.139}
+{"ev": "req", "tag": "b15.0", "res": "node=n2", "secs": 0.127, "t": 48.139}
+{"ev": "req", "tag": "b16.0", "res": "node=n2", "secs": 0.127, "t": 51.14}
+{"ev": "req", "tag": "b16.1", "res": "node=n2", "secs": 0.127, "t": 51.14}
+{"ev": "req", "tag": "b16.3", "res": "node=n2", "secs": 0.126, "t": 51.14}
+{"ev": "req", "tag": "b16.2", "res": "node=n2", "secs": 0.127, "t": 51.14}
+{"ev": "req", "tag": "b17.3", "res": "node=n2", "secs": 0.125, "t": 54.138}
+{"ev": "req", "tag": "b17.1", "res": "node=n2", "secs": 0.126, "t": 54.139}
+{"ev": "req", "tag": "b17.2", "res": "node=n2", "secs": 0.126, "t": 54.139}
+{"ev": "req", "tag": "b17.0", "res": "node=n2", "secs": 0.127, "t": 54.139}
+{"ev": "req", "tag": "b18.3", "res": "node=n2", "secs": 0.125, "t": 57.138}
+{"ev": "req", "tag": "b18.2", "res": "node=n2", "secs": 0.125, "t": 57.138}
+{"ev": "req", "tag": "b18.1", "res": "node=n2", "secs": 0.126, "t": 57.139}
+{"ev": "req", "tag": "b18.0", "res": "node=n2", "secs": 0.126, "t": 57.139}
+{"ev": "req", "tag": "b19.2", "res": "node=n2", "secs": 0.127, "t": 60.141}
+{"ev": "req", "tag": "b19.3", "res": "node=n2", "secs": 0.127, "t": 60.141}
+{"ev": "req", "tag": "b19.0", "res": "node=n2", "secs": 0.128, "t": 60.141}
+{"ev": "req", "tag": "b19.1", "res": "node=n2", "secs": 0.128, "t": 60.141}
+{"ev": "req", "tag": "b20.0", "res": "node=n2", "secs": 0.125, "t": 63.138}
+{"ev": "req", "tag": "b20.3", "res": "node=n2", "secs": 0.125, "t": 63.138}
+{"ev": "req", "tag": "b20.2", "res": "node=n2", "secs": 0.125, "t": 63.138}
+{"ev": "req", "tag": "b20.1", "res": "node=n2", "secs": 0.125, "t": 63.138}
+{"ev": "req", "tag": "b21.1", "res": "node=n2", "secs": 0.127, "t": 66.14}
+{"ev": "req", "tag": "b21.2", "res": "node=n2", "secs": 0.127, "t": 66.14}
+{"ev": "req", "tag": "b21.0", "res": "node=n2", "secs": 0.127, "t": 66.141}
+{"ev": "req", "tag": "b21.3", "res": "node=n2", "secs": 0.127, "t": 66.141}
+{"ev": "req", "tag": "b22.1", "res": "node=n2", "secs": 0.126, "t": 69.14}
+{"ev": "req", "tag": "b22.3", "res": "node=n2", "secs": 0.125, "t": 69.14}
+{"ev": "req", "tag": "b22.0", "res": "node=n2", "secs": 0.127, "t": 69.141}
+{"ev": "req", "tag": "b22.2", "res": "node=n2", "secs": 0.127, "t": 69.141}
+{"ev": "req", "tag": "b23.3", "res": "node=n2", "secs": 0.126, "t": 72.14}
+{"ev": "req", "tag": "b23.0", "res": "node=n2", "secs": 0.128, "t": 72.141}
+{"ev": "req", "tag": "b23.2", "res": "node=n2", "secs": 0.128, "t": 72.142}
+{"ev": "req", "tag": "b23.1", "res": "node=n2", "secs": 0.128, "t": 72.142}
+{"ev": "req", "tag": "b24.0", "res": "node=n2", "secs": 0.128, "t": 75.141}
+{"ev": "req", "tag": "b24.2", "res": "node=n2", "secs": 0.127, "t": 75.141}
+{"ev": "req", "tag": "b24.1", "res": "node=n2", "secs": 0.128, "t": 75.142}
+{"ev": "req", "tag": "b24.3", "res": "node=n2", "secs": 0.128, "t": 75.142}
+{"ev": "req", "tag": "b25.0", "res": "node=n2", "secs": 0.126, "t": 78.14}
+{"ev": "req", "tag": "b25.3", "res": "node=n2", "secs": 0.123, "t": 78.14}
+{"ev": "req", "tag": "b25.1", "res": "node=n2", "secs": 0.126, "t": 78.141}
+{"ev": "req", "tag": "b25.2", "res": "node=n2", "secs": 0.126, "t": 78.141}
+{"ev": "req", "tag": "b26.1", "res": "node=n2", "secs": 0.125, "t": 81.139}
+{"ev": "req", "tag": "b26.0", "res": "node=n2", "secs": 0.126, "t": 81.139}
+{"ev": "req", "tag": "b26.2", "res": "node=n2", "secs": 0.129, "t": 81.144}
+{"ev": "req", "tag": "b26.3", "res": "node=n2", "secs": 0.129, "t": 81.145}
+{"ev": "req", "tag": "b27.0", "res": "node=n2", "secs": 0.125, "t": 84.139}
+{"ev": "req", "tag": "b27.3", "res": "node=n2", "secs": 0.124, "t": 84.139}
+{"ev": "req", "tag": "b27.2", "res": "node=n2", "secs": 0.125, "t": 84.14}
+{"ev": "req", "tag": "b27.1", "res": "node=n2", "secs": 0.125, "t": 84.14}
+{"ev": "req", "tag": "b28.0", "res": "node=n2", "secs": 0.125, "t": 87.139}
+{"ev": "req", "tag": "b28.2", "res": "node=n2", "secs": 0.125, "t": 87.139}
+{"ev": "req", "tag": "b28.3", "res": "node=n2", "secs": 0.125, "t": 87.139}
+{"ev": "req", "tag": "b28.1", "res": "node=n2", "secs": 0.126, "t": 87.14}
+{"ev": "req", "tag": "b29.3", "res": "node=n2", "secs": 0.126, "t": 90.141}
+{"ev": "req", "tag": "b29.2", "res": "node=n2", "secs": 0.126, "t": 90.141}
+{"ev": "req", "tag": "b29.0", "res": "node=n2", "secs": 0.127, "t": 90.141}
+{"ev": "req", "tag": "b29.1", "res": "node=n2", "secs": 0.13, "t": 90.145}
+{"ev": "req", "tag": "b30.3", "res": "node=n2", "secs": 0.126, "t": 93.142}
+{"ev": "req", "tag": "b30.0", "res": "node=n2", "secs": 0.128, "t": 93.142}
+{"ev": "req", "tag": "b30.2", "res": "node=n2", "secs": 0.127, "t": 93.142}
+{"ev": "req", "tag": "b30.1", "res": "node=n2", "secs": 0.128, "t": 93.142}
+{"ev": "req", "tag": "b31.2", "res": "node=n2", "secs": 0.128, "t": 96.143}
+{"ev": "req", "tag": "b31.1", "res": "node=n2", "secs": 0.129, "t": 96.144}
+{"ev": "req", "tag": "b31.0", "res": "node=n2", "secs": 0.129, "t": 96.144}
+{"ev": "req", "tag": "b31.3", "res": "node=n2", "secs": 0.128, "t": 96.144}
+{"ev": "req", "tag": "b32.0", "res": "node=n2", "secs": 0.127, "t": 99.142}
+{"ev": "req", "tag": "b32.2", "res": "node=n2", "secs": 0.127, "t": 99.143}
+{"ev": "req", "tag": "b32.1", "res": "node=n2", "secs": 0.127, "t": 99.143}
+{"ev": "req", "tag": "b32.3", "res": "node=n2", "secs": 0.127, "t": 99.142}
+{"node": "n1", "host": "www.gstatic.com", "port": 80, "t": 0.045, "ev": "lab_node_connect"}
+{"node": "n4", "host": "www.gstatic.com", "port": 80, "t": 0.056, "ev": "lab_node_connect"}
+{"node": "n1", "method": "HEAD", "t": 0.064, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 0.072, "ev": "lab_probe"}
+{"node": "n1", "method": "HEAD", "t": 0.088, "ev": "lab_probe"}
+{"node": "n2", "host": "www.gstatic.com", "port": 80, "t": 0.094, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 0.104, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 0.104, "ev": "lab_probe"}
+{"node": "n3", "host": "www.gstatic.com", "port": 80, "t": 0.159, "ev": "lab_node_connect"}
+{"node": "n3", "method": "HEAD", "t": 0.161, "ev": "lab_probe"}
+{"node": "n2", "method": "HEAD", "t": 0.172, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 0.282, "ev": "lab_probe"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 2.027, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 2.027, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 2.027, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 2.028, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 2.029, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 2.029, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 2.029, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 2.03, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 5.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 5.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 5.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 5.017, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 5.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 5.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 5.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 5.019, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 8.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 8.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 8.018, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 8.018, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 8.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 8.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 8.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 8.02, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 11.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 11.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 11.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 11.017, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 11.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 11.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 11.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 11.018, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 14.018, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 14.018, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 14.018, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 14.019, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 14.02, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 14.02, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 14.02, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 14.02, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 17.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 17.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 17.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 17.016, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 17.017, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 17.017, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 17.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 17.018, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 20.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 20.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 20.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 20.017, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 20.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 20.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 20.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 20.018, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 23.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 23.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 23.018, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 23.018, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 23.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 23.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 23.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 23.019, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 26.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 26.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 26.017, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 26.017, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 26.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 26.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 26.019, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 26.019, "ev": "lab_hello"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 29.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 29.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 29.016, "ev": "lab_node_connect"}
+{"node": "n1", "host": "jp.example", "port": 48480, "t": 29.016, "ev": "lab_node_connect"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 29.017, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 29.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 29.018, "ev": "lab_hello"}
+{"node": "n1", "method": "GET", "path": "/hello", "t": 29.018, "ev": "lab_hello"}
+{"node": "n1", "host": "www.gstatic.com", "port": 80, "t": 30.038, "ev": "lab_node_connect"}
+{"node": "n1", "method": "HEAD", "t": 30.039, "ev": "lab_probe"}
+{"node": "n4", "host": "www.gstatic.com", "port": 80, "t": 30.049, "ev": "lab_node_connect"}
+{"node": "n1", "method": "HEAD", "t": 30.05, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 30.05, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 30.072, "ev": "lab_probe"}
+{"node": "n2", "host": "www.gstatic.com", "port": 80, "t": 30.088, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 30.089, "ev": "lab_probe"}
+{"node": "n3", "host": "www.gstatic.com", "port": 80, "t": 30.149, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 30.15, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 30.15, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 30.272, "ev": "lab_probe"}
+{"node": "n1", "old": "up", "new": "blackhole", "t": 32.004, "ev": "lab_mode"}
+{"node": "n1", "t": 32.006, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 32.006, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 32.007, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 32.007, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 37.007, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 37.009, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 37.009, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 37.01, "ev": "lab_node_blackhole"}
+{"node": "n1", "t": 37.011, "ev": "lab_node_blackhole"}
+{"node": "n4", "host": "www.gstatic.com", "port": 80, "t": 37.028, "ev": "lab_node_connect"}
+{"node": "n4", "method": "HEAD", "t": 37.029, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 37.05, "ev": "lab_probe"}
+{"node": "n2", "host": "www.gstatic.com", "port": 80, "t": 37.07, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 37.071, "ev": "lab_probe"}
+{"node": "n3", "host": "www.gstatic.com", "port": 80, "t": 37.128, "ev": "lab_node_connect"}
+{"node": "n3", "method": "HEAD", "t": 37.129, "ev": "lab_probe"}
+{"node": "n2", "method": "HEAD", "t": 37.132, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 37.251, "ev": "lab_probe"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 42.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 42.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 42.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 42.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 42.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 42.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 42.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 42.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 45.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 45.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 45.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 45.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 45.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 45.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 45.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 45.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 48.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 48.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 48.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 48.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 48.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 48.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 48.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 48.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 51.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 51.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 51.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 51.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 51.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 51.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 51.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 51.079, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 54.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 54.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 54.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 54.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 54.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 54.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 54.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 54.077, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 57.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 57.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 57.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 57.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 57.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 57.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 57.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 57.077, "ev": "lab_hello"}
+{"node": "n1", "t": 60.027, "ev": "lab_node_blackhole"}
+{"node": "n4", "host": "www.gstatic.com", "port": 80, "t": 60.047, "ev": "lab_node_connect"}
+{"node": "n4", "method": "HEAD", "t": 60.048, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 60.069, "ev": "lab_probe"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 60.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 60.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 60.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 60.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 60.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 60.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 60.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 60.08, "ev": "lab_hello"}
+{"node": "n2", "host": "www.gstatic.com", "port": 80, "t": 60.088, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 60.089, "ev": "lab_probe"}
+{"node": "n3", "host": "www.gstatic.com", "port": 80, "t": 60.148, "ev": "lab_node_connect"}
+{"node": "n3", "method": "HEAD", "t": 60.149, "ev": "lab_probe"}
+{"node": "n2", "method": "HEAD", "t": 60.149, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 60.271, "ev": "lab_probe"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 63.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 63.075, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 63.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 63.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 63.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 63.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 63.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 63.077, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 66.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 66.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 66.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 66.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 66.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 66.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 66.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 66.079, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 69.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 69.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 69.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 69.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 69.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 69.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 69.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 69.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 72.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 72.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 72.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 72.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 72.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 72.077, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 72.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 72.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 75.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 75.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 75.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 75.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 75.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 75.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 75.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 75.08, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 78.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 78.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 78.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 78.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 78.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 78.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 78.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 78.079, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 81.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 81.076, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 81.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 81.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 81.08, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 81.08, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 81.081, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 81.081, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 84.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 84.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 84.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 84.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 84.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 84.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 84.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 84.078, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 87.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 87.076, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 87.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 87.077, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 87.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 87.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 87.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 87.078, "ev": "lab_hello"}
+{"node": "n1", "t": 90.027, "ev": "lab_node_blackhole"}
+{"node": "n4", "host": "www.gstatic.com", "port": 80, "t": 90.047, "ev": "lab_node_connect"}
+{"node": "n4", "method": "HEAD", "t": 90.048, "ev": "lab_probe"}
+{"node": "n4", "method": "HEAD", "t": 90.069, "ev": "lab_probe"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 90.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 90.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 90.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 90.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 90.078, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 90.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 90.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 90.079, "ev": "lab_hello"}
+{"node": "n2", "host": "www.gstatic.com", "port": 80, "t": 90.087, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 90.088, "ev": "lab_probe"}
+{"node": "n3", "host": "www.gstatic.com", "port": 80, "t": 90.148, "ev": "lab_node_connect"}
+{"node": "n2", "method": "HEAD", "t": 90.149, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 90.149, "ev": "lab_probe"}
+{"node": "n3", "method": "HEAD", "t": 90.271, "ev": "lab_probe"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 93.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 93.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 93.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 93.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 93.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 93.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 93.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 93.08, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 96.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 96.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 96.079, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 96.079, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 96.081, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 96.082, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 96.082, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 96.082, "ev": "lab_hello"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 99.077, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 99.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 99.078, "ev": "lab_node_connect"}
+{"node": "n2", "host": "jp.example", "port": 48480, "t": 99.078, "ev": "lab_node_connect"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 99.079, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 99.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 99.08, "ev": "lab_hello"}
+{"node": "n2", "method": "GET", "path": "/hello", "t": 99.08, "ev": "lab_hello"}

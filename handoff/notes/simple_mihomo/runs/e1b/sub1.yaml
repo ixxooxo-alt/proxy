@@ -1,0 +1,3246 @@
+proxies:
+- name: 香港·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 香港 IPLC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰香港-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 HK-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 Hong Kong 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK 01 | IEPL
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 1.0x
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【香港】IPLC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港丨01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '[HK] 香港 01'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 A01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 家宽 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: hk-02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HKG 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hong Kong 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HongKong-03
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hongkong 04
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 深港 IPLC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 沪港 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 广港 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 莞港 IPLC 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HKT 家宽 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HKBN 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HGC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: PCCW 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 游戏 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 [中转]
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港-01-中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 | 中转 | 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 中转 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '[中转] 香港 01'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港-IEPL-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 解锁美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 直连
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: V1 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium HK 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 03 大流量
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 九龙 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新界 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 日本中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港澳台 专线 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: hk-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK｜01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK | 香港 | 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 Hong Kong | 01 | x1.5
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 [1.5x]
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港HKT01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HKT01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港新界 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港新增 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 低流量
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇳 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 NF 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 TR 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国转香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: BGP 香港 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 解锁台湾动画疯
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 解锁 🇺🇸🇯🇵
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾中转 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TW→HK 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 香港 01 | 美国原生
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 中港专线 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 CMI 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hong-Kong 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hong_Kong_02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 香港 01 | TG频道 @abc
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 高级套餐
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: V3套餐 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 官网 abc.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | TG群：@abc
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 官网：abc.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 流量：1x
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 纽约时报解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 解锁：美国(Netflix)/日本(Abema)
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 (解锁美国) 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 🇺🇸解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 香港 01 | 🇺🇸 解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 美国-解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵转🇭🇰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经日本 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 04
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 JP-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JP 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JPN 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Japan 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Tokyo 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 東京 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 大阪 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Osaka 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 大阪 IPLC
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 名古屋 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Nagoya 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 福冈 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Fukuoka 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 横滨 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 埼玉 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 千叶 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【日本】01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本丨01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JP|Tokyo|01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 沪日 IPLC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 02 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Japan-Osaka-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵日本-流媒体-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 日本 01 (香港中转)
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 | 深港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港-日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK→JP 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 → 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via HK 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: x-via 美国 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TYO-02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JP-NTT-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JP 东京 Akamai 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JP-Osaka-IIJ
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: jp_02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰🇯🇵 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰→🇯🇵 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇬🇧→🇯🇵 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 东京新宿 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 川日 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港日 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 日本 01 | 美国原生
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IPv6 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本(东京)01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Tokyo-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 关西空港 大阪 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 全网站解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Japan 01 | Unlimited Traffic
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 Tokyo 01 | Streaming Websites
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '日本01 | 解锁: 美国'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本01 | 解锁：美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本01 |  解锁  美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本01 | 解锁 美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 | 支持解锁美国、韩国流媒体
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 | 支持解锁美国、韩国流媒体 | IEPL
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 经  美国中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 经 美国中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【解锁美国】日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【解锁】日本 01 | 深港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 解锁 | 日本 01 | 深港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 | 解锁英国BBC
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 深港专线 东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港中转 东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 → 东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸转🇯🇵 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 中转 🇯🇵 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 日本中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经香港 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via-HK 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港日 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 韩国·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇰🇷 韩国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 韩国 首尔 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: KR 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: KOR 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Korea 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: South Korea 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 首尔 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 首爾 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Seoul 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 春川 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Chuncheon 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 釜山 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Busan 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 韓國 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 南韩 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 韩国 家宽 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: KR-SK-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Seoul-KT 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 韩国(首尔)01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: kr03
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Republic of Korea 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇰🇷 Korea 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港韩 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇹🇼 台湾 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳 台湾 07 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台灣 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 臺灣 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TW 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TWN 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taiwan 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台北 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 臺北 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taipei 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新北 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台中 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taichung 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 高雄 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Kaohsiung 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 桃园 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 桃園 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taoyuan 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 彰化 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Changhua 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hinet 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HiNet 家宽 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 中华电信 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 中華電信 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【台湾】01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳 台湾 08 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇹🇼 台湾 01 (港转)
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TW-HINET-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taiwan (HiNet) 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Taipei-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: tw.04
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 厦台 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳 台湾 01 | 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇸🇬 新加坡 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡 12 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SG 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SGP 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Singapore 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 狮城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 獅城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡 AWS 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【新加坡】01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SG|01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Singapore-02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇸🇬 新加坡 01 | 香港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港→新加坡 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SG-AWS-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: sg|03
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 广新 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 沪新 IEPL 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Singapore-AWS
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡 01 美国解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港入口 新加坡 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇸🇬 SG 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SIN-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡 01 HKBN
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 10 家宽
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 04
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 US 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '[US] 01'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US_02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: USA 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: United States 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: UnitedStates-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: United_States_02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: America 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 | 0.5x
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 BGP 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美國 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美西 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美东 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美東 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 洛杉矶 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 洛杉磯 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Los Angeles 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: LosAngeles-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US-LAX-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: LAX 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 圣何塞 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 聖何塞 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 聖荷西 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: San Jose 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SJC 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 硅谷 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 矽谷 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Silicon Valley 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 西雅图 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 西雅圖 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Seattle 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 达拉斯 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 達拉斯 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Dallas 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: DFW 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 芝加哥 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Chicago 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 纽约 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 紐約 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: New York 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: NewYork-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: JFK 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 凤凰城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 鳳凰城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Phoenix 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 阿什本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Ashburn 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 弗吉尼亚 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Virginia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 迈阿密 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 邁阿密 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Miami 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 亚特兰大 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Atlanta 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 丹佛 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Denver 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 拉斯维加斯 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Las Vegas 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 旧金山 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 舊金山 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: San Francisco 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: SFO 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 费利蒙 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 弗里蒙特 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Fremont 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 波特兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Portland 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 休斯顿 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Houston 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 盐湖城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Salt Lake City 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 堪萨斯城 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Kansas City 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 俄勒冈 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Oregon 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 加州 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: California 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 德州 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Texas 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新泽西 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: New Jersey 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 夏威夷 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Hawaii 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 波士顿 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Boston 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 圣克拉拉 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Santa Clara 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 原生IP 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 ChatGPT 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US 家宽 x2
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸美国丨01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国｜01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 【美国】01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国·01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US-Dallas-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US | Seattle 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 | 日本中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 United States 01 | 0.5x
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US-CA-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 | 深港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 美国 01 [港转]
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 → 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 广港-美国 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK->US 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇲 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳🇺🇸 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵→🇺🇸 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL via 日本 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Monrovia 🇺🇸 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 加利福尼亚 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 休斯敦 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 得克萨斯 达拉斯 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本转美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 转 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本-中转-美国-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本_转_美国_01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK-US 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US-HK 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: us01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: us-west-1
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: USA-Seattle-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US Los Angeles 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国(洛杉矶)01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US CN2 GIA 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: V4 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 沪美 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港美 IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: American 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 AT&T 家宽 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 [日本中转]
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 圣迭戈 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Ashburn-VA-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 (解锁日本)
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US | Phoenix | 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Des Moines 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: St. Louis 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Saint Louis 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 檀香山 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 ChatGPT官网可用
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 美国 01 | 订阅专属
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US Oakland 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 San Jose 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 01 Unlock JP
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '美国 01 | Unlocked: Japan | x2'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 奥克兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 沪港 IEPL 洛杉矶 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 其他地区·无可用节点
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇬🇧 英国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 英国 伦敦 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: UK 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: United Kingdom 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: London 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇩🇪 德国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 德国 法兰克福
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Germany 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Frankfurt 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: DE 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇫🇷 法国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: France 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Paris 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇳🇱 荷兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Netherlands 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Amsterdam 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇷🇺 俄罗斯 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Russia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: RUS 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 莫斯科 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Moscow 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇮🇳 印度 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: India 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 孟买 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇦🇺 澳大利亚 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 澳洲 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Australia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: AUS 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 悉尼 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Sydney 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇦 加拿大 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Canada 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 多伦多 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Toronto 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 温哥华 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇹🇷 土耳其 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Turkey 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Istanbul 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇦🇷 阿根廷 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Argentina 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇧🇷 巴西 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Brazil 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇲🇾 马来西亚 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Malaysia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 吉隆坡 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇹🇭 泰国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Thailand 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 曼谷 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇻🇳 越南 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Vietnam 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇵🇭 菲律宾 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Philippines 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇮🇩 印尼 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Indonesia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇲🇴 澳门 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 澳門 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Macau 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Macao 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇳🇿 新西兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 紐西蘭 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: New Zealand 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇦🇪 迪拜 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Dubai 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇮🇱 以色列 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇦 乌克兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Ukraine 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇮🇹 意大利 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇪🇸 西班牙 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇭 瑞士 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇸🇪 瑞典 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇵🇱 波兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇮🇪 爱尔兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Belarus 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇾 Cyprus 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Mauritius 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇧🇷 South America 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Latin America 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 南美 巴西 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新德里 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳 中国 上海 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 回国 上海 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium Plus 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Twitter 专用 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Twitch 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇬🇧 英国 01 | 香港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 英国 伦敦 01 (港转)
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇩🇪 德国 01 [深港中转]
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Relay 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Auto 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 多平台中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 英国 01 | 日本中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Den Haag 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Las Palmas 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇪🇺 欧洲 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 法国 巴黎 01 | 香港入口
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 俄罗斯 伯力 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本回国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 回国专线 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: North America 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: North Korea 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵→🇬🇧 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Preset 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: DE-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TUR 02
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: UK-London-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: UAE 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Georgia 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: New Mexico 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 澳洲 悉尼 01 | 日本解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇰🇵 朝鲜 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新山 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新疆 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Chrome 专用 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Woman 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇲🇴 Macau 01 | 港转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 中东 迪拜 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇬🇧🇭🇰 英国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 → 英国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 英国中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 伦敦 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇬🇧中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵中转 伦敦 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 剩余流量：100.5 GB
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 套餐到期：2026-12-31
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 距离下次重置剩余：15 天
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 官网 example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 'Expire: 2026-12-31'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 'Traffic: 12.3GB | 200GB'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 最新网址：example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 发布页：example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Telegram 群：@example
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 客服 QQ 123456
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 公告：部分节点维护中
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 官方 TG 频道
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 到期时间：2026-12-31
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 邮箱 support@example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 网站 example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 剩余流量：10GB 距离重置 3 天
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 总流量 100G
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 流量：1G/100G
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 官方网站：example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Expires 2026-12-31
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 'Traffic Reset: 1st'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 剩余流量：10G | 香港
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 请更新订阅
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 工单请到官网提交
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TG群 @example
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 防失联地址 example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 已用 20G
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 过滤掉 3 条线路
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 过滤掉12条线路
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 套餐到期：长期有效
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 官网：hk.example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 最新网址：us.example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 公告：香港节点维护中
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: TG群：@hk_nodes
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 邮箱：admin@example.jp
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 套餐：年付 香港专线
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 订阅：sub.example.sg
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 'Expire: 2026-12-31 (JP)'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本-美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵🇺🇸 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 > 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港中转 日本中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇺🇸 美国 → 香港中转
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Avia 日本 美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 Tokyo 01 🇺🇸
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 奥克兰 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 都柏林 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US Dublin 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: US Manchester 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 伦敦 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: '日本 01 [解锁: 美国] 新加坡'
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 纽约时报
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 洛杉矶时报
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港-东京 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK-Tokyo 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK 01 Osaka
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 首尔 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL 01 Unlock US
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium 01 | 解锁美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 转发 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国 转发 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本解锁 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 解锁日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 01 → 解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾 01 → 解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK Relay 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港-中转-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港_中转_01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK-Relay-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本 - 中转 - 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾-中继-A
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 深港中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via Japan 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本入口 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 解锁美国 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 流媒体解锁 日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium 01 | 解锁 Netflix 美国
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港日中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港美 Relay 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港韩-中转-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via-HK-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: VIA_JP_01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经-日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本-解锁-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美国_解锁_01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾 - Unlock - 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港·中转·01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 新加坡・中继・01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK.Relay.01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港/中转/01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港—中转—01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 台湾 – Transit – 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇯🇵 中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰 Relay 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇸🇬-relay-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇨🇳🇹🇼中继 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰🇯🇵中转 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL 01 🇺🇸解锁
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: IEPL 01 🇺🇸 Unlock
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 🇭🇰→ 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via 🇯🇵 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Premium 01 | 解锁🇺🇸
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 01 | 解锁 🇺🇸🇯🇵
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 港转美 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HKIPLC01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: LA-01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 美 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本-香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 官网 hk.example.com
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 频道：@abc | 香港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 | 解锁 美国 | 日本
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港 01 支持美国流媒体
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经由日本 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: via South Korea 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 经深港 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 香港跳板 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: Singapore Entry 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: 日本~中转~01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: HK-JP Relay 01
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false
+- name: DIRECT
+  type: socks5
+  server: 127.0.0.1
+  port: 9
+  udp: false

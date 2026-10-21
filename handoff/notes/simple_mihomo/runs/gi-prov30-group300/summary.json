@@ -1,0 +1,34 @@
+{
+ "run": "gi-prov30-group300",
+ "params": {
+  "interval": 30,
+  "group_interval": 300,
+  "mode": "refuse",
+  "traffic": "seq",
+  "period": 2,
+  "select": "auto",
+  "t_fail": 5000,
+  "t_end": 100
+ },
+ "t_fail": null,
+ "checks_at": [
+  0.0,
+  30.0,
+  60.0,
+  90.0
+ ],
+ "now_changes": [
+  [
+   2.044,
+   "日本 01",
+   "日本·自动"
+  ]
+ ],
+ "auto_left_n1_after_s": null,
+ "auto_now_after": null,
+ "reqs_after_fail_until_first_ok": 0,
+ "bad_results": [],
+ "first_ok_other": null,
+ "ok_via_n1_after_fail": 0,
+ "last_req": "node=n1"
+}

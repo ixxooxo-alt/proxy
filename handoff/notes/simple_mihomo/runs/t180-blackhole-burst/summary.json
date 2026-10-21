@@ -1,0 +1,35 @@
+{
+ "run": "t180-blackhole-burst",
+ "params": {
+  "interval": 180,
+  "mode": "blackhole",
+  "traffic": "burst",
+  "period": 3,
+  "k": 4,
+  "select": "auto",
+  "t_fail": 182,
+  "t_end": 230
+ },
+ "t_fail": 182.051,
+ "checks_at": [
+  0.1,
+  180.1
+ ],
+ "now_changes": [
+  [
+   2.048,
+   "日本 01",
+   "日本·自动"
+  ]
+ ],
+ "auto_left_n1_after_s": null,
+ "auto_now_after": null,
+ "reqs_after_fail_until_first_ok": 40,
+ "bad_results": [
+  "HTTP/1.1 502 Bad Gateway",
+  "empty"
+ ],
+ "first_ok_other": null,
+ "ok_via_n1_after_fail": 0,
+ "last_req": "empty"
+}
