@@ -1,0 +1,113 @@
+已生成 25 个公开产物到 out（订阅为占位符）
+私密产物已写入 out/private（含local.yaml，请勿分享）
+产物与统一源一致（含 manifest.json）。
+.已生成 25 个公开产物到 out（订阅为占位符）
+产物与统一源一致（含 manifest.json）。
+以下产物与统一源不一致，需要重新生成：
+  manifest.json
+以下产物与统一源不一致，需要重新生成：
+  loon/loon.conf（缺失）
+  manifest.json
+..已生成 25 个公开产物到 out（订阅为占位符）
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp4nc_fauk/不存在.yaml'
+未改动任何产物（公开产物也没有更新）。
+.已生成 25 个公开产物到 out（订阅为占位符）
+统一源校验失败：
+  - 例外 example-unknown.org 的目标 不存在的组 不是已有的业务组
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - 组 国外默认 引用了自己（会形成循环）
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - local_ads {'suffix': 'https://ads.example.com/x', 'ev': 'maintainer'} 必须且只能有一个合法的 suffix / domain
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
+统一源有错误，未改动任何产物。
+groups.yaml：YAML 重复键 'groups'（第 93 行）
+统一源有错误，未改动任何产物。
+...........报告已写入 /tmp/tmpvzdmvxwl/report.md
+报告已写入 /tmp/tmpvzdmvxwl/report.md
+...s...........E........................已生成 25 个公开产物到 /tmp/tmpqrgihiew（订阅为占位符）
+..EE...已生成 25 个公开产物到 ../../../../../../../tmp794ohtpw（订阅为占位符）
+私密产物已写入 ../../../../../../../tmp794ohtpw/private（含订阅，请勿分享）
+.................................................................................................................................................E...................E......................................................F...........s................
+======================================================================
+ERROR: setUpClass (test_cursor_report.CursorReport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_cursor_report.py", line 20, in setUpClass
+    with open(ccr.CSV, encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/proto/docs/evidence/cursor-对照明细.csv'
+
+======================================================================
+ERROR: test_git_really_ignores_them (test_local_and_private.GitIgnore.test_git_really_ignores_them)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_local_and_private.py", line 175, in test_git_really_ignores_them
+    shutil.copy(os.path.join(ROOT, ".gitignore"), d)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/shutil.py", line 428, in copy
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/shutil.py", line 260, in copyfile
+    with open(src, 'rb') as fsrc:
+         ~~~~^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/proto/.gitignore'
+
+======================================================================
+ERROR: test_private_paths_are_listed (test_local_and_private.GitIgnore.test_private_paths_are_listed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_local_and_private.py", line 165, in test_private_paths_are_listed
+    with open(os.path.join(ROOT, ".gitignore"), encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/proto/.gitignore'
+
+======================================================================
+ERROR: test_apple_ai_matches_cursor_baseline (test_routing.RoutingCases.test_apple_ai_matches_cursor_baseline)
+与对照报告明细（docs/evidence/cursor-对照明细.csv）里 Cursor 版的 18 条相比，只有两处差别：关键词 siri 换成三条后缀；
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_routing.py", line 97, in test_apple_ai_matches_cursor_baseline
+    with open(os.path.join(ROOT, "docs", "evidence", "cursor-对照明细.csv"), encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/proto/docs/evidence/cursor-对照明细.csv'
+
+======================================================================
+ERROR: setUpClass (test_source.UpstreamEvidenceRecord)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_source.py", line 138, in setUpClass
+    with open(os.path.join(ROOT, "docs", "evidence", "upstream-snapshot.json"), encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/proto/docs/evidence/upstream-snapshot.json'
+
+======================================================================
+FAIL: test_fifteen_public_outputs (test_strict.StrictOutputs.test_fifteen_public_outputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto/tests/test_strict.py", line 48, in test_fifteen_public_outputs
+    self.assertEqual(set(files), want)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the first set but not the second:
+'stash/stash-simple-strict.yaml'
+'loon/loon-simple-strict.conf'
+'quantumultx/quantumultx-simple.conf'
+'quantumultx/quantumultx-simple-strict.conf'
+'mihomo/mihomo-simple-profile.yaml'
+'mihomo/mihomo-simple-core.yaml'
+'sing-box/sing-box-simple-1.12.json'
+'stash/stash-simple.yaml'
+'loon/loon-simple.conf'
+'sing-box/sing-box-simple-1.14.json'
+
+----------------------------------------------------------------------
+Ran 309 tests in 240.092s
+
+FAILED (failures=1, errors=5, skipped=2)
+
+real	4m0.877s
+user	3m45.439s
+sys	0m2.845s

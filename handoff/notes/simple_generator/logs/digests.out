@@ -1,0 +1,8 @@
+routing_digest mihomo/mihomo-simple-core.yaml == mihomo/mihomo-core.yaml：True
+routing_digest mihomo/mihomo-simple-profile.yaml == mihomo/mihomo-profile.yaml：True
+routing_digest sing-box/sing-box-simple-1.14.json == sing-box/sing-box-1.14.json：True
+routing_digest sing-box/sing-box-simple-1.12.json == sing-box/sing-box-1.12.json：True
+mihomo_dial_base 简易 core == 完整 core： True
+sing-box 1.14 dial_digest 简易 == 完整： True
+sing-box 1.12 dial_digest 简易 == 完整： True
+快照里 mihomo 记录的 routing_sha256 == 简易 core 的： True

@@ -1,0 +1,20 @@
+== mihomo -t mihomo-simple-profile.yaml（mihomo-linux-amd64-v1.19.31）
+time="2026-10-21T05:29:05.085673839Z" level=info msg="Initial configuration complete, total time: 280ms"
+configuration file <proto>/out/mihomo/mihomo-simple-profile.yaml test is successful
+exit=0
+== mihomo -t mihomo-simple-core.yaml（mihomo-linux-amd64-v1.19.31）
+time="2026-10-21T05:29:05.381744753Z" level=info msg="Initial configuration complete, total time: 269ms"
+configuration file <proto>/out/mihomo/mihomo-simple-core.yaml test is successful
+exit=0
+== sing-box check <proto>/out/sing-box/sing-box-simple-1.14.json（sing-box version 1.14.1；out = 公开模板，out-private = 带样例节点）
+exit=0
+== sing-box check <proto>/out/sing-box/sing-box-simple-1.12.json（sing-box version 1.14.1；out = 公开模板，out-private = 带样例节点）
+exit=0
+== sing-box check <proto>/out-private/sing-box-simple-1.14.json（sing-box version 1.14.1；out = 公开模板，out-private = 带样例节点）
+exit=0
+== sing-box check <proto>/out-private/sing-box-simple-1.12.json（sing-box version 1.14.1；out = 公开模板，out-private = 带样例节点）
+exit=0
+== sing-box check <proto>/out/sing-box/sing-box-simple-1.12.json（sing-box version 1.12.0；out = 公开模板，out-private = 带样例节点）
+exit=0
+== sing-box check <proto>/out-private/sing-box-simple-1.12.json（sing-box version 1.12.0；out = 公开模板，out-private = 带样例节点）
+exit=0

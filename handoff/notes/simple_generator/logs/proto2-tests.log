@@ -1,0 +1,165 @@
+已生成 25 个公开产物到 out（订阅为占位符）
+私密产物已写入 out/private（含local.yaml，请勿分享）
+产物与统一源一致（含 manifest.json）。
+.已生成 25 个公开产物到 out（订阅为占位符）
+产物与统一源一致（含 manifest.json）。
+以下产物与统一源不一致，需要重新生成：
+  manifest.json
+以下产物与统一源不一致，需要重新生成：
+  loon/loon.conf（缺失）
+  manifest.json
+..已生成 25 个公开产物到 out（订阅为占位符）
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/tmp/tmpsvb7dcdt/不存在.yaml'
+未改动任何产物（公开产物也没有更新）。
+.已生成 25 个公开产物到 out（订阅为占位符）
+统一源校验失败：
+  - 例外 example-unknown.org 的目标 不存在的组 不是已有的业务组
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - 组 国外默认 引用了自己（会形成循环）
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - local_ads {'suffix': 'https://ads.example.com/x', 'ev': 'maintainer'} 必须且只能有一个合法的 suffix / domain
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
+统一源有错误，未改动任何产物。
+groups.yaml：YAML 重复键 'groups'（第 93 行）
+统一源有错误，未改动任何产物。
+...........报告已写入 <scratch>/tmp/tmpuis7eic5/report.md
+报告已写入 <scratch>/tmp/tmpuis7eic5/report.md
+...s......................................已生成 25 个公开产物到 <scratch>/tmp/tmpjn8lqnhy（订阅为占位符）
+.......已生成 25 个公开产物到 ../tmp/tmpy_old8cq（订阅为占位符）
+私密产物已写入 ../tmp/tmpy_old8cq/private（含订阅，请勿分享）
+........................................................................F..E.................................................................................................................................................F.FF..E........s...FE........F..
+======================================================================
+ERROR: test_where_strict_and_standard_differ (test_real_data.StrictWithRealSets.test_where_strict_and_standard_differ)
+真实数据下，严格版和同一个 App 的标准版去向不同的主机，只有用例里写明的那些（per_client 里给严格版单独写了期望的）。
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_real_data.py", line 541, in test_where_strict_and_standard_differ
+    declared = sorted({p["host"] or p["ip"] for p in self.probes if p["expect"][strict] != p["expect"][std]})
+                                                                    ~~~~~~~~~~~^^^^^^^^
+KeyError: 'loon-simple-strict'
+
+======================================================================
+ERROR: test_strict_differs_from_standard_only_where_intended (test_strict.StrictOutputs.test_strict_differs_from_standard_only_where_intended)
+严格版和同一个 App 的标准版相比：策略组、节点订阅、DNS、其余设置逐行相同；规则部分只多不少。
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_strict.py", line 69, in test_strict_differs_from_standard_only_where_intended
+    rule_sec = {"loon": ("Rule", "Remote Rule"), "quantumultx": ("filter_local", "filter_remote")}[std]
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+KeyError: 'loon-simple'
+
+======================================================================
+ERROR: test_manual_first_semantics (test_structure.Structure.test_manual_first_semantics)
+手动优先·自动兜底 = 故障转移组，成员依次为 手动、自动（同地区）。
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_structure.py", line 116, in test_manual_first_semantics
+    g = gs[f"{r}·手动优先"]
+        ~~^^^^^^^^^^^^^^^^^
+KeyError: '香港·手动优先'
+
+======================================================================
+FAIL: test_standard_configs_do_resolve_unlisted_hosts (test_real_data.StrictWithRealSets.test_standard_configs_do_resolve_unlisted_hosts)
+对照：标准版里没被域名规则接住的域名都要先解析——严格版要解决的就是这件事，这里确认用例里确实有这样的主机。
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_real_data.py", line 533, in test_standard_configs_do_resolve_unlisted_hosts
+    self.assertGreater(len(hosts), 10 if client == "stash" else 20, client)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 16 not greater than 20 : stash-simple
+
+======================================================================
+FAIL: test_strict_follows_standard_wherever_no_override_is_written (test_strict.StrictBehaviour.test_strict_follows_standard_wherever_no_override_is_written)
+用例里没有专门给严格版写期望的，严格版的结果和同一个 App 的标准版相同（样本数据）。
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_strict.py", line 304, in test_strict_follows_standard_wherever_no_override_is_written
+    self.assertEqual(diff, [], strict)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['unknown-cn.example：标准版 国内直连，严格版 国外默认，用例里[55 chars]的期望'] != []
+
+First list contains 2 additional elements.
+First extra element 0:
+'unknown-cn.example：标准版 国内直连，严格版 国外默认，用例里没写严格版的期望'
+
++ []
+- ['unknown-cn.example：标准版 国内直连，严格版 国外默认，用例里没写严格版的期望',
+-  'static.zhihu.com：标准版 国外默认，严格版 国内直连，用例里没写严格版的期望'] : loon-simple-strict
+
+======================================================================
+FAIL: test_family_and_expectation_lookup (test_strict.StrictFamilies.test_family_and_expectation_lookup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_strict.py", line 516, in test_family_and_expectation_lookup
+    self.assertEqual([family(c) for c in LOON_CLIENTS + QX_CLIENTS], ["loon", "loon", "quantumultx", "quantumultx"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['loon', 'loon', 'loon', 'loon', 'quantumultx', 'quantumult[28 chars]ltx'] != ['loon', 'loon', 'quantumultx', 'quantumultx']
+
+First differing element 2:
+'loon'
+'quantumultx'
+
+First list contains 4 additional elements.
+First extra element 4:
+'quantumultx'
+
++ ['loon', 'loon', 'quantumultx', 'quantumultx']
+- ['loon',
+-  'loon',
+-  'loon',
+-  'loon',
+-  'quantumultx',
+-  'quantumultx',
+-  'quantumultx',
+-  'quantumultx']
+
+======================================================================
+FAIL: test_fifteen_public_outputs (test_strict.StrictOutputs.test_fifteen_public_outputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_strict.py", line 50, in test_fifteen_public_outputs
+    self.assertEqual(len(files), 15)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 25 != 15
+
+======================================================================
+FAIL: test_line_formats (test_structure.Structure.test_line_formats)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_structure.py", line 338, in test_line_formats
+    self.assertGreater(found, 30, loon)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 29 not greater than 30 : loon-simple
+
+======================================================================
+FAIL: test_region_entries (test_structure.Structure.test_region_entries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/proto2/tests/test_structure.py", line 82, in test_region_entries
+    self.assertEqual(mem, [f"{r}·{s}" for s in MODE_SUFFIX_FULL], client)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['香港·自动'] != ['香港·手动优先', '香港·手动', '香港·自动', '香港·故障转移', '香港·负载均衡']
+
+First differing element 0:
+'香港·自动'
+'香港·手动优先'
+
+Second list contains 4 additional elements.
+First extra element 1:
+'香港·手动'
+
+- ['香港·自动']
++ ['香港·手动优先', '香港·手动', '香港·自动', '香港·故障转移', '香港·负载均衡'] : mihomo-simple-profile
+
+----------------------------------------------------------------------
+Ran 317 tests in 256.535s
+
+FAILED (failures=6, errors=3, skipped=2)
+
+real	4m17.285s
+user	4m2.594s
+sys	0m1.892s
