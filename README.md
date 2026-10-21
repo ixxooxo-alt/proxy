@@ -24,6 +24,8 @@ A single, auditable split-routing (分流) rule set that generates matching conf
 
 This README describes source version **2026.10.17-1** (r19, published to `main` on 2026-10-19). The version is written in the header comment of every generated config and in `dist/manifest.json`; check it before importing. What changed in each version: see [Version history](#version-history).
 
+**Simple version (2026-10-21, in review, not on `main` yet).** The review branch also carries a *simple* variant: one group per region that lists all of that region's nodes; you pick a node and it stays put (no automatic switching). "Foreign Default" offers the seven regions plus every node. The files end in `-simple` (for example `dist/loon/loon-simple.conf`) and sit next to the full version, which is byte-for-byte unchanged. It reaches `main` only after review and the owner's OK, so the import links do not serve it yet. Design, evidence and known costs: `docs/10` (Chinese).
+
 ---
 
 ## ✨ Features

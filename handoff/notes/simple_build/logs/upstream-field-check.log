@@ -1,0 +1,8 @@
+运行时间（UTC）：2026-10-21 15:19:57
+Python：Python 3.13.16，PyYAML：6.0.1
+提交：6f7f6a6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 tools/verify_with_upstream_source.py --mihomo-src /root/proxy-vendor/src/mihomo --singbox-src /root/proxy-vendor/src/sing-box
+
+检查了 8368 个字段 / 取值
+全部字段都能在上游源码的结构体标签中找到。
+退出码：0

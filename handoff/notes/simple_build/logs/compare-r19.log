@@ -1,0 +1,7 @@
+运行时间（UTC）：2026-10-21 15:20:06
+Python：Python 3.13.16，PyYAML：6.0.1
+提交：6f7f6a6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 tools/compare_versions.py --old <r19> --old-label r19 --new-label r20 --write --out handoff/notes/simple_build/与r19的对比.md
+
+已写入 handoff/notes/simple_build/与r19的对比.md（699 行）
+退出码：0
