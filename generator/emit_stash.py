@@ -54,7 +54,7 @@ import re
 from typing import Dict, List, Optional
 
 from .emit_mihomo import FILTER_MARK, _Dumper, _scalar, _y, rule_line
-from .groups import AUTO_SUFFIX, GroupSpec, NodeFilter, build_groups, shared_filter_labels
+from .groups import ALL_LABEL, AUTO_SUFFIX, GroupSpec, NodeFilter, build_groups, shared_filter_labels, simple_header
 from .model import Model, Plan
 from .regions import lit
 from .util import Rule, check_regex_line_safe
@@ -110,28 +110,45 @@ def exclude_builtins(rx: str) -> str:
     return head + "(?!(?:" + "|".join(BUILTIN_POLICIES) + ")$)" + rx[len(head):]
 
 
+def exclude_placeholders(m: Model, rx: str) -> str:
+    """在筛选正则的开头（“(?i)^”和不选内置策略那一段之后）再加一个否定前瞻：整个名字是七个占位节点之一时不选。
+    简易版的“国外默认”（全部节点）用：那个组里有写明的七个地区，不会是空组，用不着占位节点，也不该让人点到连不上的占位节点。"""
+    head = "(?i)^"
+    if not rx.startswith(head):
+        raise ValueError(f"Stash：节点筛选正则应该以 {head} 开头：{rx[:40]}")
+    return head + "(?!(?:" + "|".join(lit(n) for n in placeholders(m).values()) + ")$)" + rx[len(head):]
+
+
 def filter_regex(m: Model, nf: NodeFilter) -> str:
     """写进 Stash 的筛选正则。地区的那几条 = 其他三端的同一条，开头另加“不选内置策略”（exclude_builtins；占位节点的名字
     本来就会被它选中）；固定节点（local.yaml 的 PayPal 固定节点）的“名称完全相同”那一条，另外允许这个地区的占位节点，
-    不然那个节点被删掉以后组是空的（这一条只认两个写死的名字，不会选中内置策略，生成时照样核对）。"""
+    不然那个节点被删掉以后组是空的（这一条只认两个写死的名字，不会选中内置策略，生成时照样核对）。
+    简易版“国外默认”的全部节点（label all）：同一条全部节点正则，开头不选内置策略，也不选占位节点（exclude_placeholders）。"""
     if nf.pinned:
         ph = placeholders(m)[_region_of(m, nf)]
         return "^(?:" + lit(nf.pinned) + "|" + lit(ph) + ")$"
+    if nf.label == ALL_LABEL:
+        return exclude_builtins(exclude_placeholders(m, nf.final_regex()))
     return exclude_builtins(nf.final_regex())
 
 
 def check_placeholders(m: Model, groups: List[GroupSpec]) -> None:
-    """每个按节点筛选的组，筛选正则要正好选中一个占位节点，而且是它自己地区的那个；也不能选中内置策略的名字
-    （大小写的几种写法都试；GPT 审核 r16 的 R16-F01）。用 Python 的正则判断；Stash 的引擎未知。"""
+    """每个只按节点筛选的组，筛选正则要正好选中一个占位节点，而且是它自己地区的那个；同时有写明成员的组（简易版的“国外默认”）
+    一个占位节点都不能选。也不能选中内置策略的名字（大小写的几种写法都试；GPT 审核 r16 的 R16-F01）。
+    用 Python 的正则判断；Stash 的引擎未知。"""
     ph = placeholders(m)
     for g in groups:
         if g.nodes is None:
             continue
         rx = re.compile(filter_regex(m, g.nodes))
         hit = [name for name in ph.values() if rx.search(name)]
-        want = ph[_region_of(m, g.nodes)]
-        if hit != [want]:
-            raise ValueError(f"Stash：组 {g.name} 的筛选应该只选中占位节点 {want}，实际选中 {hit}")
+        if g.members:
+            if hit:
+                raise ValueError(f"Stash：组 {g.name} 有写明的成员，筛选不应该选中占位节点，实际选中 {hit}")
+        else:
+            want = ph[_region_of(m, g.nodes)]
+            if hit != [want]:
+                raise ValueError(f"Stash：组 {g.name} 的筛选应该只选中占位节点 {want}，实际选中 {hit}")
         builtin = [x for name in BUILTIN_POLICIES for x in (name, name.lower(), name.title()) if rx.search(x)]
         if builtin:
             raise ValueError(f"Stash：组 {g.name} 的筛选会选中内置策略 {builtin}（空订阅被替换成 DIRECT 时会被它收进组里）")
@@ -232,11 +249,12 @@ def build_rules_text(m: Model, plan: Plan, strict: bool) -> List[str]:
     return lines
 
 
-def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bool = False) -> str:
+def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bool = False, simple: bool = False) -> str:
+    """simple：简易版（docs/10，2026-10-21）。和完整版只差 proxy-groups（没有自动类的组）和几行说明。"""
     p = m.project
     dns = m.dns
     hc = m.hc
-    groups = build_groups(m, MODES)
+    groups = build_groups(m, MODES, "simple" if simple else "full")
     check_placeholders(m, groups)
 
     lan = p["lan"]["domain_suffix"]
@@ -272,9 +290,12 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     out.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['stash']['core']}")
     out.append("# 适用：iPhone / iPad / Mac 共用同一份配置。Stash 没有能在电脑上运行的内核，这份配置只按官方文档核对过，导入后请按 docs/09 验收。")
+    if simple:
+        out += simple_header(m, "stash-strict.yaml" if strict else "stash.yaml")
     if strict:
         out.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 GEOSITE,cn 和 rule-providers 里的国内域名清单认出来。")
-        out.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 stash.yaml。")
+        out.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 "
+                   + ("stash-simple.yaml" if simple else "stash.yaml") + "。")
     if not sub_urls:
         out.append("# ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。订阅要选 Clash / Stash 格式。")
     out.append("# 证书：本配置不含任何 MITM 证书或密码。")
@@ -287,14 +308,22 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("# Stash 的文档说一个代理都没有的策略组会被当作直连（DIRECT）；放上占位节点，某个地区一个节点都没有时，")
     out.append("# 这个地区的组里只剩它，连接失败而不是直连。它的名字只会被这个地区的筛选正则选中。有真节点时不要选它。")
     out.append("# 文档还说远程代理集为空时以 DIRECT 替代：下面每条节点筛选的开头都排除了 DIRECT、REJECT、REJECT-DROP 这几个名字。")
+    if simple:
+        out.append("# 简易版：地区组里直接是节点，Stash 怎么给组里的节点排序、第一次导入时默认选哪个，文档没写——如果默认选中的是占位节点，")
+        out.append("# 走这个地区的连接会失败（不会直连）：导入后先在用到的地区组里点一个真节点（docs/09）。“国外默认”里没有占位节点。")
     out.append(_y({"proxies": dummy}).rstrip())
     out.append("")
     out.append(_y({"proxy-providers": providers}).rstrip())
     out.append("")
     out.append("# 节点筛选（filter）：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写，和另外三个客户端是同一条，")
     out.append("# 只在开头多一段 (?!(?:DIRECT|REJECT|REJECT-DROP)$)：整个名字是内置策略的不选。")
-    out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
-    out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
+    if simple:
+        out.append("# 每个地区一条（按名字归到这个地区的全部节点，含名字说不清落地的）。“国外默认”另用一条全部节点（去掉提示行），")
+        out.append("# 开头再多一段：七个占位节点不选。“国外默认”把写明的七个地区（proxies）和 include-all + filter 写在同一个组里：")
+        out.append("# 文档没写两者一起用时谁排在前面、filter 管不管写明的成员，要在设备上看（docs/09）。")
+    else:
+        out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
+        out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
     out.append("# 同一条正则只写一次：第一次出现时用 &flt-xx 定义，之后用 *flt-xx 引用（YAML 的锚点 / 别名）。")
     out.append("# 正则里用了否定前瞻等写法；Stash 用什么正则引擎官方文档没写，导入后请先看各地区的组里有没有节点（docs/09）。")
     out.append("# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，运行 tools/check_node_names.py。")

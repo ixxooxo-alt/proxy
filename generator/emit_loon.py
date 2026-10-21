@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import List
 
 from . import strict as strict_mod
-from .groups import GroupSpec, NodeFilter, build_groups, shared_filter_labels
+from .groups import GroupSpec, NodeFilter, build_groups, shared_filter_labels, simple_header
 from .model import Model, Plan
 from .util import Rule, check_regex_line_safe
 
@@ -40,11 +40,12 @@ def _filter_regex(nf: NodeFilter) -> str:
     return rx
 
 
-def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False) -> str:
+def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False, simple: bool = False) -> str:
+    """simple：简易版（docs/10，2026-10-21）。和完整版只差策略组（[Remote Filter] 多一条全部节点、没有自动类的组）和几行说明。"""
     p = m.project
     hc = m.hc
     dns = m.dns
-    groups = build_groups(m, MODES)
+    groups = build_groups(m, MODES, "simple" if simple else "full")
     labels = shared_filter_labels(groups, [r["id"] for r in m.regions] + [m.other_region["id"]])
 
     def _filter_name(nf: NodeFilter) -> str:
@@ -54,9 +55,12 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     L.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['loon']['core']}")
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
+    if simple:
+        L += simple_header(m, "loon-strict.conf" if strict else "loon.conf")
     if strict:
         L.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 [Remote Rule] 里的国内域名清单认出来。")
-        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 loon.conf。导入后请按 docs/09 的严格版一节验收。")
+        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 "
+                 + ("loon-simple.conf" if simple else "loon.conf") + "。导入后请按 docs/09 的严格版一节验收。")
         L.append(f"# [Remote Rule] 的最后一条引用 {m.strict['publish_base']} 下的规则文件：那个文件还没有发布、改了名、"
                  "或者仓库改成私有时，这条订阅会加载失败，只收在它里面的国内网站（整段 .cn 等）会改走代理。")
     if not sub_urls:
@@ -101,9 +105,13 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
     # 节点筛选：正则由 source/regions.yaml 的词表拼出（generator/regions.py）；同一条正则只定义一次
     L += ["", "[Remote Filter]",
           "# 按节点名称分地区。名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，",
-          "# 在电脑上运行 tools/check_node_names.py。",
-          "# 每个地区两条：F-XX 是按名字归到这个地区的全部节点（手动组用，含名字说不清落地的）；",
-          "# F-XX-AUTO 只收名字只指向这个地区的节点（自动 / 故障转移 / 负载均衡用）。"]
+          "# 在电脑上运行 tools/check_node_names.py。"]
+    if simple:
+        L += ["# 每个地区一条：F-XX 是按名字归到这个地区的全部节点（含名字说不清落地的）；",
+              "# F-ALL 是全部节点（去掉“剩余流量”这类提示行），给“国外默认”用。"]
+    else:
+        L += ["# 每个地区两条：F-XX 是按名字归到这个地区的全部节点（手动组用，含名字说不清落地的）；",
+              "# F-XX-AUTO 只收名字只指向这个地区的节点（自动 / 故障转移 / 负载均衡用）。"]
     seen = set()
     for g in groups:
         for nf in (g.nodes, g.backup_nodes):
@@ -116,20 +124,25 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
             L.append(f'{name} = NameRegex, FilterKey = "{_filter_regex(nf)}"')
 
     L += ["", "[Proxy Group]",
-          "# 每行末尾的 img-url 是策略组图标的地址（图片在图标仓库里，只影响显示，不影响分流；见 source/icons.yaml）。",
-          "# 注意：Loon 官方示例配置注释写明 url-test / fallback“只支持单个节点和远端节点，其他会被忽略”，",
-          "# 而现行文档说策略组“支持嵌套”。为避免“手动优先”组在前一种情况下变成空组，它在两个成员组之后",
-          "# 还附带同地区节点：若嵌套生效，按 手动 → 自动 → 同地区节点 的顺序；若嵌套被忽略，退化为同地区顺序故障转移，",
-          "# 仍不跨国、不直连。实际是哪一种，需要在设备上查看该组的成员列表确认。"]
+          "# 每行末尾的 img-url 是策略组图标的地址（图片在图标仓库里，只影响显示，不影响分流；见 source/icons.yaml）。"]
+    if simple:
+        L += ["# 简易版只有选择组（select）：地区组里直接是节点，点哪个用哪个，挂了不会自动换。",
+              "# “国外默认”在七个地区后面接 F-ALL（全部节点）：官方示例配置里一个 select 组可以混放策略组、节点和订阅",
+              "# （PROXY = select,Auto,1,2,3,4,Subs），“策略组 + 节点筛选”混放没有官方例子，要在设备上看成员列表确认（docs/09）。"]
+    else:
+        L += ["# 注意：Loon 官方示例配置注释写明 url-test / fallback“只支持单个节点和远端节点，其他会被忽略”，",
+              "# 而现行文档说策略组“支持嵌套”。为避免“手动优先”组在前一种情况下变成空组，它在两个成员组之后",
+              "# 还附带同地区节点：若嵌套生效，按 手动 → 自动 → 同地区节点 的顺序；若嵌套被忽略，退化为同地区顺序故障转移，",
+              "# 仍不跨国、不直连。实际是哪一种，需要在设备上查看该组的成员列表确认。"]
     for g in groups:
         if g.comment:
             L.append(f"# {g.name}：{g.comment}")
+        # 成员组在前，节点筛选在后（简易版的“国外默认”两者都有；完整版二选一，“手动优先”另带同地区节点）
+        members = list(g.members)
         if g.nodes is not None:
-            members = [_filter_name(g.nodes)]
-        else:
-            members = list(g.members)
-            if g.backup_nodes is not None:
-                members.append(_filter_name(g.backup_nodes))
+            members.append(_filter_name(g.nodes))
+        if g.backup_nodes is not None:
+            members.append(_filter_name(g.backup_nodes))
         head = f"{g.name} = {g.kind}," + ",".join(members)
         if g.kind == "url-test":
             head += f",url = {hc['url_http']},interval = {hc['interval_s']},tolerance = {hc['tolerance_ms']}"

@@ -9,6 +9,8 @@ sing-box 的出站标签不能重名。以前这些只在单独运行测试时�
   两端：广告集合在前、国内域名清单在后，清单交给“国内直连”；引用的自有远程规则文件确实在这次生成的产物里；
   自有文件本身：国内清单只有域名和后缀两类规则，兜底文件只有那一条关键词规则。
 Stash（stash.yaml、stash-strict.yaml，2026-10-13）另查的几条见 check_stash。
+简易版（文件名带 -simple，2026-10-21）另查策略组的结构，见 check_simple；按文件名认格式（check_outputs），
+认不出的配置文件算错，不再悄悄跳过（以前按完整文件名认，新文件名会被跳过，handoff/notes/simple_generator 的演示）。
 """
 from __future__ import annotations
 
@@ -92,6 +94,13 @@ def check_mihomo(text: str) -> List[str]:
     loop = _cycles(groups)
     if loop:
         problems.append("组循环引用：" + " → ".join(loop))
+    # DNS 服务器地址后面的 #名字（简易版的境外 DNS 用它指定经哪个组去问）：名字必须是已有的组或节点，或者 RULES。
+    # 不是的话 mihomo 不报错，而是把它当成网卡名（v1.19.31 tunnel/dns_dialer.go 的 DialContext），DNS 就悄悄断了
+    for where, server in _mihomo_dns_servers(c.get("dns") or {}):
+        frag = server.split("#", 1)[1] if "#" in server else ""
+        for part in frag.split("&") if frag else []:
+            if "=" not in part and part not in known | {"RULES"}:
+                problems.append(f"dns.{where} 的 {server} 指定经 {part} 去问，但没有这个组或节点（mihomo 会把它当成网卡名）")
     # DNS 段里 mihomo 自己会拒绝加载的两种写法（v1.19.31 config/config.go 的 parseDNS）：这里先拦住，不用等到拿官方内核去试。
     # 都和 proxy-server-nameserver（解析节点服务器地址的 DNS）有关：respect-rules 和节点专用的解析策略都要求它不为空
     dns = c.get("dns") or {}
@@ -105,6 +114,19 @@ def check_mihomo(text: str) -> List[str]:
             if not servers:
                 problems.append(f"dns.{key} 的 {pattern} 没有写 DNS 服务器")
     return problems
+
+
+def _mihomo_dns_servers(dns: dict) -> List[Tuple[str, str]]:
+    """mihomo 的 dns 段里写的全部服务器地址：[(在哪一项, 地址)]。"""
+    out: List[Tuple[str, str]] = []
+    for key in ("default-nameserver", "nameserver", "fallback", "proxy-server-nameserver", "direct-nameserver"):
+        for x in dns.get(key) or []:
+            out.append((key, str(x)))
+    for key in ("nameserver-policy", "proxy-server-nameserver-policy"):
+        for pattern, servers in (dns.get(key) or {}).items():
+            for x in ([servers] if isinstance(servers, str) else servers or []):
+                out.append((f"{key}.{pattern}", str(x)))
+    return out
 
 
 STASH_IP_RULES = {"IP-CIDR", "IP-CIDR6", "GEOIP", "IP-ASN"}
@@ -155,7 +177,11 @@ def check_stash(text: str, strict: bool = False) -> List[str]:
                 problems.append(f"组 {g['name']} 的筛选正则 Python 也读不懂：{e}")
                 continue
             hit = [p["name"] for p in holders if rx.search(p["name"])]
-            if len(hit) != 1:
+            if g.get("proxies"):
+                # 写明了成员的组（简易版的“国外默认”：七个地区再接全部节点）不会是空组，筛选不该再选连不上的占位节点
+                if hit:
+                    problems.append(f"组 {g['name']} 有写明的成员，筛选却选中了占位节点 {hit}（会让人点到连不上的节点）")
+            elif len(hit) != 1:
                 problems.append(f"组 {g['name']} 的筛选应该正好选中一个占位节点，实际 {hit}：选不中就可能变成空组（Stash 当作直连）")
             builtin = [x for name in BUILTIN_POLICIES for x in (name, name.lower(), name.title()) if rx.search(x)]
             if builtin:
@@ -219,6 +245,18 @@ def check_singbox(text: str) -> List[str]:
                 problems.append(f"组 {o['tag']} 引用了自己")
             if "default" in o and o["default"] not in (o.get("outbounds") or []):
                 problems.append(f"组 {o['tag']} 的默认值 {o['default']} 不在成员里")
+    for o in c.get("outbounds", []):
+        if o.get("type") == "urltest":
+            # sing-box 要求检查间隔不超过 idle_timeout（v1.14.1 protocol/group/urltest.go 的 NewURLTestGroup）：
+            # 超过时 sing-box check 照样通过，内核启动才失败（handoff/notes/simple_singbox/typecheck）
+            iv, idle = _duration_s(o.get("interval") or "3m"), _duration_s(o.get("idle_timeout") or "30m")
+            if iv is None or idle is None:
+                problems.append(f"组 {o['tag']} 的 interval / idle_timeout 写法不认识：{o.get('interval')!r} / {o.get('idle_timeout')!r}")
+            elif iv > idle:
+                problems.append(f"组 {o['tag']} 的检查间隔 {o.get('interval')} 超过了 idle_timeout {o.get('idle_timeout')}（内核会启动失败）")
+    for hc in c.get("http_clients", []):
+        if hc.get("detour") and hc["detour"] not in known:
+            problems.append(f"http_clients 的 {hc.get('tag')} 指向不存在的出站 {hc['detour']}")
     route = c.get("route", {})
     for r in route.get("rules", []):
         if "outbound" in r and r["outbound"] not in known:
@@ -265,6 +303,18 @@ def check_singbox(text: str) -> List[str]:
     if loop:
         problems.append("组循环引用：" + " → ".join(loop))
     return problems
+
+
+_DURATION = re.compile(r"(\d+(?:\.\d+)?)(h|ms|m|s)")
+
+
+def _duration_s(text: str) -> Optional[float]:
+    """Go 的时长写法（300s、30m、1h30m）换成秒；不认识的返回 None。"""
+    t = str(text).strip()
+    parts = _DURATION.findall(t)
+    if not t or "".join(n + u for n, u in parts) != t:
+        return None
+    return sum(float(n) * {"h": 3600, "m": 60, "s": 1, "ms": 0.001}[u] for n, u in parts)
 
 
 def own_files(model, files: Dict[str, str]) -> dict:
@@ -419,24 +469,211 @@ def check_own_lists(files: Dict[str, str]) -> List[str]:
     return [f"{x}" for x in out]
 
 
-def check_outputs(files: Dict[str, str], own: Optional[dict] = None) -> List[str]:
-    """files：{相对路径: 内容}。按文件名判断格式，返回“文件：问题”列表。
-    own：这次生成的自有远程规则文件（own_files 的返回值）；给了才检查配置里对它们的引用。"""
+# 配置文件的文件名（2026-10-21 起按格式认，以前按完整文件名认）：客户端、是不是简易版、是不是严格版
+CONFIG_NAME = re.compile(r"^(?:(?P<mihomo>mihomo)(?P<ms>-simple)?-(?:profile|core)\.yaml"
+                         r"|(?P<singbox>sing-box)(?P<ss>-simple)?-1\.1[24]\.json"
+                         r"|(?P<loon>loon)(?P<ls>-simple)?(?P<lt>-strict)?\.conf"
+                         r"|(?P<qx>quantumultx)(?P<qs>-simple)?(?P<qt>-strict)?\.conf"
+                         r"|(?P<stash>stash)(?P<ts>-simple)?(?P<tt>-strict)?\.yaml)$")
+CONFIG_SUFFIXES = (".conf", ".yaml", ".json")
+
+
+def config_kind(base: str) -> Optional[Tuple[str, bool, bool]]:
+    """文件名 → (客户端, 简易版?, 严格版?)；不是配置文件名返回 None。"""
+    m = CONFIG_NAME.match(base)
+    if not m:
+        return None
+    fam = next(k for k in ("mihomo", "singbox", "loon", "qx", "stash") if m.group(k))
+    simple = bool(m.group({"mihomo": "ms", "singbox": "ss", "loon": "ls", "qx": "qs", "stash": "ts"}[fam]))
+    strict = bool({"loon": m.group("lt"), "qx": m.group("qt"), "stash": m.group("tt")}.get(fam))
+    return fam, simple, strict
+
+
+def simple_spec(model) -> dict:
+    """简易版的结构核对要用的名字（verify 只看文本，名字从模型取）。"""
+    return {
+        "regions": [r["name"] for r in model.regions],
+        "other": model.other_region["name"],
+        "foreign_default": next(g.name for g in model.groups if g.special == "foreign_default"),
+        "mode_names": [f"{r['name']}·{x['suffix']}" for r in model.regions for x in model.project["region_modes"]],
+        "dns_group": model.simple["foreign_dns_group"],
+        "interval_s": model.simple["health_check_interval_s"],
+    }
+
+
+def _simple_common(groups: Dict[str, dict], spec: dict, with_dns: bool) -> List[str]:
+    """五端共用的那几条。groups：{组名: {"kind": 类型, "members": [写明的成员], "nodes": 有没有节点筛选}}，
+    类型统一成 select / url-test 等（Quantumult X 的 static 记作 select），节点筛选只记有没有。"""
+    problems = []
+    for name in spec["mode_names"]:
+        if name in groups:
+            problems.append(f"简易版里不该有完整版的模式组 {name}")
+    regions = spec["regions"] + [spec["other"]]
+    for name in regions:
+        g = groups.get(name)
+        if g is None:
+            problems.append(f"简易版缺少地区组 {name}")
+        elif g["kind"] != "select" or g["members"] or not g["nodes"]:
+            problems.append(f"简易版的地区组 {name} 应该是只按节点筛选的选择组（里面直接是节点、不嵌套别的组）")
+    fd = groups.get(spec["foreign_default"])
+    if fd is None:
+        problems.append(f"简易版缺少 {spec['foreign_default']}")
+    elif fd["kind"] != "select" or sorted(fd["members"]) != sorted(regions) or not fd["nodes"]:
+        problems.append(f"简易版的 {spec['foreign_default']} 应该是选择组：写明的成员正好是七个地区，后面再接全部节点")
+    elif fd["members"][0] not in regions:
+        problems.append(f"简易版的 {spec['foreign_default']} 第一项应该是一个地区")
+    dg = groups.get(spec["dns_group"])
+    if with_dns:
+        if dg is None:
+            problems.append(f"简易版缺少内部组 {spec['dns_group']}（境外 DNS 和规则下载走它）")
+        elif dg["kind"] != "url-test" or dg["members"] or not dg["nodes"]:
+            problems.append(f"简易版的 {spec['dns_group']} 应该是只按节点筛选的自动测速组")
+    elif dg is not None:
+        problems.append(f"这个客户端的简易版不该有 {spec['dns_group']}（它的 DNS 不经代理）")
+    for name, g in groups.items():
+        if g["kind"] != "select" and name != spec["dns_group"]:
+            problems.append(f"简易版的 {name} 应该是选择组（简易版不自动换节点），实际是 {g['kind']}")
+    return problems
+
+
+def check_simple(fam: str, text: str, spec: Optional[dict]) -> List[str]:
+    """简易版（2026-10-21，docs/10）的策略组结构：没有完整版的模式组；六个地区和“其他地区”是只按节点筛选的选择组；
+    “国外默认”是选择组，写明的成员正好是七个地区、后面再接全部节点；只有 mihomo、sing-box 有内部的自动测速组
+    （境外 DNS 和规则下载走它），其余都是选择组。mihomo 另查：内部组藏起来，境外 DNS 地址都经它去问，GEO 数据的下载
+    交给它而且前面没有别的规则先接住，订阅上的检查间隔是简易版的间隔；sing-box 另查：境外 DNS 和规则集下载都走它。"""
+    if spec is None:
+        return ["简易版的结构核对缺少参数（verify.simple_spec(模型)），没法核对"]
+    groups: Dict[str, dict] = {}
+    problems: List[str] = []
+    dns_group = spec["dns_group"]
+    if fam == "loon":
+        s = _sections(text)
+        filters = {line.split("=", 1)[0].strip() for line in s.get("Remote Filter", [])}
+        for line in s.get("Proxy Group", []):
+            name, rest = [x.strip() for x in line.split("=", 1)]
+            items = [x.strip() for x in rest.split(",")]
+            mem = [x for x in items[1:] if "=" not in x]
+            flt = [x for x in mem if x in filters]
+            if flt and mem[-len(flt):] != flt:
+                problems.append(f"组 {name} 的节点筛选应该排在写明的成员后面")
+            groups[name] = {"kind": items[0], "members": [x for x in mem if x not in filters], "nodes": bool(flt)}
+        return problems + _simple_common(groups, spec, with_dns=False)
+    if fam == "qx":
+        kinds = {"static": "select", "available": "fallback", "url-latency-benchmark": "url-test", "dest-hash": "load-balance",
+                 "round-robin": "round-robin"}
+        for line in _sections(text).get("policy", []):
+            kind, rest = line.split("=", 1)
+            items = [x.strip() for x in rest.split(",")]
+            regex_at = [i for i, x in enumerate(items) if x.startswith("server-tag-regex=")]
+            mem = [x for x in items[1:] if "=" not in x]
+            if regex_at and any("=" not in x for x in items[regex_at[0]:]):
+                problems.append(f"策略 {items[0]} 的 server-tag-regex 应该排在写明的成员后面")
+            groups[items[0]] = {"kind": kinds.get(kind.strip(), kind.strip()), "members": mem, "nodes": bool(regex_at)}
+        return problems + _simple_common(groups, spec, with_dns=False)
+    if fam == "stash":
+        for g in yaml.safe_load(text).get("proxy-groups", []):
+            groups[g["name"]] = {"kind": g["type"], "members": list(g.get("proxies") or []),
+                                 "nodes": bool(g.get("include-all") and g.get("filter"))}
+        return problems + _simple_common(groups, spec, with_dns=False)
+    if fam == "mihomo":
+        c = yaml.safe_load(text)
+        for g in c.get("proxy-groups", []):
+            groups[g["name"]] = {"kind": g["type"], "members": list(g.get("proxies") or []),
+                                 "nodes": bool(g.get("include-all-providers") and g.get("filter"))}
+            if g.get("filter") and g.get("empty-fallback") != "REJECT" and not g.get("proxies"):
+                problems.append(f"组 {g['name']} 只按节点筛选，筛选为空时应该拒绝（empty-fallback: REJECT），不能悄悄直连")
+        dg = next((g for g in c.get("proxy-groups", []) if g["name"] == dns_group), None)
+        if dg is not None:
+            if not dg.get("hidden"):
+                problems.append(f"{dns_group} 是内部组，应该藏起来（hidden: true）")
+            if dg.get("interval") != spec["interval_s"]:
+                problems.append(f"{dns_group} 的检查间隔应该是 {spec['interval_s']} 秒，实际 {dg.get('interval')}")
+        dns = c.get("dns") or {}
+        foreign = [str(x) for x in dns.get("nameserver") or []]
+        if not foreign or any(not x.endswith("#" + dns_group) for x in foreign):
+            problems.append(f"dns.nameserver 的每个地址都应该写成“地址#{dns_group}”（经内部组去问，不跟着国外默认）：{foreign}")
+        bare = {x.split("#", 1)[0] for x in foreign}
+        for where, server in _mihomo_dns_servers(dns):
+            if server.split("#", 1)[0] in bare and not server.endswith("#" + dns_group):
+                problems.append(f"dns.{where} 用了境外 DNS {server}，没有写成经 {dns_group} 去问")
+        rules = [[x.strip() for x in r.split(",")] for r in c.get("rules", [])]
+        for url in (c.get("geox-url") or {}).values():
+            host = str(url).split("://", 1)[-1].split("/", 1)[0]
+            at = [i for i, r in enumerate(rules) if r[:3] == ["DOMAIN", host, dns_group]]
+            if not at:
+                problems.append(f"GEO 数据的下载主机 {host} 没有交给 {dns_group}（会跟着国外默认里手选的节点）")
+                continue
+            for r in rules[:at[0]]:
+                if len(r) > 2 and ((r[0] == "DOMAIN" and r[1] == host) or
+                                   (r[0] == "DOMAIN-SUFFIX" and (host == r[1] or host.endswith("." + r[1])))):
+                    problems.append(f"GEO 数据的下载主机 {host} 先被 {','.join(r)} 接住了，交给 {dns_group} 的那条不起作用")
+        for name, pv in (c.get("proxy-providers") or {}).items():
+            hc = pv.get("health-check") or {}
+            if hc.get("enable") and hc.get("interval") != spec["interval_s"]:
+                problems.append(f"订阅 {name} 的健康检查间隔应该是简易版的 {spec['interval_s']} 秒（mihomo 按订阅上的间隔检查）")
+        return problems + _simple_common(groups, spec, with_dns=True)
+    if fam == "singbox":
+        c = json.loads(text)
+        tags = {o["tag"] for o in c.get("outbounds", []) if o.get("type") in ("selector", "urltest")}
+        for o in c.get("outbounds", []):
+            if o.get("type") not in ("selector", "urltest"):
+                continue
+            members = list(o.get("outbounds") or [])
+            explicit = [x for x in members if x in tags or x == "DIRECT"]
+            nodes = [x for x in members if x not in explicit]
+            if explicit and nodes and members[:len(explicit)] != explicit:
+                problems.append(f"组 {o['tag']} 的节点应该排在写明的成员后面")
+            if explicit and o.get("type") == "selector" and o.get("default") != members[0]:
+                problems.append(f"组 {o['tag']} 首次导入时应该选中第一项 {members[0]}")
+            groups[o["tag"]] = {"kind": {"selector": "select", "urltest": "url-test"}[o["type"]], "members": explicit,
+                                "nodes": bool(nodes)}
+            if o["tag"] == dns_group and _duration_s(o.get("interval") or "") != spec["interval_s"]:
+                problems.append(f"{dns_group} 的检查间隔应该是 {spec['interval_s']} 秒，实际 {o.get('interval')}")
+        # 国外默认没有节点时只剩七个地区，也算对（模板里本来就没有节点）
+        fd = groups.get(spec["foreign_default"])
+        if fd is not None and not fd["nodes"]:
+            fd["nodes"] = True
+        for sv in c.get("dns", {}).get("servers", []):
+            if sv.get("detour") and sv["detour"] != dns_group:
+                problems.append(f"DNS 服务器 {sv.get('tag')} 经 {sv['detour']} 去问，简易版应该经 {dns_group}")
+        if not any(sv.get("detour") == dns_group for sv in c.get("dns", {}).get("servers", [])):
+            problems.append(f"简易版里没有经 {dns_group} 去问的 DNS 服务器")
+        for hc in c.get("http_clients", []):
+            if hc.get("detour") != dns_group:
+                problems.append(f"http_clients 的 {hc.get('tag')} 经 {hc.get('detour')} 下载，简易版应该经 {dns_group}")
+        for rs in c.get("route", {}).get("rule_set", []):
+            if rs.get("type") == "remote" and rs.get("download_detour") not in (None, dns_group):
+                problems.append(f"规则集 {rs.get('tag')} 经 {rs['download_detour']} 下载，简易版应该经 {dns_group}")
+        return problems + _simple_common(groups, spec, with_dns=True)
+    raise ValueError(fam)
+
+
+def check_outputs(files: Dict[str, str], own: Optional[dict] = None, spec: Optional[dict] = None) -> List[str]:
+    """files：{相对路径: 内容}。按文件名判断格式（CONFIG_NAME），返回“文件：问题”列表。
+    own：这次生成的自有远程规则文件（own_files 的返回值）；给了才检查配置里对它们的引用。
+    spec：简易版的结构核对要用的名字（simple_spec 的返回值）；有简易版的文件而没给它时算错，不跳过。
+    后缀是 .conf / .yaml / .json 而文件名认不出的算错（manifest.json 除外），不再悄悄跳过。"""
     out: List[str] = []
     for rel, text in sorted(files.items()):
         base = rel.rsplit("/", 1)[-1]
-        if base.startswith("mihomo") and base.endswith(".yaml"):
-            probs = check_mihomo(text)
-        elif base.startswith("sing-box") and base.endswith(".json"):
-            probs = check_singbox(text)
-        elif base in ("loon.conf", "loon-strict.conf"):
-            probs = check_loon(text, strict=base == "loon-strict.conf", own=own)
-        elif base in ("quantumultx.conf", "quantumultx-strict.conf"):
-            probs = check_qx(text, strict=base == "quantumultx-strict.conf", own=own)
-        elif base in ("stash.yaml", "stash-strict.yaml"):
-            probs = check_stash(text, strict=base == "stash-strict.yaml")
-        else:
+        kind = config_kind(base)
+        if kind is None:
+            if base.endswith(CONFIG_SUFFIXES) and base != "manifest.json":
+                out.append(f"{rel}：认不出这是哪个客户端的配置（文件名不在 verify.CONFIG_NAME 里），没有核对")
             continue
+        fam, simple, strict = kind
+        if fam == "mihomo":
+            probs = check_mihomo(text)
+        elif fam == "singbox":
+            probs = check_singbox(text)
+        elif fam == "loon":
+            probs = check_loon(text, strict=strict, own=own)
+        elif fam == "qx":
+            probs = check_qx(text, strict=strict, own=own)
+        else:
+            probs = check_stash(text, strict=strict)
+        if simple:
+            probs += check_simple(fam, text, spec)
         out += [f"{rel}：{p}" for p in probs]
     out += check_own_lists(files)
     return out

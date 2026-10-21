@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """从统一源生成五个客户端的配置（mihomo、sing-box、Loon、Quantumult X，2026-10-13 起还有 Stash）。
+2026-10-21 起每个客户端另有简易版（文件名带 -simple，说明见 docs/10），和完整版并存。
 
 用法：
   python3 build.py                         生成公开产物到 dist/（订阅为占位符，可分享）
@@ -31,7 +32,7 @@ from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.10.2"
+GENERATOR_VERSION = "1.11.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -46,6 +47,19 @@ PUBLIC_OUTPUTS = {
     # Stash（2026-10-13，r16）：标准版和严格版，都只引用上游数据（GEOSITE、blackmatrix7），不另生成规则文件。说明见 generator/emit_stash.py
     "stash/stash.yaml": lambda m, p: emit_stash.build(m, p),
     "stash/stash-strict.yaml": lambda m, p: emit_stash.build(m, p, strict=True),
+    # 简易版（2026-10-21，docs/10）：每个地区一个组、里面直接是节点，自己选，不自动换。和完整版并存，文件名带 -simple；
+    # 规则、DNS 和对应的完整版相同（mihomo、sing-box 的境外 DNS 和规则下载另走内部的“境外DNS”组）。
+    # 严格版引用的自有规则文件和完整版的严格版共用下面那几个，不另生成
+    "mihomo/mihomo-simple-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile", simple=True),
+    "mihomo/mihomo-simple-core.yaml": lambda m, p: emit_mihomo.build(m, p, "core", simple=True),
+    "sing-box/sing-box-simple-1.14.json": lambda m, p: emit_singbox.build(m, p, "1.14", simple=True),
+    "sing-box/sing-box-simple-1.12.json": lambda m, p: emit_singbox.build(m, p, "1.12", simple=True),
+    "loon/loon-simple.conf": lambda m, p: emit_loon.build(m, p, simple=True),
+    "loon/loon-simple-strict.conf": lambda m, p: emit_loon.build(m, p, strict=True, simple=True),
+    "quantumultx/quantumultx-simple.conf": lambda m, p: emit_qx.build(m, p, simple=True),
+    "quantumultx/quantumultx-simple-strict.conf": lambda m, p: emit_qx.build(m, p, strict=True, simple=True),
+    "stash/stash-simple.yaml": lambda m, p: emit_stash.build(m, p, simple=True),
+    "stash/stash-simple-strict.yaml": lambda m, p: emit_stash.build(m, p, strict=True, simple=True),
     strict.LOON_CN_REL: strict.loon_cn_list,
     strict.QX_CN_REL: strict.qx_cn_list,
     strict.QX_MAX_REL: strict.qx_max_list,
@@ -59,6 +73,7 @@ def render_public(model, plan, root: str = ROOT) -> dict:
     manifest = {
         "generator_version": GENERATOR_VERSION,
         "source_version": model.project["project"]["source_version"],
+        "simple_version": str(model.simple["version"]),      # 简易版策略组写法的版本（2026-10-21 起）
         "docs_checked": str(model.project["project"]["docs_checked"]),
         "source_sha256": source_digest(root),
         "rule_counts": {
@@ -171,6 +186,7 @@ def _private_manifest(public_manifest: str, private: dict, root: str) -> str:
     return json.dumps({
         "generator_version": pub["generator_version"],
         "source_version": pub["source_version"],
+        "simple_version": pub["simple_version"],
         "source_sha256": pub["source_sha256"],
         "local_yaml_sha256": local_sha,
         "outputs": {k: sha256_text(v) for k, v in sorted(private.items())},
@@ -233,6 +249,15 @@ def main(argv=None, root: str = ROOT) -> int:
             private["quantumultx-strict.conf"] = emit_qx.build(pmodel, pplan, subs, strict=True)
             private["stash.yaml"] = emit_stash.build(pmodel, pplan, subs)
             private["stash-strict.yaml"] = emit_stash.build(pmodel, pplan, subs, strict=True)
+            # 简易版（2026-10-21）也各出一份带订阅的
+            private["mihomo-simple-profile.yaml"] = emit_mihomo.build(pmodel, pplan, "profile", subs, simple=True)
+            private["mihomo-simple-core.yaml"] = emit_mihomo.build(pmodel, pplan, "core", subs, simple=True)
+            private["loon-simple.conf"] = emit_loon.build(pmodel, pplan, subs, simple=True)
+            private["loon-simple-strict.conf"] = emit_loon.build(pmodel, pplan, subs, strict=True, simple=True)
+            private["quantumultx-simple.conf"] = emit_qx.build(pmodel, pplan, subs, simple=True)
+            private["quantumultx-simple-strict.conf"] = emit_qx.build(pmodel, pplan, subs, strict=True, simple=True)
+            private["stash-simple.yaml"] = emit_stash.build(pmodel, pplan, subs, simple=True)
+            private["stash-simple-strict.yaml"] = emit_stash.build(pmodel, pplan, subs, strict=True, simple=True)
         if a.singbox_nodes or a.singbox_sub_url:
             if a.singbox_nodes:
                 with open(a.singbox_nodes, encoding="utf-8") as f:
@@ -243,6 +268,8 @@ def main(argv=None, root: str = ROOT) -> int:
             converted, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(pmodel))
             private["sing-box-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", converted, renamed)
             private["sing-box-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", converted, renamed)
+            private["sing-box-simple-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", converted, renamed, simple=True)
+            private["sing-box-simple-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", converted, renamed, simple=True)
             empty = [o["tag"] for o in json.loads(private["sing-box-1.14.json"])["outbounds"]
                      if o.get("type") in ("selector", "urltest") and o.get("outbounds") == [emit_singbox.PLACEHOLDER_TAG]]
             skipped = len(proxies) - len(converted)
@@ -264,6 +291,8 @@ def main(argv=None, root: str = ROOT) -> int:
         elif has_local:
             private["sing-box-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14")
             private["sing-box-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12")
+            private["sing-box-simple-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", simple=True)
+            private["sing-box-simple-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", simple=True)
     except SourceError as e:
         print(e, file=sys.stderr)
         print("local.yaml 有错误，未改动任何产物。", file=sys.stderr)
@@ -275,7 +304,8 @@ def main(argv=None, root: str = ROOT) -> int:
 
     # ---------- 3. 写盘前的结构检查（审核 F09） ----------
     own = verify.own_files(model, files)
-    problems = verify.check_outputs(files, own) + verify.check_outputs({f"private/{k}": v for k, v in private.items()}, own)
+    problems = verify.check_outputs(files, own, verify.simple_spec(model)) + \
+        verify.check_outputs({f"private/{k}": v for k, v in private.items()}, own, verify.simple_spec(pmodel))
     if problems:
         print("生成的配置结构有问题，未改动任何产物：\n  - " + "\n  - ".join(problems), file=sys.stderr)
         return 2

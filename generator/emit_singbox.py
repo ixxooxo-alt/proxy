@@ -40,9 +40,13 @@ def is_lan_name(host: str, lan_suffixes: List[str]) -> bool:
 
 
 def _compile(nf: NodeFilter):
-    """sing-box 没有按名称筛选节点的字段：生成时在本机用同一条正则把节点分进各组。"""
+    """sing-box 没有按名称筛选节点的字段：生成时在本机用同一条正则把节点分进各组。
+    几条正则任一条匹配就算的（简易版的“境外DNS”）逐条判断。"""
     if nf.pinned is not None:
         return lambda name: name == nf.pinned
+    if nf.any_of:
+        rxs = [re.compile(x) for x in nf.any_of]
+        return lambda name: any(rx.search(name) for rx in rxs)
     rx = re.compile(nf.regex)
     return lambda name: bool(rx.search(name))
 
@@ -137,18 +141,29 @@ def _match_fields(rules: List[Rule]) -> dict:
 
 
 def reserved_tags(m: Model) -> set:
-    """配置里节点以外的全部出站标签。订阅节点不能用这些名字，否则 sing-box 报重名（审核 F02）。"""
-    return {g.name for g in build_groups(m, MODES) if g.name != "广告拦截"} | {DIRECT_TAG, PLACEHOLDER_TAG}
+    """配置里节点以外的全部出站标签。订阅节点不能用这些名字，否则 sing-box 报重名（审核 F02）。
+    完整版和简易版共用同一批转换好的节点，所以两版的组名都算（简易版多一个“境外DNS”）。"""
+    groups = build_groups(m, MODES) + build_groups(m, MODES, "simple", foreign_dns=True)
+    return {g.name for g in groups if g.name != "广告拦截"} | {DIRECT_TAG, PLACEHOLDER_TAG}
+
+
+def idle_timeout(interval_s: int) -> str:
+    """urltest 的 idle_timeout：sing-box 要求检查间隔不超过它（v1.14.1 protocol/group/urltest.go 的 NewURLTestGroup，
+    超过时内核启动失败，sing-box check 查不出来）。完整版照旧 30 分钟；间隔更长时（简易版 1 小时）取和间隔相同。"""
+    return "30m" if interval_s <= 1800 else f"{interval_s}s"
 
 
 def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None,
-          renamed: Optional[dict] = None) -> str:
+          renamed: Optional[dict] = None, simple: bool = False) -> str:
     """variant: '1.14' | '1.12'；nodes: 已转换好的 sing-box 出站（None 表示模板，不含节点）；
-    renamed: 转换器因重名改过的节点 {新标签: 订阅里的原名}，地区筛选与固定节点仍按原名匹配。"""
+    renamed: 转换器因重名改过的节点 {新标签: 订阅里的原名}，地区筛选与固定节点仍按原名匹配。
+    simple：简易版（docs/10，2026-10-21）。和完整版的差别：策略组；境外 DNS（dns-foreign）和规则集的下载走内部的
+    自动测速组（project.yaml 的 simple.foreign_dns_group），不跟着“国外默认”里手选的节点。"""
     p = m.project
     hc = m.hc
     dns = m.dns
-    groups = build_groups(m, MODES)
+    groups = build_groups(m, MODES, "simple" if simple else "full", foreign_dns=simple)
+    via = m.simple["foreign_dns_group"] if simple else "国外默认"     # 境外 DNS 和规则集下载走的出站
     nodes = nodes or []
     renamed = renamed or {}
     node_tags = [n["tag"] for n in nodes]
@@ -156,11 +171,11 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
     outbounds: List[dict] = []
     need_placeholder = False
 
-    def pick(nf: NodeFilter) -> List[str]:
+    def pick(nf: NodeFilter, allow_empty: bool = False) -> List[str]:
         nonlocal need_placeholder
         ok = _compile(nf)
         sel = [t for t in node_tags if ok(renamed.get(t, t))]
-        if not sel:
+        if not sel and not allow_empty:
             need_placeholder = True
             return [PLACEHOLDER_TAG]
         return sel
@@ -168,13 +183,13 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
     for g in groups:
         if g.name == "广告拦截":
             continue          # 以规则动作 reject 实现，不作为可切换组
+        # 写明的成员在前，节点在后（简易版的“国外默认”两者都有：七个地区再接全部节点，没有节点时只剩七个地区，不放占位）
+        members = _selectable_members(g.members)
         if g.nodes is not None:
-            members = pick(g.nodes)
-        else:
-            members = _selectable_members(g.members)
+            members += pick(g.nodes, allow_empty=bool(members))
         if g.kind == "select":
             ob = {"type": "selector", "tag": g.name, "outbounds": members}
-            if g.nodes is None and members:
+            if g.members and members:
                 ob["default"] = members[0]
             if g.role == "paypal_fixed" and g.nodes.pinned:
                 hit = [t for t in members if renamed.get(t, t) == g.nodes.pinned]
@@ -182,9 +197,10 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
                     ob["default"] = hit[0]
             outbounds.append(ob)
         elif g.kind == "url-test":
+            iv = g.interval_s or hc["interval_s"]
             outbounds.append({"type": "urltest", "tag": g.name, "outbounds": members,
-                              "url": hc["url_https"], "interval": f"{hc['interval_s']}s",
-                              "tolerance": hc["tolerance_ms"], "idle_timeout": "30m",
+                              "url": hc["url_https"], "interval": f"{iv}s",
+                              "tolerance": hc["tolerance_ms"], "idle_timeout": idle_timeout(iv),
                               "interrupt_exist_connections": False})
         else:
             raise ValueError(f"sing-box 不支持的组类型 {g.kind}（{g.name}）")
@@ -244,7 +260,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
     for tag, url in remote_tags:
         rs = {"type": "remote", "tag": tag, "format": "binary", "url": url, "update_interval": "1d"}
         if variant == "1.12":
-            rs["download_detour"] = "国外默认"
+            rs["download_detour"] = via
         rule_sets.append(rs)
 
     route = {
@@ -284,7 +300,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
     dns_obj = {
         "servers": [
             {"type": "https", "tag": "dns-cn", "server": host_of(dns["domestic_doh"][0])},
-            {"type": "https", "tag": "dns-foreign", "server": host_of(dns["foreign_doh"][0]), "detour": "国外默认"},
+            {"type": "https", "tag": "dns-foreign", "server": host_of(dns["foreign_doh"][0]), "detour": via},
             fakeip_server,
             {"type": "local", "tag": LOCAL_DNS_TAG},
         ],
@@ -304,7 +320,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
         "dns": dns_obj,
     }
     if variant == "1.14":
-        conf["http_clients"] = [{"tag": "经代理下载", "detour": "国外默认"}]
+        conf["http_clients"] = [{"tag": "经代理下载", "detour": via}]
     conf["inbounds"] = [{
         "type": "tun", "tag": "tun-in",
         "address": ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],

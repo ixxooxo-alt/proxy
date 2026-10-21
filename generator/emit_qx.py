@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import List
 
 from . import strict as strict_mod
-from .groups import NodeFilter, build_groups
+from .groups import NodeFilter, build_groups, simple_header
 from .model import Model, Plan
 from .util import Rule, check_regex_line_safe
 
@@ -49,18 +49,22 @@ def _regex(nf: NodeFilter) -> str:
     return rx
 
 
-def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False) -> str:
+def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool = False, simple: bool = False) -> str:
+    """simple：简易版（docs/10，2026-10-21）。和完整版只差 [policy]（没有自动类的策略）和几行说明。"""
     p = m.project
     hc = m.hc
     dns = m.dns
-    groups = build_groups(m, MODES)
+    groups = build_groups(m, MODES, "simple" if simple else "full")
     L: List[str] = []
     L.append("# 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。")
     L.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['quantumultx']['core']}")
     L.append("# 适用：iPhone / iPad / Mac 共用同一份配置（平台验收分别记录）")
+    if simple:
+        L += simple_header(m, "quantumultx-strict.conf" if strict else "quantumultx.conf")
     if strict:
         L.append("# 这是【严格版】：没有命中任何域名规则的连接，不为判断规则在本机解析域名，直接交给“国外默认”；国内网站靠 [filter_remote] 里的国内域名清单认出来。")
-        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 quantumultx.conf。")
+        L.append("# 清单里没有的国内网站会走代理（可能变慢，个别网站可能限制境外访问；没有实测）；遇到了可以在 App 里切回标准版 "
+                 + ("quantumultx-simple.conf" if simple else "quantumultx.conf") + "。")
         L.append("# 这一份依赖 [filter_remote] 最后那条“域名兜底”加载成功，Quantumult X 的规则先后也没有完整的官方说明：导入后请按 docs/09 的严格版一节验收。")
         L.append(f"# 国内域名清单和域名兜底都在 {m.strict['publish_base']} 下：文件还没有发布、改了名、或者仓库改成私有时加载会失败——"
                  "国内清单失败，国内网站改走代理；域名兜底失败，回到标准版的行为（没命中的域名又在本机解析），App 不会有任何提示。")
@@ -94,17 +98,24 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
         L.append(f"server=/*.{sfx}/system")
 
     L += ["", "[policy]",
-          "# server-tag-regex：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写。",
-          "# 每个地区两条：“手动”用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；",
-          "# “自动 / 故障转移 / 负载均衡”用严的（只收名字只指向这个地区的节点）。",
-          "# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，在电脑上运行 tools/check_node_names.py。",
+          "# server-tag-regex：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写。"]
+    if simple:
+        L += ["# 每个地区一条（按名字归到这个地区的全部节点，含名字说不清落地的）；“国外默认”另用一条全部节点（去掉提示行）。",
+              "# 简易版只有 static（手选）：点哪个用哪个，挂了不会自动换。",
+              "# “国外默认”把写明的七个地区和 server-tag-regex 写在同一行：官方 sample.conf 没有这样混写的例子，",
+              "# 要在设备上看它的成员里既有七个地区、也有节点（docs/09）。"]
+    else:
+        L += ["# 每个地区两条：“手动”用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；",
+              "# “自动 / 故障转移 / 负载均衡”用严的（只收名字只指向这个地区的节点）。"]
+    L += ["# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，在电脑上运行 tools/check_node_names.py。",
           "# 每行末尾的 img-url 是策略组图标的地址（图片在图标仓库里，只影响显示，不影响分流；见 source/icons.yaml）。"]
     for g in groups:
         kind = KIND_MAP[g.kind]
+        # 写明的成员在前，节点筛选在后（简易版的“国外默认”两者都有；完整版二选一）
+        parts = [_pol(x) for x in g.members]
         if g.nodes is not None:
-            body = f"server-tag-regex={_regex(g.nodes)}"
-        else:
-            body = ", ".join(_pol(x) for x in g.members)
+            parts.append(f"server-tag-regex={_regex(g.nodes)}")
+        body = ", ".join(parts)
         line = f"{kind}={g.name}, {body}"
         if kind == "url-latency-benchmark":
             line += f", check-interval={hc['interval_s']}, alive-checking=false, tolerance={hc['tolerance_ms']}"

@@ -17,8 +17,10 @@ icons:
   base_url: https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
   ext: .png
   # 文件名和策略组名不一样的写在这里，其余的文件名就是策略组名。
+  # 借用别的组的图（使用者 2026-10-21：简易版新加的组“图标就用旧的”）也写在这里。
   renamed:
     "Apple Music/TV": "Apple Music／TV"          # 文件名里不能有半角斜杠，图标仓库用的是全角斜杠（U+FF0F）
+    "境外DNS": "国外默认"                         # 简易版的内部组（只在 mihomo 简易版里写图标，而且藏起来）借用“国外默认”的图
   # 已经写进配置、图还没有传到图标仓库的策略组（文件名就是策略组名）。登记在这里的组，配置里照样写它的图标地址，
   # 只是那个地址暂时打不开：App 里这个组没有图标，分流不受影响；tools/check_icons.py 把它列为“还没有上传”，不算不符合。
   # 图传好以后：把它从这里挪到 available，checked_commit 改成新的提交，重新跑 tools/check_icons.py。

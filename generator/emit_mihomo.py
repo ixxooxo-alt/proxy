@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 
 import yaml
 
-from .groups import GroupSpec, build_groups, shared_filter_labels
+from .groups import GroupSpec, build_groups, interval_text, shared_filter_labels, simple_header
 from .model import Model, Plan
 from .util import Rule, check_regex_line_safe, covers
 
@@ -164,13 +164,17 @@ def _group_dict(m: Model, g: GroupSpec) -> dict:
     if g.kind in ("url-test", "fallback", "load-balance"):
         d["url"] = hc["url_https"]
         d["expected-status"] = str(hc["expected_status"])
-        d["interval"] = hc["interval_s"]
+        d["interval"] = g.interval_s or hc["interval_s"]
         d["timeout"] = hc["timeout_ms"]
         d["lazy"] = bool(hc["lazy"])
     if g.kind == "url-test":
         d["tolerance"] = hc["tolerance_ms"]
     if g.kind == "fallback":
         d["max-failed-times"] = hc["max_failed_times"]
+    elif g.max_failed_times:
+        # 简易版的“境外DNS”（url-test）：几个连接接连失败就马上重测，不等 1 小时一次的检查（v1.19.31 groupbase.go 的 onDialFailed；
+        # 默认是 5 次，docs/10 第 5.3 节的实测）
+        d["max-failed-times"] = g.max_failed_times
     if g.kind == "load-balance":
         d["strategy"] = "consistent-hashing"
     if g.hidden:
@@ -189,7 +193,7 @@ class _Filters:
     def __init__(self, groups: List[GroupSpec], region_ids: List[str]):
         count: dict = {}
         for g in groups:
-            if g.nodes is not None:
+            if g.nodes is not None and not g.nodes.any_of:
                 rx = g.nodes.final_regex()
                 check_regex_line_safe(rx)          # 含反引号时 mihomo 会把它拆成多条正则
                 count[rx] = count.get(rx, 0) + 1
@@ -198,6 +202,12 @@ class _Filters:
         self.defined: set = set()
 
     def line(self, nf) -> str:
+        if nf.any_of:
+            # 几条正则任一条匹配就算（简易版的“境外DNS”）：用反引号连起来，mihomo 按反引号拆成多条、取并集
+            # （v1.19.31 adapter/outboundgroup/groupbase.go 的 NewGroupBase、GetProxies）。每一条都不含反引号（上面的检查）
+            for rx in nf.any_of:
+                check_regex_line_safe(rx)
+            return "filter: " + _scalar("`".join(nf.any_of))
         rx = nf.final_regex()
         anchor = self.name.get(rx)
         if anchor is None:
@@ -208,7 +218,21 @@ class _Filters:
         return f"filter: &{anchor} " + _scalar(rx)
 
 
-def build_rules_text(m: Model, plan: Plan) -> List[str]:
+GEOX_URLS = {
+    "geoip": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat",
+    "geosite": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
+    "mmdb": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb",
+    "asn": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb",
+}
+
+
+def geox_hosts() -> List[str]:
+    """内核下载 GEO 数据（geox-url）用到的主机，按出现的先后、去重。"""
+    return list(dict.fromkeys(u.split("://", 1)[1].split("/", 1)[0] for u in GEOX_URLS.values()))
+
+
+def build_rules_text(m: Model, plan: Plan, dns_group: str = "") -> List[str]:
+    """dns_group：简易版的内部组名（境外 DNS 和规则数据的下载走它）；给了就在 2b 之后加一段，把 GEO 数据的下载交给它。"""
     lines: List[str] = []
 
     def section(title: str):
@@ -226,6 +250,12 @@ def build_rules_text(m: Model, plan: Plan) -> List[str]:
     emit(plan.lan)
     section("2b 要真实地址的名单（fake-ip-filter 里的那几个）：固定直连，DNS 也交给国内（见 dns 段）")
     emit(plan.real_ip_direct, by_service=False)
+    if dns_group:
+        # 内核按规则下载 GEO 数据：没有这一段时，这个主机被 GEOSITE,geolocation-!cn 交给“国外默认”，
+        # 跟着手选的节点走；那个节点挂了，GEO 数据就更新不了（docs/10 第六节）
+        section(f"2c 内核下载 GEO 数据（geox-url 的主机）：交给内部的“{dns_group}”，不跟着“国外默认”里手选的节点（简易版）")
+        for host in geox_hosts():
+            lines.append("  - " + _scalar(f"DOMAIN,{host},{dns_group}"))
     section("3a 广告误杀例外：按没有广告规则时的业务目标放行")
     emit(plan.exceptions, by_service=False)
     section("3b 自有广告 / 跟踪拦截")
@@ -247,12 +277,16 @@ def build_rules_text(m: Model, plan: Plan) -> List[str]:
     return lines
 
 
-def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) -> str:
-    """flavor: core（内核直接运行）| profile（Clash Verge Rev / CMFA 托管端口、TUN、控制面）"""
+def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None, simple: bool = False) -> str:
+    """flavor: core（内核直接运行）| profile（Clash Verge Rev / CMFA 托管端口、TUN、控制面）
+    simple：简易版（docs/10，2026-10-21）。和完整版的差别：策略组；境外 DNS 和 GEO 数据的下载走内部的自动测速组
+    （project.yaml 的 simple.foreign_dns_group，多一段规则）；订阅上的检查间隔用 simple.health_check_interval_s。"""
     p = m.project
     dns = m.dns
     hc = m.hc
-    groups = build_groups(m, MODES)
+    groups = build_groups(m, MODES, "simple" if simple else "full", foreign_dns=simple)
+    dns_group = m.simple["foreign_dns_group"] if simple else ""
+    interval_s = m.simple["health_check_interval_s"] if simple else hc["interval_s"]
 
     head = {}
     if flavor == "core":
@@ -273,12 +307,7 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
         "geodata-mode": False,
         "geo-auto-update": True,
         "geo-update-interval": 24,
-        "geox-url": {
-            "geoip": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat",
-            "geosite": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
-            "mmdb": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb",
-            "asn": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb",
-        },
+        "geox-url": dict(GEOX_URLS),
     })
     if flavor == "core":
         head["tun"] = {
@@ -294,6 +323,11 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     for x in dns["real_ip"]:
         real_ip.append(("+." + x["suffix"]) if "suffix" in x else x["domain"])
     foreign = list(dns["foreign_doh"])          # nameserver 和产品域名那一层共用这一个列表：写出来是 &dns-foreign / *dns-foreign
+    if simple:
+        # 简易版：境外 DNS 经内部的自动测速组去问（地址后面的 #组名，v1.19.31 config/config.go 的 parseNameServer），
+        # 不按规则落到“国外默认”——“国外默认”里手选的节点挂了时，DNS 不跟着断（docs/10 第六节的方案 2）。
+        # 这样写以后 respect-rules 对这几个地址不再起作用（同一个函数：写了组名就不用 RespectRules）
+        foreign = [u + "#" + dns_group for u in foreign]
     domestic_layer = list(dns["domestic_doh"])  # 被更宽的代理规则覆盖的直连规则共用：&dns-domestic / *dns-domestic
     _DnsDumper.ANCHORS = {tuple(foreign): "dns-foreign", tuple(domestic_layer): "dns-domestic"}
     # 局域网后缀和不带点的名字（nas、printer）交给系统 DNS：公共 DNS 不可能认识它们（2026-10-07，待决事项第 14 项方案二：
@@ -361,8 +395,9 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
                 "enable": True,
                 "url": hc["url_https"],
                 "expected-status": str(hc["expected_status"]),
-                # 与组的检查间隔一致：订阅（provider）上的间隔优先于组上的间隔（mihomo healthcheck.go 的注册逻辑）
-                "interval": hc["interval_s"],
+                # 与组的检查间隔一致：订阅（provider）上的间隔优先于组上的间隔（mihomo healthcheck.go 的注册逻辑）。
+                # 简易版是 1 小时（simple.health_check_interval_s）
+                "interval": interval_s,
                 "timeout": hc["timeout_ms"],
                 "lazy": True,
             },
@@ -373,6 +408,8 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     out.append(f"# 统一源版本 {p['project']['source_version']}；目标：{p['targets']['mihomo']['core']}")
     out.append("# 产物类型：" + ("mihomo 内核直接运行（含端口、控制面、TUN 开关）" if flavor == "core"
                            else "客户端托管版（Clash Verge Rev Windows/macOS、Clash Meta for Android：端口、TUN、控制面由客户端设置）"))
+    if simple:
+        out += simple_header(m, f"mihomo-{flavor}.yaml", foreign_dns=True)
     if not sub_urls:
         out.append("# ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。")
     out.append("")
@@ -385,8 +422,14 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
     out.append(_y({"proxy-providers": providers}).rstrip())
     out.append("")
     out.append("# 节点筛选（filter）：按节点名称分地区的正则，由 source/regions.yaml 的词表拼出，不手写。")
-    out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
-    out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
+    if simple:
+        out.append("# 每个地区一条（按名字归到这个地区的全部节点，含名字说不清落地的）；“国外默认”另用一条全部节点（去掉提示行），")
+        out.append("# 写明的七个地区排在前面、不过筛选（v1.19.31 adapter/outboundgroup/parser.go、groupbase.go）。")
+        out.append(f"# “{dns_group}”用六个地区的严筛选（只收名字只指向这个地区的节点），六条用反引号连在一起：mihomo 按反引号拆开、取并集。")
+        out.append(f"# 订阅上的健康检查 {interval_text(interval_s)}一次（简易版只有“{dns_group}”是自动组）。")
+    else:
+        out.append("# 每个地区两条：“手动”组用宽的（按名字归到这个地区的全部节点，含名字说不清落地的）；")
+        out.append("# “自动 / 故障转移 / 负载均衡”用严的（flt-xx-auto：只收名字只指向这个地区的节点）。")
     out.append("# 同一条正则只写一次：第一次出现时用 &flt-xx 定义，之后用 *flt-xx 引用（YAML 的锚点 / 别名）。")
     out.append("# 名称只是初筛，不证明实际出口；想看每个节点进了哪个组、为什么，运行 tools/check_node_names.py。")
     out.append("proxy-groups:")
@@ -402,6 +445,6 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None) 
         out.extend("  " + ln for ln in block)
     out.append("")
     out.append("rules:")
-    out.extend(build_rules_text(m, plan))
+    out.extend(build_rules_text(m, plan, dns_group))
     out.append("")
     return "\n".join(out)

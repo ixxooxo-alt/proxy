@@ -1,8 +1,9 @@
 {
-  "generator_version": "1.10.2",
+  "generator_version": "1.11.0",
   "source_version": "2026.10.17-1",
+  "simple_version": "2026.10.21-1",
   "docs_checked": "2026-09-23",
-  "source_sha256": "25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc",
+  "source_sha256": "7c4949ff07bad11323f180af7bb6bdfc6c2ab739f1331d595500289b64ca82eb",
   "rule_counts": {
     "lan_and_system": 24,
     "ad_exceptions": 10,
@@ -24,11 +25,17 @@
     "strict_qx_max_domains": 111182
   },
   "outputs": {
+    "loon/loon-simple-strict.conf": "c260b1b6a7796a39866e90509bf714985c216d9e33200eef856bc7c7ccc4b6f2",
+    "loon/loon-simple.conf": "1a4d169b6fff76c9ad8d4f92a62332d27196a8d97b724306ace7f299885d1503",
     "loon/loon-strict.conf": "1a16ed19a075c9c4e961cab2c41dde852e27afc920abdf3be27f3999bfb1a133",
     "loon/loon.conf": "9d547e861ee57935eef5484c86453488f0ad5db7d08bb3319e21ef114be0b7ae",
     "loon/rules/cn-domains.list": "6eb4bb905e39cea3a8b38c05c3a136031f326c02b9dc6293c02101293afeb7bd",
     "mihomo/mihomo-core.yaml": "0cf2064446b69c5423dc72b781c1ca4979801afa6f56df1467934ba313e4dd87",
     "mihomo/mihomo-profile.yaml": "f27b48da2912a08dd4e88f053e16de1de9624a133341f67723eb7244636fce5e",
+    "mihomo/mihomo-simple-core.yaml": "e0a6b53fb7abe4eea41da609f7c760312512d399c8b6a96dfcee967b4f142090",
+    "mihomo/mihomo-simple-profile.yaml": "18cfa315278b821ddc97cb4fe85c47b949766e377b0f023c356d1234b6f7f16c",
+    "quantumultx/quantumultx-simple-strict.conf": "b5e37c01de50039453f3e7d6d1e3c280d92e70d1cf3bcca6bff1f09d4eb8474e",
+    "quantumultx/quantumultx-simple.conf": "1145f339489531081845e2fe4a6f55948e66d0f919c5f506055ad82bd45ee961",
     "quantumultx/quantumultx-strict.conf": "1350a572a1d245640acb2484e40bbbd0bae343ceb1b31264e7f393be3f5c36aa",
     "quantumultx/quantumultx.conf": "b3c7eccd8313995f8afaf02a9a57b32082f9f0d4a08c73735a9625b39a2b42f7",
     "quantumultx/rules/cn-domains-max.list": "73807957107694a84a9fd1e5e554747ff65cd63d6736f96944a688e583c10805",
@@ -36,6 +43,10 @@
     "quantumultx/rules/domain-fallback.list": "c15975930f5d0e8097dd7d9330ca24b29438d07c7374eca5beb90e47b685e4c6",
     "sing-box/sing-box-1.12.json": "32294f3515c29a3f1d8e86b85705b20a757413df12148fcee2e80efbed21920f",
     "sing-box/sing-box-1.14.json": "358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda",
+    "sing-box/sing-box-simple-1.12.json": "83806f8d593d1ce0fc3d52f62335a411b14c16d29a97a4c2e2877268358096a4",
+    "sing-box/sing-box-simple-1.14.json": "d8dda5762a9a3120cb6caf77474552941cd2823698f886e28c910a160a5ad882",
+    "stash/stash-simple-strict.yaml": "31d489ba4a89aaee12c3e8166f449f505c0f0fa1dcdb5e244a5fbe935c52c934",
+    "stash/stash-simple.yaml": "d1c6d79105c9ce2ccd51b45971a6b8d3e4f692ab02ba89f0348a4908fd1a09ef",
     "stash/stash-strict.yaml": "8f0708ced056ebc0d4d6a3ee1d9229bb66bc462b1697e959b250bd0f45ed6d0e",
     "stash/stash.yaml": "36920da1689be7e2ca0009a280d12c36fc941fb81f3848027afd8d224324aa63"
   },

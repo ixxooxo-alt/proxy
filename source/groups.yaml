@@ -7,12 +7,14 @@
 # 引用规则：业务组只能引用地区入口、国外默认、明确规定的专用入口（PayPal·美国固定）、DIRECT / REJECT。
 # （以前还有 Netflix·解锁入口：2026-10-07 用户定了待决事项第 3 项，Netflix 按普通分组，这个入口取消了。）
 
+# note_simple：简易版（docs/10）里这个组的说明，和 note 不一样时才写（没写就用 note）。
 # 显示顺序即配置中的顺序
 groups:
   # ---------- 基础 ----------
   - {name: 国外默认, category: 基础, special: foreign_default,
      default: 日本, options: [香港, 韩国, 台湾, 新加坡, 美国, 其他地区],
-     note: 独立选择组，成员为七个地区入口，首次默认日本；所选地区全组不可用时不自动跨国}
+     note: 独立选择组，成员为七个地区入口，首次默认日本；所选地区全组不可用时不自动跨国,
+     note_simple: 七个地区，后面接全部节点（不含提示行），首次默认日本；直接点节点就固定用它，挂了不会自动换}
 
   # ---------- AI ----------
   - {name: OpenAI,    category: AI, default: 日本, options: standard}
@@ -74,7 +76,8 @@ groups:
 
   # ---------- 支付 ----------
   - {name: PayPal, category: 支付, default: PayPal·美国固定, options: [美国, 香港, 日本, 韩国, 台湾, 新加坡, 其他地区, DIRECT],
-     note: DIRECT 仅供明确手动选择；选普通地区入口会继承该入口当前模式，可能自动换节点}
+     note: DIRECT 仅供明确手动选择；选普通地区入口会继承该入口当前模式，可能自动换节点,
+     note_simple: DIRECT 仅供明确手动选择；选普通地区就用那个地区组里手选的节点}
 
   # ---------- 基础 ----------
   - {name: 广告拦截, category: 基础, default: REJECT, options: [DIRECT]}

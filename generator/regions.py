@@ -350,7 +350,7 @@ def parse(data: dict, local: Optional[dict] = None) -> Tuple[Optional[Spec], Lis
         return None, errors
     try:
         loose, strict = compose_all(spec)
-        for rx in list(loose.values()) + list(strict.values()):
+        for rx in list(loose.values()) + list(strict.values()) + [compose_any(spec)]:
             check_composed(rx)
     except (re.error, ValueError) as e:
         return None, [f"节点筛选正则无法生成：{e}"]
@@ -715,10 +715,36 @@ class _Composer:
         loose[oid] = self.wrap(oid, info + other)
         return loose, strict
 
+    def compose_any(self) -> str:
+        """全部节点（简易版的“国外默认”，2026-10-21）：不是提示行、也没有被指定成 none 的节点。
+        等于宽的七条取并集：六个地区的宽筛选都要求名字里提到这个地区（文字或国旗），“其他地区”收剩下的；
+        名字里没有任何地区字样时，两边用的是同一个“提示行常用词”判断（weak）。tests/test_simple.py 拿样本名、随机名、
+        本地补充逐个对照，tools/check_icu.py 在 ICU 上再比一遍。"""
+        s = self.s
+        body = self.info_common()
+        weak = self.weak()
+        if weak is not None:
+            sign = _alt([self.txt(s.ids + [s.other.id]), self.any_flag()])
+            body += "(?:" + _pos(sign) + "|" + _neg(weak) + ")"
+        core = body + ".*$"
+        names = sorted(s.assign)
+        if not names:
+            return "(?i)^" + core
+        excl = "(?!(?:" + "|".join(lit(n) for n in names) + ")$)"
+        keep = [n for n in names if s.assign[n] != NONE]
+        if keep:
+            return "(?i)^(?:(?:" + "|".join(lit(n) for n in keep) + ")$|" + excl + core + ")"
+        return "(?i)^" + excl + core
+
 
 def compose_all(spec: Spec) -> Tuple[Dict[str, str], Dict[str, str]]:
     """(宽的 {地区 id（含其他地区）: 正则}, 严的 {地区 id: 正则})。"""
     return _Composer(spec).compose()
+
+
+def compose_any(spec: Spec) -> str:
+    """全部节点（去掉提示行和指定成 none 的）：一条正则，等于宽的七条取并集。简易版的“国外默认”用。"""
+    return _Composer(spec).compose_any()
 
 
 def compose(spec: Spec) -> Dict[str, str]:

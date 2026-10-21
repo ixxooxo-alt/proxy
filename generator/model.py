@@ -34,6 +34,7 @@ class Group:
     residual: bool = False
     note: str = ""
     special: str = ""
+    note_simple: str = ""            # 简易版里这个组的说明（和 note 不同时才写；2026-10-21）
 
     @property
     def members(self) -> List[str]:
@@ -93,6 +94,7 @@ class Model:
     max_domains: Tuple[List[str], List[str]] = field(default_factory=lambda: ([], []))
     max_data_header: List[str] = field(default_factory=list)
     _node_rx: Optional[Tuple[Dict[str, str], Dict[str, str]]] = field(default=None, repr=False, compare=False)
+    _node_rx_any: Optional[str] = field(default=None, repr=False, compare=False)
 
     # 便捷访问
     @property
@@ -153,6 +155,17 @@ class Model:
         """严的那套：{地区 id: 正则}，只收“名字只指向这一个地区”的节点。自动 / 故障转移 / 负载均衡用。"""
         return self._node_rx_all()[1]
 
+    def node_regex_any(self) -> str:
+        """全部节点（去掉提示行）：一条正则，等于宽的七条取并集。简易版的“国外默认”用。"""
+        if self._node_rx_any is None:
+            self._node_rx_any = region_rules.compose_any(self.region_spec)
+        return self._node_rx_any
+
+    @property
+    def simple(self) -> dict:
+        """简易版的设定（project.yaml 的 simple 一节，2026-10-21）。"""
+        return self.project["simple"]
+
     @property
     def hc(self) -> dict:
         return self.project["health_check"]
@@ -190,7 +203,9 @@ def _load_yaml(path: str):
 # 各类条目允许的键：拼错的键（例如 sufix、tartget）以前会被默默忽略（审核 F09）
 SERVICE_KEYS = {"id", "group", "title", "upstream", "rules", "shared_excluded", "notes", "clients"}
 RULE_EXTRA_KEYS = {"ev", "note", "nature"}
-GROUP_KEYS = {"name", "category", "default", "options", "residual", "note", "special"}
+GROUP_KEYS = {"name", "category", "default", "options", "residual", "note", "special", "note_simple"}
+# 简易版的设定（project.yaml 的 simple 一节，2026-10-21）
+SIMPLE_KEYS = {"version", "foreign_dns_group", "health_check_interval_s"}
 # shared_excluded：只说明“不归本服务”的主机。写了 to 的，表示“它会去这个组”，是一条要核对的断言：
 # probe 列出具体主机，测试（tests/test_real_data.py，用上游数据的成员快照）和 tools/check_real_routes.py（官方内核）
 # 会检查各客户端是否真的把它们交给 to（2026-10-13 起含 Stash；Loon、Quantumult X、Stash 只有模拟器）。
@@ -252,6 +267,28 @@ def _check_icons(ic: dict) -> List[str]:
     for x in avail:
         if "/" in x or "\\" in x:
             errors.append(f"icons.yaml：available 里的名字不能含斜杠：{x!r}（文件名里的斜杠写全角“／”，再在 renamed 里对应）")
+    return errors
+
+
+def _check_simple(sp) -> List[str]:
+    """project.yaml 的 simple 一节：键都认识，版本是“年.月.日-序号”，检查间隔是不少于 60 秒的整数秒，内部组名是非空的字符串。
+    组名和别的组、地区重不重名，在 validate 里查（要等组和地区都读进来）。"""
+    if not isinstance(sp, dict):
+        return ["project.yaml：缺少 simple 一节（简易版的设定）"]
+    errors = _unknown("project.yaml simple", sp, SIMPLE_KEYS)
+    missing = sorted(SIMPLE_KEYS - set(sp))
+    if missing:
+        errors.append(f"project.yaml simple：缺少 {'、'.join(missing)}")
+    if "version" in sp and not re.fullmatch(r"\d{4}\.\d{2}\.\d{2}-\d+", str(sp["version"])):
+        errors.append(f"project.yaml simple.version 应写成“年.月.日-序号”，例如 2026.10.21-1：{sp['version']!r}")
+    iv = sp.get("health_check_interval_s")
+    if "health_check_interval_s" in sp and (not isinstance(iv, int) or isinstance(iv, bool) or iv < 60):
+        errors.append(f"project.yaml simple.health_check_interval_s 应是不少于 60 的整数（秒）：{iv!r}")
+    # 组名要原样写进 mihomo 的境外 DNS 地址（https://1.1.1.1/dns-query#组名）：mihomo 按 & 和 = 拆 # 后面的部分
+    # （v1.19.31 config/config.go 的 parseNameServer），所以这几个字符、空白、逗号（Loon / Quantumult X 的分隔符）都不能有
+    name = sp.get("foreign_dns_group")
+    if "foreign_dns_group" in sp and (not isinstance(name, str) or not name or re.search(r"[\s,&=#%]", name)):
+        errors.append(f"project.yaml simple.foreign_dns_group 应是不含空白和 , & = # % 的组名：{name!r}")
     return errors
 
 
@@ -381,6 +418,7 @@ def load(root: str, include_local: bool = True) -> Model:
         schema_errors += _unknown(f"adblock.yaml exceptions {e}", e, EXCEPTION_KEYS)
     for e in g["groups"]:
         schema_errors += _unknown(f"groups.yaml {e.get('name', e)}", e, GROUP_KEYS)
+    schema_errors += _check_simple(project.get("simple"))
 
     groups: List[Group] = []
     for e in g["groups"]:
@@ -389,7 +427,8 @@ def load(root: str, include_local: bool = True) -> Model:
             opts = list(STANDARD_OPTIONS)
         groups.append(Group(name=e["name"], category=e["category"], default=e["default"],
                             options=list(opts), residual=bool(e.get("residual", False)),
-                            note=str(e.get("note", "")), special=str(e.get("special", ""))))
+                            note=str(e.get("note", "")), special=str(e.get("special", "")),
+                            note_simple=str(e.get("note_simple", ""))))
 
     services: List[Service] = []
     order = 0
@@ -515,6 +554,10 @@ def validate(m: Model) -> None:
             errors.append(f"组 {grp.name} 引用了自己（会形成循环）")
     if len(names) != len(m.groups):
         errors.append("存在重名策略组")
+    # 简易版的内部组（“境外DNS”）不能和已有的组、地区、专用入口重名
+    dns_group = m.simple["foreign_dns_group"]
+    if dns_group in referable:
+        errors.append(f"project.yaml simple.foreign_dns_group 的 {dns_group} 和已有的组 / 地区 / 专用入口 / 内置策略重名")
 
     # 专用入口：PayPal 固定入口所在地区必须存在
     region_ids = {r["id"] for r in m.regions}
