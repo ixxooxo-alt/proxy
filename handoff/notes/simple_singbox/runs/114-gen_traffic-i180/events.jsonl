@@ -1,0 +1,309 @@
+{"kind": "check", "rc": 0, "out": "", "t": 1792507889.697}
+{"kind": "lab_ready", "t": 1792507889.957}
+{"kind": "start", "t0": 1792507890.7012372, "interval": 180, "bin": "/root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box", "scen": "gen_traffic", "t": 1792507890.701}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792507890.899}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507890.999}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507891.099}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507891.2}
+{"kind": "now", "group": "jp-auto", "now": "n1", "t": 1792507891.213}
+{"kind": "action", "action": ["traffic", "in-a", 2.0], "at": 5, "t": 1792507895.714}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507895.719}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507895.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507897.718}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507897.719}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507899.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507899.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507901.719}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507901.719}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507903.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507903.721}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507905.719}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507905.719}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507907.719}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507907.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507909.719}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507909.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507911.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507911.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507913.722}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.006, "head": "", "t": 1792507913.723}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507915.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507915.72}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507917.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507917.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507919.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507919.721}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507921.724}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.007, "head": "", "t": 1792507921.724}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507923.72}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507923.721}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507925.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507925.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507927.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507927.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507929.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507929.721}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507931.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507931.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507933.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507933.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507935.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507935.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507937.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507937.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507939.721}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507939.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507941.722}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507941.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507943.722}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507943.722}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507945.724}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507945.724}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507947.724}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507947.725}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507949.724}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507949.725}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507951.724}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507951.725}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507953.725}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507953.726}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507955.726}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507955.727}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507957.725}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507957.726}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507959.725}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507959.725}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507961.725}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507961.726}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507963.726}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507963.727}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507965.726}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507965.727}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507967.726}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507967.727}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507969.728}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507969.728}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507971.728}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507971.728}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507973.727}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507973.728}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507975.727}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507975.728}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507977.727}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507977.728}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507979.728}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507979.729}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507981.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507981.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507983.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507983.73}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507985.729}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507985.73}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507987.729}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507987.73}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507989.729}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507989.73}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507991.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507991.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507993.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507993.73}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507995.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507995.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507997.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507997.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507999.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507999.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508001.731}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508001.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508003.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508003.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508005.73}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508005.731}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508007.731}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508007.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508009.731}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508009.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508011.731}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508011.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508013.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508013.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508015.732}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508015.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508017.731}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508017.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508019.732}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508019.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508021.732}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508021.732}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508023.732}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508023.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508025.732}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508025.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508027.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508027.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508029.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508029.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508031.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508031.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508033.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508033.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508035.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508035.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508037.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.002, "head": "", "t": 1792508037.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508039.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508039.733}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508041.737}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.007, "head": "", "t": 1792508041.738}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508043.733}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508043.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508045.734}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508045.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508047.734}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508047.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508049.734}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508049.734}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508051.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508051.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508053.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508053.735}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508055.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508055.735}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508057.734}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508057.735}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508059.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508059.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508061.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508061.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508063.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508063.737}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508065.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508065.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508067.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508067.737}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508069.735}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508069.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508071.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508071.736}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508073.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508073.737}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792508075.721}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508075.737}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508075.737}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792508075.822}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792508075.921}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792508076.022}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508077.738}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792508077.739}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508079.736}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508079.737}
+{"kind": "action", "action": ["node", "n1", "down"], "at": 190, "t": 1792508080.8}
+{"kind": "set", "node": "n1", "state": "down", "old": "up", "delay": 0, "t": 1792508080.801}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508081.736}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508083.736}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508085.736}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508087.736}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508089.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508091.736}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508093.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508095.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508097.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508099.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508101.737}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508103.738}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508105.738}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508107.738}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508109.738}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508111.739}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508113.738}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508115.739}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508117.739}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508119.739}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508121.739}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508123.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508125.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508127.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508129.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508131.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508133.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508135.74}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508137.742}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508139.742}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508141.742}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508143.742}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508145.743}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508147.743}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508149.743}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508151.743}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508153.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508155.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508157.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508159.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508161.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508163.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.009, "t": 1792508165.751}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508167.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508169.744}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508171.745}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508173.745}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508175.745}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508177.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508179.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508181.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508183.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508185.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508187.747}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508189.746}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508191.747}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508193.747}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508195.747}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508197.749}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508199.749}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508201.749}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508203.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508205.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508207.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508209.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508211.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508213.751}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508215.75}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508217.751}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.003, "t": 1792508219.753}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508221.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508223.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.005, "t": 1792508225.755}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508227.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508229.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508231.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508233.752}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508235.753}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792508237.753}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508239.753}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508241.753}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508243.754}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508245.754}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.003, "t": 1792508247.756}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.003, "t": 1792508249.755}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508251.754}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792508253.754}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508255.857}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.104, "head": "", "t": 1792508255.857}
+{"kind": "now", "group": "jp-auto", "now": "n2", "t": 1792508256.111}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508257.859}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.106, "head": "", "t": 1792508257.86}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508259.86}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.107, "head": "", "t": 1792508259.861}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508261.859}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.106, "head": "", "t": 1792508261.86}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508263.86}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.106, "head": "", "t": 1792508263.86}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508265.858}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.104, "head": "", "t": 1792508265.858}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508267.858}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.104, "head": "", "t": 1792508267.859}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508269.859}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.104, "head": "", "t": 1792508269.86}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508271.86}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.105, "head": "", "t": 1792508271.861}
+{"kind": "hello", "node": "n2", "method": "GET", "t": 1792508273.86}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n2", "dur": 0.104, "head": "", "t": 1792508273.861}

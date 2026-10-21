@@ -1,0 +1,115 @@
+{
+ "log": {
+  "level": "debug",
+  "timestamp": true
+ },
+ "inbounds": [
+  {
+   "type": "mixed",
+   "tag": "in-a",
+   "listen": "127.0.0.1",
+   "listen_port": 49251
+  },
+  {
+   "type": "mixed",
+   "tag": "in-b",
+   "listen": "127.0.0.1",
+   "listen_port": 49252
+  },
+  {
+   "type": "mixed",
+   "tag": "in-c",
+   "listen": "127.0.0.1",
+   "listen_port": 49253
+  }
+ ],
+ "outbounds": [
+  {
+   "type": "socks",
+   "tag": "n1",
+   "server": "127.0.0.1",
+   "server_port": 49211,
+   "version": "5"
+  },
+  {
+   "type": "socks",
+   "tag": "n2",
+   "server": "127.0.0.1",
+   "server_port": 49212,
+   "version": "5"
+  },
+  {
+   "type": "socks",
+   "tag": "n3",
+   "server": "127.0.0.1",
+   "server_port": 49213,
+   "version": "5"
+  },
+  {
+   "type": "socks",
+   "tag": "n4",
+   "server": "127.0.0.1",
+   "server_port": 49214,
+   "version": "5"
+  },
+  {
+   "type": "urltest",
+   "tag": "jp-auto",
+   "outbounds": [
+    "n1",
+    "n2",
+    "n3",
+    "n4"
+   ],
+   "url": "http://127.0.0.1:49200/generate_204",
+   "interval": "30s",
+   "tolerance": 50,
+   "idle_timeout": "30m",
+   "interrupt_exist_connections": false
+  },
+  {
+   "type": "selector",
+   "tag": "jp",
+   "outbounds": [
+    "jp-auto",
+    "n1",
+    "n2",
+    "n3",
+    "n4"
+   ],
+   "default": "jp-auto"
+  },
+  {
+   "type": "selector",
+   "tag": "fd",
+   "outbounds": [
+    "jp",
+    "n1",
+    "n2",
+    "n3",
+    "n4"
+   ],
+   "default": "jp"
+  },
+  {
+   "type": "direct",
+   "tag": "direct"
+  }
+ ],
+ "route": {
+  "rules": [
+   {
+    "inbound": [
+     "in-a"
+    ],
+    "outbound": "fd"
+   }
+  ],
+  "final": "direct"
+ },
+ "experimental": {
+  "clash_api": {
+   "external_controller": "127.0.0.1:49240"
+  }
+ }
+}

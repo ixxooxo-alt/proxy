@@ -1,0 +1,1 @@
+{"outbounds":[{"type":"direct","tag":"d"},{"type":"selector","tag":"m","outbounds":["d"]},{"type":"urltest","tag":"g","outbounds":["m","d"],"tolerance":65535,"interval":"180s"}]}

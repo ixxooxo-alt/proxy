@@ -1,0 +1,32 @@
+{"kind": "check", "rc": 0, "out": "", "t": 1792508179.95}
+{"kind": "lab_ready", "t": 1792508180.042}
+{"kind": "start", "t0": 1792508180.9513533, "interval": 30, "bin": "/root/proxy-vendor/bin/sing-box-1.14.3-linux-amd64/sing-box", "scen": "gen_idle", "t": 1792508180.951}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792508181.016}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792508181.117}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792508181.219}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792508181.317}
+{"kind": "now", "group": "jp-auto", "now": "n1", "t": 1792508181.464}
+{"kind": "action", "action": ["traffic", "in-a", 2.0], "at": 5, "t": 1792508185.965}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508185.97}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792508185.971}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508187.969}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508187.97}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508189.968}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508189.969}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508191.969}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792508191.97}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508193.969}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508193.97}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792508195.971}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792508195.972}
+{"kind": "action", "action": ["traffic_off", "in-a"], "at": 15, "t": 1792508195.985}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792508215.971}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792508216.073}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792508216.172}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792508216.272}
+{"kind": "action", "action": ["node", "n1", "down"], "at": 40, "t": 1792508221.037}
+{"kind": "set", "node": "n1", "state": "down", "old": "up", "delay": 0, "t": 1792508221.037}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792508276.071}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792508276.172}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792508276.272}
+{"kind": "now", "group": "jp-auto", "now": "n2", "t": 1792508276.721}

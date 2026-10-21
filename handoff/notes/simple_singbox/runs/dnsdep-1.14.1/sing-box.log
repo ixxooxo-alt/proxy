@@ -1,0 +1,28 @@
++0000 2026-10-20 14:57:01 [36mINFO[0m network: updated default interface eth0, index 4
++0000 2026-10-20 14:57:01 [36mINFO[0m inbound/mixed[in-a]: tcp server started at 127.0.0.1:50951
++0000 2026-10-20 14:57:01 [36mINFO[0m network: updated network environment: gateway 192.0.2.1, gateway_mac 02:fc:00:00:00:05
++0000 2026-10-20 14:57:01 [36mINFO[0m clash-api: restful api listening at 127.0.0.1:50940
++0000 2026-10-20 14:57:01 [36mINFO[0m sing-box started (0.00s)
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 0ms] inbound/mixed[in-a]: inbound connection from 127.0.0.1:36820
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 0ms] inbound/mixed[in-a]: inbound connection to unlisted-a.example:50900
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 0ms] router: match[0] inbound=in-a => resolve(dns-foreign)
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 0ms] dns: lookup domain unlisted-a.example
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 1ms] outbound/socks[n1]: outbound connection to 127.0.0.1:50960
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 1ms] outbound/socks[n1]: outbound connection to 127.0.0.1:50960
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 4ms] dns: exchanged unlisted-a.example NOERROR 60
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 4ms] dns: exchanged A unlisted-a.example. 60 IN A 127.0.0.1
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 4ms] dns: lookup succeed for unlisted-a.example: 127.0.0.1
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 4ms] router: resolved [127.0.0.1]
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 4ms] router: match[1] ip_cidr=127.0.0.0/8 => route(direct)
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;28m1694037772[0m 5ms] outbound/direct[direct]: outbound connection to unlisted-a.example:50900
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 6ms] connection: connection download finished
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 6ms] inbound/mixed[in-a]: connection closed: read http request: read tcp 127.0.0.1:50951->127.0.0.1:36820: use of closed network connection
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;28m1694037772[0m 6ms] connection: connection upload finished
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;178m3041384354[0m 0ms] inbound/mixed[in-a]: inbound connection from 127.0.0.1:36830
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;178m3041384354[0m 0ms] inbound/mixed[in-a]: inbound connection to unlisted-b.example:50900
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;178m3041384354[0m 0ms] router: match[0] inbound=in-a => resolve(dns-foreign)
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;178m3041384354[0m 0ms] dns: lookup domain unlisted-b.example
++0000 2026-10-20 14:57:03 [36mINFO[0m [[38;5;178m3041384354[0m 0ms] outbound/socks[n2]: outbound connection to 127.0.0.1:50960
++0000 2026-10-20 14:57:03 [31mERROR[0m [[38;5;178m3041384354[0m 0ms] dns: lookup failed for unlisted-b.example: dial TCP connection: dial tcp 127.0.0.1:50912: connect: connection refused
++0000 2026-10-20 14:57:03 [31mERROR[0m [[38;5;178m3041384354[0m 0ms] router: lookup unlisted-b.example: dial TCP connection: dial tcp 127.0.0.1:50912: connect: connection refused
++0000 2026-10-20 14:57:03 [37mDEBUG[0m [[38;5;178m3041384354[0m 0ms] inbound/mixed[in-a]: connection closed: (lookup unlisted-b.example: dial TCP connection: dial tcp 127.0.0.1:50912: connect: connection refused | Get "http://unlisted-b.example:50900/hello": EOF)

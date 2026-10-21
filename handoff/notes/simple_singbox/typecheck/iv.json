@@ -1,0 +1,1 @@
+{"outbounds":[{"type":"direct","tag":"d"},{"type":"urltest","tag":"g","outbounds":["d"],"interval":"40m"}]}

@@ -1,0 +1,106 @@
+{
+ "log": {
+  "level": "debug",
+  "timestamp": true
+ },
+ "outbounds": [
+  {
+   "tag": "socks-hang",
+   "type": "socks",
+   "server": "127.0.0.1",
+   "server_port": 50111,
+   "version": "5"
+  },
+  {
+   "tag": "ss-hang",
+   "type": "shadowsocks",
+   "server": "127.0.0.1",
+   "server_port": 50111,
+   "method": "aes-128-gcm",
+   "password": "test-only-not-a-secret"
+  },
+  {
+   "tag": "vmess-hang",
+   "type": "vmess",
+   "server": "127.0.0.1",
+   "server_port": 50111,
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "security": "auto"
+  },
+  {
+   "tag": "trojan-hang",
+   "type": "trojan",
+   "server": "127.0.0.1",
+   "server_port": 50111,
+   "password": "test-only",
+   "tls": {
+    "enabled": true,
+    "server_name": "example.invalid",
+    "insecure": true
+   }
+  },
+  {
+   "type": "socks",
+   "tag": "n2",
+   "server": "127.0.0.1",
+   "server_port": 50112,
+   "version": "5"
+  },
+  {
+   "type": "urltest",
+   "tag": "ut-socks-hang",
+   "outbounds": [
+    "socks-hang",
+    "n2"
+   ],
+   "url": "http://127.0.0.1:50100/generate_204",
+   "interval": "30s",
+   "idle_timeout": "30m"
+  },
+  {
+   "type": "urltest",
+   "tag": "ut-ss-hang",
+   "outbounds": [
+    "ss-hang",
+    "n2"
+   ],
+   "url": "http://127.0.0.1:50100/generate_204",
+   "interval": "30s",
+   "idle_timeout": "30m"
+  },
+  {
+   "type": "urltest",
+   "tag": "ut-vmess-hang",
+   "outbounds": [
+    "vmess-hang",
+    "n2"
+   ],
+   "url": "http://127.0.0.1:50100/generate_204",
+   "interval": "30s",
+   "idle_timeout": "30m"
+  },
+  {
+   "type": "urltest",
+   "tag": "ut-trojan-hang",
+   "outbounds": [
+    "trojan-hang",
+    "n2"
+   ],
+   "url": "http://127.0.0.1:50100/generate_204",
+   "interval": "30s",
+   "idle_timeout": "30m"
+  },
+  {
+   "type": "direct",
+   "tag": "direct"
+  }
+ ],
+ "route": {
+  "final": "direct"
+ },
+ "experimental": {
+  "clash_api": {
+   "external_controller": "127.0.0.1:50140"
+  }
+ }
+}

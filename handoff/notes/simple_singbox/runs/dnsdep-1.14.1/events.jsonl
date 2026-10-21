@@ -1,0 +1,3 @@
+{"kind": "lab_ready", "t": 1792508220.87}
+{"kind": "set", "node": "n2", "state": "down", "old": "up", "delay": 0, "t": 1792508221.785}
+{"kind": "hello", "node": "direct", "method": "GET", "t": 1792508223.293}

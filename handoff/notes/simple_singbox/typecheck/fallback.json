@@ -1,0 +1,1 @@
+{"outbounds":[{"type":"direct","tag":"d"},{"type":"fallback","tag":"g","outbounds":["d"]}]}

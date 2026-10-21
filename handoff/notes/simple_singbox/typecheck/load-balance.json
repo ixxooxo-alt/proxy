@@ -1,0 +1,1 @@
+{"outbounds":[{"type":"direct","tag":"d"},{"type":"load-balance","tag":"g","outbounds":["d"]}]}

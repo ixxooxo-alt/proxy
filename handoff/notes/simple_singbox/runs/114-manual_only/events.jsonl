@@ -1,0 +1,63 @@
+{"kind": "check", "rc": 0, "out": "", "t": 1792507513.194}
+{"kind": "lab_ready", "t": 1792507513.335}
+{"kind": "start", "t0": 1792507514.1951575, "interval": 30, "bin": "/root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box", "scen": "manual_only", "t": 1792507514.195}
+{"kind": "now", "group": "jp-manual", "now": "n3", "t": 1792507514.704}
+{"kind": "action", "action": ["traffic", "in-a", 2.0], "at": 5, "t": 1792507519.209}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507519.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.208, "head": "", "t": 1792507519.418}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507521.415}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507521.416}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507523.415}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507523.416}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507525.415}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507525.416}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507527.414}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.204, "head": "", "t": 1792507527.415}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507529.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.207, "head": "", "t": 1792507529.418}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507531.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507531.416}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507533.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507533.417}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507535.415}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507535.416}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507537.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507537.417}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507539.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507539.417}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507541.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507541.417}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507543.416}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.205, "head": "", "t": 1792507543.417}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507545.418}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507545.419}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507547.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507547.419}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507549.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.206, "head": "", "t": 1792507549.419}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507551.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.204, "head": "", "t": 1792507551.418}
+{"kind": "hello", "node": "n3", "method": "GET", "t": 1792507553.417}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n3", "dur": 0.204, "head": "", "t": 1792507553.418}
+{"kind": "action", "action": ["node", "n3", "down"], "at": 40, "t": 1792507554.197}
+{"kind": "set", "node": "n3", "state": "down", "old": "up", "delay": 200, "t": 1792507554.199}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507555.215}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507557.215}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507559.216}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507561.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507563.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507565.216}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507567.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507569.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507571.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507573.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507575.217}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507577.218}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507579.218}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507581.218}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507583.219}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507585.218}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507587.219}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.001, "t": 1792507589.219}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507591.219}
+{"kind": "req", "inb": "in-a", "ok": false, "err": "ConnectionResetError(104, 'Connection reset by peer')", "dur": 0.002, "t": 1792507593.219}

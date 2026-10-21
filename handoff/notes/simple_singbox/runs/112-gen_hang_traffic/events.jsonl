@@ -1,0 +1,81 @@
+{"kind": "check", "rc": 0, "out": "", "t": 1792507889.371}
+{"kind": "lab_ready", "t": 1792507889.999}
+{"kind": "start", "t0": 1792507890.374197, "interval": 30, "bin": "/root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box", "scen": "gen_hang_traffic", "t": 1792507890.374}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792507890.508}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507890.6}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507890.714}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507890.8}
+{"kind": "now", "group": "jp-auto", "now": "n1", "t": 1792507890.894}
+{"kind": "action", "action": ["traffic", "in-a", 2.0], "at": 5, "t": 1792507895.397}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507895.401}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507895.402}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507897.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507897.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507899.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507899.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507901.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507901.402}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507903.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507903.404}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507905.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507905.402}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507907.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507907.402}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507909.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507909.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507911.402}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507911.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507913.404}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.005, "head": "", "t": 1792507913.405}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507915.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507915.404}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507917.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507917.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507919.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507919.404}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507921.406}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.006, "head": "", "t": 1792507921.407}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507923.405}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.006, "head": "", "t": 1792507923.407}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792507925.403}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507925.405}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507925.406}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507925.504}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507925.604}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507925.705}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507927.403}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.002, "head": "", "t": 1792507927.404}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507929.404}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507929.405}
+{"kind": "action", "action": ["node", "n1", "hang"], "at": 40, "t": 1792507930.468}
+{"kind": "set", "node": "n1", "state": "hang", "old": "up", "delay": 0, "t": 1792507930.469}
+{"kind": "socks_hang", "node": "n1", "t": 1792507931.403}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.006, "head": "", "t": 1792507936.407}
+{"kind": "socks_hang", "node": "n1", "t": 1792507936.409}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.004, "head": "", "t": 1792507941.411}
+{"kind": "socks_hang", "node": "n1", "t": 1792507941.413}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.004, "head": "", "t": 1792507946.416}
+{"kind": "socks_hang", "node": "n1", "t": 1792507946.417}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.005, "head": "", "t": 1792507951.421}
+{"kind": "socks_hang", "node": "n1", "t": 1792507951.422}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.005, "head": "", "t": 1792507956.426}
+{"kind": "socks_hang", "node": "n1", "t": 1792507956.428}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.005, "head": "", "t": 1792507961.431}
+{"kind": "socks_hang", "node": "n1", "t": 1792507961.432}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.004, "head": "", "t": 1792507966.435}
+{"kind": "socks_hang", "node": "n1", "t": 1792507966.436}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.005, "head": "", "t": 1792507971.44}
+{"kind": "socks_hang", "node": "n1", "t": 1792507971.442}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.003, "head": "", "t": 1792507976.443}
+{"kind": "socks_hang", "node": "n1", "t": 1792507976.445}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.004, "head": "", "t": 1792507981.447}
+{"kind": "socks_hang", "node": "n1", "t": 1792507981.448}
+{"kind": "socks_hang", "node": "n1", "t": 1792507985.401}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507985.503}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507985.604}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507985.703}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.004, "head": "", "t": 1792507986.451}
+{"kind": "socks_hang", "node": "n1", "t": 1792507986.453}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 5.006, "head": "", "t": 1792507991.457}
+{"kind": "socks_hang", "node": "n1", "t": 1792507991.459}
+{"kind": "req", "inb": "in-a", "ok": false, "node": null, "dur": 4.45, "head": "", "t": 1792507995.907}

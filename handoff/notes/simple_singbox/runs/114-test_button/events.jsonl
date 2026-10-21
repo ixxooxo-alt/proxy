@@ -1,0 +1,53 @@
+{"kind": "check", "rc": 0, "out": "", "t": 1792507889.747}
+{"kind": "lab_ready", "t": 1792507890.004}
+{"kind": "start", "t0": 1792507890.7519736, "interval": 30, "bin": "/root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box", "scen": "test_button", "t": 1792507890.752}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792507890.94}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507891.042}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507891.14}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507891.243}
+{"kind": "now", "group": "jp-auto", "now": "n1", "t": 1792507891.279}
+{"kind": "action", "action": ["traffic", "in-a", 2.0], "at": 5, "t": 1792507895.8}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507895.804}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507895.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507897.803}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507897.804}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507899.804}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507899.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507901.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507901.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507903.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507903.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507905.804}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507905.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507907.804}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507907.805}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507909.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507909.806}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507911.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507911.806}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507913.806}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507913.807}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507915.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507915.806}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507917.805}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.003, "head": "", "t": 1792507917.806}
+{"kind": "hello", "node": "n1", "method": "GET", "t": 1792507919.806}
+{"kind": "req", "inb": "in-a", "ok": true, "node": "n1", "dur": 0.004, "head": "", "t": 1792507919.807}
+{"kind": "action", "action": ["traffic_off", "in-a"], "at": 30, "t": 1792507920.841}
+{"kind": "probe", "node": "n1", "method": "HEAD", "t": 1792507925.806}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507925.907}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507926.008}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507926.106}
+{"kind": "action", "action": ["node", "n1", "down"], "at": 40, "t": 1792507930.762}
+{"kind": "set", "node": "n1", "state": "down", "old": "up", "delay": 0, "t": 1792507930.764}
+{"kind": "action", "action": ["groupdelay", "jp"], "at": 50, "t": 1792507940.783}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507940.895}
+{"kind": "socks_err", "node": "n2", "err": "gaierror(-2, 'Name or service not known')", "t": 1792507940.896}
+{"kind": "socks_err", "node": "n3", "err": "gaierror(-2, 'Name or service not known')", "t": 1792507940.988}
+{"kind": "probe", "node": "n3", "method": "HEAD", "t": 1792507940.988}
+{"kind": "probe", "node": "n4", "method": "HEAD", "t": 1792507941.089}
+{"kind": "socks_err", "node": "n4", "err": "gaierror(-2, 'Name or service not known')", "t": 1792507941.089}
+{"kind": "groupdelay_result", "dur": 0.307, "resp": "{\"jp-auto\":204,\"n2\":111,\"n3\":204,\"n4\":305}\n", "t": 1792507941.09}
+{"kind": "now", "group": "jp-auto", "now": "n3", "t": 1792507941.399}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507955.907}
+{"kind": "now", "group": "jp-auto", "now": "n2", "t": 1792507955.932}

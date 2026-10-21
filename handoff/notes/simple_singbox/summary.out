@@ -1,0 +1,1138 @@
+== 112-auto_hang_traffic
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  probe via n1
+     95.0–   95.0s  req x1  OK via n1
+     95.0s  ACTION ['node', 'n1', 'hang']
+     95.0s  lab: n1 up -> hang
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    102.0–  102.0s  req x1  FAIL  (e.g. '' dur=5.003)
+    107.0–  107.0s  req x1  FAIL  (e.g. '' dur=5.005)
+    112.0–  112.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    117.0–  117.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    122.0–  122.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    127.1–  127.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    132.1–  132.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    137.1–  137.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    142.1–  142.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    147.1–  147.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    152.1–  152.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    157.1–  157.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    162.1–  162.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    167.1–  167.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    172.1–  172.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    177.1–  177.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    182.1–  182.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    187.1–  187.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    192.1–  192.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    197.1–  197.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    202.1–  202.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    207.1–  207.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    212.1–  212.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    217.1–  217.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    222.1–  222.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    227.1–  227.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    230.5–  230.5s  req x1  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=3.389)
+== 112-auto_refuse_idle
+      0.1s  probe via n1
+      0.3s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.0s  ACTION ['traffic_off', 'in-a']
+     95.0s  probe via n1
+     95.0s  ACTION ['node', 'n1', 'down']
+     95.0s  lab: n1 up -> down
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    155.4s  NOW jp-auto = n2
+    215.1s  probe via n2
+    215.2s  probe via n3
+    215.3s  probe via n4
+== 112-auto_refuse_traffic
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      0.5s  NOW jp = jp-auto
+      5.1s  ACTION ['traffic', 'in-a', 2.0]
+      5.1–   33.1s  req x15  OK via n1
+     35.1s  probe via n1
+     35.1–   35.1s  req x1  OK via n1
+     35.2s  probe via n2
+     35.3s  probe via n3
+     35.4s  probe via n4
+     37.1–   93.1s  req x29  OK via n1
+     95.1s  probe via n1
+     95.1–   95.1s  req x1  OK via n1
+     95.1s  ACTION ['node', 'n1', 'down']
+     95.1s  lab: n1 up -> down
+     95.2s  probe via n2
+     95.3s  probe via n3
+     95.4s  probe via n4
+     97.1–  123.1s  req x14  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.002)
+    125.2–  125.2s  req x1  OK via n2
+    125.5s  NOW jp-auto = n2
+    127.2–  153.2s  req x14  OK via n2
+    155.2s  probe via n2
+    155.2–  155.2s  req x1  OK via n2
+    155.3s  probe via n3
+    155.4s  probe via n4
+    157.2–  213.2s  req x29  OK via n2
+    215.1s  ACTION ['node', 'n1', 'up']
+    215.1s  lab: n1 down -> up
+    215.1s  probe via n1
+    215.2s  probe via n2
+    215.2–  215.2s  req x1  OK via n2
+    215.3s  probe via n3
+    215.4s  probe via n4
+    215.8s  NOW jp-auto = n1
+    217.1–  273.1s  req x29  OK via n1
+    275.1s  probe via n1
+    275.1–  275.1s  req x1  OK via n1
+    275.2s  probe via n2
+    275.3s  probe via n3
+    275.4s  probe via n4
+    277.1–  299.1s  req x12  OK via n1
+== 112-freeze_int_false
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–    9.0s  req x3  OK via n1
+     10.0s  ACTION ['stream', 'in-a']
+     10.0s  stream_start {}
+     10.0s  stream_open {"node": "n1"}
+     11.0–   33.0s  req x12  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  probe via n1
+     95.0–   95.0s  req x1  OK via n1
+     95.1s  ACTION ['node', 'n1', 'freeze']
+     95.1s  lab: n1 up -> freeze
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    102.0–  102.0s  req x1  FAIL  (e.g. '' dur=5.003)
+    107.0–  107.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    112.0–  112.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    117.0–  117.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    122.0–  122.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    127.1–  127.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    132.1–  132.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    137.1–  137.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    142.1–  142.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    147.1–  147.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    152.1–  152.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    157.1–  157.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    162.1–  162.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    167.1–  167.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    172.1–  172.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    177.1–  177.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    182.1–  182.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    187.1–  187.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    192.1–  192.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    197.1–  197.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    200.6–  200.6s  req x1  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=3.487)
+    200.6s  stream_end {"how": "closed", "gap": 106.47}
+== 112-freeze_int_true
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–    9.0s  req x3  OK via n1
+     10.0s  ACTION ['stream', 'in-a']
+     10.0s  stream_start {}
+     10.0s  stream_open {"node": "n1"}
+     11.0–   33.0s  req x12  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  ACTION ['node', 'n1', 'freeze']
+     95.0s  lab: n1 up -> freeze
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    100.0–  100.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    105.0–  105.0s  req x1  FAIL  (e.g. '' dur=5.005)
+    110.0–  110.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    115.1–  115.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    120.1–  120.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    125.1–  125.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    130.1–  130.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    135.1–  135.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    140.1–  140.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    145.1–  145.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    150.1–  150.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    155.1–  155.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    160.1–  160.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    165.1–  165.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    170.1–  170.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    175.1–  175.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    180.1–  180.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    185.1–  185.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    190.1–  190.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    195.1–  195.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    200.1–  200.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    200.5s  stream_end {"how": "ConnectionResetError(104, 'Connection reset by peer')", "gap": 106.37}
+== 112-gen_hang_traffic
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.1s  ACTION ['node', 'n1', 'hang']
+     40.1s  lab: n1 up -> hang
+     46.0–   46.0s  req x1  FAIL  (e.g. '' dur=5.006)
+     51.0–   51.0s  req x1  FAIL  (e.g. '' dur=5.004)
+     56.0–   56.0s  req x1  FAIL  (e.g. '' dur=5.004)
+     61.0–   61.0s  req x1  FAIL  (e.g. '' dur=5.005)
+     66.1–   66.1s  req x1  FAIL  (e.g. '' dur=5.005)
+     71.1–   71.1s  req x1  FAIL  (e.g. '' dur=5.005)
+     76.1–   76.1s  req x1  FAIL  (e.g. '' dur=5.004)
+     81.1–   81.1s  req x1  FAIL  (e.g. '' dur=5.005)
+     86.1–   86.1s  req x1  FAIL  (e.g. '' dur=5.003)
+     91.1–   91.1s  req x1  FAIL  (e.g. '' dur=5.004)
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+     96.1–   96.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    101.1–  101.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    105.5–  105.5s  req x1  FAIL  (e.g. '' dur=4.45)
+== 112-gen_idle
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   15.0s  req x6  OK via n1
+     15.0s  ACTION ['traffic_off', 'in-a']
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+     95.7s  NOW jp-auto = n2
+== 112-gen_traffic
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     41.0–   63.0s  req x12  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+     65.1–   65.1s  req x1  OK via n2
+     65.2s  NOW jp-auto = n2
+     67.1–   85.1s  req x10  OK via n2
+== 112-mf_trick_50000
+      0.0s  probe via n1
+      0.1s  probe via n2
+      0.2s  probe via n3
+      0.2s  probe via n3
+      0.3s  probe via n4
+      0.5s  NOW jp-mf = jp-manual
+      0.5s  NOW jp-manual = n3
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.2–   33.2s  req x15  OK via n3
+     35.0s  probe via n1
+     35.2s  probe via n3
+     35.2–   93.2s  req x30  OK via n3
+     95.0s  probe via n1
+     95.2s  probe via n3
+     95.2–   99.2s  req x3  OK via n3
+    100.0s  ACTION ['node', 'n3', 'down']
+    100.0s  lab: n3 up -> down
+    101.0–  153.0s  req x27  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+    155.0s  probe via n1
+    155.0–  155.0s  req x1  OK via n1
+    155.1s  probe via n2
+    155.2s  NOW jp-mf = jp-auto
+    155.3s  probe via n4
+    157.0–  183.0s  req x14  OK via n1
+    185.0s  probe via n1
+    185.0–  189.0s  req x3  OK via n1
+    190.0s  ACTION ['node', 'n3', 'up']
+    190.0s  lab: n3 down -> up
+    191.0–  215.0s  req x13  OK via n1
+    215.1s  probe via n2
+    215.2s  probe via n3
+    215.2s  probe via n3
+    215.3s  probe via n4
+    217.0–  243.0s  req x14  OK via n1
+    245.0s  probe via n1
+    245.0–  273.0s  req x15  OK via n1
+    275.0s  probe via n1
+    275.0–  275.0s  req x1  OK via n1
+    275.1s  probe via n2
+    275.2s  probe via n3
+    275.2s  probe via n3
+    275.3s  probe via n4
+    277.0–  279.0s  req x2  OK via n1
+    280.0s  ACTION ['select', 'jp-manual', 'n4']
+    280.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+    280.4s  NOW jp-manual = n4
+    281.0–  299.0s  req x10  OK via n1
+    300.1s  ACTION ['node', 'n1', 'down']
+    300.1s  lab: n1 up -> down
+    301.0–  303.0s  req x2  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+    305.3–  305.3s  req x1  OK via n4
+    305.5s  NOW jp-mf = jp-manual
+    305.5s  NOW jp-auto = n2
+    307.3–  333.4s  req x14  OK via n4
+    335.1s  probe via n2
+    335.1s  probe via n2
+    335.2s  probe via n3
+    335.3s  probe via n4
+    335.3s  probe via n4
+    335.4–  359.4s  req x13  OK via n4
+== 112-mf_urltest_trick
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-mf = jp-manual
+      0.5s  NOW jp-manual = n3
+      0.5s  NOW jp-auto = n1
+      5.1s  ACTION ['traffic', 'in-a', 2.0]
+      5.3–   33.3s  req x15  OK via n3
+     35.1s  probe via n1
+     35.3s  probe via n3
+     35.3–   35.3s  req x1  OK via n3
+     35.7s  NOW jp-mf = jp-auto
+     37.1–   37.1s  req x1  OK via n1
+     37.2s  probe via n2
+     37.4s  probe via n4
+     39.1–   65.1s  req x14  OK via n1
+     67.1s  probe via n1
+     67.1–   67.1s  req x1  OK via n1
+     67.3s  probe via n3
+     69.1–   93.1s  req x13  OK via n1
+     95.0s  ACTION ['node', 'n3', 'down']
+     95.0s  lab: n3 up -> down
+     95.1–   97.1s  req x2  OK via n1
+     97.2s  probe via n2
+     97.4s  probe via n4
+     99.1–  123.1s  req x13  OK via n1
+    125.1s  probe via n1
+    125.1–  155.1s  req x16  OK via n1
+    157.1s  probe via n1
+    157.1–  157.1s  req x1  OK via n1
+    157.2s  probe via n2
+    157.4s  probe via n4
+    159.1–  183.1s  req x13  OK via n1
+    185.0s  ACTION ['node', 'n3', 'up']
+    185.0s  lab: n3 down -> up
+    185.1–  185.1s  req x1  OK via n1
+    185.3s  probe via n3
+    187.1–  213.1s  req x14  OK via n1
+    215.1s  probe via n1
+    215.1–  217.1s  req x2  OK via n1
+    217.2s  probe via n2
+    217.3s  probe via n3
+    217.4s  probe via n4
+    219.1–  245.1s  req x14  OK via n1
+    247.1s  probe via n1
+    247.1–  273.1s  req x14  OK via n1
+    275.0s  ACTION ['select', 'jp-manual', 'n4']
+    275.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+    275.1–  275.1s  req x1  OK via n1
+    275.4s  probe via n4
+    275.4s  NOW jp-manual = n4
+    277.1–  277.1s  req x1  OK via n1
+    277.2s  probe via n2
+    277.3s  probe via n3
+    279.1–  303.1s  req x13  OK via n1
+    305.1s  probe via n1
+    305.1–  307.1s  req x2  OK via n1
+    307.4s  probe via n4
+    309.1–  329.1s  req x11  OK via n1
+== 112-simple_onelayer
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW fd = jp
+      0.5s  NOW jp = jp-auto
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   19.0s  req x8  OK via n1
+     20.0s  ACTION ['select', 'jp', 'n3']
+     20.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     20.1s  NOW jp = n3
+     21.2–   33.2s  req x7  OK via n3
+     35.0s  probe via n1
+     35.1s  ACTION ['select', 'fd', 'n4']
+     35.1s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     35.1s  probe via n2
+     35.2s  NOW fd = n4
+     35.2s  probe via n3
+     35.2–   35.2s  req x1  OK via n3
+     35.3s  probe via n4
+     37.3–   49.3s  req x7  OK via n4
+     50.0s  ACTION ['select', 'fd', 'jp']
+     50.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     50.3s  NOW fd = jp
+     51.2–   59.2s  req x5  OK via n3
+     60.0s  ACTION ['node', 'n3', 'down']
+     60.0s  lab: n3 up -> down
+     61.0–   79.0s  req x10  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+== 112-test_button
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   29.0s  req x13  OK via n1
+     30.1s  ACTION ['traffic_off', 'in-a']
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     40.0s  ACTION ['node', 'n1', 'down']
+     40.0s  lab: n1 up -> down
+     50.0s  ACTION ['groupdelay', 'jp']
+     50.0s  groupdelay_result {"dur": 0.002, "resp": "{}\n"}
+     65.2s  NOW jp-auto = n2
+== 112-test_button_auto
+      0.0s  probe via n1
+      0.1s  probe via n2
+      0.2s  probe via n3
+      0.3s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   29.0s  req x13  OK via n1
+     30.1s  ACTION ['traffic_off', 'in-a']
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     50.0s  ACTION ['groupdelay', 'jp-auto']
+     50.0s  groupdelay_result {"dur": 0.001, "resp": "{}\n"}
+== 114-auto_hang_traffic
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  probe via n1
+     95.0–   95.0s  req x1  OK via n1
+     95.1s  ACTION ['node', 'n1', 'hang']
+     95.1s  lab: n1 up -> hang
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    102.0–  102.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    107.0–  107.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    112.0–  112.0s  req x1  FAIL  (e.g. '' dur=5.005)
+    117.1–  117.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    122.1–  122.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    127.1–  127.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    132.1–  132.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    137.1–  137.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    142.1–  142.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    147.1–  147.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    152.1–  152.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    157.1–  157.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    162.1–  162.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    167.1–  167.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    170.5s  NOW jp-auto = n2
+    172.1–  172.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    172.2–  184.2s  req x7  OK via n2
+    186.2–  214.2s  req x15  OK via n2
+    215.1s  probe via n2
+    215.2s  probe via n3
+    215.3s  probe via n4
+    216.2–  228.2s  req x7  OK via n2
+== 114-auto_refuse_idle
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.0s  ACTION ['traffic_off', 'in-a']
+     95.0s  probe via n1
+     95.0s  ACTION ['node', 'n1', 'down']
+     95.0s  lab: n1 up -> down
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    155.4s  NOW jp-auto = n2
+    215.1s  probe via n2
+    215.2s  probe via n3
+    215.3s  probe via n4
+== 114-auto_refuse_traffic
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      0.5s  NOW jp = jp-auto
+      5.1s  ACTION ['traffic', 'in-a', 2.0]
+      5.1–   33.1s  req x15  OK via n1
+     35.1s  probe via n1
+     35.1–   35.1s  req x1  OK via n1
+     35.2s  probe via n2
+     35.3s  probe via n3
+     35.4s  probe via n4
+     37.1–   93.1s  req x29  OK via n1
+     95.0s  ACTION ['node', 'n1', 'down']
+     95.0s  lab: n1 up -> down
+     95.1–   95.1s  req x1  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+     95.2s  probe via n2
+     95.3s  probe via n3
+     95.4s  probe via n4
+     95.9s  NOW jp-auto = n2
+     97.2–  153.2s  req x29  OK via n2
+    155.2s  probe via n2
+    155.2–  155.2s  req x1  OK via n2
+    155.3s  probe via n3
+    155.4s  probe via n4
+    157.2–  213.2s  req x29  OK via n2
+    215.1s  ACTION ['node', 'n1', 'up']
+    215.1s  lab: n1 down -> up
+    215.1s  probe via n1
+    215.2s  probe via n2
+    215.2–  215.2s  req x1  OK via n2
+    215.3s  probe via n3
+    215.4s  probe via n4
+    215.8s  NOW jp-auto = n1
+    217.1–  273.1s  req x29  OK via n1
+    275.1s  probe via n1
+    275.1–  275.1s  req x1  OK via n1
+    275.2s  probe via n2
+    275.3s  probe via n3
+    275.4s  probe via n4
+    277.1–  299.1s  req x12  OK via n1
+== 114-freeze_int_false
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  NOW jp-auto = 
+      0.5s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–    9.0s  req x3  OK via n1
+     10.0s  ACTION ['stream', 'in-a']
+     10.0s  stream_start {}
+     10.0s  stream_open {"node": "n1"}
+     11.0–   33.0s  req x12  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  probe via n1
+     95.0–   95.0s  req x1  OK via n1
+     95.1s  ACTION ['node', 'n1', 'freeze']
+     95.1s  lab: n1 up -> freeze
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    102.0–  102.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    107.0–  107.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    112.0–  112.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    117.0–  117.0s  req x1  FAIL  (e.g. '' dur=5.004)
+    122.1–  122.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    127.1–  127.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    132.1–  132.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    137.1–  137.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    142.1–  142.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    147.1–  147.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    152.1–  152.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    157.1–  157.1s  req x1  FAIL  (e.g. '' dur=5.001)
+    162.1–  162.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    167.1–  167.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    170.5s  NOW jp-auto = n2
+    172.1–  172.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    172.2–  184.2s  req x7  OK via n2
+    186.2–  198.2s  req x7  OK via n2
+    200.5s  stream_end {"how": "closed", "gap": 106.38}
+== 114-freeze_int_true
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  NOW jp-auto = 
+      0.5s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–    9.0s  req x3  OK via n1
+     10.0s  ACTION ['stream', 'in-a']
+     10.0s  stream_start {}
+     10.0s  stream_open {"node": "n1"}
+     11.0–   33.0s  req x12  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   93.0s  req x29  OK via n1
+     95.0s  probe via n1
+     95.0–   95.0s  req x1  OK via n1
+     95.0s  ACTION ['node', 'n1', 'freeze']
+     95.1s  lab: n1 up -> freeze
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+    102.0–  102.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    107.0–  107.0s  req x1  FAIL  (e.g. '' dur=5.006)
+    112.0–  112.0s  req x1  FAIL  (e.g. '' dur=5.005)
+    117.0–  117.0s  req x1  FAIL  (e.g. '' dur=5.002)
+    122.1–  122.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    127.1–  127.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    132.1–  132.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    137.1–  137.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    142.1–  142.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    147.1–  147.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    152.1–  152.1s  req x1  FAIL  (e.g. '' dur=5.002)
+    155.1s  probe via n2
+    155.2s  probe via n3
+    155.3s  probe via n4
+    157.1–  157.1s  req x1  FAIL  (e.g. '' dur=5.006)
+    162.1–  162.1s  req x1  FAIL  (e.g. '' dur=5.005)
+    167.1–  167.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    170.0s  stream_end {"how": "closed", "gap": 75.89}
+    170.4s  NOW jp-auto = n2
+    172.1–  172.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    172.2–  184.2s  req x7  OK via n2
+    186.2–  198.2s  req x7  OK via n2
+== 114-gen_hang_traffic
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.1s  ACTION ['node', 'n1', 'hang']
+     40.1s  lab: n1 up -> hang
+     46.0–   46.0s  req x1  FAIL  (e.g. '' dur=5.005)
+     51.0–   51.0s  req x1  FAIL  (e.g. '' dur=5.004)
+     56.0–   56.0s  req x1  FAIL  (e.g. '' dur=5.004)
+     61.0–   61.0s  req x1  FAIL  (e.g. '' dur=5.004)
+     66.0–   66.0s  req x1  FAIL  (e.g. '' dur=5.002)
+     71.1–   71.1s  req x1  FAIL  (e.g. '' dur=5.002)
+     76.1–   76.1s  req x1  FAIL  (e.g. '' dur=5.004)
+     81.1–   81.1s  req x1  FAIL  (e.g. '' dur=5.004)
+     86.1–   86.1s  req x1  FAIL  (e.g. '' dur=5.003)
+     91.1–   91.1s  req x1  FAIL  (e.g. '' dur=5.006)
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+     96.1–   96.1s  req x1  FAIL  (e.g. '' dur=5.003)
+    101.1–  101.1s  req x1  FAIL  (e.g. '' dur=5.004)
+    105.5–  105.5s  req x1  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=4.459)
+== 114-gen_idle-i180
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   15.0s  req x6  OK via n1
+     15.0s  ACTION ['traffic_off', 'in-a']
+    185.0s  probe via n1
+    185.1s  probe via n2
+    185.2s  probe via n3
+    185.3s  probe via n4
+    190.1s  ACTION ['node', 'n1', 'down']
+    190.1s  lab: n1 up -> down
+    545.1s  probe via n2
+    545.2s  probe via n3
+    545.3s  probe via n4
+    545.4s  NOW jp-auto = n2
+== 114-gen_idle-i300
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   15.0s  req x6  OK via n1
+     15.0s  ACTION ['traffic_off', 'in-a']
+    305.0s  probe via n1
+    305.1s  probe via n2
+    305.2s  probe via n3
+    305.3s  probe via n4
+    310.0s  ACTION ['node', 'n1', 'down']
+    310.0s  lab: n1 up -> down
+    905.1s  probe via n2
+    905.2s  probe via n3
+    905.3s  probe via n4
+    905.4s  NOW jp-auto = n2
+== 114-gen_idle
+      0.3s  probe via n1
+      0.4s  probe via n2
+      0.5s  probe via n3
+      0.5s  NOW jp-auto = 
+      0.6s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.1s  ACTION ['traffic', 'in-a', 2.0]
+      5.1–   15.1s  req x6  OK via n1
+     15.1s  ACTION ['traffic_off', 'in-a']
+     35.1s  probe via n1
+     35.2s  probe via n2
+     35.3s  probe via n3
+     35.4s  probe via n4
+     40.0s  ACTION ['node', 'n1', 'down']
+     40.0s  lab: n1 up -> down
+     95.2s  probe via n2
+     95.3s  probe via n3
+     95.4s  probe via n4
+     95.7s  NOW jp-auto = n2
+== 114-gen_traffic-i180
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–  183.0s  req x90  OK via n1
+    185.0s  probe via n1
+    185.0–  185.0s  req x1  OK via n1
+    185.1s  probe via n2
+    185.2s  probe via n3
+    185.3s  probe via n4
+    187.0–  189.0s  req x2  OK via n1
+    190.1s  ACTION ['node', 'n1', 'down']
+    190.1s  lab: n1 up -> down
+    191.0–  363.1s  req x87  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.002)
+    365.2–  365.2s  req x1  OK via n2
+    365.4s  NOW jp-auto = n2
+    367.2–  383.2s  req x9  OK via n2
+== 114-gen_traffic-i300
+      0.3s  probe via n1
+      0.4s  probe via n2
+      0.5s  probe via n3
+      0.5s  NOW jp-auto = 
+      0.6s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–  303.0s  req x150  OK via n1
+    305.0s  probe via n1
+    305.0–  305.0s  req x1  OK via n1
+    305.1s  probe via n2
+    305.2s  probe via n3
+    305.3s  probe via n4
+    307.0–  309.0s  req x2  OK via n1
+    310.1s  ACTION ['node', 'n1', 'down']
+    310.1s  lab: n1 up -> down
+    311.0–  603.1s  req x147  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+    605.1s  NOW jp-auto = n2
+    605.2–  623.2s  req x10  OK via n2
+== 114-gen_traffic
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  NOW jp-auto = 
+      0.5s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.0s  ACTION ['node', 'n1', 'down']
+     40.0s  lab: n1 up -> down
+     41.0–   63.0s  req x12  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+     65.1–   65.1s  req x1  OK via n2
+     65.2s  NOW jp-auto = n2
+     67.1–   85.1s  req x10  OK via n2
+== 114-manual_only
+      0.5s  NOW jp-manual = n3
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.2–   39.2s  req x18  OK via n3
+     40.0s  ACTION ['node', 'n3', 'down']
+     40.0s  lab: n3 up -> down
+     41.0–   79.0s  req x20  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.002)
+== 114-mf_trick_50000
+      0.1s  probe via n1
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.4s  probe via n4
+      0.5s  NOW jp-mf = jp-manual
+      0.5s  NOW jp-manual = n3
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.2–   33.2s  req x15  OK via n3
+     35.0s  probe via n1
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.2s  probe via n3
+     35.2–   35.2s  req x1  OK via n3
+     35.3s  probe via n4
+     35.3s  probe via n4
+     37.2–   93.2s  req x29  OK via n3
+     95.0s  probe via n1
+     95.0s  probe via n1
+     95.1s  probe via n2
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.2s  probe via n3
+     95.2–   95.2s  req x1  OK via n3
+     95.3s  probe via n4
+     95.3s  probe via n4
+     97.2–   99.2s  req x2  OK via n3
+    100.0s  ACTION ['node', 'n3', 'down']
+    100.0s  lab: n3 up -> down
+    101.0–  153.0s  req x27  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+    155.0s  probe via n1
+    155.0s  probe via n1
+    155.0–  155.0s  req x1  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+    155.1s  probe via n2
+    155.1s  probe via n2
+    155.3s  probe via n4
+    155.3s  probe via n4
+    155.8s  NOW jp-mf = jp-auto
+    157.0–  185.0s  req x15  OK via n1
+    187.0s  probe via n1
+    187.0–  187.0s  req x1  OK via n1
+    187.1s  probe via n2
+    187.3s  probe via n4
+    189.0–  189.0s  req x1  OK via n1
+    190.0s  ACTION ['node', 'n3', 'up']
+    190.0s  lab: n3 down -> up
+    191.0–  215.0s  req x13  OK via n1
+    215.2s  probe via n3
+    215.2s  probe via n3
+    217.0–  243.0s  req x14  OK via n1
+    245.0s  probe via n1
+    245.0s  probe via n1
+    245.0–  245.0s  req x1  OK via n1
+    245.1s  probe via n2
+    245.1s  probe via n2
+    245.3s  probe via n4
+    245.3s  probe via n4
+    247.0–  247.0s  req x1  OK via n1
+    247.2s  probe via n3
+    249.0–  275.0s  req x14  OK via n1
+    277.0s  probe via n1
+    277.0–  277.0s  req x1  OK via n1
+    277.1s  probe via n2
+    277.3s  probe via n4
+    279.0–  279.0s  req x1  OK via n1
+    280.0s  ACTION ['select', 'jp-manual', 'n4']
+    280.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+    280.4s  NOW jp-manual = n4
+    281.0–  299.1s  req x10  OK via n1
+    300.0s  ACTION ['node', 'n1', 'down']
+    300.0s  lab: n1 up -> down
+    301.0–  305.0s  req x3  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.002)
+    305.2s  probe via n3
+    305.2s  probe via n3
+    305.5s  NOW jp-auto = n2
+    307.1–  333.1s  req x14  OK via n2
+    335.1s  probe via n2
+    335.1s  probe via n2
+    335.1–  335.1s  req x1  OK via n2
+    335.3s  probe via n4
+    335.3s  probe via n4
+    337.1–  337.1s  req x1  OK via n2
+    337.2s  probe via n3
+    339.1–  359.2s  req x11  OK via n2
+== 114-mf_urltest_trick
+      0.2s  probe via n1
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  probe via n4
+      0.5s  NOW jp-mf = jp-manual
+      0.5s  NOW jp-manual = n3
+      0.5s  NOW jp-auto = n1
+      5.1s  ACTION ['traffic', 'in-a', 2.0]
+      5.3–   33.3s  req x15  OK via n3
+     35.1s  probe via n1
+     35.1s  probe via n1
+     35.2s  probe via n2
+     35.2s  probe via n2
+     35.3s  probe via n3
+     35.3s  probe via n3
+     35.3–   35.3s  req x1  OK via n3
+     35.4s  probe via n4
+     35.4s  probe via n4
+     35.7s  NOW jp-mf = jp-auto
+     37.1–   65.1s  req x15  OK via n1
+     67.1s  probe via n1
+     67.1–   67.1s  req x1  OK via n1
+     67.2s  probe via n2
+     67.3s  probe via n3
+     67.4s  probe via n4
+     69.1–   95.1s  req x14  OK via n1
+     95.1s  ACTION ['node', 'n3', 'down']
+     95.1s  lab: n3 up -> down
+     97.1–  123.1s  req x14  OK via n1
+    125.1s  probe via n1
+    125.1s  probe via n1
+    125.1–  125.1s  req x1  OK via n1
+    125.2s  probe via n2
+    125.2s  probe via n2
+    125.4s  probe via n4
+    125.4s  probe via n4
+    127.1–  155.1s  req x15  OK via n1
+    157.1s  probe via n1
+    157.1–  157.1s  req x1  OK via n1
+    157.2s  probe via n2
+    157.4s  probe via n4
+    159.1–  185.1s  req x14  OK via n1
+    185.1s  ACTION ['node', 'n3', 'up']
+    185.1s  lab: n3 down -> up
+    187.1–  187.1s  req x1  OK via n1
+    187.3s  probe via n3
+    189.1–  213.1s  req x13  OK via n1
+    215.1s  probe via n1
+    215.1s  probe via n1
+    215.1–  215.1s  req x1  OK via n1
+    215.2s  probe via n2
+    215.2s  probe via n2
+    215.4s  probe via n4
+    215.4s  probe via n4
+    217.1–  245.1s  req x15  OK via n1
+    245.3s  probe via n3
+    245.3s  probe via n3
+    247.1s  probe via n1
+    247.1–  247.1s  req x1  OK via n1
+    247.2s  probe via n2
+    247.4s  probe via n4
+    249.1–  273.1s  req x13  OK via n1
+    275.0s  ACTION ['select', 'jp-manual', 'n4']
+    275.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+    275.1–  275.1s  req x1  OK via n1
+    275.3s  NOW jp-manual = n4
+    277.1–  277.1s  req x1  OK via n1
+    277.3s  probe via n3
+    279.1–  303.1s  req x13  OK via n1
+    305.1s  probe via n1
+    305.1s  probe via n1
+    305.1–  305.1s  req x1  OK via n1
+    305.2s  probe via n2
+    305.2s  probe via n2
+    305.4s  probe via n4
+    305.4s  probe via n4
+    307.1–  329.1s  req x12  OK via n1
+== 114-simple_onelayer
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  NOW fd = jp
+      0.5s  NOW jp = jp-auto
+      0.5s  NOW jp-auto = 
+      0.5s  probe via n4
+      1.0s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   19.0s  req x8  OK via n1
+     20.0s  ACTION ['select', 'jp', 'n3']
+     20.0s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     20.1s  NOW jp = n3
+     21.2–   33.2s  req x7  OK via n3
+     35.0s  probe via n1
+     35.1s  ACTION ['select', 'fd', 'n4']
+     35.1s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     35.1s  probe via n2
+     35.2s  NOW fd = n4
+     35.2s  probe via n3
+     35.2–   35.2s  req x1  OK via n3
+     35.3s  probe via n4
+     37.3–   49.3s  req x7  OK via n4
+     50.1s  ACTION ['select', 'fd', 'jp']
+     50.1s  select_result 'HTTP/1.1 204 No Content\r\nVary: Origin\r\nD'
+     50.2s  NOW fd = jp
+     51.2–   59.2s  req x5  OK via n3
+     60.0s  ACTION ['node', 'n3', 'down']
+     60.0s  lab: n3 up -> down
+     61.0–   79.0s  req x10  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+== 114-test_button
+      0.2s  probe via n1
+      0.3s  probe via n2
+      0.4s  probe via n3
+      0.5s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.1–   29.1s  req x13  OK via n1
+     30.1s  ACTION ['traffic_off', 'in-a']
+     35.1s  probe via n1
+     35.2s  probe via n2
+     35.3s  probe via n3
+     35.4s  probe via n4
+     40.0s  ACTION ['node', 'n1', 'down']
+     40.0s  lab: n1 up -> down
+     50.0s  ACTION ['groupdelay', 'jp']
+     50.1s  probe via n2
+     50.2s  probe via n3
+     50.3s  probe via n4
+     50.3s  groupdelay_result {"dur": 0.307, "resp": "{\"jp-auto\":204,\"n2\":111,\"n3\":204,\"n4\":305}\n"}
+     50.6s  NOW jp-auto = n3
+     65.2s  probe via n2
+     65.2s  NOW jp-auto = n2
+== 114-test_button_auto
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   29.0s  req x13  OK via n1
+     30.1s  ACTION ['traffic_off', 'in-a']
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     50.0s  ACTION ['groupdelay', 'jp-auto']
+     50.1s  probe via n2
+     50.2s  probe via n3
+     50.3s  probe via n4
+     50.3s  groupdelay_result {"dur": 0.305, "resp": "{\"n2\":103,\"n3\":209,\"n4\":303}\n"}
+     50.6s  NOW jp-auto = n2
+== 1143-gen_idle
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   15.0s  req x6  OK via n1
+     15.0s  ACTION ['traffic_off', 'in-a']
+     35.0s  probe via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     95.1s  probe via n2
+     95.2s  probe via n3
+     95.3s  probe via n4
+     95.8s  NOW jp-auto = n2
+== 1143-gen_traffic
+      0.1s  probe via n1
+      0.2s  probe via n2
+      0.3s  probe via n3
+      0.4s  probe via n4
+      0.5s  NOW jp-auto = n1
+      5.0s  ACTION ['traffic', 'in-a', 2.0]
+      5.0–   33.0s  req x15  OK via n1
+     35.0s  probe via n1
+     35.0–   35.0s  req x1  OK via n1
+     35.1s  probe via n2
+     35.2s  probe via n3
+     35.3s  probe via n4
+     37.0–   39.0s  req x2  OK via n1
+     40.1s  ACTION ['node', 'n1', 'down']
+     40.1s  lab: n1 up -> down
+     41.0–   63.0s  req x12  FAIL  (e.g. "ConnectionResetError(104, 'Connection reset by peer')" dur=0.001)
+     65.1–   65.1s  req x1  OK via n2
+     65.2s  NOW jp-auto = n2
+     67.1–   83.1s  req x9  OK via n2

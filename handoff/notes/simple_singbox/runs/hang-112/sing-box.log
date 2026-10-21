@@ -1,0 +1,26 @@
++0000 2026-10-20 14:52:44 [36mINFO[0m network: updated default interface eth0, index 4
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/socks[n2]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/socks[n2]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/vmess[vmess-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/socks[socks-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/shadowsocks[ss-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/socks[n2]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/socks[n2]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m outbound/trojan[trojan-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:52:44 [36mINFO[0m clash-api: restful api listening at 127.0.0.1:50240
++0000 2026-10-20 14:52:44 [36mINFO[0m sing-box started (0.00s)
++0000 2026-10-20 14:52:44 [37mDEBUG[0m outbound/urltest[ut-vmess-hang]: outbound n2 available: 107ms
++0000 2026-10-20 14:52:44 [37mDEBUG[0m outbound/urltest[ut-ss-hang]: outbound n2 available: 107ms
++0000 2026-10-20 14:52:44 [37mDEBUG[0m outbound/urltest[ut-socks-hang]: outbound n2 available: 107ms
++0000 2026-10-20 14:52:44 [37mDEBUG[0m outbound/urltest[ut-trojan-hang]: outbound n2 available: 107ms
++0000 2026-10-20 14:52:59 [37mDEBUG[0m outbound/urltest[ut-trojan-hang]: outbound trojan-hang unavailable: context deadline exceeded
++0000 2026-10-20 14:52:59 [37mDEBUG[0m outbound/urltest[ut-vmess-hang]: outbound vmess-hang unavailable: Head "http://127.0.0.1:50200/generate_204": context deadline exceeded
++0000 2026-10-20 14:52:59 [37mDEBUG[0m outbound/urltest[ut-ss-hang]: outbound ss-hang unavailable: Head "http://127.0.0.1:50200/generate_204": context deadline exceeded
++0000 2026-10-20 14:53:09 [36mINFO[0m outbound/shadowsocks[ss-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:53:24 [37mDEBUG[0m outbound/urltest[ut-ss-hang]: outbound ss-hang unavailable: Head "http://127.0.0.1:50200/generate_204": context deadline exceeded
++0000 2026-10-20 14:53:24 [36mINFO[0m outbound/socks[n2]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:53:24 [36mINFO[0m outbound/vmess[vmess-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:53:24 [37mDEBUG[0m outbound/urltest[ut-vmess-hang]: outbound n2 available: 103ms
++0000 2026-10-20 14:53:39 [37mDEBUG[0m outbound/urltest[ut-vmess-hang]: outbound vmess-hang unavailable: Head "http://127.0.0.1:50200/generate_204": context deadline exceeded
++0000 2026-10-20 14:53:39 [36mINFO[0m outbound/trojan[trojan-hang]: outbound connection to 127.0.0.1:50200
++0000 2026-10-20 14:53:54 [37mDEBUG[0m outbound/urltest[ut-trojan-hang]: outbound trojan-hang unavailable: context deadline exceeded

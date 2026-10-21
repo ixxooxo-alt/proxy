@@ -1,0 +1,14 @@
+{"kind": "lab_ready", "t": 1792507963.819}
+{"kind": "set", "node": "n1", "state": "hang", "old": "up", "delay": 0, "t": 1792507964.739}
+{"kind": "socks_hang", "node": "n1", "t": 1792507964.765}
+{"kind": "socks_hang", "node": "n1", "t": 1792507964.766}
+{"kind": "socks_hang", "node": "n1", "t": 1792507964.766}
+{"kind": "socks_hang", "node": "n1", "t": 1792507964.766}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507964.871}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507964.871}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507964.871}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792507964.871}
+{"kind": "socks_hang", "node": "n1", "t": 1792507989.745}
+{"kind": "socks_hang", "node": "n1", "t": 1792508004.754}
+{"kind": "probe", "node": "n2", "method": "HEAD", "t": 1792508004.856}
+{"kind": "socks_hang", "node": "n1", "t": 1792508019.762}

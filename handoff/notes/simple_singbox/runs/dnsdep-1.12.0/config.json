@@ -1,0 +1,78 @@
+{
+ "log": {
+  "level": "debug",
+  "timestamp": true
+ },
+ "dns": {
+  "servers": [
+   {
+    "type": "tcp",
+    "tag": "dns-foreign",
+    "server": "127.0.0.1",
+    "server_port": 51060,
+    "detour": "fd"
+   }
+  ],
+  "strategy": "ipv4_only"
+ },
+ "inbounds": [
+  {
+   "type": "mixed",
+   "tag": "in-a",
+   "listen": "127.0.0.1",
+   "listen_port": 51051
+  }
+ ],
+ "outbounds": [
+  {
+   "type": "socks",
+   "tag": "n1",
+   "server": "127.0.0.1",
+   "server_port": 51011,
+   "version": "5"
+  },
+  {
+   "type": "socks",
+   "tag": "n2",
+   "server": "127.0.0.1",
+   "server_port": 51012,
+   "version": "5"
+  },
+  {
+   "type": "selector",
+   "tag": "fd",
+   "outbounds": [
+    "n1",
+    "n2"
+   ],
+   "default": "n1"
+  },
+  {
+   "type": "direct",
+   "tag": "direct"
+  }
+ ],
+ "route": {
+  "rules": [
+   {
+    "inbound": [
+     "in-a"
+    ],
+    "action": "resolve",
+    "server": "dns-foreign"
+   },
+   {
+    "ip_cidr": [
+     "127.0.0.0/8"
+    ],
+    "outbound": "direct"
+   }
+  ],
+  "final": "direct"
+ },
+ "experimental": {
+  "clash_api": {
+   "external_controller": "127.0.0.1:51040"
+  }
+ }
+}

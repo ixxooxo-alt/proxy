@@ -1,0 +1,35 @@
+域名	DNS 服务器（截图）	地址	ASN 组织（GeoLite2-ASN）	country.mmdb	geoip-cn
+bbc.gscontxt.net	1.12.12.12	158.178.243.190	AS31898 Oracle Corporation	SG	-
+bbc.gscontxt.net	1.12.12.12	138.2.79.27	AS31898 Oracle Corporation	SG	-
+bbc.gscontxt.net	1.12.12.12	129.150.58.80	AS31898 Oracle Corporation	SG	-
+bbc.gscontxt.net	1.12.12.12	129.150.52.17	AS31898 Oracle Corporation	SG	-
+web-cdn.api.bbci.co.uk	223.5.5.5	157.240.12.36	AS32934 Facebook, Inc.	FACEBOOK	-
+open.live.bbc.co.uk	223.5.5.5	202.160.129.36	AS13414 Twitter Inc.	TWITTER	-
+r.bbci.co.uk	223.5.5.5	202.160.130.52	AS13414 Twitter Inc.	TWITTER	-
+federated-id.live.api.bbc.co.uk	223.5.5.5	108.160.167.158	AS19679 Dropbox, Inc.	US	-
+a1.api.bbc.co.uk	223.5.5.5	173.255.209.47	AS63949 Akamai Connected Cloud	US	-
+bag.api.bbc.co.uk	1.12.12.12	202.160.130.118	AS13414 Twitter Inc.	TWITTER	-
+mybbc-analytics.files.bbci.co.uk	223.5.5.5	104.244.46.211	AS13414 Twitter Inc.	TWITTER	-
+nav.files.bbci.co.uk	223.5.5.5	66.220.148.145	AS32934 Facebook, Inc.	FACEBOOK	-
+nsi.activity.api.bbc.com	223.5.5.5（部分遮挡）	69.162.134.178	AS29802 HIVELOCITY, Inc.	US	-
+idcta.api.bbc.com	（部分遮挡）	108.160.166.42	AS19679 Dropbox, Inc.	US	-
+vod-hls-ww-live.akamaized.net	1.12.12.12（部分遮挡）	23.206.188.213	AS20940 Akamai International B.V.	US	-
+vod-hls-ww-live.akamaized.net	1.12.12.12（部分遮挡）	23.206.188.206	AS20940 Akamai International B.V.	US	-
+vod-thumb-ww-live.akamaized.net	（部分遮挡）	23.63.84.147	AS20940 Akamai International B.V.	IN	-
+vod-thumb-ww-live.akamaized.net	（部分遮挡）	23.63.84.153	AS20940 Akamai International B.V.	IN	-
+api.revenuecat.com	223.5.5.5	13.33.183.36	AS16509 Amazon.com, Inc.	CLOUDFRONT	-
+api.revenuecat.com	223.5.5.5	13.33.183.21	AS16509 Amazon.com, Inc.	CLOUDFRONT	-
+api.revenuecat.com	223.5.5.5	13.33.183.24	AS16509 Amazon.com, Inc.	CLOUDFRONT	-
+api.revenuecat.com	223.5.5.5	13.33.183.61	AS16509 Amazon.com, Inc.	CLOUDFRONT	-
+wetype.weixin.qq.com	223.5.5.5	120.233.18.62	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+kt-prod.ess.apple.com	223.5.5.5	17.145.16.2	AS714 Apple Inc.	US	-
+configuration.apple.com	1.12.12.12	183.250.178.87	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.90	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.130	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.131	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.89	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.91	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+configuration.apple.com	1.12.12.12	183.250.178.88	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+amp-api-edge.apps.apple.com	1.12.12.12	183.250.178.91	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+amp-api-edge.apps.apple.com	1.12.12.12	183.250.178.8	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
+amp-api-edge.apps.apple.com	1.12.12.12	183.250.178.9	AS9808 China Mobile Communications Group Co., Ltd.	CN	CN
