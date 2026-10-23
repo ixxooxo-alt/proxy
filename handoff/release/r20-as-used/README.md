@@ -17,7 +17,8 @@
    - 一次性核对（每一项的时间文件三行：“开始 …”“exit 0”“结束 …”）：`icu20-time.txt` 是 `python3 -B handoff/notes/r17_stash_filters_icu.py > handoff/notes/r17_stash_filters_icu.out`；`probe20-time.txt` 是 `python3 -B handoff/notes/r15_review_probes.py > handoff/notes/r15_review_probes.out`；`fp20-time.txt` 是 `python3 -B handoff/notes/r20_full_private_same.py ~/proxy-work/r19 ~/proxy-work/r20-draft <仓库> ~/proxy-work/fp20 > handoff/notes/r20_full_private_same.out`（这一版新加的，R20-F02 的同类自查）。r18 的两项一次性核对（`r18_close_race_probe.py`、`r18_singbox_1143_probes.py`）这一版没有重跑。
    - 版本对比（`cmp20-time.txt`）：`python3 -B tools/compare_versions.py --old ~/proxy-work/r19 --old-label r19 --new-label r20 --write`，再 `--old ~/proxy-work/r7 --old-label r7 --new-label r20 --write --out docs/evidence/与r7的对比.md`。
    - 全部做完写 `~/proxy-work/chain20-done.txt`。
-5. 变异跑完：`~/proxy-work/mut20/segments.json`（每一段一项），`python3 handoff/release/r20-as-used/assemble.py ~/proxy-work/mut20`，再 `python3 handoff/release/r20-as-used/write_mutlog.py ~/proxy-work/mut20 "2026-10-23 13:02"`。
+5. 第 5、6 步也写成了脚本：`nohup bash handoff/release/r20-as-used/after20.sh > ~/proxy-work/after20.log 2>&1 &`（13:45 前后启动），等三批变异日志都写出“合计 N/N 被发现”再接着跑，有一批没正常结束或有没被发现的就停下。
+   变异跑完：`~/proxy-work/mut20/segments.json`（每一段一项），`python3 handoff/release/r20-as-used/assemble.py ~/proxy-work/mut20`，再 `python3 handoff/release/r20-as-used/write_mutlog.py ~/proxy-work/mut20 "2026-10-23 13:02"`。
 6. **全部检查，第二遍**（交付的日志是这一遍的）：`bash tools/run_checks.sh > ~/proxy-work/checks20b.out`，`.out` 最后补一行 `exit <退出码>`，开始、结束时间记在 `~/proxy-work/checks20b-time.txt`（两行）。
 7. **数字核对**：`python3 handoff/release/r20-as-used/finalize.py ~/proxy-work/mut20 --dry`，再不带 `--dry` 跑（最后打印“核对通过”）。
 8. `bash handoff/release/code_state.sh`：与第 2 步记下的相同。
