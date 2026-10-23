@@ -1,0 +1,44 @@
+r19：build.py 退出码 0
+送审稿：build.py 退出码 0
+当前：build.py 退出码 0
+r19 的私密产物：loon-strict.conf、loon.conf、manifest.json、mihomo-core.yaml、mihomo-profile.yaml、quantumultx-strict.conf、quantumultx.conf、sing-box-1.12.json、sing-box-1.14.json、sing-box-节点转换报告.txt、stash-strict.yaml、stash.yaml、节点分组报告.txt、请勿分享.txt
+
+送审稿和 r19 比（完整版的私密产物）：
+  相同  loon.conf（244,297 → 244,297 字节）
+  相同  loon-strict.conf（245,689 → 245,689 字节）
+  相同  quantumultx.conf（393,717 → 393,717 字节）
+  相同  quantumultx-strict.conf（395,766 → 395,766 字节）
+  相同  mihomo-profile.yaml（282,581 → 282,581 字节）
+  相同  mihomo-core.yaml（282,764 → 282,764 字节）
+  相同  stash.yaml（254,031 → 254,031 字节）
+  相同  stash-strict.yaml（255,068 → 255,068 字节）
+  不同  sing-box-1.14.json（85,283 → 85,307 字节）
+  不同  sing-box-1.12.json（85,309 → 85,333 字节）
+  相同  节点分组报告.txt（1,376 → 1,376 字节）
+  不同  sing-box-节点转换报告.txt（620 → 732 字节）
+  9 个相同、3 个不同
+  完整版 sing-box 里那个虚构节点的标签：['境外DNS（节点）']
+
+当前和 r19 比（完整版的私密产物）：
+  相同  loon.conf（244,297 → 244,297 字节）
+  相同  loon-strict.conf（245,689 → 245,689 字节）
+  相同  quantumultx.conf（393,717 → 393,717 字节）
+  相同  quantumultx-strict.conf（395,766 → 395,766 字节）
+  相同  mihomo-profile.yaml（282,581 → 282,581 字节）
+  相同  mihomo-core.yaml（282,764 → 282,764 字节）
+  相同  stash.yaml（254,031 → 254,031 字节）
+  相同  stash-strict.yaml（255,068 → 255,068 字节）
+  相同  sing-box-1.14.json（85,283 → 85,283 字节）
+  相同  sing-box-1.12.json（85,309 → 85,309 字节）
+  相同  节点分组报告.txt（1,376 → 1,376 字节）
+  不同  sing-box-节点转换报告.txt（620 → 802 字节）
+  11 个相同、1 个不同
+  完整版 sing-box 里那个虚构节点的标签：['境外DNS']
+
+r19 完整版 sing-box 里那个虚构节点的标签：['境外DNS']
+
+当前的节点转换报告比 r19 多出来的部分：
+
+简易版（sing-box-simple-*.json）和完整版不同的地方：
+  境外DNS：完整版里叫 境外DNS，简易版里叫 境外DNS（节点）（各自避开本版的组名）
+
