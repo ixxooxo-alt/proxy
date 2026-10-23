@@ -7,7 +7,7 @@
 
 1. 改 `source/`（规则、分组、DNS），需要时改 `generator/`、`tests/`、`tools/`。
    - 版本号：`source/project.yaml` 的 `source_version`（改了规则数据就递增，`年.月.日-序号`）；`build.py` 的 `GENERATOR_VERSION`（改了生成器就递增）。
-   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r18）。r13 没有改规则数据和生成器，统一源版本和生成器版本都没有动——只改测试、工具、文档时不用递增；r14 改了生成器和规则数据（mihomo 的 DNS 段，加上使用者 2026-10-07 定下的各项），两个版本号都递增了（统一源 2026.10.07-2、生成器 1.7.0；只做了前一半、没有交付的那一次用过 2026.10.07-1 / 1.6.0，号不再复用），和 r11 的做法一样：产物变了就递增统一源版本，用户看配置头上的版本就知道换了一版。r16 加了 Stash（生成器 1.9.0、统一源 2026.10.13-2）。r18 只改了三份严格版配置里的注释，也照这个规矩递增了（生成器 1.10.1、统一源 2026.10.15-1）。
+   - 交付包 / 分支用 `rNN` 编号，接着上一版往下排（上一版是 r20）。r13 没有改规则数据和生成器，统一源版本和生成器版本都没有动——只改测试、工具、文档时不用递增；r14 改了生成器和规则数据（mihomo 的 DNS 段，加上使用者 2026-10-07 定下的各项），两个版本号都递增了（统一源 2026.10.07-2、生成器 1.7.0；只做了前一半、没有交付的那一次用过 2026.10.07-1 / 1.6.0，号不再复用），和 r11 的做法一样：产物变了就递增统一源版本，用户看配置头上的版本就知道换了一版。r16 加了 Stash（生成器 1.9.0、统一源 2026.10.13-2）。r18 只改了三份严格版配置里的注释，也照这个规矩递增了（生成器 1.10.1、统一源 2026.10.15-1）。
 2. `python3 build.py`，`python3 -m unittest discover -s tests`。
 3. 改了规则、DNS、出站，或者换了上游数据：重新生成快照
    `python3 tools/check_real_routes.py --mihomo "$MIHOMO_BIN" --singbox "$SINGBOX_BIN" --singbox-112 "$SINGBOX112_BIN" --geodata-dir "$GEODATA_DIR" --srs-dir "$SRS_DIR" --bm7 "$BM7_SRC" --dlc "$DLC_SRC" --geodata-origin "$GEODATA_ORIGIN" --srs-origin "$SRS_ORIGIN" --bm7-origin "$BM7_ORIGIN" --write-snapshot`
@@ -19,7 +19,7 @@
 ## 二、定稿，跑全部检查
 
 6. **定稿**：代码不再改了，记下代码状态哈希：`bash handoff/release/code_state.sh`。定稿之前先跑一遍第 9 步的版本对比、看一眼报告（有没有“未知的正则”这种认不出来的地方）——r17 是定稿以后才跑的，报告认不出 Stash 的新筛选，只好改工具、重新定稿。从这里到打包，`build.py`、`generator/`、`source/`、`tests/`、`tools/`、`.gitignore` 一个字都不能动；动了就重新定稿，后面全部重来（r12 定稿了三次）。
-7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 118 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时；r15 是 122 类，r16 是 141 类，r17 是 154 类，r18 是 162 类，r19 是 170 类）。等它的时候可以写文档。
+7. **变异检查**：`bash handoff/release/run_mutations.sh ~/proxy-work/mut`（后台两批并行，r12 的 98 类约 80 分钟；r14 的 118 类一类约 4 分钟，4 核的机器上用 `MUT_BATCHES=3` 分三批，约 2.5 小时；r15 是 122 类，r16 是 141 类，r17 是 154 类，r18 是 162 类，r19 是 170 类，r20 是 202 类——测试多了简易版以后一类约 5–9 分钟，三批要六七个小时）。等它的时候可以写文档。
    云端机器闲置会被回收，后台进程跟着没了、日志还在：把剩下的编号再跑一段（脚本开头有说明）。
 8. 变异跑完以后：`bash tools/run_checks.sh`（7–10 分钟；重写 `docs/evidence/*.log`）。最后一行必须是“全部检查通过。”。
 9. **版本对比**（旧版本从 git 里检出来，见 `handoff/README.md` 第 2 节）：
@@ -52,3 +52,5 @@
 | `r16-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r16 用的同样三个脚本（照 r15 的改：类数 141、Stash 的两份配置和它的数字、一次性核对换成 `handoff/notes/r15_review_probes.py`） | 同上，原样存档；`r16-as-used/README.md` 记了实际运行的命令 |
 | `r17-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r17 用的同样三个脚本（照 r16 的改：类数 154、Stash 筛选排除内置策略名以后的数字、改严以后的接收端重跑的一次性核对） | 同上，原样存档；`r17-as-used/README.md` 记了实际运行的命令 |
 | `r18-as-used/assemble.py`、`write_mutlog.py`、`finalize.py` | r18 用的同样三个脚本（照 r17 的改：类数 162、核对工具收尾以后重跑的数字、一次性核对多了 `handoff/notes/r18_close_race_probe.py` 和 `r18_singbox_1143_probes.py`） | 同上，原样存档；`r18-as-used/README.md` 记了实际运行的命令 |
+| `r19-as-used/assemble.py`、`write_mutlog.py`、`finalize.py`、`vendor_check.py` | r19 用的（照 r18 的改：类数 170；先审后跑，送审稿以后定稿一次；全部测试另在 Python 3.12、3.11 上跑） | 同上，原样存档；`r19-as-used/README.md` 记了实际运行的命令 |
+| `r20-as-used/assemble.py`、`write_mutlog.py`、`finalize.py`、`vendor_check.py`、`chain20.sh` | r20 用的（照 r19 的改：类数 202；简易版的十份配置；快照没有重新生成；一次性核对多了 `handoff/notes/r20_full_private_same.py`；定稿以后和变异检查同时跑的那一串写成了一个脚本 `chain20.sh`） | 同上，原样存档；`r20-as-used/README.md` 记了实际运行的命令 |
