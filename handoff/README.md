@@ -242,5 +242,6 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 6. **送审稿只跑了快速检查**：`bash handoff/notes/simple_build/run_quick.sh <r19 的工程目录>`（r19 的工程在 `~/proxy-work/r19`：2026-10-21 用 `git archive` 从当时的 `main`（`85eaa7c`，代码和产物与 r19 的 `628ed8a` 相同）取的），日志在 `handoff/notes/simple_build/logs/`，结果写在 `docs/10` 第八节。官方内核实测“境外DNS”：`handoff/notes/simple_mihomo/` 的 E6、E7。
 7. **审完以后**（GPT 审核 PR #6，`docs/08` 第 17 轮）：五条都属实。改生成器的两条要记住——Stash 的组不写 `interval` 时默认每 600 秒测速（简易版每个组写 `interval: -1`；完整版没改，记在 `docs/06`）；sing-box 的节点要按版本分别转换（`emit_singbox.reserved_tags(m, simple)`），否则完整版会因为简易版的组名改节点名。查“完整版有没有变”不能只比公开产物：`handoff/notes/r20_full_private_same.py` 带本地补充和节点比私密产物（r19、送审稿、当前三份）。
 8. **出这一版**：脚本在 `handoff/release/r20-as-used/`（照 r19 的改：类数 202，`tests/data/real_sets.json` 没有重新生成——完整版的配置没变；一次性核对多了 `r20_full_private_same.py`），实际运行的命令在那里的 `README.md`。送审稿的工作树用 `git worktree add --detach ~/proxy-work/r20-draft 4d3349d` 取到仓库以外，给上面那个核对用。
-9. **中途重启过一次**：写到一半工作环境重启，`9f1fb52` 是重启前推上去的半成品（生成器和产物已经完成，测试改到一半），之后接着做完；重启前后已定的事没有改动。
+9. **下一版改代码时顺手改**：`tools/check_mutations.py` 里 M177 的预期关键字写成了 `test_mihomo`，实际发现它的是写盘前检查和 `test_routing_digest_equals_the_full_one_apart_from_the_dns_path`（r20 的变异日志记“未见预期信息”）。改它就要重新定稿，所以 r20 没改。
+10. **中途重启过一次**：写到一半工作环境重启，`9f1fb52` 是重启前推上去的半成品（生成器和产物已经完成，测试改到一半），之后接着做完；重启前后已定的事没有改动。
 

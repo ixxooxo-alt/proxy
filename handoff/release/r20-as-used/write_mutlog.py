@@ -10,7 +10,13 @@ N = res["n"]
 assert len(lines) == N == 202, (len(lines), N)
 segs = res["segments"]
 full, partial = res["full"], res["partial"]
-notes_partial = "；".join(f"Ran {k} tests 的几类（{'、'.join(v)}）" for k, v in sorted(partial.items(), key=lambda kv: int(kv[0])))
+# 没跑满的原因不止一种（r20 起）：统一源校验直接拒绝的几类，和 M16（sing-box 生成时发现出站标签重名直接报错）分开写
+WHY = {"316": "是统一源校验直接拒绝、部分测试类无法初始化",
+       "343": "是节点名和组名相同又不改名，sing-box 生成时发现出站标签重名直接报错，简易版带节点的那个测试类（SingboxWithNodes，2 项）无法初始化；"
+              "失败的另几项见那一行"}
+assert set(partial) <= set(WHY), partial
+notes_partial = "；".join(f"Ran {k} tests 的{'几类' if len(v) > 1 else '一类'}（{'、'.join(v)}）{WHY[k]}"
+                         for k, v in sorted(partial.items(), key=lambda kv: int(kv[0])))
 batches = ("M1 M4 … M202", "M2 M5 … M200", "M3 M6 … M201")      # MUT_BATCHES=3：编号除以 3 余 1、余 2、整除
 if len(segs) == 1:
     when = f"运行时间（UTC）：{segs[0]['start']} 开始，三批并行，{segs[0]['end']} 结束。一次跑完，中间没有中断。"
@@ -34,7 +40,7 @@ head = [
     cmd,
     "说明：每个变异在不含 dist/ 的项目副本里注入一处错误后跑全部测试；“发现”= 测试以非零退出码结束。",
     f"      skipped=2 是副本里没有 dist/ 时跳过的两项（“产物与统一源一致”、版本对比工具里要读 dist/ 的那一项）；完整的一次是 Ran {full} tests。"
-    + (f"{notes_partial}是统一源校验直接拒绝、部分测试类无法初始化。" if partial else ""),
+    + (f"{notes_partial}。" if partial else ""),
     "      M45（回溯失控）只跑专门针对它的那一项测试（见脚本开头的说明）：那一项把匹配放在带超时的子进程里，等满 300 秒后失败。",
     "      “未见预期信息”只表示输出里没有脚本预设的那个关键字（" + ("、".join(res["not_seen"]) or "这次没有") + "），失败项本身是对的。",
     "      M21 那一行有两个 FAILED：前一个是被测的检查脚本自己打印的，后一个才是这次测试运行的结果。",

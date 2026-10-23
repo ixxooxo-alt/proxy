@@ -1,20 +1,28 @@
-运行时间（UTC）：2026-10-17 13:26:45
+运行时间（UTC）：2026-10-23 19:21:38
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
+统一源摘要：40317193e15ff2627a33a3ea6d1afe8b1daf51cde2909236d974f92b9e49761c
 命令：python3 tools/check_icons.py --icon-repo /root/proxy-vendor/src/icon
 
 统一源 2026.10.17-1；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
 图标仓库检出目录的提交：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06 14:12:36 +0800）
 icons.yaml 登记的 checked_commit：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06）
+  [符合] loon/loon-simple-strict.conf：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] loon/loon-simple.conf：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] loon/loon-strict.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] loon/loon.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] mihomo/mihomo-core.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] mihomo/mihomo-profile.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] mihomo/mihomo-simple-core.yaml：52 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] mihomo/mihomo-simple-profile.yaml：52 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] quantumultx/quantumultx-simple-strict.conf：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] quantumultx/quantumultx-simple.conf：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] quantumultx/quantumultx-strict.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] quantumultx/quantumultx.conf：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] stash/stash-simple-strict.yaml：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
+  [符合] stash/stash-simple.yaml：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] stash/stash-strict.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
   [符合] stash/stash.yaml：81 个策略组的图标都在图标仓库里，是 PNG，尺寸对
-  [符合] 各端同一个策略组用的是同一个地址
+  [符合] 各端同一个策略组用的是同一个地址（82 个组名）
 用到的图片 81 张，合计 6,949,624 字节（客户端显示图标时要下载；缓存不缓存、多久刷新由各客户端决定，没有核对）
   [符合] 与图标仓库公布的地址清单（icon-urls.json 的 url_256px）对比：80 个地址逐个相同；1 个图在图标仓库里、清单没有收，没有比：Apple Push
 注意：图标仓库公布的地址清单（icon-urls.json，共 84 项）里没有 Apple Push：这个组的图标地址没有和清单比过，文件本身核对过（256px/Apple Push.png 存在，是 PNG，尺寸对）

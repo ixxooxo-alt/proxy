@@ -1,13 +1,13 @@
-运行时间（UTC）：2026-10-17 13:08:45
+运行时间（UTC）：2026-10-23 19:00:42
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
+统一源摘要：40317193e15ff2627a33a3ea6d1afe8b1daf51cde2909236d974f92b9e49761c
 命令：python3 -m unittest discover -s tests -v
 
-test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 15 个公开产物到 out（订阅为占位符）
+test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 25 个公开产物到 out（订阅为占位符）
 私密产物已写入 out/private（含local.yaml，请勿分享）
 产物与统一源一致（含 manifest.json）。
 ok
-test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_check_detects_manifest_tampering) ... 已生成 15 个公开产物到 out（订阅为占位符）
+test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_check_detects_manifest_tampering) ... 已生成 25 个公开产物到 out（订阅为占位符）
 产物与统一源一致（含 manifest.json）。
 以下产物与统一源不一致，需要重新生成：
   manifest.json
@@ -17,12 +17,12 @@ test_check_detects_manifest_tampering (test_build_pipeline.ManifestCheck.test_ch
 ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
-节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 15 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpluk8g50s/不存在.yaml'
+节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 25 个公开产物到 out（订阅为占位符）
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmps0_v_ant/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
-F09 复现的三种输入，以及拼错的字段、重复的键，都要在写盘前失败。 ... 已生成 15 个公开产物到 out（订阅为占位符）
+F09 复现的三种输入，以及拼错的字段、重复的键，都要在写盘前失败。 ... 已生成 25 个公开产物到 out（订阅为占位符）
 统一源校验失败：
   - 例外 example-unknown.org 的目标 不存在的组 不是已有的业务组
 统一源有错误，未改动任何产物。
@@ -35,7 +35,7 @@ F09 复现的三种输入，以及拼错的字段、重复的键，都要在写�
 统一源校验失败：
   - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
 统一源有错误，未改动任何产物。
-groups.yaml：YAML 重复键 'groups'（第 93 行）
+groups.yaml：YAML 重复键 'groups'（第 96 行）
 统一源有错误，未改动任何产物。
 ok
 test_failure_while_replacing_rolls_back (test_build_pipeline.Transaction.test_failure_while_replacing_rolls_back) ... ok
@@ -52,11 +52,11 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmpdfyq6asq/report.md
-报告已写入 /tmp/tmpdfyq6asq/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmptqks90fw/report.md
+报告已写入 /tmp/tmptqks90fw/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
-拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时十份配置（标准版七份、严格版三份；Stash 的两份是 r16 加的）都逐字节相同， ... ok
+拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时二十份配置（完整版十份：标准版七份、严格版三份，Stash 的两份是 r16 加的； ... ok
 test_stash_filters_get_their_own_label (test_compare_versions.AgainstItself.test_stash_filters_get_their_own_label)
 Stash 写进配置的筛选是同一条正则开头多一段排除内置策略名（r17 起）：报告里写成 <筛选：Stash宽 hk>，不是“未知的正则” ... ok
 test_missing_strict_output_in_old_version_is_reported_as_new (test_compare_versions.StrictSection.test_missing_strict_output_in_old_version_is_reported_as_new)
@@ -92,7 +92,8 @@ test_mihomo_node_servers_in_the_lan_use_system_dns (test_dns_lan.LanDns.test_mih
 审核 r10 的 R10-F01：mihomo 解析节点自己的服务器地址用 proxy-server-nameserver，它的例外另写在 ... ok
 test_mihomo_product_names_go_to_the_foreign_dns (test_dns_lan.LanDns.test_mihomo_product_names_go_to_the_foreign_dns)
 GPT 审核 r13 的 R13-F01（待决事项 16，用户 2026-10-07 选了改）：mihomo 转发 UDP、经 WireGuard 这类出口时，会用默认解析器 ... ok
-test_mihomo_provider_health_check_matches_groups (test_dns_lan.LanDns.test_mihomo_provider_health_check_matches_groups) ... ok
+test_mihomo_provider_health_check_matches_groups (test_dns_lan.LanDns.test_mihomo_provider_health_check_matches_groups)
+订阅上的检查间隔和组上的一致（mihomo 按订阅上的检查；简易版两边都是 1 小时，完整版 300 秒）。 ... ok
 test_mihomo_sends_lan_suffixes_to_system_dns_first (test_dns_lan.LanDns.test_mihomo_sends_lan_suffixes_to_system_dns_first) ... ok
 test_mihomo_unmatched_names_ask_only_the_foreign_doh (test_dns_lan.LanDns.test_mihomo_unmatched_names_ask_only_the_foreign_doh)
 GPT 审核 r12 的第 10 点（交接时也列为下一版要补的）：没被任何域名规则接住的域名只问境外 DNS——把设计约束直接写成断言。 ... ok
@@ -118,7 +119,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 15 个公开产物到 /tmp/tmpawzkex67（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 25 个公开产物到 /tmp/tmp73rvv7xr（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -128,8 +129,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 15 个公开产物到 ../../../tmp/tmp13uo6kh6（订阅为占位符）
-私密产物已写入 ../../../tmp/tmp13uo6kh6/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 25 个公开产物到 ../../../tmp/tmp83mkw78v（订阅为占位符）
+私密产物已写入 ../../../tmp/tmp83mkw78v/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -363,6 +364,51 @@ test_every_optional_variable_is_scrubbed_here (test_run_checks.OptionalStepsAreL
 脚本里每个“给了才跑”的环境变量都要列在 SCRUB 里：漏了的话，带着那个变量跑全套检查时， ... ok
 test_failure_propagates (test_run_checks.RunChecksExitCode.test_failure_propagates) ... ok
 test_success_returns_zero (test_run_checks.RunChecksExitCode.test_success_returns_zero) ... ok
+test_info_lines_and_placeholders (test_simple.AllNodesRegex.test_info_lines_and_placeholders)
+提示行一个都不进；Stash 的占位节点名能被它选中（所以 Stash 那份另外排除了占位节点）。 ... ok
+test_portable_and_bounded (test_simple.AllNodesRegex.test_portable_and_bounded)
+和另外 13 条一样：没有会被当成分隔符的字符，只用三个引擎都支持的写法，不超过 16,000 字节（本项目自己定的上限）。 ... ok
+test_random_names_and_local_overlay (test_simple.AllNodesRegex.test_random_names_and_local_overlay)
+随机拼的名字（种子固定），公开词表和带本地补充样例的词表各跑一遍；本地补充里指定成 none 的名字不进。 ... ok
+test_samples (test_simple.AllNodesRegex.test_samples) ... ok
+test_business_groups_are_the_full_ones (test_simple.GroupStructure.test_business_groups_are_the_full_ones)
+业务组（含国外默认的写明成员）、PayPal·美国固定、其他地区：成员和完整版的完全相同。 ... ok
+test_foreign_default (test_simple.GroupStructure.test_foreign_default)
+国外默认：写明的成员正好是七个地区、日本在第一个（首次默认日本），后面接全部节点那条筛选。 ... ok
+test_foreign_dns_group (test_simple.GroupStructure.test_foreign_dns_group)
+境外DNS：只在 mihomo、sing-box；自动测速，节点 = 六个地区严筛选的并集（不含其他地区），检查间隔 1 小时； ... ok
+test_group_names_and_kinds (test_simple.GroupStructure.test_group_names_and_kinds)
+组名正好是 group_names()；没有完整版的模式组（X·手动优先、X·自动……）；除了“境外DNS”全是选择组。 ... ok
+test_icons (test_simple.GroupStructure.test_icons)
+每个组都有图标（sing-box 没有图标字段），地址和完整版同名组的相同；“境外DNS”借用“国外默认”的图。 ... ok
+test_region_groups_are_the_full_manual_groups (test_simple.GroupStructure.test_region_groups_are_the_full_manual_groups)
+六个地区：只按节点筛选的选择组，筛选和完整版的“X·手动”是同一条（宽的那条：按名字归到这个地区的全部节点）。 ... ok
+test_stash_groups_do_not_benchmark (test_simple.GroupStructure.test_stash_groups_do_not_benchmark)
+R20-F01：Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测）， ... ok
+test_full_version_keeps_r19_names (test_simple.NodesPerLayout.test_full_version_keeps_r19_names) ... ok
+test_report_says_when_the_foreign_dns_group_is_empty (test_simple.NodesPerLayout.test_report_says_when_the_foreign_dns_group_is_empty) ... ok
+test_routing_digest_equals_the_full_one_apart_from_the_dns_path (test_simple.OfficialRecordsApply.test_routing_digest_equals_the_full_one_apart_from_the_dns_path) ... ok
+test_every_full_output_has_a_simple_one (test_simple.Registered.test_every_full_output_has_a_simple_one)
+十份完整版配置各有一份简易版，文件名在客户端名后面加 -simple；build.py 和测试登记的是同一批。 ... ok
+test_simple_header (test_simple.Registered.test_simple_header)
+简易版的文件头写明是简易版和它的版本；完整版里没有“简易版”这几个字（完整版不改）。 ... ok
+test_loon_and_quantumultx (test_simple.SameAsFullOutsideGroups.test_loon_and_quantumultx) ... ok
+test_mihomo (test_simple.SameAsFullOutsideGroups.test_mihomo)
+mihomo：多出的只有——境外 DNS 地址后面的 #境外DNS；GEO 数据下载主机交给“境外DNS”的那一段规则；订阅上的检查间隔。 ... ok
+test_singbox (test_simple.SameAsFullOutsideGroups.test_singbox)
+sing-box：多出的只有境外 DNS（dns-foreign）和规则集下载走的出站；策略组以外的出站（直连、占位）相同。 ... ok
+test_stash (test_simple.SameAsFullOutsideGroups.test_stash)
+Stash：proxy-groups 以外的各项（DNS、占位节点、订阅、规则、规则集合）都相同；规则段连注释逐字相同。 ... ok
+test_nodes_in_groups (test_simple.SingboxWithNodes.test_nodes_in_groups) ... ok
+test_reserved_tags_per_layout (test_simple.SingboxWithNodes.test_reserved_tags_per_layout)
+R20-F02：完整版、简易版各自只避开本版的组名，节点各转换一次。完整版那一套正好是完整版模板里节点以外的全部出站标签 ... ok
+test_bad_values_are_rejected (test_simple.SourceSettings.test_bad_values_are_rejected) ... ok
+test_internal_group_name_must_be_new (test_simple.SourceSettings.test_internal_group_name_must_be_new) ... ok
+test_duration_parser (test_simple.Verifier.test_duration_parser) ... ok
+test_generated_outputs_pass (test_simple.Verifier.test_generated_outputs_pass) ... ok
+test_layout_breakage_is_caught (test_simple.Verifier.test_layout_breakage_is_caught) ... ok
+test_simple_files_are_not_skipped (test_simple.Verifier.test_simple_files_are_not_skipped)
+以前按完整文件名认 Loon / Quantumult X / Stash 的配置，新文件名会被悄悄跳过；现在按格式认，认不出的算错， ... ok
 test_clients_must_be_known_families (test_source.SourceValidation.test_clients_must_be_known_families) ... ok
 test_community_evidence_needs_upstream_mapping (test_source.SourceValidation.test_community_evidence_needs_upstream_mapping) ... ok
 test_current_source_is_valid (test_source.SourceValidation.test_current_source_is_valid) ... ok
@@ -471,8 +517,8 @@ test_strict_follows_standard_wherever_no_override_is_written (test_strict.Strict
 用例里没有专门给严格版写期望的，严格版的结果和同一个 App 的标准版相同（样本数据）。 ... ok
 test_unlisted_domain_goes_to_foreign_default_even_if_it_resolves_to_china (test_strict.StrictBehaviour.test_unlisted_domain_goes_to_foreign_default_even_if_it_resolves_to_china) ... ok
 test_family_and_expectation_lookup (test_strict.StrictFamilies.test_family_and_expectation_lookup) ... ok
-test_fifteen_public_outputs (test_strict.StrictOutputs.test_fifteen_public_outputs) ... ok
 test_manifest_records_the_strict_outputs (test_strict.StrictOutputs.test_manifest_records_the_strict_outputs) ... ok
+test_public_outputs (test_strict.StrictOutputs.test_public_outputs) ... ok
 test_standard_configs_do_not_use_any_strict_part (test_strict.StrictOutputs.test_standard_configs_do_not_use_any_strict_part)
 标准版不引用自有远程规则文件、不订阅国内域名集合；Loon 标准版的 GEOIP,CN 仍然会解析（没有 no-resolve）。 ... ok
 test_strict_differs_from_standard_only_where_intended (test_strict.StrictOutputs.test_strict_differs_from_standard_only_where_intended)
@@ -503,13 +549,14 @@ test_node_name_screening (test_structure.Structure.test_node_name_screening) ...
 test_parse (test_structure.Structure.test_parse) ... ok
 test_paypal (test_structure.Structure.test_paypal) ... ok
 test_references_resolve (test_structure.Structure.test_references_resolve) ... ok
-test_region_entries (test_structure.Structure.test_region_entries) ... ok
+test_region_entries (test_structure.Structure.test_region_entries)
+完整版的地区入口（选模式）。简易版的地区组里直接是节点，在 test_simple.py 里查。 ... ok
 test_review_followups (test_structure.Structure.test_review_followups)
 外部审核后的修正：Loon 不写无用的局域网共享端口；sing-box 不返回 AAAA 时不配 IPv6 假地址段。 ... ok
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 317 tests in 186.164s
+Ran 345 tests in 323.937s
 
 OK
 退出码：0

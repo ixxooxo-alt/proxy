@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-17 13:11:52
+运行时间（UTC）：2026-10-23 19:06:06
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：25018e637174b9692dfbb066ad1cf75a4123a070b10f1fc7525a4389bb14ebdc
+统一源摘要：40317193e15ff2627a33a3ea6d1afe8b1daf51cde2909236d974f92b9e49761c
 命令：python3 tools/check_cursor_report.py --write
 
 Cursor 版 533 条：同组 429，同组（只写进 mihomo / sing-box / Stash） 70，无专门规则 18，不同组 15，已替换 1

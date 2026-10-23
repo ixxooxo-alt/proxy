@@ -5,7 +5,7 @@
 [English](README.md)
 
 ![clients](https://img.shields.io/badge/clients-Loon%20%7C%20Quantumult%20X%20%7C%20mihomo%20%7C%20sing--box%20%7C%20Stash-blue)
-![tests](https://img.shields.io/badge/tests-⟦N_TESTS⟧%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-345%20passing-brightgreen)
 ![status](https://img.shields.io/badge/%E7%9C%9F%E6%9C%BA%E9%AA%8C%E8%AF%81-%E8%BF%98%E6%B2%A1%E5%81%9A-orange)
 
 一份自有、可审计、可测试的规则源（`source/`），由生成器（`generator/`）同时产出 Loon、Quantumult X、mihomo（Clash Verge Rev / Clash Meta for Android / 内核）、sing-box（SFA）和 Stash（2026-10-13 起）的配置。各个客户端不各自手写，改规则只改 `source/`，再重新生成。
@@ -13,7 +13,7 @@
 - **改一次，五端同步**：规则只在 `source/` 里写一遍，Loon、Quantumult X、mihomo（Clash Verge Rev、Clash Meta for Android）、sing-box（SFA）、Stash 的配置都由它生成，不会各改各的。
 - **国内直连**：国内网站和家里的局域网直连。在 mihomo 和 sing-box 上，走代理组的域名不会交给国内 DNS（按规则清单里的域名逐个扫过，抽样用官方内核确认）。
 - **每条规则都有出处**：官方文档、固定版本的社区规则或维护者说明；规则重复、互相遮挡时，生成就会报错停下。
-- **认真查过，也写明没查到的**：⟦N_TESTS⟧ 项自动测试；故意改坏代码 202 处，全部被测试发现；270 个目标的分流用 mihomo、sing-box 的官方内核核对过。还没有在手机上真机验证，步骤在 `docs/09`。
+- **认真查过，也写明没查到的**：345 项自动测试；故意改坏代码 202 处，全部被测试发现；270 个目标的分流用 mihomo、sing-box 的官方内核核对过。还没有在手机上真机验证，步骤在 `docs/09`。
 
 > **订阅自带**：仓库里没有任何节点和订阅链接。配置里的订阅是占位地址，导入后换成你自己的订阅才能用。
 
@@ -125,7 +125,7 @@ README.md               英文说明；README.zh-CN.md 是这份中文说明
 
 ## 验证状态
 
-自动测试 ⟦N_TESTS⟧ 项全部通过。官方程序 mihomo v1.19.31（`-t`）、sing-box v1.14.1 与 v1.12.0（`check`）检查了 mihomo、sing-box 的全部公开配置（完整版、简易版）和带样例节点的 sing-box 配置，都通过；另用两者的源码核对了这八份产物中的全部字段名。561 条社区来源规则已按 domain-list-community 与 blackmatrix7 的固定快照逐条核对（`docs/evidence/上游规则对照.md`）。外部意见一共 17 轮（第 2 轮是与 Cursor 版的逐条对照，第 3 轮是 Astra 的独立审核，第 4、5、6 轮和第 8–17 轮是 GPT 对交付包 / 分支的独立审核（第 15 轮审的是 r19 的送审稿，第 16 轮是 r19 正式版，第 17 轮是 r20 简易版的送审稿），第 7 轮是 GPT 在 r12 动手之前对做法的两段评审），意见与处理见 `docs/08-外部审核记录.md`。
+自动测试 345 项全部通过。官方程序 mihomo v1.19.31（`-t`）、sing-box v1.14.1 与 v1.12.0（`check`）检查了 mihomo、sing-box 的全部公开配置（完整版、简易版）和带样例节点的 sing-box 配置，都通过；另用两者的源码核对了这八份产物中的全部字段名。561 条社区来源规则已按 domain-list-community 与 blackmatrix7 的固定快照逐条核对（`docs/evidence/上游规则对照.md`）。外部意见一共 17 轮（第 2 轮是与 Cursor 版的逐条对照，第 3 轮是 Astra 的独立审核，第 4、5、6 轮和第 8–17 轮是 GPT 对交付包 / 分支的独立审核（第 15 轮审的是 r19 的送审稿，第 16 轮是 r19 正式版，第 17 轮是 r20 简易版的送审稿），第 7 轮是 GPT 在 r12 动手之前对做法的两段评审），意见与处理见 `docs/08-外部审核记录.md`。
 
 用真实上游数据核对过路由（2026-10-04 起）：规则原样、出口全部换成拒绝、只监听本机，把 270 个目标交给官方 mihomo v1.19.31、sing-box v1.14.1 与 v1.12.0 实际判断，结果与人工写的期望一致（其中一条是上面说的 `.ms`：期望写的就是“mihomo 上走国内直连”这个已知行为）；另核对了 DNS 去向（sing-box 22 条、mihomo 15 条）、连接时的解析（两个内核各 12 条：节点服务器的名字、域名形式的直连目标、走代理组的域名、没被域名规则接住的域名，各交给哪一类 DNS）和出站时的解析（r14 加：8 个主机，走代理的出口换成真的 SOCKS / WireGuard 出口，看出口自己会不会再解析目标、交给谁；r15 起 SOCKS 出口连的是本机的 SOCKS5 接收端，记下节点实际收到的是域名、IP 还是什么都没收到，另把默认直连的组切到代理再核对一遍）。这只对核对那一天的上游数据成立（文件的 SHA-256 记在 `tests/data/real_sets.json`），上游每天在变。Loon / Quantumult X / Stash 没有能在电脑上运行的官方内核，这三端（标准版和严格版）只有自制模拟器的结果（Stash 的规则和 mihomo 逐条相同，用同一段模拟）。
 

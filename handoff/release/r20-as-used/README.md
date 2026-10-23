@@ -18,8 +18,12 @@
    - 版本对比（`cmp20-time.txt`）：`python3 -B tools/compare_versions.py --old ~/proxy-work/r19 --old-label r19 --new-label r20 --write`，再 `--old ~/proxy-work/r7 --old-label r7 --new-label r20 --write --out docs/evidence/与r7的对比.md`。
    - 全部做完写 `~/proxy-work/chain20-done.txt`。
 5. 第 5、6 步也写成了脚本：`nohup bash handoff/release/r20-as-used/after20.sh > ~/proxy-work/after20.log 2>&1 &`（13:45 前后启动），等三批变异日志都写出“合计 N/N 被发现”再接着跑，有一批没正常结束或有没被发现的就停下。
+   实际：变异 19:00:15 跑完（一段，三批 68、67、67 类都是“合计 N/N 被发现”），`after20.sh` 19:00:36 接着汇总，第二遍全部检查 19:00:36–19:21:46，“全部检查通过。”。
    变异跑完：`~/proxy-work/mut20/segments.json`（每一段一项），`python3 handoff/release/r20-as-used/assemble.py ~/proxy-work/mut20`，再 `python3 handoff/release/r20-as-used/write_mutlog.py ~/proxy-work/mut20 "2026-10-23 13:02"`。
 6. **全部检查，第二遍**（交付的日志是这一遍的）：`bash tools/run_checks.sh > ~/proxy-work/checks20b.out`，`.out` 最后补一行 `exit <退出码>`，开始、结束时间记在 `~/proxy-work/checks20b-time.txt`（两行）。
 7. **数字核对**：`python3 handoff/release/r20-as-used/finalize.py ~/proxy-work/mut20 --dry`，再不带 `--dry` 跑（最后打印“核对通过”）。
+   跑之前按变异日志改了两处出版脚本（都在 `handoff/`，不算代码，代码状态不变）：
+   - **M16 只跑了 343 项**（以前是全部）：这一版起，节点和组同名又不改名时，sing-box 生成时直接报出站标签重名，简易版带节点的测试类 `SingboxWithNodes` 初始化失败（2 项没跑），另有 3 项失败。在临时副本上复现过（报错“sing-box 出站标签重名：['DIRECT', '日本']”）。`write_mutlog.py` 原来把没跑满的几类都说成“统一源校验直接拒绝”，对 M16 不对，改成分开写，重写了 `mutations.log`；`finalize.py` 的 `PARTIAL_EXPECTED` 加上 M16。
+   - **M177 记“未见预期信息”**：它预设的关键字是 `test_mihomo`（送审稿时 M171–M196 只核对过改动能套上，没有真跑），实际由写盘前检查（“GEO 数据的下载主机 … 没有交给 境外DNS”）和 `test_simple` 的 `test_routing_digest_equals_the_full_one_apart_from_the_dns_path` 发现，失败项是对的。关键字在 `tools/check_mutations.py` 里，改它就要重新定稿，留到下一版改代码时一起改；写进了 `docs/05`。
 8. `bash handoff/release/code_state.sh`：与第 2 步记下的相同。
 9. **打包**：`python3 handoff/release/pack.py ~/proxy-work/proxy-rules-review-2026.10.23-r20.zip`，再 `bash handoff/release/verify_package.sh ~/proxy-work/proxy-rules-review-2026.10.23-r20.zip`。

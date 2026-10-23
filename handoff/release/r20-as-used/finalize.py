@@ -304,14 +304,21 @@ for i in list(range(71, N_MUT + 1)):
 assert "DeprecationWarning" not in mut
 partial_names = sorted(x for v in res["partial"].values() for x in v)
 print("部分运行的：", res["partial"], "；未见预期信息：", res["not_seen"])
-PARTIAL_EXPECTED = sorted(os.environ.get("PARTIAL_EXPECTED", "M6 M9 M31 M89 M90").split())     # 跑完以后按日志确认，写进 README
+# 跑完以后按日志确认（README 第 7 步）：M6、M9、M31、M89、M90 是统一源校验直接拒绝；M16 是 r20 起 sing-box 生成时发现出站标签重名直接报错，
+# 简易版带节点的测试类（SingboxWithNodes）无法初始化（2026-10-23 在临时副本上复现过）
+PARTIAL_EXPECTED = sorted(os.environ.get("PARTIAL_EXPECTED", "M6 M9 M16 M31 M89 M90").split())
+assert res["partial"] == {"316": ["M6", "M9", "M31", "M89", "M90"], "343": ["M16"]}, res["partial"]
+assert sorted(res["not_seen"]) == ["M177", "M3"], res["not_seen"]
 assert partial_names == PARTIAL_EXPECTED, res["partial"]
 MUT_R20_TEXT = ("这一版新加的 32 类：M171–M196 是简易版的（2026-10-21），每一类由 `tests/test_simple.py` 或把简易版算进去的原有测试发现；"
                 "M197–M202 对应 GPT 审核送审稿的 R20-F01、R20-F02：M197（完整版的节点又避开简易版的组名）、M198（简易版沿用完整版转换好的节点）、"
                 "M199（转换报告不写简易版不同的地方）由 `test_full_version_keeps_r19_names` 发现，M200（“境外DNS”没有节点时报告不提）由 "
                 "`test_report_says_when_the_foreign_dns_group_is_empty` 发现，M201（Stash 简易版的组不关定时测速）由 `test_stash_groups_do_not_benchmark` "
                 "和写盘前检查发现，M202（写盘前检查不核对它）由 `test_layout_breakage_is_caught` 发现；M195 跟着 R20-F02 改写成“简易版的节点只避开完整版的组名”，"
-                "由 `test_reserved_tags_per_layout` 发现。")
+                "由 `test_reserved_tags_per_layout` 发现。M177（mihomo 简易版不把 GEO 数据的下载交给“境外DNS”）预设的关键字写成了 `test_mihomo`"
+                "（送审稿时这批只核对过改动能套上），实际由写盘前检查和 `test_routing_digest_equals_the_full_one_apart_from_the_dns_path` 发现，"
+                "所以日志里记“未见预期信息”；关键字留到下一版改代码时再改（改它就要重新定稿）。"
+                "M16（节点与组同名不再改名）这一版起还会让 sing-box 生成时直接报出站标签重名，简易版带节点的测试类无法初始化，所以只跑了 343 项。")
 mut_cell = (f"{N_MUT} 类全部被发现，都是 r20 定稿（{freeze[:16]} UTC）以后在上面这个摘要、这个代码状态的代码上跑的（{mwin}）。"
             "“记录对应现在的配置”那两项——规则与 DNS 两段的摘要、拨号摘要——对改了规则、DNS 或出站的变异都会报："
             f"{N_MUT} 类里前一项报了 {len(fresh['with']['routing'])} 类、后一项报了 {len(fresh['with']['dial'])} 类；只靠这两项发现的一类都没有（r13 起）。"
