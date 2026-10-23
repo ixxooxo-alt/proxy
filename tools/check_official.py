@@ -288,7 +288,9 @@ def main(argv=None):
         samples = yaml.safe_load(f)["proxies"]
     converted, report, renamed = nodeconv.convert(samples, emit_singbox.reserved_tags(m))
     private = {v: emit_singbox.build(m, plan, v, converted, renamed) for v in ("1.14", "1.12")}
-    private_simple = {v: emit_singbox.build(m, plan, v, converted, renamed, simple=True) for v in ("1.14", "1.12")}
+    # 简易版另转换一次（和 build.py 一样，R20-F02：节点避开的是本版的组名）
+    s_converted, _, s_renamed = nodeconv.convert(samples, emit_singbox.reserved_tags(m, simple=True))
+    private_simple = {v: emit_singbox.build(m, plan, v, s_converted, s_renamed, simple=True) for v in ("1.14", "1.12")}
 
     print(f"mihomo：{version(a.mihomo, ['-v'])}")
     print(f"sing-box：{version(a.singbox, ['version'])}")

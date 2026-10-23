@@ -574,6 +574,10 @@ def check_simple(fam: str, text: str, spec: Optional[dict]) -> List[str]:
         for g in yaml.safe_load(text).get("proxy-groups", []):
             groups[g["name"]] = {"kind": g["type"], "members": list(g.get("proxies") or []),
                                  "nodes": bool(g.get("include-all") and g.get("filter"))}
+            # R20-F01：Stash 默认每 600 秒给组里的代理测一次延迟（select 组也测）；纯手选用不着，每个组都要写负数关掉
+            iv = g.get("interval")
+            if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:
+                problems.append(f"组 {g['name']} 应该写 interval: -1（不写时 Stash 默认每 600 秒测一次延迟），实际 {iv!r}")
         return problems + _simple_common(groups, spec, with_dns=False)
     if fam == "mihomo":
         c = yaml.safe_load(text)

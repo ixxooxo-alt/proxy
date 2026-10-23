@@ -321,6 +321,20 @@ class GroupStructure(unittest.TestCase):
                 full = norm_groups(FULL_OF[client])["日本·自动"]["raw"]
                 self.assertEqual((full["interval"], full["idle_timeout"]), ("300s", "30m"))
 
+    def test_stash_groups_do_not_benchmark(self):
+        """R20-F01：Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测），
+        interval 写负数才不测。简易版纯手选，每个组都写 interval: -1；完整版照旧（选择组不写，自动类的组 300 秒）。"""
+        for client in SIMPLE_CLIENTS:
+            if family(client) != "stash":
+                continue
+            gs = norm_groups(client)
+            self.assertEqual(len(gs), 51, client)
+            self.assertEqual({n: g["raw"].get("interval") for n, g in gs.items() if g["raw"].get("interval") != -1}, {}, client)
+            self.assertEqual({n for n, g in gs.items() if "lazy" in g["raw"]}, set(), client)
+            full = norm_groups(FULL_OF[client])
+            self.assertEqual({n for n, g in full.items() if g["kind"] == "select" and "interval" in g["raw"]}, set(), "完整版不改")
+            self.assertEqual({g["raw"]["interval"] for g in full.values() if g["kind"] != "select"}, {FULL_INTERVAL})
+
     def test_icons(self):
         """每个组都有图标（sing-box 没有图标字段），地址和完整版同名组的相同；“境外DNS”借用“国外默认”的图。"""
         m, _ = model_and_plan()
@@ -345,7 +359,7 @@ class SingboxWithNodes(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.out, _, cls.renamed = convert(NODE_SAMPLES, emit_singbox.reserved_tags(model_and_plan()[0]))
+        cls.out, _, cls.renamed = convert(NODE_SAMPLES, emit_singbox.reserved_tags(model_and_plan()[0], simple=True))
         m, p = model_and_plan()
         cls.conf = {v: json.loads(emit_singbox.build(m, p, v, cls.out, cls.renamed, simple=True)) for v in ("1.14", "1.12")}
 
@@ -375,10 +389,80 @@ class SingboxWithNodes(unittest.TestCase):
             self.assertEqual(verify.check_singbox(json.dumps(self.conf[v], ensure_ascii=False)), [], v)
             self.assertEqual(verify.check_simple("singbox", json.dumps(self.conf[v], ensure_ascii=False), simple_spec()), [], v)
 
-    def test_reserved_tags_cover_both_layouts(self):
-        """完整版和简易版共用同一批转换好的节点：两版的组名都不能被节点占用（简易版多一个“境外DNS”）。"""
-        reserved = emit_singbox.reserved_tags(model_and_plan()[0])
-        self.assertTrue({DNS_GROUP, "日本", "日本·自动", "国外默认", "无可用节点", "DIRECT"} <= reserved)
+    def test_reserved_tags_per_layout(self):
+        """R20-F02：完整版、简易版各自只避开本版的组名，节点各转换一次。完整版那一套正好是完整版模板里节点以外的全部出站标签
+        （和 r19 相同，没有“境外DNS”），简易版那一套正好是简易版模板里的（模板没有节点，所以出站全是组、DIRECT 和占位）。"""
+        m = model_and_plan()[0]
+        files = outputs()
+        for simple, rel in ((False, "sing-box/sing-box-1.14.json"), (True, "sing-box/sing-box-simple-1.14.json"),
+                            (False, "sing-box/sing-box-1.12.json"), (True, "sing-box/sing-box-simple-1.12.json")):
+            self.assertEqual(emit_singbox.reserved_tags(m, simple), {o["tag"] for o in json.loads(files[rel])["outbounds"]}, rel)
+        self.assertNotIn(DNS_GROUP, emit_singbox.reserved_tags(m))
+        self.assertTrue({DNS_GROUP, "日本", "国外默认", "无可用节点", "DIRECT"} <= emit_singbox.reserved_tags(m, simple=True))
+        self.assertNotIn("日本·自动", emit_singbox.reserved_tags(m, simple=True))
+
+
+class NodesPerLayout(unittest.TestCase):
+    """R20-F02：build.py 给 sing-box 带节点生成时，完整版、简易版各自转换节点。节点叫“境外DNS”时完整版不改名（和 r19 一样，
+    完整版的生成结果不因为有了简易版而变），简易版改名；转换报告另写一段简易版不同的地方。“境外DNS”一个节点都没有时报告里也写出来。"""
+
+    def run_build(self, proxies):
+        import contextlib
+        import io
+        import shutil
+        import tempfile
+        d = tempfile.mkdtemp()
+        try:
+            # 统一源复制一份（不带 local.yaml：本机有个人覆盖时，私密产物会带上它，和下面按公开模型算的比不上）
+            shutil.copytree(os.path.join(ROOT, "source"), os.path.join(d, "source"), ignore=shutil.ignore_patterns("local.yaml"))
+            nodes = os.path.join(d, "nodes.yaml")
+            with open(nodes, "w", encoding="utf-8") as f:
+                yaml.safe_dump({"proxies": proxies}, f, allow_unicode=True, sort_keys=False)
+            with contextlib.redirect_stdout(io.StringIO()):
+                rc = build.main(["--out", os.path.join(d, "out"), "--singbox-nodes", nodes], root=d)
+            self.assertEqual(rc, 0)
+            priv = os.path.join(d, "out", "private")
+            out = {}
+            for n in ("sing-box-1.14.json", "sing-box-1.12.json", "sing-box-simple-1.14.json", "sing-box-simple-1.12.json",
+                      "sing-box-节点转换报告.txt"):
+                with open(os.path.join(priv, n), encoding="utf-8") as f:
+                    out[n] = f.read()
+            return out
+        finally:
+            shutil.rmtree(d)
+
+    def test_full_version_keeps_r19_names(self):
+        m, p = model_and_plan()
+        extra = {"name": DNS_GROUP, "type": "socks5", "server": "dns-node.example.net", "port": 1080, "udp": True}
+        proxies = NODE_SAMPLES + [extra]
+        out = self.run_build(proxies)
+        # 完整版：和只按完整版的组名转换出来的逐字相同（r19 的做法），“境外DNS”这个节点不改名
+        conv, _, renamed = convert(proxies, emit_singbox.reserved_tags(m))
+        self.assertNotIn(DNS_GROUP, renamed.values())
+        for v in ("1.14", "1.12"):
+            self.assertEqual(out[f"sing-box-{v}.json"], emit_singbox.build(m, p, v, conv, renamed), v)
+            tags = [o["tag"] for o in json.loads(out[f"sing-box-{v}.json"])["outbounds"]]
+            self.assertIn(DNS_GROUP, tags, "完整版里节点照原名")
+            simple = json.loads(out[f"sing-box-simple-{v}.json"])
+            ob = {o["tag"]: o for o in simple["outbounds"]}
+            self.assertEqual(ob[DNS_GROUP]["type"], "urltest", "简易版里“境外DNS”是内部组")
+            renamed_tag = [t for t, o in ob.items() if o.get("server") == "dns-node.example.net"]
+            self.assertEqual(renamed_tag, [DNS_GROUP + "（节点）"], "简易版里同名的节点改名")
+            self.assertEqual(verify.check_simple("singbox", out[f"sing-box-simple-{v}.json"], simple_spec()), [], v)
+        rep = out["sing-box-节点转换报告.txt"]
+        self.assertIn("简易版（sing-box-simple-*.json）和完整版不同的地方：", rep)
+        self.assertIn(f"{DNS_GROUP}：完整版里叫 {DNS_GROUP}，简易版里叫 {DNS_GROUP}（节点）", rep)
+        self.assertNotIn("没有匹配到任何节点（六个地区", rep)
+        # 没有简易版特有的差别时，报告里不多那一段
+        self.assertNotIn("简易版（sing-box-simple", self.run_build(NODE_SAMPLES)["sing-box-节点转换报告.txt"])
+
+    def test_report_says_when_the_foreign_dns_group_is_empty(self):
+        proxies = [{"name": n, "type": "socks5", "server": f"n{i}.example.net", "port": 1080, "udp": True}
+                   for i, n in enumerate(["德国 01", "英国 02", "日本-美国 03"])]
+        out = self.run_build(proxies)
+        ob = {o["tag"]: o for o in json.loads(out["sing-box-simple-1.14.json"])["outbounds"]}
+        self.assertEqual(ob[DNS_GROUP]["outbounds"], [emit_singbox.PLACEHOLDER_TAG])
+        self.assertIn(f"简易版的“{DNS_GROUP}”没有匹配到任何节点", out["sing-box-节点转换报告.txt"])
 
 
 class AllNodesRegex(unittest.TestCase):
@@ -496,6 +580,9 @@ class Verifier(unittest.TestCase):
             # 简易版里出现自动类的组
             ("quantumultx-simple", lambda t: t.replace("static=香港, server-tag-regex=", "url-latency-benchmark=香港, server-tag-regex="),
              "应该是选择组"),
+            # Stash：组上没写 interval: -1（会按默认每 600 秒测速，R20-F01）、写成正数
+            ("stash-simple", lambda t: t.replace("    interval: -1\n", "", 1), "interval: -1"),
+            ("stash-simple-strict", lambda t: t.replace("    interval: -1\n", "    interval: 3600\n", 1), "interval: -1"),
             # mihomo：境外 DNS 没经内部组、组名拼错（mihomo 会把它当网卡名）、GEO 数据主机没交给它、内部组没藏、检查间隔不对
             ("mihomo-simple-profile", lambda t: t.replace("https://1.1.1.1/dns-query#境外DNS", "https://1.1.1.1/dns-query"), "#境外DNS"),
             ("mihomo-simple-profile", lambda t: t.replace("#境外DNS'", "#境外DN'"), "网卡名"),

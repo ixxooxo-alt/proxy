@@ -32,7 +32,7 @@ from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.11.0"
+GENERATOR_VERSION = "1.11.1"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -268,8 +268,10 @@ def main(argv=None, root: str = ROOT) -> int:
             converted, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(pmodel))
             private["sing-box-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", converted, renamed)
             private["sing-box-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", converted, renamed)
-            private["sing-box-simple-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", converted, renamed, simple=True)
-            private["sing-box-simple-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", converted, renamed, simple=True)
+            # 简易版另转换一次：节点避开的是简易版的组名（R20-F02：两版共用一批节点时，完整版的节点也会为简易版的组名改名）
+            s_converted, _, s_renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(pmodel, simple=True))
+            private["sing-box-simple-1.14.json"] = emit_singbox.build(pmodel, pplan, "1.14", s_converted, s_renamed, simple=True)
+            private["sing-box-simple-1.12.json"] = emit_singbox.build(pmodel, pplan, "1.12", s_converted, s_renamed, simple=True)
             empty = [o["tag"] for o in json.loads(private["sing-box-1.14.json"])["outbounds"]
                      if o.get("type") in ("selector", "urltest") and o.get("outbounds") == [emit_singbox.PLACEHOLDER_TAG]]
             skipped = len(proxies) - len(converted)
@@ -279,6 +281,8 @@ def main(argv=None, root: str = ROOT) -> int:
                 lines.append("")
                 lines.append(f"以下组没有匹配到任何节点，已指向“{emit_singbox.PLACEHOLDER_TAG}”（拒绝连接，不会直连）：")
                 lines += [f"  {t}" for t in empty]
+            lines += emit_singbox.simple_conversion_notes(renamed, s_renamed, json.loads(private["sing-box-simple-1.14.json"]),
+                                                          pmodel.simple["foreign_dns_group"])
             private["sing-box-节点转换报告.txt"] = "\n".join(lines) + "\n"
             print(f"sing-box：转换 {len(converted)}/{len(proxies)} 个节点；{len(empty)} 个组没有节点。"
                   "详情见 sing-box-节点转换报告.txt")

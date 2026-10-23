@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 196 个（2026-10-21 加了简易版的 M171–M196），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 202 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -637,14 +637,35 @@ cases = [
         '    elif fd["kind"] != "select" or sorted(fd["members"]) != sorted(regions) or not fd["nodes"]:\n',
         '    elif fd["kind"] != "select":\n', 1))],
      "test_layout_breakage_is_caught"),
-    ("M195 节点转换只避开完整版的组名（节点叫“境外DNS”时简易版 sing-box 重名）", [("generator/emit_singbox.py", lambda s: s.replace(
-        '    groups = build_groups(m, MODES) + build_groups(m, MODES, "simple", foreign_dns=True)\n',
+    ("M195 简易版的节点转换只避开完整版的组名（节点叫“境外DNS”时简易版 sing-box 重名）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    groups = build_groups(m, MODES, "simple", foreign_dns=True) if simple else build_groups(m, MODES)\n',
         "    groups = build_groups(m, MODES)\n", 1))],
-     "test_reserved_tags_cover_both_layouts"),
+     "test_reserved_tags_per_layout"),
     ("M196 简易版的地区组嵌套了组（不再只按节点筛选）", [("generator/groups.py", lambda s: s.replace(
         '            name=r["name"], kind="select", role="region_simple",\n',
         '            name=r["name"], kind="select", role="region_simple", members=["DIRECT"],\n', 1))],
      "test_region_groups_are_the_full_manual_groups"),
+    # ---- 2026-10-23：处理 GPT 对简易版送审稿的审核（R20-F01、R20-F02，docs/08 第 17 轮）----
+    ("M197 完整版的节点转换也避开简易版的组名（送审稿的写法：节点叫“境外DNS”时完整版改名，R20-F02）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    groups = build_groups(m, MODES, "simple", foreign_dns=True) if simple else build_groups(m, MODES)\n',
+        '    groups = build_groups(m, MODES) + build_groups(m, MODES, "simple", foreign_dns=True)\n', 1))],
+     "test_full_version_keeps_r19_names"),
+    ("M198 build.py 的简易版沿用完整版转换好的节点（不另转换）", [("build.py", lambda s: s.replace(
+        "            s_converted, _, s_renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(pmodel, simple=True))\n",
+        "            s_converted, s_renamed = converted, renamed\n", 1))],
+     "test_full_version_keeps_r19_names"),
+    ("M199 节点转换报告不写简易版不同的地方", [("build.py", lambda s: s.replace(
+        "            lines += emit_singbox.simple_conversion_notes(", "            _ = emit_singbox.simple_conversion_notes(", 1))],
+     "简易版（sing-box-simple-*.json）和完整版不同的地方"),
+    ("M200 简易版的“境外DNS”没有节点时报告不提", [("generator/emit_singbox.py", lambda s: s.replace(
+        '    if ob.get(dns_group, {}).get("outbounds") == [PLACEHOLDER_TAG]:\n', "    if False:\n", 1))],
+     "test_report_says_when_the_foreign_dns_group_is_empty"),
+    ("M201 Stash 简易版的组不关定时测速（R20-F01：Stash 默认每 600 秒测一次）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        d["interval"] = SIMPLE_GROUP_INTERVAL\n', "        pass\n", 1))],
+     "interval: -1"),
+    ("M202 写盘前检查不再核对 Stash 简易版组上的 interval", [("generator/verify.py", lambda s: s.replace(
+        "            if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:\n", "            if False:\n", 1))],
+     "test_layout_breakage_is_caught"),
 ]
 
 

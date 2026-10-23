@@ -48,7 +48,9 @@ from generator.model import build_plan, load  # noqa: E402
 m = load(mh.REPO, include_local=False)
 plan = build_plan(m)
 proxies = [{"name": n, "type": "socks5", "server": "127.0.0.1", "port": BASE + 10 + i, "udp": True} for n, i, _ in NODES]
-conv, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(m))
+# 2026-10-23（R20-F02）起完整版、简易版各自转换节点；这里只生成简易版。E7 是在两版共用一批节点时跑的，这几个节点名
+# 和两版的组名都不重名（下一行断言没有改名），所以改成只避开简易版的组名以后，交给内核的配置一样
+conv, report, renamed = nodeconv.convert(proxies, emit_singbox.reserved_tags(m, simple=True))
 assert not report and not renamed, (report, renamed)
 VARIANT = os.environ.get("SB_VARIANT", "1.14")
 conf = json.loads(emit_singbox.build(m, plan, VARIANT, conv, renamed, simple=True))

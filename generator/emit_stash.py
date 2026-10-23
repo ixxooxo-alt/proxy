@@ -180,7 +180,13 @@ class _Filters:
         return f"filter: &{anchor} " + _scalar(rx)
 
 
-def _group_dict(m: Model, g: GroupSpec) -> dict:
+# 简易版的组都写 interval: -1（R20-F01，2026-10-23）。文档“策略组”的“定时执行延迟测试”：Stash 默认每 600 秒为组里的代理
+# 测一次延迟（包括 select 组，组里有组时递归测），interval 设为负数就不定时测。简易版是纯手选、没有自动选节点的组，
+# 定时测速只用来刷新显示的延迟，所以关掉（要看延迟就在 App 里手动测）。完整版不写，照旧是文档说的默认 600 秒。
+SIMPLE_GROUP_INTERVAL = -1
+
+
+def _group_dict(m: Model, g: GroupSpec, simple: bool = False) -> dict:
     hc = m.hc
     d = {"name": g.name, "type": g.kind}
     if g.members:
@@ -188,6 +194,10 @@ def _group_dict(m: Model, g: GroupSpec) -> dict:
     if g.nodes is not None:
         d["include-all"] = True              # 文档“策略组”：引用所有的代理和远程代理集（含上面的占位节点），再按 filter 筛
         d["filter"] = FILTER_MARK
+    if simple:
+        if g.kind != "select":
+            raise ValueError(f"Stash 简易版只该有选择组：{g.name} 是 {g.kind}")
+        d["interval"] = SIMPLE_GROUP_INTERVAL
     if g.kind in ("url-test", "fallback", "load-balance"):
         d["interval"] = hc["interval_s"]
         d["lazy"] = bool(hc["lazy"])
@@ -311,6 +321,8 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     if simple:
         out.append("# 简易版：地区组里直接是节点，Stash 怎么给组里的节点排序、第一次导入时默认选哪个，文档没写——如果默认选中的是占位节点，")
         out.append("# 走这个地区的连接会失败（不会直连）：导入后先在用到的地区组里点一个真节点（docs/09）。“国外默认”里没有占位节点。")
+        out.append("# 简易版的组都写 interval: -1：不定时测延迟（文档：Stash 默认每 600 秒测一次，负数关闭）。纯手选用不着定时测，")
+        out.append("# 想看延迟就在 App 里手动测速。")
     out.append(_y({"proxies": dummy}).rstrip())
     out.append("")
     out.append(_y({"proxy-providers": providers}).rstrip())
@@ -330,7 +342,7 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("proxy-groups:")
     filters = _Filters(m, groups, [r["id"] for r in m.regions] + [m.other_region["id"]])
     for g in groups:
-        d = _group_dict(m, g)
+        d = _group_dict(m, g, simple)
         if g.comment:
             out.append(f"  # {g.name}：{g.comment}")
         block = _y([d]).rstrip().splitlines()

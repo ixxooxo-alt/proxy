@@ -140,11 +140,30 @@ def _match_fields(rules: List[Rule]) -> dict:
     return obj
 
 
-def reserved_tags(m: Model) -> set:
+def reserved_tags(m: Model, simple: bool = False) -> set:
     """配置里节点以外的全部出站标签。订阅节点不能用这些名字，否则 sing-box 报重名（审核 F02）。
-    完整版和简易版共用同一批转换好的节点，所以两版的组名都算（简易版多一个“境外DNS”）。"""
-    groups = build_groups(m, MODES) + build_groups(m, MODES, "simple", foreign_dns=True)
+    完整版、简易版各算各的，节点也各转换一次（R20-F02，2026-10-23）：完整版只避开完整版的组名，和 r19 一样——
+    以前两版共用一批节点、避开两版组名的并集，节点叫“境外DNS”时完整版里也被改名，完整版的生成结果因为有了简易版而变了。
+    简易版避开简易版的组名（多一个“境外DNS”）。"""
+    groups = build_groups(m, MODES, "simple", foreign_dns=True) if simple else build_groups(m, MODES)
     return {g.name for g in groups if g.name != "广告拦截"} | {DIRECT_TAG, PLACEHOLDER_TAG}
+
+
+def simple_conversion_notes(renamed_full: dict, renamed_simple: dict, simple_conf: dict, dns_group: str) -> List[str]:
+    """节点转换报告里简易版另有的几行（R20-F02）：两版各自转换节点，改名可能不同；简易版的内部组“境外DNS”没有节点时也写出来
+    （那时境外 DNS 和规则集下载都会失败：拒绝连接，不会直连）。和完整版完全一样时返回空列表，报告和以前相同。"""
+    lines: List[str] = []
+    full_by_name = {old: new for new, old in renamed_full.items()}
+    simple_by_name = {old: new for new, old in renamed_simple.items()}
+    for name in sorted(set(full_by_name) | set(simple_by_name)):
+        a, b = full_by_name.get(name, name), simple_by_name.get(name, name)
+        if a != b:
+            lines.append(f"  {name}：完整版里叫 {a}，简易版里叫 {b}（各自避开本版的组名）")
+    ob = {o["tag"]: o for o in simple_conf["outbounds"]}
+    if ob.get(dns_group, {}).get("outbounds") == [PLACEHOLDER_TAG]:
+        lines.append(f"  简易版的“{dns_group}”没有匹配到任何节点（六个地区里名字只指向一个地区的节点一个都没有）："
+                     "境外 DNS 和规则集下载会失败（拒绝连接，不会直连）")
+    return (["", "简易版（sing-box-simple-*.json）和完整版不同的地方："] + lines) if lines else []
 
 
 def idle_timeout(interval_s: int) -> str:
