@@ -290,8 +290,9 @@ class GroupStructure(unittest.TestCase):
                 self.assertEqual(g["raw"]["default"], "日本")
 
     def test_foreign_dns_group(self):
-        """境外DNS：只在 mihomo、sing-box；自动测速，节点 = 六个地区严筛选的并集（不含其他地区），检查间隔 1 小时；
-        mihomo 上藏起来、写 max-failed-times，图标借用国外默认的；sing-box 的 idle_timeout 不小于检查间隔。"""
+        """境外DNS：只在 mihomo、sing-box；自动测速，节点 = 六个地区严筛选的并集（不含其他地区）；检查间隔 mihomo 1 小时、
+        sing-box 10 分钟（使用者 2026-10-31 定的，docs/06 第 23 项 ③）；mihomo 上藏起来、写 max-failed-times，图标借用国外默认的；
+        sing-box 的 idle_timeout 不小于检查间隔（10 分钟时是 30 分钟）。"""
         m, _ = model_and_plan()
         strict = m.node_regexes_strict()
         for client in SIMPLE_CLIENTS:
@@ -316,24 +317,30 @@ class GroupStructure(unittest.TestCase):
                 self.assertNotIn("max-failed-times", full)
             else:
                 raw = g["raw"]
-                self.assertEqual((raw["interval"], raw["idle_timeout"]), ("3600s", "3600s"), client)
+                self.assertEqual((raw["interval"], raw["idle_timeout"]), ("600s", "30m"), client)
+                self.assertEqual(m.simple["singbox_foreign_dns_interval_s"], 600)
                 self.assertEqual(raw["outbounds"], [emit_singbox.PLACEHOLDER_TAG], "模板里没有节点")
                 full = norm_groups(FULL_OF[client])["日本·自动"]["raw"]
                 self.assertEqual((full["interval"], full["idle_timeout"]), ("300s", "30m"))
 
-    def test_stash_groups_do_not_benchmark(self):
-        """R20-F01：Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测），
-        interval 写负数才不测。简易版纯手选，每个组都写 interval: -1；完整版照旧（选择组不写，自动类的组 300 秒）。"""
+    def test_stash_group_intervals(self):
+        """Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测），interval 写负数才不测。
+        使用者 2026-10-31 定的：简易版每个组每小时测一次（interval: 3600，刷新显示的延迟；R20-F01 时是 -1）；
+        完整版的选择组不测（interval: -1），自动测速、故障转移、负载均衡组照旧 300 秒、lazy。"""
+        m, _ = model_and_plan()
+        self.assertEqual((m.simple["stash_group_interval_s"], m.hc["stash_select_interval_s"]), (3600, -1))
         for client in SIMPLE_CLIENTS:
             if family(client) != "stash":
                 continue
             gs = norm_groups(client)
             self.assertEqual(len(gs), 51, client)
-            self.assertEqual({n: g["raw"].get("interval") for n, g in gs.items() if g["raw"].get("interval") != -1}, {}, client)
+            self.assertEqual({n: g["raw"].get("interval") for n, g in gs.items() if g["raw"].get("interval") != 3600}, {}, client)
             self.assertEqual({n for n, g in gs.items() if "lazy" in g["raw"]}, set(), client)
             full = norm_groups(FULL_OF[client])
-            self.assertEqual({n for n, g in full.items() if g["kind"] == "select" and "interval" in g["raw"]}, set(), "完整版不改")
-            self.assertEqual({g["raw"]["interval"] for g in full.values() if g["kind"] != "select"}, {FULL_INTERVAL})
+            self.assertEqual({n: g["raw"].get("interval") for n, g in full.items() if g["kind"] == "select" and g["raw"].get("interval") != -1},
+                             {}, FULL_OF[client])
+            self.assertEqual(sum(1 for g in full.values() if g["kind"] == "select"), 57)
+            self.assertEqual({(g["raw"]["interval"], g["raw"]["lazy"]) for g in full.values() if g["kind"] != "select"}, {(FULL_INTERVAL, True)})
 
     def test_icons(self):
         """每个组都有图标（sing-box 没有图标字段），地址和完整版同名组的相同；“境外DNS”借用“国外默认”的图。"""
@@ -580,9 +587,9 @@ class Verifier(unittest.TestCase):
             # 简易版里出现自动类的组
             ("quantumultx-simple", lambda t: t.replace("static=香港, server-tag-regex=", "url-latency-benchmark=香港, server-tag-regex="),
              "应该是选择组"),
-            # Stash：组上没写 interval: -1（会按默认每 600 秒测速，R20-F01）、写成正数
-            ("stash-simple", lambda t: t.replace("    interval: -1\n", "", 1), "interval: -1"),
-            ("stash-simple-strict", lambda t: t.replace("    interval: -1\n", "    interval: 3600\n", 1), "interval: -1"),
+            # Stash：组上没写 interval（会按默认每 600 秒测速，R20-F01）、写成别的数（2026-10-31 起应是 3600：每小时刷新延迟）
+            ("stash-simple", lambda t: t.replace("    interval: 3600\n", "", 1), "interval: 3600"),
+            ("stash-simple-strict", lambda t: t.replace("    interval: 3600\n", "    interval: -1\n", 1), "interval: 3600"),
             # mihomo：境外 DNS 没经内部组、组名拼错（mihomo 会把它当网卡名）、GEO 数据主机没交给它、内部组没藏、检查间隔不对
             ("mihomo-simple-profile", lambda t: t.replace("https://1.1.1.1/dns-query#境外DNS", "https://1.1.1.1/dns-query"), "#境外DNS"),
             ("mihomo-simple-profile", lambda t: t.replace("#境外DNS'", "#境外DN'"), "网卡名"),
@@ -595,7 +602,11 @@ class Verifier(unittest.TestCase):
             # sing-box：境外 DNS / 规则集下载走国外默认、间隔超过 idle_timeout
             ("singbox-simple-1.14", lambda t: t.replace('"detour": "境外DNS"', '"detour": "国外默认"', 1), "应该经 境外DNS"),
             ("singbox-simple-1.12", lambda t: t.replace('"download_detour": "境外DNS"', '"download_detour": "国外默认"', 1), "应该经 境外DNS"),
-            ("singbox-simple-1.14", lambda t: t.replace('"idle_timeout": "3600s"', '"idle_timeout": "30m"'), "idle_timeout"),
+            ("singbox-simple-1.14", lambda t: t.replace('"interval": "600s"', '"interval": "3600s"', 1), "idle_timeout"),
+            # sing-box 的“境外DNS”又用回 mihomo 的 1 小时（2026-10-31 起 sing-box 是 10 分钟，docs/06 第 23 项）
+            ("singbox-simple-1.12", lambda t: t.replace('"interval": "600s",\n      "tolerance": 50,\n      "idle_timeout": "30m"',
+                                                        '"interval": "3600s",\n      "tolerance": 50,\n      "idle_timeout": "3600s"', 1),
+             "检查间隔应该是 600 秒"),
         ]
         for client, mutate, want in cases:
             t = mutate(text(client))
@@ -620,6 +631,9 @@ class SourceSettings(unittest.TestCase):
         self.assertTrue(_check_simple(None))
         for key, value in (("version", "2026-10-21"), ("version", "v1"), ("health_check_interval_s", 30),
                            ("health_check_interval_s", "3600"), ("health_check_interval_s", True),
+                           ("singbox_foreign_dns_interval_s", 30), ("singbox_foreign_dns_interval_s", "600"),
+                           ("singbox_foreign_dns_interval_s", -1), ("stash_group_interval_s", 0), ("stash_group_interval_s", 30),
+                           ("stash_group_interval_s", True), ("stash_group_interval_s", "3600"), ("stash_group_interval_s", 3600.0),
                            ("foreign_dns_group", ""), ("foreign_dns_group", "境外 DNS"), ("foreign_dns_group", "a#b"),
                            ("foreign_dns_group", "a&b"), ("foreign_dns_group", "a=b"), ("foreign_dns_group", "a,b"),
                            ("foreign_dns_group", 1)):

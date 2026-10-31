@@ -180,10 +180,11 @@ class _Filters:
         return f"filter: &{anchor} " + _scalar(rx)
 
 
-# 简易版的组都写 interval: -1（R20-F01，2026-10-23）。文档“策略组”的“定时执行延迟测试”：Stash 默认每 600 秒为组里的代理
-# 测一次延迟（包括 select 组，组里有组时递归测），interval 设为负数就不定时测。简易版是纯手选、没有自动选节点的组，
-# 定时测速只用来刷新显示的延迟，所以关掉（要看延迟就在 App 里手动测）。完整版不写，照旧是文档说的默认 600 秒。
-SIMPLE_GROUP_INTERVAL = -1
+# 组上的 interval（文档“策略组”的“定时执行延迟测试”：Stash 默认每 600 秒为组里的代理测一次延迟，select 组也测，
+# 组里有组时递归测；interval 设为负数就不定时测）。值在 project.yaml 里，都是使用者 2026-10-31 定的：
+#   完整版的选择组：health_check.stash_select_interval_s（-1，不测；选择组只管手选，不靠测速）；
+#   完整版的自动测速、故障转移、负载均衡组：照旧 health_check.interval_s + lazy（同一地区里自动换节点靠它们）；
+#   简易版的组（全是选择组）：simple.stash_group_interval_s（3600，每小时测一次、刷新显示的延迟；R20-F01 时是 -1）。
 
 
 def _group_dict(m: Model, g: GroupSpec, simple: bool = False) -> dict:
@@ -197,7 +198,9 @@ def _group_dict(m: Model, g: GroupSpec, simple: bool = False) -> dict:
     if simple:
         if g.kind != "select":
             raise ValueError(f"Stash 简易版只该有选择组：{g.name} 是 {g.kind}")
-        d["interval"] = SIMPLE_GROUP_INTERVAL
+        d["interval"] = m.simple["stash_group_interval_s"]
+    elif g.kind == "select":
+        d["interval"] = hc["stash_select_interval_s"]
     if g.kind in ("url-test", "fallback", "load-balance"):
         d["interval"] = hc["interval_s"]
         d["lazy"] = bool(hc["lazy"])
@@ -321,8 +324,12 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     if simple:
         out.append("# 简易版：地区组里直接是节点，Stash 怎么给组里的节点排序、第一次导入时默认选哪个，文档没写——如果默认选中的是占位节点，")
         out.append("# 走这个地区的连接会失败（不会直连）：导入后先在用到的地区组里点一个真节点（docs/09）。“国外默认”里没有占位节点。")
-        out.append("# 简易版的组都写 interval: -1：不定时测延迟（文档：Stash 默认每 600 秒测一次，负数关闭）。纯手选用不着定时测，")
-        out.append("# 想看延迟就在 App 里手动测速。")
+        out.append(f"# 简易版的组都写 interval: {m.simple['stash_group_interval_s']}：每 {m.simple['stash_group_interval_s']} 秒测一次延迟、刷新显示"
+                   "（文档：不写时 Stash 默认每 600 秒测一次，负数关闭）。")
+        out.append("# 纯手选：测速只刷新显示的延迟，不决定用哪个节点。")
+    else:
+        out.append(f"# 选择组都写 interval: {m.hc['stash_select_interval_s']}：不定时测延迟（文档：不写时 Stash 默认每 600 秒测一次，组里有组时递归测）；"
+                   f"自动测速、故障转移、负载均衡组照旧每 {m.hc['interval_s']} 秒测（lazy）。")
     out.append(_y({"proxies": dummy}).rstrip())
     out.append("")
     out.append(_y({"proxy-providers": providers}).rstrip())

@@ -846,9 +846,9 @@
         "无可用节点"
       ],
       "url": "https://www.gstatic.com/generate_204",
-      "interval": "3600s",
+      "interval": "600s",
       "tolerance": 50,
-      "idle_timeout": "3600s",
+      "idle_timeout": "30m",
       "interrupt_exist_connections": false
     },
     {

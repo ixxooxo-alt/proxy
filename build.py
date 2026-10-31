@@ -32,7 +32,7 @@ from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.11.1"
+GENERATOR_VERSION = "1.12.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),

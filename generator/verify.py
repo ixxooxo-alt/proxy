@@ -132,14 +132,16 @@ def _mihomo_dns_servers(dns: dict) -> List[Tuple[str, str]]:
 STASH_IP_RULES = {"IP-CIDR", "IP-CIDR6", "GEOIP", "IP-ASN"}
 
 
-def check_stash(text: str, strict: bool = False) -> List[str]:
+def check_stash(text: str, strict: bool = False, simple: bool = False) -> List[str]:
     """Stash（2026-10-13）：引用都找得到、组不循环；另查两条这份配置赖以成立的结构——
       每个按节点筛选的组（include-all + filter），筛选正则正好选中一个占位节点（名字以“·无可用节点”结尾的那几个）：
         Stash 的文档说没有代理的组会被当作直连，占位节点保证组永远不空（这里用 Python 的正则判断；Stash 的引擎未知）；
         筛选也不能选中内置策略的名字（DIRECT、REJECT、REJECT-DROP，大小写的几种写法都试）：文档说远程代理集为空时以 DIRECT 替代
         （2026-10-14，GPT 审核 r16 的 R16-F01：以前“其他地区”的筛选会收它，这里没有查）；
       严格版：每一条按 IP 判断的规则都带 no-resolve，国内域名清单（RULE-SET → 国内直连）排在广告集合、GEOSITE,geolocation-!cn 之后，
-        最后一条是 MATCH,国外默认。"""
+        最后一条是 MATCH,国外默认；
+      完整版（simple=False，2026-10-31）：选择组都写负数的 interval（不定时测延迟，使用者定的），自动测速、故障转移、负载均衡组
+        写正数（同一地区里自动换节点靠它们的测速，不能关）。简易版组上的 interval 由 check_simple 按规则源核对。"""
     from .emit_stash import BUILTIN_POLICIES, PLACEHOLDER_PORT, PLACEHOLDER_SERVER, PLACEHOLDER_SUFFIX
     c = yaml.safe_load(text)
     problems = []
@@ -188,6 +190,13 @@ def check_stash(text: str, strict: bool = False) -> List[str]:
                 problems.append(f"组 {g['name']} 的筛选会选中内置策略 {builtin}：订阅为空时 Stash 用 DIRECT 替代，会被它收进组里")
         elif not g.get("proxies"):
             problems.append(f"组 {g['name']} 没有成员（Stash 当作直连）")
+        if not simple:
+            iv = g.get("interval")
+            ok_int = isinstance(iv, int) and not isinstance(iv, bool)
+            if g.get("type") == "select" and not (ok_int and iv < 0):
+                problems.append(f"选择组 {g['name']} 应该写负数的 interval（不定时测延迟；不写时 Stash 默认每 600 秒测一次），实际 {iv!r}")
+            if g.get("type") in ("url-test", "fallback", "load-balance") and not (ok_int and iv > 0):
+                problems.append(f"组 {g['name']}（{g['type']}）的 interval 应该是正数：关掉定时测速，它就不会在同一地区里换节点，实际 {iv!r}")
     rules = c.get("rules", [])
     for r in rules:
         parts = [x.strip() for x in r.split(",")]
@@ -498,6 +507,8 @@ def simple_spec(model) -> dict:
         "mode_names": [f"{r['name']}·{x['suffix']}" for r in model.regions for x in model.project["region_modes"]],
         "dns_group": model.simple["foreign_dns_group"],
         "interval_s": model.simple["health_check_interval_s"],
+        "singbox_dns_interval_s": model.simple["singbox_foreign_dns_interval_s"],
+        "stash_interval_s": model.simple["stash_group_interval_s"],
     }
 
 
@@ -574,10 +585,11 @@ def check_simple(fam: str, text: str, spec: Optional[dict]) -> List[str]:
         for g in yaml.safe_load(text).get("proxy-groups", []):
             groups[g["name"]] = {"kind": g["type"], "members": list(g.get("proxies") or []),
                                  "nodes": bool(g.get("include-all") and g.get("filter"))}
-            # R20-F01：Stash 默认每 600 秒给组里的代理测一次延迟（select 组也测）；纯手选用不着，每个组都要写负数关掉
+            # Stash 默认每 600 秒给组里的代理测一次延迟（select 组也测，R20-F01）；简易版每个组都写规则源定的间隔
+            # （simple.stash_group_interval_s，2026-10-31 起是 3600：每小时刷新显示的延迟）
             iv = g.get("interval")
-            if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:
-                problems.append(f"组 {g['name']} 应该写 interval: -1（不写时 Stash 默认每 600 秒测一次延迟），实际 {iv!r}")
+            if not isinstance(iv, int) or isinstance(iv, bool) or iv != spec["stash_interval_s"]:
+                problems.append(f"组 {g['name']} 应该写 interval: {spec['stash_interval_s']}（不写时 Stash 默认每 600 秒测一次延迟），实际 {iv!r}")
         return problems + _simple_common(groups, spec, with_dns=False)
     if fam == "mihomo":
         c = yaml.safe_load(text)
@@ -631,8 +643,8 @@ def check_simple(fam: str, text: str, spec: Optional[dict]) -> List[str]:
                 problems.append(f"组 {o['tag']} 首次导入时应该选中第一项 {members[0]}")
             groups[o["tag"]] = {"kind": {"selector": "select", "urltest": "url-test"}[o["type"]], "members": explicit,
                                 "nodes": bool(nodes)}
-            if o["tag"] == dns_group and _duration_s(o.get("interval") or "") != spec["interval_s"]:
-                problems.append(f"{dns_group} 的检查间隔应该是 {spec['interval_s']} 秒，实际 {o.get('interval')}")
+            if o["tag"] == dns_group and _duration_s(o.get("interval") or "") != spec["singbox_dns_interval_s"]:
+                problems.append(f"{dns_group} 的检查间隔应该是 {spec['singbox_dns_interval_s']} 秒，实际 {o.get('interval')}")
         # 国外默认没有节点时只剩七个地区，也算对（模板里本来就没有节点）
         fd = groups.get(spec["foreign_default"])
         if fd is not None and not fd["nodes"]:
@@ -675,7 +687,7 @@ def check_outputs(files: Dict[str, str], own: Optional[dict] = None, spec: Optio
         elif fam == "qx":
             probs = check_qx(text, strict=strict, own=own)
         else:
-            probs = check_stash(text, strict=strict)
+            probs = check_stash(text, strict=strict, simple=simple)
         if simple:
             probs += check_simple(fam, text, spec)
         out += [f"{rel}：{p}" for p in probs]

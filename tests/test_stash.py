@@ -11,7 +11,7 @@ import unittest
 
 import yaml
 
-from helpers import STASH_CLIENTS, is_strict, load_yaml, model_and_plan, outputs, parsed, text
+from helpers import STASH_CLIENTS, is_simple, is_strict, load_yaml, model_and_plan, outputs, parsed, text
 
 from generator import emit_stash, verify
 
@@ -25,7 +25,7 @@ def conf(client):
 class StashStructure(unittest.TestCase):
     def test_generated_outputs_pass_the_structure_check(self):
         for client in STASH_CLIENTS:
-            self.assertEqual(verify.check_stash(text(client), strict=is_strict(client)), [], client)
+            self.assertEqual(verify.check_stash(text(client), strict=is_strict(client), simple=is_simple(client)), [], client)
 
     def test_standard_rules_are_the_mihomo_rules(self):
         """标准版的规则和 mihomo 的逐条相同（同一份产品规则、同样的 GEOSITE 和 GEOIP 写法；顺序也一样）。
@@ -50,6 +50,11 @@ class StashStructure(unittest.TestCase):
                 self.assertNotIn(key, g, f"{name}：{key} 这份配置不用（不在 10-13 的文档快照里，或者这里不该用）")
             if g["type"] in ("url-test", "fallback", "load-balance"):
                 self.assertEqual((g["interval"], g["lazy"]), (h["interval"], h["lazy"]), name)
+            else:
+                # 选择组不定时测延迟（使用者 2026-10-31 定的；不写时 Stash 默认每 600 秒测一次），mihomo 的选择组本来就不测
+                self.assertEqual(g["interval"], model_and_plan()[0].hc["stash_select_interval_s"], name)
+                self.assertEqual(g["interval"], -1, name)
+                self.assertNotIn("interval", h, name)
             if g["type"] == "load-balance":
                 self.assertEqual(g["strategy"], "consistent-hashing")
 
@@ -225,7 +230,8 @@ class StashVerifyCatches(unittest.TestCase):
     def mutate(self, client, fn):
         c = conf(client)
         fn(c)
-        return verify.check_stash(yaml.safe_dump(c, allow_unicode=True, sort_keys=False), strict=is_strict(client))
+        return verify.check_stash(yaml.safe_dump(c, allow_unicode=True, sort_keys=False), strict=is_strict(client),
+                                  simple=is_simple(client))
 
     def test_missing_placeholder(self):
         probs = self.mutate("stash", lambda c: c["proxies"].pop(0))
@@ -246,6 +252,31 @@ class StashVerifyCatches(unittest.TestCase):
         def fn(c):
             c["proxy-groups"].append({"name": "空组", "type": "select"})
         self.assertTrue(any("没有成员" in p for p in self.mutate("stash", fn)))
+
+    def test_select_group_that_benchmarks(self):
+        """完整版的选择组没写 interval（Stash 会按默认每 600 秒测）或写成正数，都要拦住（2026-10-31）。"""
+        def drop(c):
+            g = next(x for x in c["proxy-groups"] if x["type"] == "select")
+            del g["interval"]
+        def positive(c):
+            next(x for x in c["proxy-groups"] if x["type"] == "select")["interval"] = 600
+        for client in ("stash", "stash-strict"):          # 简易版的组每小时测一次，规则不同（下面那一项）
+            for fn in (drop, positive):
+                self.assertTrue(any("应该写负数的 interval" in p for p in self.mutate(client, fn)), client)
+
+    def test_auto_group_without_benchmark(self):
+        """自动测速、故障转移、负载均衡组的 interval 关掉（负数）或不写，都要拦住：同一地区里自动换节点靠它们测速。"""
+        for kind in ("url-test", "fallback", "load-balance"):
+            def fn(c, kind=kind):
+                next(x for x in c["proxy-groups"] if x["type"] == kind)["interval"] = -1
+            self.assertTrue(any("应该是正数" in p for p in self.mutate("stash", fn)), kind)
+
+    def test_simple_files_are_held_to_their_own_rule(self):
+        """简易版的组每小时测一次（interval: 3600，正数）：完整版“选择组写负数”那条不管简易版，简易版的值由 check_simple 按规则源核对。"""
+        for client in ("stash-simple", "stash-simple-strict"):
+            t = outputs()[f"stash/{client}.yaml"]
+            self.assertEqual(verify.check_stash(t, strict=client.endswith("strict"), simple=True), [], client)
+            self.assertTrue(any("应该写负数的 interval" in p for p in verify.check_stash(t, simple=False)), client)
 
     def test_strict_geoip_that_resolves(self):
         def fn(c):

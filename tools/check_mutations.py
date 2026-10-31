@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 202 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 209 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -660,12 +660,36 @@ cases = [
     ("M200 简易版的“境外DNS”没有节点时报告不提", [("generator/emit_singbox.py", lambda s: s.replace(
         '    if ob.get(dns_group, {}).get("outbounds") == [PLACEHOLDER_TAG]:\n', "    if False:\n", 1))],
      "test_report_says_when_the_foreign_dns_group_is_empty"),
-    ("M201 Stash 简易版的组不关定时测速（R20-F01：Stash 默认每 600 秒测一次）", [("generator/emit_stash.py", lambda s: s.replace(
-        '        d["interval"] = SIMPLE_GROUP_INTERVAL\n', "        pass\n", 1))],
-     "interval: -1"),
+    ("M201 Stash 简易版的组不写 interval（R20-F01：Stash 默认每 600 秒测一次；2026-10-31 起定的是每小时）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        d["interval"] = m.simple["stash_group_interval_s"]\n', "        pass\n", 1))],
+     "interval: 3600"),
     ("M202 写盘前检查不再核对 Stash 简易版组上的 interval", [("generator/verify.py", lambda s: s.replace(
-        "            if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:\n", "            if False:\n", 1))],
+        '            if not isinstance(iv, int) or isinstance(iv, bool) or iv != spec["stash_interval_s"]:\n', "            if False:\n", 1))],
      "test_layout_breakage_is_caught"),
+    # ---- 2026-10-31：使用者定的第 23 项 ③ 和 Stash 的测速（docs/00 最后一节）----
+    ("M203 Stash 完整版的选择组又不写 interval（按默认每 600 秒测速；使用者定的是不测）", [("generator/emit_stash.py", lambda s: s.replace(
+        '    elif g.kind == "select":\n        d["interval"] = hc["stash_select_interval_s"]\n', "", 1))],
+     "test_stash_group_intervals"),
+    ("M204 写盘前检查不再核对 Stash 完整版选择组的 interval", [("generator/verify.py", lambda s: s.replace(
+        '            if g.get("type") == "select" and not (ok_int and iv < 0):\n', "            if False:\n", 1))],
+     "test_select_group_that_benchmarks"),
+    ("M205 Stash 完整版的自动类组也关掉定时测速（同一地区里就不会自动换节点）", [("generator/emit_stash.py", lambda s: s.replace(
+        '        d["interval"] = hc["interval_s"]\n', '        d["interval"] = hc["stash_select_interval_s"]\n', 1))],
+     "test_groups_are_the_mihomo_groups"),
+    ("M206 写盘前检查不再核对 Stash 完整版自动类组的 interval", [("generator/verify.py", lambda s: s.replace(
+        '            if g.get("type") in ("url-test", "fallback", "load-balance") and not (ok_int and iv > 0):\n', "            if False:\n", 1))],
+     "test_auto_group_without_benchmark"),
+    ("M207 sing-box 简易版的“境外DNS”仍用 mihomo 的 1 小时（第 23 项定的是 10 分钟）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '            iv = m.simple["singbox_foreign_dns_interval_s"] if g.role == "foreign_dns" else (g.interval_s or hc["interval_s"])\n',
+        '            iv = g.interval_s or hc["interval_s"]\n', 1))],
+     "test_foreign_dns_group"),
+    ("M208 写盘前检查不再核对 sing-box 简易版“境外DNS”的间隔", [("generator/verify.py", lambda s: s.replace(
+        '            if o["tag"] == dns_group and _duration_s(o.get("interval") or "") != spec["singbox_dns_interval_s"]:\n',
+        "            if False:\n", 1))],
+     "test_layout_breakage_is_caught"),
+    ("M209 规则源不再校验 Stash 组上的间隔（写成 0、小数、布尔值也接受）", [("generator/model.py", lambda s: s.replace(
+        "    if not isinstance(iv, int) or isinstance(iv, bool) or 0 <= iv < 60:\n", "    if False:\n", 1))],
+     "test_bad_values_are_rejected"),
 ]
 
 

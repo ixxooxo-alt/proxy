@@ -204,8 +204,8 @@ def _load_yaml(path: str):
 SERVICE_KEYS = {"id", "group", "title", "upstream", "rules", "shared_excluded", "notes", "clients"}
 RULE_EXTRA_KEYS = {"ev", "note", "nature"}
 GROUP_KEYS = {"name", "category", "default", "options", "residual", "note", "special", "note_simple"}
-# 简易版的设定（project.yaml 的 simple 一节，2026-10-21）
-SIMPLE_KEYS = {"version", "foreign_dns_group", "health_check_interval_s"}
+# 简易版的设定（project.yaml 的 simple 一节，2026-10-21；后两个 2026-10-31 加的）
+SIMPLE_KEYS = {"version", "foreign_dns_group", "health_check_interval_s", "singbox_foreign_dns_interval_s", "stash_group_interval_s"}
 # shared_excluded：只说明“不归本服务”的主机。写了 to 的，表示“它会去这个组”，是一条要核对的断言：
 # probe 列出具体主机，测试（tests/test_real_data.py，用上游数据的成员快照）和 tools/check_real_routes.py（官方内核）
 # 会检查各客户端是否真的把它们交给 to（2026-10-13 起含 Stash；Loon、Quantumult X、Stash 只有模拟器）。
@@ -270,8 +270,17 @@ def _check_icons(ic: dict) -> List[str]:
     return errors
 
 
+def _check_stash_interval(where: str, iv) -> List[str]:
+    """Stash 组上的 interval（2026-10-31）：文档“策略组”的“定时执行延迟测试”——单位秒，负数表示不定时测。
+    这里只收负数（不测）或不少于 60 的整数；0、小数、布尔值、字符串都算错。"""
+    if not isinstance(iv, int) or isinstance(iv, bool) or 0 <= iv < 60:
+        return [f"project.yaml {where} 应是负数（不定时测延迟）或不少于 60 的整数（秒）：{iv!r}"]
+    return []
+
+
 def _check_simple(sp) -> List[str]:
-    """project.yaml 的 simple 一节：键都认识，版本是“年.月.日-序号”，检查间隔是不少于 60 秒的整数秒，内部组名是非空的字符串。
+    """project.yaml 的 simple 一节：键都认识，版本是“年.月.日-序号”，两个检查间隔是不少于 60 秒的整数秒，Stash 组上的间隔是负数或
+    不少于 60 的整数，内部组名是非空的字符串。
     组名和别的组、地区重不重名，在 validate 里查（要等组和地区都读进来）。"""
     if not isinstance(sp, dict):
         return ["project.yaml：缺少 simple 一节（简易版的设定）"]
@@ -281,9 +290,12 @@ def _check_simple(sp) -> List[str]:
         errors.append(f"project.yaml simple：缺少 {'、'.join(missing)}")
     if "version" in sp and not re.fullmatch(r"\d{4}\.\d{2}\.\d{2}-\d+", str(sp["version"])):
         errors.append(f"project.yaml simple.version 应写成“年.月.日-序号”，例如 2026.10.21-1：{sp['version']!r}")
-    iv = sp.get("health_check_interval_s")
-    if "health_check_interval_s" in sp and (not isinstance(iv, int) or isinstance(iv, bool) or iv < 60):
-        errors.append(f"project.yaml simple.health_check_interval_s 应是不少于 60 的整数（秒）：{iv!r}")
+    for key in ("health_check_interval_s", "singbox_foreign_dns_interval_s"):
+        iv = sp.get(key)
+        if key in sp and (not isinstance(iv, int) or isinstance(iv, bool) or iv < 60):
+            errors.append(f"project.yaml simple.{key} 应是不少于 60 的整数（秒）：{iv!r}")
+    if "stash_group_interval_s" in sp:
+        errors += _check_stash_interval("simple.stash_group_interval_s", sp["stash_group_interval_s"])
     # 组名要原样写进 mihomo 的境外 DNS 地址（https://1.1.1.1/dns-query#组名）：mihomo 按 & 和 = 拆 # 后面的部分
     # （v1.19.31 config/config.go 的 parseNameServer），所以这几个字符、空白、逗号（Loon / Quantumult X 的分隔符）都不能有
     name = sp.get("foreign_dns_group")
@@ -419,6 +431,11 @@ def load(root: str, include_local: bool = True) -> Model:
     for e in g["groups"]:
         schema_errors += _unknown(f"groups.yaml {e.get('name', e)}", e, GROUP_KEYS)
     schema_errors += _check_simple(project.get("simple"))
+    hc = project.get("health_check") or {}
+    if "stash_select_interval_s" not in hc:
+        schema_errors.append("project.yaml health_check：缺少 stash_select_interval_s（Stash 完整版选择组上的 interval）")
+    else:
+        schema_errors += _check_stash_interval("health_check.stash_select_interval_s", hc["stash_select_interval_s"])
 
     groups: List[Group] = []
     for e in g["groups"]:

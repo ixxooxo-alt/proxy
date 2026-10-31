@@ -216,7 +216,9 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
                     ob["default"] = hit[0]
             outbounds.append(ob)
         elif g.kind == "url-test":
-            iv = g.interval_s or hc["interval_s"]
+            # 简易版的“境外DNS”：sing-box 用自己的间隔（simple.singbox_foreign_dns_interval_s，使用者 2026-10-31 定的 10 分钟，
+            # docs/06 第 23 项）；mihomo 简易版仍用 simple.health_check_interval_s（组上的 interval_s）
+            iv = m.simple["singbox_foreign_dns_interval_s"] if g.role == "foreign_dns" else (g.interval_s or hc["interval_s"])
             outbounds.append({"type": "urltest", "tag": g.name, "outbounds": members,
                               "url": hc["url_https"], "interval": f"{iv}s",
                               "tolerance": hc["tolerance_ms"], "idle_timeout": idle_timeout(iv),

@@ -130,6 +130,9 @@ class PipelineFailures(unittest.TestCase):
             ("groups.yaml", lambda d: [g["options"].append("国外默认") for g in d["groups"] if g["name"] == "国外默认"]),
             ("adblock.yaml", lambda d: d["local_ads"].append({"suffix": "https://ads.example.com/x", "ev": "maintainer"})),
             ("adblock.yaml", lambda d: d["local_ads"].append({"sufix": "ads.example.com", "ev": "maintainer"})),
+            # Stash 完整版选择组上的 interval（2026-10-31）：漏写、写成 0（Stash 只认负数为“不测”）
+            ("project.yaml", lambda d: d["health_check"].pop("stash_select_interval_s")),
+            ("project.yaml", lambda d: d["health_check"].update(stash_select_interval_s=0)),
         ]
         for rel, fn in cases:
             p = os.path.join(self.t.dir, "source", rel)
