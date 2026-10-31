@@ -1,0 +1,7 @@
+运行时间（UTC）：2026-10-31 08:37:50
+Python：Python 3.13.16，PyYAML：6.0.1
+提交：1366d17；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 build.py --check
+
+产物与统一源一致（含 manifest.json）。
+退出码：0
