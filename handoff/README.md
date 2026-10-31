@@ -249,7 +249,11 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 
 ## 18. r21：三个测速间隔（2026-10-31，同一个云端会话；先审后跑）
 
-1. **要求**：使用者 2026-10-31 说“23 项 10 分组 完整简易版都把自动测速去掉吧 简易版 1 小时刷新延迟”（`docs/00` 最后一节）。我理解成三件：第 23 项 ③（sing-box 简易版的“境外DNS”10 分钟，mihomo 简易版仍 1 小时）、Stash 完整版的选择组 `interval: -1`（自动类的组照旧 300 秒）、Stash 简易版的组 `interval: 3600`。交付送审稿时请使用者确认这个理解。
+1. **要求**：使用者 2026-10-31 说“23 项 10 分组 完整简易版都把自动测速去掉吧 简易版 1 小时刷新延迟”（`docs/00` 最后一节）。我理解成三件：第 23 项 ③（sing-box 简易版的“境外DNS”10 分钟，mihomo 简易版仍 1 小时）、Stash 完整版的选择组 `interval: -1`（自动类的组照旧 300 秒）、Stash 简易版的组 `interval: 3600`。交付送审稿时请使用者确认这个理解（到 r21 交付时还没有回复；GPT 审送审稿时认为合理）。
 2. **代码**：三个值在 `source/project.yaml`（`health_check.stash_select_interval_s`、`simple.singbox_foreign_dns_interval_s`、`simple.stash_group_interval_s`），`model.py` 校验；`emit_stash._group_dict`、`emit_singbox.build` 用它们；`verify.check_stash(text, strict, simple)` 对完整版查选择组负数、自动类组正数，`check_simple` 对简易版按 `simple_spec` 查值。sing-box 的“境外DNS”和 mihomo 的共用一个 `GroupSpec`，sing-box 的间隔在 `emit_singbox` 里按 `role == "foreign_dns"` 单独取——以后再改 `groups.py` 的 `interval_s` 时记得这一点。
-3. **送审稿只跑了快速检查**：`bash handoff/notes/r21_draft/run_quick.sh <r20 的工程目录>`（r20 用 `git archive f45eb89` 取到 `~/proxy-work/r20`），日志在 `handoff/notes/r21_draft/logs/`；新加和改写的 9 类变异（M201–M209）在送审稿的代码上试跑过。审完以后照 `handoff/release/README.md` 出版本：出版脚本照 `r20-as-used` 复制成 `r21-as-used` 再改（类数 209、测试 348 项、Stash 和 sing-box 简易版的新大小）；完整版 Stash 的配置变了、规则和 DNS 没变，`tests/data/real_sets.json` 的路由记录应当不用重新生成（定稿前用 `test_real_data` 确认）。
+3. **送审稿只跑了快速检查**：`bash handoff/notes/r21_draft/run_quick.sh <r20 的工程目录>`（r20 用 `git archive f45eb89` 取到 `~/proxy-work/r20`），日志在 `handoff/notes/r21_draft/logs/`；新加和改写的 9 类变异（M201–M209）在送审稿的代码上试跑过。`tests/data/real_sets.json` 没有重新生成：mihomo、sing-box 完整版的规则和 DNS 段没变（`finalize.py` 核对它和 r20 的逐字节相同、`real-route-check.log` 除了运行时间和摘要和 r20 的逐行相同）。
+4. **审完以后**（GPT 审核 PR #8，`docs/08` 第 19 轮）：三条说明问题和一条建议都属实。要记住的：sing-box 的 `urltest` 只在每次到点时判断闲置（`urltest.go` 的 `loopCheck`），“闲置超过 `idle_timeout`”不等于定时器已经停了；Stash 的文档快照里写了同一个节点的测速结果在组之间共享（`proxy-protocols__proxy-benchmark.md`）——说“文档没写”之前先在快照里搜一遍。
+5. **定稿前试跑变异查出来的**（第 19 轮的补记）：M210 第一次没被发现——规则源校验和写盘前检查失败时 `build.py` 都返回 2，只看返回值的测试分不出是哪一层拒绝的；要证“这一层就拒绝”，直接调那一层（`model.load`）、看报错的文字。新加的变异一定先真跑一遍，`--check-edits` 只说明改动套得上。M3、M177 的预设关键字也是这时改的（第 17 节第 9 条那件事）。
+6. **出这一版**：脚本在 `handoff/release/r21-as-used/`（照 r20 的改：类数 210、测试 349 项；`after21.sh` 带两个参数，段名和定稿时间；一次性核对换成 `handoff/notes/r21_private_vs_r20.py`——r20 的 `r20_full_private_same.py` 断言完整版和 r19 相同，这一版不成立了）。实际运行的命令记在那里的 `README.md`。
+7. **交付**：r21 推到同一个分支，没有动 `main`（`main` 仍是 r19）。审完使用者说可以，才更新 `main`。
 

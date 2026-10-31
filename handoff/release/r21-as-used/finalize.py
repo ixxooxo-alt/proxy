@@ -55,12 +55,12 @@ CMP_CELL = ("Stash 完整版两份的 57 个选择组都加了 `interval: -1`（
 H8 = "docs/08-外部审核记录.md"
 DOC_NEEDLES_R21 = (
     ("README.md", ["tests-349%20passing", "349 automated tests", "210 deliberately injected bugs", "This README describes r21", "2026.10.31-2",
-                   "Nineteen rounds of external input", "This is r21.", "plus 98 local block rules",
+                   "Nineteen rounds of external input", "This is r21 (2026-10-31).", "plus 98 local block rules",
                    "632 hand-labelled", "270 targets", "561 community-sourced", "On mihomo and sing-box, with the default group choices"]),
     ("README.zh-CN.md", ["tests-349%20passing", "349 项自动测试；故意改坏代码 210 处", "自动测试 349 项全部通过", "这份说明对应 r21", "外部意见一共 19 轮",
                          "第 19 轮是 r21 送审稿", "r12–r21 各版改了什么", "632 个人工写期望", "270 个目标", "561 条社区来源规则",
                          "在 mihomo 和 sing-box 上，按默认的组选择"]),
-    ("PROJECT_STATE.md", ["**r21：三个测速间隔**", "T36 第 19 轮", "已验证（349 项；变异检查：210 类全部被发现）", "| 请审核方审 r21 |"]),
+    ("PROJECT_STATE.md", ["**r21：三个测速间隔**", "T37 第 19 轮", "已验证（349 项；变异检查：210 类全部被发现）", "| 请审核方审 r21 |"]),
     ("00-审核说明.md", ["## 本轮（r21：三个测速间隔，统一源 2026.10.31-1）改了什么", "测试 345 → 349 项", "变异检查 202 → 210 类", "R21-F01", "R21-F03",
                         "## 本轮请重点看", "注入 210 类错误", "## 上一版（r20：简易版，统一源 2026.10.17-1）改了什么"]),
     ("docs/05-验收记录.md", ["349 项全部通过", "逐一注入 210 类错误", "| 简易版版本 | 2026.10.31-2", "生成 25 个公开产物", "2290 个假节点", "“国外默认”2,259 项",
@@ -261,14 +261,18 @@ assert off.count("预期失败") == 3 and "[不符" not in off and "全部符合
 assert "if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty" in off
 assert "disallow empty `proxy-server-nameserver` when `proxy-server-nameserver-policy` is set" in off
 off20 = git_show(R20, f"{ev}/official-check.log")
-norm_off = lambda t: [x for x in t.split("\n") if not x.startswith(("运行时间（UTC）：", "统一源摘要："))]
-assert norm_off(off) == norm_off(off20), "official-check.log 和 r20 的不同（除了运行时间、统一源摘要）"
+# 内核自己日志里的时间戳、临时目录名每次都不同，去掉再比
+norm_off = lambda t: [re.sub(r'time="[^"]*"', 'time="…"', re.sub(r"/tmp/official-check-[^/]+/", "/tmp/official-check-…/", x))
+                      for x in t.split("\n") if not x.startswith(("运行时间（UTC）：", "统一源摘要："))]
+assert norm_off(off) == norm_off(off20), "official-check.log 和 r20 的不同（除了运行时间、统一源摘要、内核日志的时间戳和临时目录名）"
 
 rr = read(f"{ev}/real-route-check.log")
 # mihomo、sing-box 完整版的规则和 DNS 段、上游数据、内核都和 r20 相同：日志除了开头的运行时间和统一源摘要，应当和 r20 那一份逐字相同
 rr20 = git_show(R20, f"{ev}/real-route-check.log")
-body = lambda t: [x for x in t.split("\n") if not x.startswith(("运行时间（UTC）：", "统一源摘要："))]
-assert body(rr) == body(rr20), "real-route-check.log 和 r20 的不同（除了运行时间、统一源摘要）"
+# 统一源版本这一版变了（2026.10.17-1 → 2026.10.31-1），它写在“统一源 …；用例与排除项……”那一行的开头
+body = lambda t: [re.sub(r"^统一源 [0-9.]+-\d+；", "统一源 …；", x) for x in t.split("\n") if not x.startswith(("运行时间（UTC）：", "统一源摘要："))]
+assert rr.count("统一源 2026.10.31-1；用例与排除项") == 1 and rr20.count("统一源 2026.10.17-1；用例与排除项") == 1
+assert body(rr) == body(rr20), "real-route-check.log 和 r20 的不同（除了运行时间、统一源摘要和版本）"
 assert f"用例与排除项共 290 条，不同的目标 270 个；DNS 去向用例 sing-box 22 条、mihomo {N_MIHOMO_DNS} 条，拨号解析用例 sing-box 12 条、mihomo 12 条" in rr
 assert rr.count("[符合] 路由 270 条") == 3 and "[不符合]" not in rr and "\n全部一致\n" in rr
 assert "名字会交给国内 DNS 的 222353 个：路由是国内直连 / 直连 / 拦截的 222339 个；归默认直连、可以切换的组的 14 个；走代理组的 0 个" in rr
@@ -299,7 +303,16 @@ assert "| r20 | 632 | 0 | 632 | 0 |" in cmp_ and "| r21 | 632 | 0 | 632 | 0 |" i
 assert "共 2254 个名字" in cmp_ and "### 手动组的归属变了（0 个）" in cmp_ and "成员变了（0 个）" in cmp_
 assert cmp_.count("逐字节相同。") == 2, cmp_.count("逐字节相同。")
 assert "没有这个文件" not in cmp_
-assert cmp_.count("加上 `\"interval\": -1`") == 57 and cmp_.count("去掉 `\"interval\": -1`；加上 `\"interval\": 3600`") == 51
+# 报告里每份最多列 40 条改动，其余写“还有 N 项没有列出”：按汇总行核对（第五节）
+sec5 = cmp_[cmp_.index("## 五、"):cmp_.index("## 六、")]
+part = lambda name: sec5[sec5.index(f"### `{name}`"):sec5.find("\n### ", sec5.index(f"### `{name}`") + 5)]
+assert "**策略组（proxy-groups）**：新增 0 条，删除 0 条，改动 57 条；两版都有的条目顺序不变。" in part("stash/stash.yaml")
+assert part("stash/stash.yaml").count("加上 `\"interval\": -1`") == 40 and "- （改动的还有 17 项，没有列出）" in part("stash/stash.yaml")
+assert "有差异的分段和 `stash/stash.yaml` 的一模一样（策略组（proxy-groups）），不重复列出。" in part("stash/stash-strict.yaml")
+assert "**策略组（proxy-groups）**：新增 0 条，删除 0 条，改动 51 条；两版都有的条目顺序不变。" in part("stash/stash-simple.yaml")
+assert part("stash/stash-simple.yaml").count("去掉 `\"interval\": -1`；加上 `\"interval\": 3600`") == 40 and "- （改动的还有 11 项，没有列出）" in part("stash/stash-simple.yaml")
+assert "有差异的分段和 `stash/stash-simple.yaml` 的一模一样（策略组（proxy-groups）），不重复列出。" in part("stash/stash-simple-strict.yaml")
+assert "**出站与策略组（outbounds）**：新增 0 条，删除 0 条，改动 1 条；两版都有的条目顺序不变。" in part("sing-box/sing-box-simple-1.14.json")
 assert "未知的正则>\"" not in cmp_ and "<筛选：未知的正则>" not in cmp_
 assert not re.search(r"^- 改动 `[^`]*`：\s*$", cmp_, re.M), "还有说不出改了什么的“改动”"
 for needle in CMP_NEEDLES:

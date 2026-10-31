@@ -1,0 +1,92 @@
+r20：build.py 退出码 0
+当前：build.py 退出码 0
+私密产物：loon-simple-strict.conf、loon-simple.conf、loon-strict.conf、loon.conf、manifest.json、mihomo-core.yaml、mihomo-profile.yaml、mihomo-simple-core.yaml、mihomo-simple-profile.yaml、quantumultx-simple-strict.conf、quantumultx-simple.conf、quantumultx-strict.conf、quantumultx.conf、sing-box-1.12.json、sing-box-1.14.json、sing-box-simple-1.12.json、sing-box-simple-1.14.json、sing-box-节点转换报告.txt、stash-simple-strict.yaml、stash-simple.yaml、stash-strict.yaml、stash.yaml、节点分组报告.txt、请勿分享.txt
+
+loon-simple-strict.conf：只有注释不同
+
+loon-simple.conf：只有注释不同
+
+loon-strict.conf：只有注释不同
+
+loon.conf：只有注释不同
+
+manifest.json：22 处不同
+    .generator_version
+    .outputs.loon-simple-strict.conf
+    .outputs.loon-simple.conf
+    .outputs.loon-strict.conf
+    .outputs.loon.conf
+    .outputs.mihomo-core.yaml
+    ……共 22 处
+
+mihomo-core.yaml：只有注释不同
+
+mihomo-profile.yaml：只有注释不同
+
+mihomo-simple-core.yaml：只有注释不同
+
+mihomo-simple-profile.yaml：只有注释不同
+
+quantumultx-simple-strict.conf：只有注释不同
+
+quantumultx-simple.conf：只有注释不同
+
+quantumultx-strict.conf：只有注释不同
+
+quantumultx.conf：只有注释不同
+
+sing-box-1.12.json：逐字节相同
+
+sing-box-1.14.json：逐字节相同
+
+sing-box-simple-1.12.json：2 处不同
+    .outbounds[境外DNS].idle_timeout
+    .outbounds[境外DNS].interval
+
+sing-box-simple-1.14.json：2 处不同
+    .outbounds[境外DNS].idle_timeout
+    .outbounds[境外DNS].interval
+
+sing-box-节点转换报告.txt：逐字节相同
+
+stash-simple-strict.yaml：51 处不同
+    .proxy-groups[国外默认].interval
+    .proxy-groups[OpenAI].interval
+    .proxy-groups[Claude].interval
+    .proxy-groups[Grok].interval
+    .proxy-groups[Google AI].interval
+    .proxy-groups[Copilot].interval
+    ……共 51 处
+
+stash-simple.yaml：51 处不同
+    .proxy-groups[国外默认].interval
+    .proxy-groups[OpenAI].interval
+    .proxy-groups[Claude].interval
+    .proxy-groups[Grok].interval
+    .proxy-groups[Google AI].interval
+    .proxy-groups[Copilot].interval
+    ……共 51 处
+
+stash-strict.yaml：57 处不同
+    .proxy-groups[国外默认].interval（新增）
+    .proxy-groups[OpenAI].interval（新增）
+    .proxy-groups[Claude].interval（新增）
+    .proxy-groups[Grok].interval（新增）
+    .proxy-groups[Google AI].interval（新增）
+    .proxy-groups[Copilot].interval（新增）
+    ……共 57 处
+
+stash.yaml：57 处不同
+    .proxy-groups[国外默认].interval（新增）
+    .proxy-groups[OpenAI].interval（新增）
+    .proxy-groups[Claude].interval（新增）
+    .proxy-groups[Grok].interval（新增）
+    .proxy-groups[Google AI].interval（新增）
+    .proxy-groups[Copilot].interval（新增）
+    ……共 57 处
+
+节点分组报告.txt：逐字节相同
+
+请勿分享.txt：逐字节相同
+
+全部符合：24 份私密产物里，除了 manifest.json，只有允许的那几个间隔不同
