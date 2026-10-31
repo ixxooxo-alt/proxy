@@ -6,14 +6,18 @@ Stash 没有能在电脑上运行的内核。这里查的是生成出来的文�
 设计和依据见 generator/emit_stash.py 的说明。
 """
 import copy
+import os
 import re
+import shutil
+import tempfile
 import unittest
 
 import yaml
 
-from helpers import STASH_CLIENTS, is_simple, is_strict, load_yaml, model_and_plan, outputs, parsed, text
+from helpers import ROOT, STASH_CLIENTS, is_simple, is_strict, load_yaml, model_and_plan, outputs, parsed, text
 
 from generator import emit_stash, verify
+from generator.model import SourceError, load
 
 NODE_NAMES = load_yaml("node_names.yaml")
 
@@ -324,6 +328,30 @@ class StashVerifyCatches(unittest.TestCase):
         with mock.patch.object(emit_stash, "placeholders", return_value=swapped):
             with self.assertRaises(ValueError):
                 emit_stash.build(m, plan)
+
+
+class StashSourceSettings(unittest.TestCase):
+    def test_select_interval_in_the_source_must_be_negative(self):
+        """project.yaml 的 health_check.stash_select_interval_s（Stash 完整版选择组上的 interval）不是负整数时，规则源这一层就报错
+        （GPT 审核 r21 送审稿的建议）。生成流程那项测试（test_structural_errors_rejected_before_writing）分不出是哪一层拦住的：
+        写盘前检查也拒绝正数，两者失败时 build.py 都返回 2——2026-10-31 定稿前试跑变异 M210 时查出来的（docs/08 第 19 轮的补记）。"""
+        line = "  stash_select_interval_s: -1"
+        with tempfile.TemporaryDirectory() as d:
+            for sub in ("source", "generator"):
+                shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub), ignore=shutil.ignore_patterns("local.yaml", "__pycache__"))
+            path = os.path.join(d, "source", "project.yaml")
+            with open(path, encoding="utf-8") as f:
+                t = f.read()
+            self.assertEqual(t.count(line + "\n"), 1)
+            for bad in ("600", "60", "0", "true", "'-1'", "-1.5"):
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(t.replace(line + "\n", f"  stash_select_interval_s: {bad}\n", 1))
+                with self.assertRaises(SourceError, msg=bad) as e:
+                    load(d, include_local=False)
+                self.assertIn("health_check.stash_select_interval_s 应是负数", str(e.exception), bad)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(t)
+            self.assertEqual(load(d, include_local=False).hc["stash_select_interval_s"], -1)
 
 
 class StashRuleSetInTheEmulator(unittest.TestCase):

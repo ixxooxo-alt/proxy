@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 209 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 210 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -107,7 +107,7 @@ def append_case_without_snapshot(s):
 cases = [
     ("M1 Apple AI 服务挪到 Apple 之后（书写位置）", [("source/services/bigtech.yaml", move_apple_ai_after_apple)], "书写顺序"),
     ("M2 国内常用网站也写进 Loon / QX", [("source/services/misc.yaml", lambda s: s.replace("    clients: [mihomo, singbox, stash]\n", "", 1))], "ad.12306.cn"),
-    ("M3 删掉一条 Apple AI 规则（smoot.apple.com）", [("source/services/bigtech.yaml", lambda s: re.sub(r"      - \{suffix: smoot\.apple\.com,[^\n]*\n", "", s, count=1))], "不增不减"),
+    ("M3 删掉一条 Apple AI 规则（smoot.apple.com）", [("source/services/bigtech.yaml", lambda s: re.sub(r"      - \{suffix: smoot\.apple\.com,[^\n]*\n", "", s, count=1))], "Apple AI 规则必须与上面的清单一致"),
     ("M4 从 Apple 组删掉 apple-dns.net", [("source/services/bigtech.yaml", lambda s: s.replace("      - {suffix: apple-dns.net, ev: dlc}\n", "", 1))], "apple-dns.net"),
     ("M5 Apple AI 默认改成日本", [("source/groups.yaml", lambda s: s.replace("{name: Apple AI,  category: AI, default: 美国", "{name: Apple AI,  category: AI, default: 日本", 1))], "Apple AI"),
     ("M6 恢复关键词规则 siri", [("source/services/bigtech.yaml", lambda s: s.replace("      - {suffix: siri.com, ev: dlc,", "      - {keyword: siri, ev: apple-ai-req, note: x}\n      - {suffix: siri.com, ev: dlc,", 1))], None),
@@ -576,7 +576,7 @@ cases = [
      "test_mihomo_unmatched_names_ask_only_the_foreign_doh"),
     ("M177 mihomo 简易版没有把 GEO 数据的下载交给境外DNS", [("generator/emit_mihomo.py", lambda s: s.replace(
         "    if dns_group:\n        # 内核按规则下载 GEO 数据", "    if False:\n        # 内核按规则下载 GEO 数据", 1))],
-     "test_mihomo"),
+     "SameAsFullOutsideGroups.test_mihomo"),
     ("M178 mihomo 简易版订阅上的检查间隔仍是完整版的 300 秒", [("generator/emit_mihomo.py", lambda s: s.replace(
         '    interval_s = m.simple["health_check_interval_s"] if simple else hc["interval_s"]\n', '    interval_s = hc["interval_s"]\n', 1))],
      "test_mihomo_provider_health_check_matches_groups"),
@@ -690,6 +690,10 @@ cases = [
     ("M209 规则源不再校验 Stash 组上的间隔（写成 0、小数、布尔值也接受）", [("generator/model.py", lambda s: s.replace(
         "    if not isinstance(iv, int) or isinstance(iv, bool) or 0 <= iv < 60:\n", "    if False:\n", 1))],
      "test_bad_values_are_rejected"),
+    # ---- 2026-10-31：处理 GPT 对 r21 送审稿的审核（建议：规则源这一层也只收负数，docs/08 第 19 轮）----
+    ("M210 规则源又接受 Stash 完整版选择组的正数间隔（要等写盘前检查才报）", [("generator/model.py", lambda s: s.replace(
+        "        if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:\n", "        if not isinstance(iv, int) or isinstance(iv, bool) or iv == 0:\n", 1))],
+     "test_select_interval_in_the_source_must_be_negative"),
 ]
 
 

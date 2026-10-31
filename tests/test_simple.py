@@ -165,10 +165,13 @@ class SameAsFullOutsideGroups(unittest.TestCase):
             a, b = copy.deepcopy(parsed(client)), copy.deepcopy(parsed(FULL_OF[client]))
             self.assertEqual(set(a), set(b), client)
             dns_text = json.dumps(a["dns"], ensure_ascii=False)
+            # 多出的那几处要真的在（2026-10-31 补的：以前只查“别处没有不同”，少了它们也不报，见 docs/08 第 19 轮的补记）
+            self.assertIn("#" + DNS_GROUP, dns_text, client)
             self.assertEqual(json.loads(dns_text.replace("#" + DNS_GROUP, "")), b["dns"], client)
             hosts = sorted({u.split("://", 1)[1].split("/", 1)[0] for u in a["geox-url"].values()})
             self.assertEqual(hosts, ["testingcf.jsdelivr.net"])
             extra = [f"DOMAIN,{h},{DNS_GROUP}" for h in hosts]
+            self.assertEqual([r for r in extra if r not in a["rules"]], [], client)
             self.assertEqual([r for r in a["rules"] if r not in extra], b["rules"], client)
             for name, pv in a["proxy-providers"].items():
                 self.assertEqual(pv["health-check"]["interval"], SIMPLE_INTERVAL, client)

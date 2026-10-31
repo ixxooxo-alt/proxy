@@ -435,7 +435,11 @@ def load(root: str, include_local: bool = True) -> Model:
     if "stash_select_interval_s" not in hc:
         schema_errors.append("project.yaml health_check：缺少 stash_select_interval_s（Stash 完整版选择组上的 interval）")
     else:
-        schema_errors += _check_stash_interval("health_check.stash_select_interval_s", hc["stash_select_interval_s"])
+        # 完整版的选择组只收负数（不定时测延迟），和写盘前检查（verify.check_stash）一致：正数在这里就拒绝，
+        # 不用等生成到最后才报（GPT 审核 r21 送审稿的建议，2026-10-31）
+        iv = hc["stash_select_interval_s"]
+        if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:
+            schema_errors.append(f"project.yaml health_check.stash_select_interval_s 应是负数（完整版的选择组不定时测延迟）：{iv!r}")
 
     groups: List[Group] = []
     for e in g["groups"]:

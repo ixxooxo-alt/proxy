@@ -322,7 +322,8 @@ def build(m: Model, plan: Plan, sub_urls: Optional[List[str]] = None, strict: bo
     out.append("# 这个地区的组里只剩它，连接失败而不是直连。它的名字只会被这个地区的筛选正则选中。有真节点时不要选它。")
     out.append("# 文档还说远程代理集为空时以 DIRECT 替代：下面每条节点筛选的开头都排除了 DIRECT、REJECT、REJECT-DROP 这几个名字。")
     if simple:
-        out.append("# 简易版：地区组里直接是节点，Stash 怎么给组里的节点排序、第一次导入时默认选哪个，文档没写——如果默认选中的是占位节点，")
+        out.append("# 简易版：地区组里直接是节点。文档说组内的代理默认按配置文件的顺序排（占位节点写在订阅前面），但 include-all 合并它们时的")
+        out.append("# 完整顺序、第一次导入时默认选哪个，文档没写——如果默认选中的是占位节点，")
         out.append("# 走这个地区的连接会失败（不会直连）：导入后先在用到的地区组里点一个真节点（docs/09）。“国外默认”里没有占位节点。")
         out.append(f"# 简易版的组都写 interval: {m.simple['stash_group_interval_s']}：每 {m.simple['stash_group_interval_s']} 秒测一次延迟、刷新显示"
                    "（文档：不写时 Stash 默认每 600 秒测一次，负数关闭）。")

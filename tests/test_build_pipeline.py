@@ -133,6 +133,8 @@ class PipelineFailures(unittest.TestCase):
             # Stash 完整版选择组上的 interval（2026-10-31）：漏写、写成 0（Stash 只认负数为“不测”）
             ("project.yaml", lambda d: d["health_check"].pop("stash_select_interval_s")),
             ("project.yaml", lambda d: d["health_check"].update(stash_select_interval_s=0)),
+            # 正数也不收：完整版的选择组只能不测（和写盘前检查一致，GPT 审核 r21 送审稿的建议）
+            ("project.yaml", lambda d: d["health_check"].update(stash_select_interval_s=600)),
         ]
         for rel, fn in cases:
             p = os.path.join(self.t.dir, "source", rel)
