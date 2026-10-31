@@ -38,10 +38,15 @@ else:
     cmd = "命令：每一段都是 MUT_BATCHES=3 bash handoff/release/run_mutations.sh（三批同时跑），后面的段只带还没有结果的编号"
 solo = res["fresh"]["solo"]
 not_seen = res["not_seen"]
+# 跑完以后按日志写的（2026-10-31）：这一类在定稿以后的这一次运行里记“未见预期信息”，原因逐个看过
+NOT_SEEN_WHY = {"M182": "M182（sing-box 的 idle_timeout 照旧 30 分钟）预设由 test_foreign_dns_group 发现，可这一版 sing-box 简易版“境外DNS”的间隔改成了 600 秒，"
+                        "按规则 idle_timeout 本来就是 30 分钟，这个变异在现在的配置上不改变产物，只有直接查换算的 test_duration_parser 失败；"
+                        "关键字在 tools/check_mutations.py 里，改它就要重新定稿，留到下一版改代码时再改"}
+assert set(not_seen) <= set(NOT_SEEN_WHY), not_seen
 head = [
     when,
     f"Python：{res['python']}，PyYAML：{res['pyyaml']}",
-    f"统一源摘要：{res['digest']}（r21：统一源 2026.10.31-1、生成器 1.12.0、简易版 2026.10.31-1）。"
+    f"统一源摘要：{res['digest']}（r21：统一源 2026.10.31-1、生成器 1.12.1、简易版 2026.10.31-2）。"
     f"代码状态哈希 {res['state']}：运行开始和结束时相同，与 {FROZEN} UTC 定稿时记下的相同"
     "（source/、generator/、tests/、tools/、build.py、.gitignore 的合并哈希，handoff/release/code_state.sh）",
     cmd,
@@ -49,7 +54,8 @@ head = [
     f"      skipped=2 是副本里没有 dist/ 时跳过的两项（“产物与统一源一致”、版本对比工具里要读 dist/ 的那一项）；完整的一次是 Ran {full} tests。"
     + (f"{notes_partial}。" if partial else ""),
     "      M45（回溯失控）只跑专门针对它的那一项测试（见脚本开头的说明）：那一项把匹配放在带超时的子进程里，等满 300 秒后失败。",
-    ("      “未见预期信息”只表示输出里没有脚本预设的那个关键字（" + "、".join(not_seen) + "），失败项本身是对的。") if not_seen else
+    ("      “未见预期信息”只表示输出里没有脚本预设的那个关键字（" + "、".join(not_seen) + "），失败项本身是对的："
+     + "；".join(NOT_SEEN_WHY[x] for x in not_seen) + "。") if not_seen else
     "      每一类的输出都含脚本预设的那个关键字（r20 记“未见预期信息”的 M3、M177，这一版把关键字改对了：M3 的那句说明 2026-10-07 起就不在了，"
     "M177 预设的测试那时也查不出它，这一版补了，见下）。",
     "      M21 那一行有两个 FAILED：前一个是被测的检查脚本自己打印的，后一个才是这次测试运行的结果。",

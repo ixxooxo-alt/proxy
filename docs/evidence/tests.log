@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-10-23 19:00:42
+运行时间（UTC）：2026-10-31 22:30:43
 Python：Python 3.13.16，PyYAML：6.0.1
-统一源摘要：40317193e15ff2627a33a3ea6d1afe8b1daf51cde2909236d974f92b9e49761c
+统一源摘要：eb13aba7dab0479cb1affea1242061a36645ae556b39f717168da3b832bb20d7
 命令：python3 -m unittest discover -s tests -v
 
 test_local_overlay_goes_to_private_only (test_build_pipeline.LocalOnlyInPrivate.test_local_overlay_goes_to_private_only) ... 已生成 25 个公开产物到 out（订阅为占位符）
@@ -18,7 +18,7 @@ ok
 test_digest_covers_build_py_but_not_local_yaml (test_build_pipeline.ManifestCheck.test_digest_covers_build_py_but_not_local_yaml) ... ok
 test_private_step_failure_keeps_public_untouched (test_build_pipeline.PipelineFailures.test_private_step_failure_keeps_public_untouched)
 节点文件读不到：以前公开产物已经被换成新版，私密产物还是旧的（F07）。 ... 已生成 25 个公开产物到 out（订阅为占位符）
-生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmps0_v_ant/不存在.yaml'
+生成私密产物失败：FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpvd7bi_47/不存在.yaml'
 未改动任何产物（公开产物也没有更新）。
 ok
 test_structural_errors_rejected_before_writing (test_build_pipeline.PipelineFailures.test_structural_errors_rejected_before_writing)
@@ -34,6 +34,15 @@ F09 复现的三种输入，以及拼错的字段、重复的键，都要在写�
 统一源有错误，未改动任何产物。
 统一源校验失败：
   - adblock.yaml local_ads {'sufix': 'ads.example.com', 'ev': 'maintainer'}：未知字段 ['sufix']
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - project.yaml health_check：缺少 stash_select_interval_s（Stash 完整版选择组上的 interval）
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - project.yaml health_check.stash_select_interval_s 应是负数（完整版的选择组不定时测延迟）：0
+统一源有错误，未改动任何产物。
+统一源校验失败：
+  - project.yaml health_check.stash_select_interval_s 应是负数（完整版的选择组不定时测延迟）：600
 统一源有错误，未改动任何产物。
 groups.yaml：YAML 重复键 'groups'（第 96 行）
 统一源有错误，未改动任何产物。
@@ -52,8 +61,8 @@ test_classification (test_check_connections.ConnectionLogTool.test_classificatio
 test_expectation_agrees_with_generated_mihomo_config (test_check_connections.ConnectionLogTool.test_expectation_agrees_with_generated_mihomo_config)
 用模拟器按生成的 mihomo 配置路由 cases.yaml 的全部主机，把结果当作日志喂给工具： ... ok
 test_parsing (test_check_connections.ConnectionLogTool.test_parsing) ... ok
-test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmptqks90fw/report.md
-报告已写入 /tmp/tmptqks90fw/report.md
+test_report_and_exit_code (test_check_connections.ConnectionLogTool.test_report_and_exit_code) ... 报告已写入 /tmp/tmp5rwayywf/report.md
+报告已写入 /tmp/tmp5rwayywf/report.md
 ok
 test_comparing_the_project_with_itself_reports_no_change (test_compare_versions.AgainstItself.test_comparing_the_project_with_itself_reports_no_change)
 拿当前工程当“上一版”：节点分组没有任何名字变化；有 dist/ 时二十份配置（完整版十份：标准版七份、严格版三份，Stash 的两份是 r16 加的； ... ok
@@ -119,7 +128,7 @@ test_urls_are_safe_inside_a_comma_separated_line (test_icons.Icons.test_urls_are
 Loon / Quantumult X 的一行用逗号分隔参数：地址里不能有逗号、空格、引号这些。 ... ok
 test_urls_match_what_the_icon_repository_publishes (test_icons.Icons.test_urls_match_what_the_icon_repository_publishes) ... ok
 test_cross_drive_output_dir (test_local_and_private.CrossPlatform.test_cross_drive_output_dir)
-Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 25 个公开产物到 /tmp/tmp73rvv7xr（订阅为占位符）
+Windows 上输出目录与项目不在同一盘符时 os.path.relpath 会抛 ValueError（外部审核发现），生成不能因此失败。 ... 已生成 25 个公开产物到 /tmp/tmpz8rx5ry8（订阅为占位符）
 ok
 test_digest_uses_forward_slashes (test_local_and_private.CrossPlatform.test_digest_uses_forward_slashes)
 模拟 Windows 的路径分隔符：摘要里的相对路径必须统一成 “/”，否则同一份源在不同系统上摘要不同。 ... ok
@@ -129,8 +138,8 @@ test_extra_local_rules_route (test_local_and_private.LocalOverrides.test_extra_l
 test_old_netflix_entry_in_local_yaml_is_explained (test_local_and_private.LocalOverrides.test_old_netflix_entry_in_local_yaml_is_explained)
 以前的 local.yaml 示例里有 netflix_entry（实测解锁节点的正则）。2026-10-07 起这个入口取消了：还留着这一段时 ... ok
 test_pinned_paypal (test_local_and_private.LocalOverrides.test_pinned_paypal) ... ok
-test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 25 个公开产物到 ../../../tmp/tmp83mkw78v（订阅为占位符）
-私密产物已写入 ../../../tmp/tmp83mkw78v/private（含订阅，请勿分享）
+test_subscription_only_in_private_dir (test_local_and_private.PrivateOutputs.test_subscription_only_in_private_dir) ... 已生成 25 个公开产物到 ../../../tmp/tmpt07mkmwt（订阅为占位符）
+私密产物已写入 ../../../tmp/tmpt07mkmwt/private（含订阅，请勿分享）
 ok
 test_three_modes (test_local_and_private.ReducedModes.test_three_modes) ... ok
 test_nodes_land_in_regions_and_info_nodes_excluded (test_nodes.NodeConversion.test_nodes_land_in_regions_and_info_nodes_excluded) ... ok
@@ -376,15 +385,15 @@ test_business_groups_are_the_full_ones (test_simple.GroupStructure.test_business
 test_foreign_default (test_simple.GroupStructure.test_foreign_default)
 国外默认：写明的成员正好是七个地区、日本在第一个（首次默认日本），后面接全部节点那条筛选。 ... ok
 test_foreign_dns_group (test_simple.GroupStructure.test_foreign_dns_group)
-境外DNS：只在 mihomo、sing-box；自动测速，节点 = 六个地区严筛选的并集（不含其他地区），检查间隔 1 小时； ... ok
+境外DNS：只在 mihomo、sing-box；自动测速，节点 = 六个地区严筛选的并集（不含其他地区）；检查间隔 mihomo 1 小时、 ... ok
 test_group_names_and_kinds (test_simple.GroupStructure.test_group_names_and_kinds)
 组名正好是 group_names()；没有完整版的模式组（X·手动优先、X·自动……）；除了“境外DNS”全是选择组。 ... ok
 test_icons (test_simple.GroupStructure.test_icons)
 每个组都有图标（sing-box 没有图标字段），地址和完整版同名组的相同；“境外DNS”借用“国外默认”的图。 ... ok
 test_region_groups_are_the_full_manual_groups (test_simple.GroupStructure.test_region_groups_are_the_full_manual_groups)
 六个地区：只按节点筛选的选择组，筛选和完整版的“X·手动”是同一条（宽的那条：按名字归到这个地区的全部节点）。 ... ok
-test_stash_groups_do_not_benchmark (test_simple.GroupStructure.test_stash_groups_do_not_benchmark)
-R20-F01：Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测）， ... ok
+test_stash_group_intervals (test_simple.GroupStructure.test_stash_group_intervals)
+Stash 文档“定时执行延迟测试”——默认每 600 秒给组里的代理测一次延迟（select 组也测、嵌套的递归测），interval 写负数才不测。 ... ok
 test_full_version_keeps_r19_names (test_simple.NodesPerLayout.test_full_version_keeps_r19_names) ... ok
 test_report_says_when_the_foreign_dns_group_is_empty (test_simple.NodesPerLayout.test_report_says_when_the_foreign_dns_group_is_empty) ... ok
 test_routing_digest_equals_the_full_one_apart_from_the_dns_path (test_simple.OfficialRecordsApply.test_routing_digest_equals_the_full_one_apart_from_the_dns_path) ... ok
@@ -453,6 +462,8 @@ test_placeholders_are_in_the_hand_written_node_name_expectations (test_stash.Sta
 占位节点的名字写进了 tests/node_names.yaml 的期望（只进自己地区的组）： ... ok
 test_strict_list_catches_what_both_geosite_sets_miss (test_stash.StashRuleSetInTheEmulator.test_strict_list_catches_what_both_geosite_sets_miss)
 样本数据下：只在国内域名清单（ChinaMax 的样本）里的主机，严格版靠 RULE-SET 直连；标准版不解析就认不出，按假定的 ... ok
+test_select_interval_in_the_source_must_be_negative (test_stash.StashSourceSettings.test_select_interval_in_the_source_must_be_negative)
+project.yaml 的 health_check.stash_select_interval_s（Stash 完整版选择组上的 interval）不是负整数时，规则源这一层就报错 ... ok
 test_generated_outputs_pass_the_structure_check (test_stash.StashStructure.test_generated_outputs_pass_the_structure_check) ... ok
 test_groups_are_the_mihomo_groups (test_stash.StashStructure.test_groups_are_the_mihomo_groups)
 组名、类型、成员、筛选正则、图标和 mihomo 的相同；只差写法：Stash 用 include-all（文档的例子），没有 hidden（10-13 的文档快照没写；审核方说现行页面有，没有核实、没有用）、 ... ok
@@ -464,6 +475,8 @@ test_strict_differs_from_standard_only_where_intended (test_stash.StashStructure
 严格版和标准版：DNS、占位节点、订阅、策略组完全相同；多一个 rule-providers；规则只多一条 RULE-SET（排在 ... ok
 test_strict_resolves_nothing_for_rule_matching (test_stash.StashStructure.test_strict_resolves_nothing_for_rule_matching)
 严格版每一条按 IP 判断的规则都带 no-resolve；标准版只有最后的 GEOIP,CN 不带（它就是靠解析认国内网站的）。 ... ok
+test_auto_group_without_benchmark (test_stash.StashVerifyCatches.test_auto_group_without_benchmark)
+自动测速、故障转移、负载均衡组的 interval 关掉（负数）或不写，都要拦住：同一地区里自动换节点靠它们测速。 ... ok
 test_build_refuses_a_broken_stash_config (test_stash.StashVerifyCatches.test_build_refuses_a_broken_stash_config)
 生成时就核对占位节点：筛选正则选不中自己地区的占位节点时，生成器直接报错，不写出配置。 ... ok
 test_build_refuses_a_filter_that_picks_a_builtin_policy (test_stash.StashVerifyCatches.test_build_refuses_a_filter_that_picks_a_builtin_policy)
@@ -474,6 +487,10 @@ test_filter_that_picks_a_builtin_policy (test_stash.StashVerifyCatches.test_filt
 test_filter_without_include_all (test_stash.StashVerifyCatches.test_filter_without_include_all) ... ok
 test_missing_placeholder (test_stash.StashVerifyCatches.test_missing_placeholder) ... ok
 test_placeholder_that_could_connect (test_stash.StashVerifyCatches.test_placeholder_that_could_connect) ... ok
+test_select_group_that_benchmarks (test_stash.StashVerifyCatches.test_select_group_that_benchmarks)
+完整版的选择组没写 interval（Stash 会按默认每 600 秒测）或写成正数，都要拦住（2026-10-31）。 ... ok
+test_simple_files_are_held_to_their_own_rule (test_stash.StashVerifyCatches.test_simple_files_are_held_to_their_own_rule)
+简易版的组每小时测一次（interval: 3600，正数）：完整版“选择组写负数”那条不管简易版，简易版的值由 check_simple 按规则源核对。 ... ok
 test_strict_geoip_that_resolves (test_stash.StashVerifyCatches.test_strict_geoip_that_resolves) ... ok
 test_strict_list_before_geolocation (test_stash.StashVerifyCatches.test_strict_list_before_geolocation) ... ok
 test_unknown_rule_set_and_unused_provider (test_stash.StashVerifyCatches.test_unknown_rule_set_and_unused_provider) ... ok
@@ -556,7 +573,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 345 tests in 323.937s
+Ran 349 tests in 282.680s
 
 OK
 退出码：0

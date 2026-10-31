@@ -18,7 +18,9 @@
 3. **变异检查**：`MUT_BATCHES=3 bash handoff/release/run_mutations.sh ~/proxy-work/mut21`（17:01:20 开始，段名 `20261031T170120Z`；三批：编号除以 3 余 1、余 2、整除，各 70 类）。
 4. **和变异检查同时跑的一串**：`nohup bash handoff/release/r21-as-used/chain21.sh > ~/proxy-work/chain21.log 2>&1 &`（17:01 启动），按顺序：全部检查第一遍（`checks21.out`、`checks21-time.txt`，日志复制到 `checks21-logs/` 以后 `git checkout -- docs/evidence/*.log`）；全部测试在 Python 3.12、3.11 上（`py312-21.out`、`py311-21.out`、`py21-time.txt`）；运行环境核对（`vendor21-check.txt`）；一次性核对（`icu21-time.txt`：`r17_stash_filters_icu.py`；`probe21-time.txt`：`r15_review_probes.py`；`pv21-time.txt`：`r21_private_vs_r20.py ~/proxy-work/r20 <仓库> ~/proxy-work/pv21`，输出写到 `handoff/notes/r21_private_vs_r20.out`）；版本对比（`cmp21-time.txt`：和 r20、r7 比，`--write`）；全部做完写 `chain21-done.txt`。r18 的两项一次性核对这一版没有重跑；r20 的 `r20_full_private_same.py` 这一版不成立（Stash 完整版变了），没有跑。
 5. 第 5、6 步：`nohup bash handoff/release/r21-as-used/after21.sh 20261031T170120Z "2026-10-31 16:57" > ~/proxy-work/after21.log 2>&1 &`（17:01 启动），等三批变异日志都写出“合计 N/N 被发现”再接着跑（有一批没正常结束或有没被发现的就停下），汇总（`segments.json`、`assemble.py`、`write_mutlog.py`），再等 `chain21-done.txt` 出现以后跑第二遍全部检查（`checks21b.out`、`checks21b-time.txt`）。
-   实际：⟦AFTER_ACTUAL⟧
-6. **数字核对**：`python3 handoff/release/r21-as-used/finalize.py ~/proxy-work/mut21 --dry`，再不带 `--dry` 跑（最后打印“核对通过”）。⟦FINALIZE_NOTES⟧
+   实际：变异 22:30:34 跑完（一段，三批各 70 类，都是“合计 70/70 被发现”），`after21.sh` 22:30:38 接着汇总，第二遍全部检查 22:30–22:49，“全部检查通过。”。汇总里有一类“未见预期信息”：M182（sing-box 的 `idle_timeout` 照旧 30 分钟），这一版“境外DNS”的间隔改成 600 秒以后它不改变产物，只由 `test_duration_parser` 发现；关键字留到下一版改代码时再改（`handoff/README.md` 第 18 节第 8 条）。
+6. **数字核对**：`python3 handoff/release/r21-as-used/finalize.py ~/proxy-work/mut21 --dry`，再不带 `--dry` 跑（最后打印“核对通过”）。跑之前按日志改了几处出版脚本（都在 `handoff/`，不算代码，代码状态不变）：
+   - `write_mutlog.py` 里写的版本还是送审稿的（生成器 1.12.0、简易版 2026.10.31-1），改对，并补上 M182 的说明，重写了 `mutations.log`；
+   - `finalize.py`：`official-check.log` 和 r20 比时去掉内核日志的时间戳和临时目录名，`real-route-check.log` 去掉那一行开头的统一源版本（这一版变了）；版本对比报告每份只列前 40 条改动，按汇总行核对；`not_seen` 是 `['M182']`。`finalize.py` 的前三处是 17:35 前后用第一遍的日志预检（`chain21.sh` 跑完以后）时查出来的，`write_mutlog.py` 的版本和 M182 是 22:50 变异跑完以后看日志查出来的。
 7. `bash handoff/release/code_state.sh`：与第 2 步记下的相同。
 8. **打包**：`python3 handoff/release/pack.py ~/proxy-work/proxy-rules-review-2026.10.3x-r21.zip`（日期按打包那天），再 `bash handoff/release/verify_package.sh` 同一个包。

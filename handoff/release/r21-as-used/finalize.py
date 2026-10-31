@@ -47,8 +47,8 @@ CMP_NEEDLES = ("大小：241,985 → 241,985 字节。", "大小：404,505 → 4
                "`quantumultx/rules/cn-domains.list`：196,326 字节，规则 6,133 条（HOST 12、HOST-SUFFIX 6,121）。和 r20 的一模一样。",
                "`quantumultx/rules/cn-domains-max.list`：3,521,714 字节，规则 111,182 条（HOST 252、HOST-SUFFIX 110,930）。和 r20 的一模一样。",
                "`quantumultx/rules/domain-fallback.list`：629 字节，规则 1 条（HOST-KEYWORD 1）。和 r20 的一模一样。")
-CMP_CELL = ("Stash 完整版两份的 57 个选择组都加了 `interval: -1`（报告里逐组列出），文件头多了说明（不算在报告的条目里，大小 251,780 → 252,966、252,817 → 254,003 字节）；"
-            "Stash 简易版两份的 51 个组 `interval: -1` → `3600`（大小 172,060 → 172,308、173,111 → 173,359：文件头的说明改了几行）；"
+CMP_CELL = ("Stash 完整版两份的 57 个选择组都加了 `interval: -1`（报告里列出前 40 个，其余 17 个写明没有列出），文件头多了说明（不算在报告的条目里，大小 251,780 → 252,966、252,817 → 254,003 字节）；"
+            "Stash 简易版两份的 51 个组 `interval: -1` → `3600`（报告里列出前 40 个；大小 172,060 → 172,308、173,111 → 173,359：文件头的说明改了几行）；"
             "sing-box 简易版两份只有“境外DNS”的 `interval` / `idle_timeout` 从 `3600s` / `3600s` 改成 `600s` / `30m`；"
             "Loon、Quantumult X、mihomo 的完整版和简易版只有文件头的版本号（统一源 2026.10.17-1 → 2026.10.31-1，简易版 2026.10.23-1 → 2026.10.31-2）；"
             "sing-box 完整版两份逐字节相同；大清单副本、两份自有清单和域名兜底文件和 r20 的一模一样；`manifest.json` 的版本和摘要跟着变")
@@ -332,6 +332,7 @@ MUT_TESTS = {"M3": "test_apple_ai_before_apple", "M176": "'test_mihomo.test_miho
              "M203": "test_stash_group_intervals", "M204": "test_select_group_that_benchmarks", "M205": "test_groups_are_the_mihomo_groups",
              "M206": "test_auto_group_without_benchmark", "M207": "test_foreign_dns_group", "M208": "test_layout_breakage_is_caught",
              "M209": "test_bad_values_are_rejected", "M210": "test_select_interval_in_the_source_must_be_negative",
+             "M182": "test_duration_parser",
              # r20 和更早的几类，发现它们的测试照旧
              "M195": "test_reserved_tags_per_layout", "M197": "test_full_version_keeps_r19_names", "M200": "test_report_says_when_the_foreign_dns_group_is_empty",
              "M163": "test_threads_do_not_shadow_thread_internals", "M168": "test_dns_attribution_uses_the_real_stubs_after_they_stop",
@@ -339,16 +340,17 @@ MUT_TESTS = {"M3": "test_apple_ai_before_apple", "M176": "'test_mihomo.test_miho
 for name, test in MUT_TESTS.items():
     l = next(x for x in mut.splitlines() if x.startswith(f"[发现] {name} "))
     assert test in l, (name, l[:600])
-assert res["not_seen"] == [], res["not_seen"]                                   # r20 的 M3、M177 这一版把关键字改对了
-for l in mut.splitlines():
-    if re.match(r"\[发现\] M\d+ ", l) and not l.startswith("[发现] M45 "):
-        mm = re.match(r"\[发现\] M(\d+) ", l)
-        if int(mm.group(1)) in (6, 9, 31, 89, 90) or "；输出含预期信息" in l or not l.rstrip().endswith("]"):
-            pass
+# r20 的 M3、M177 这一版把关键字改对了；M182 是这一版的间隔改了以后才对不上的（跑完以后看过日志，原因写在 MUT_R21_TEXT 和日志开头）
+assert res["not_seen"] == ["M182"], res["not_seen"]
+m182 = next(x for x in mut.splitlines() if x.startswith("[发现] M182 "))
+assert "失败项 ['test_duration_parser.test_duration_parser']；未见预期信息" in m182, m182
 for i in list(range(71, N_MUT + 1)) + [3]:
+    if f"M{i}" in res["not_seen"]:
+        continue
     l = next(x for x in mut.splitlines() if x.startswith(f"[发现] M{i} "))
     assert "输出含预期信息" in l, l[:200]
-assert "DeprecationWarning" not in mut and "未见预期信息" not in mut.split("\n\n", 1)[1]
+assert "DeprecationWarning" not in mut and mut.split("\n\n", 1)[1].count("未见预期信息") == 1
+assert "生成器 1.12.1、简易版 2026.10.31-2" in mut.split("\n\n", 1)[0] and "M182（sing-box 的 idle_timeout 照旧 30 分钟）" in mut.split("\n\n", 1)[0]
 partial_names = sorted((x for v in res["partial"].values() for x in v), key=lambda x: int(x[1:]))
 print("部分运行的：", res["partial"], "；未见预期信息：", res["not_seen"])
 # M6、M9、M31、M89、M90 是统一源校验直接拒绝；M16 是 sing-box 生成时发现出站标签重名直接报错（r20 起），简易版带节点的测试类无法初始化
@@ -365,6 +367,9 @@ MUT_R21_TEXT = ("这一版新加的 8 类：M203–M209 对应使用者 2026-10-
                 "M201 跟着改写成“Stash 简易版的组不写 `interval`”（r20 是“不关定时测速”），由 `test_stash_group_intervals` 和写盘前检查发现。"
                 "r20 记“未见预期信息”的两类这一版改了预设的关键字：M3 的那句测试说明 2026-10-07 起就不在了，改成 `test_apple_ai_before_apple` 现在的说明；"
                 "M177 预设的 `SameAsFullOutsideGroups.test_mihomo` 以前查不出它（只查“别处没有不同”），这一版补了断言，M176、M177 现在都由它发现（另有原来发现它们的测试）。"
+                "M182（sing-box 的 `idle_timeout` 照旧 30 分钟）这一版记“未见预期信息”：它预设由 `test_foreign_dns_group` 发现，可这一版 SFA 简易版“境外DNS”的间隔改成 600 秒，"
+                "按规则 `idle_timeout` 本来就是 30 分钟，这个变异在现在的配置上不改变产物，只由直接查换算的 `test_duration_parser` 发现（间隔超过 30 分钟时的写法仍由它管住）；"
+                "关键字留到下一版改代码时再改（改它就要重新定稿）。"
                 f"M16（节点与组同名不再改名）还会让 sing-box 生成时直接报出站标签重名，简易版带节点的测试类无法初始化，所以只跑了 {tag_n} 项。")
 mut_cell = (f"{N_MUT} 类全部被发现，都是 r21 定稿（{freeze[:16]} UTC）以后在上面这个摘要、这个代码状态的代码上跑的（{mwin}）。"
             "“记录对应现在的配置”那两项——规则与 DNS 两段的摘要、拨号摘要——对改了规则、DNS 或出站的变异都会报："
