@@ -64,7 +64,8 @@ DOC_NEEDLES_R21B = (
 for k in ("Nineteen rounds of external input", "外部意见一共 19 轮", "（`main` 上还没有）", "not on `main` yet", "`main` still carries r19", "`main` 上现在是 r19",
           "`main` 更新到这一版以前取不到", "only after `main` moves to this version", "它还在审，`main` 上还没有", "r20 也等你说可以再更新 `main`",
           "`main` 是 2026-10-19 发布的 r19；r20、r21 在这个分支上", "2026-10-19 起 `main` 是 r19（使用者看过", "| `main` | r19，统一源",
-          "| 请审核方审 r21 | 等你转给 GPT |", "`main` 更新以前，导入地址里还取不到简易版", "`main` 更新以后才取得到。", "1. r21 交给你了"):
+          "| 请审核方审 r21 | 等你转给 GPT |", "`main` 更新以前，导入地址里还取不到简易版", "`main` 更新以后才取得到。", "1. r21 交给你了",
+          "组里显示的延迟不会自己刷新（简易版关掉了定时测速）"):      # 2026-11-17 发布以后查出的（docs/08 第 20 轮的补记）
     STALE[k] = []
 STALE["同样的道理放大六倍"] = ["docs/10-简易版框架.md"]                     # docs/10 那一处是更正说明里引的旧话
 files = (["README.md", "README.zh-CN.md", "PROJECT_STATE.md", "00-审核说明.md", "handoff/README.md"]
