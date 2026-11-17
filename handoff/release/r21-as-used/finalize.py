@@ -55,9 +55,10 @@ CMP_CELL = ("Stash 完整版两份的 57 个选择组都加了 `interval: -1`（
 H8 = "docs/08-外部审核记录.md"
 DOC_NEEDLES_R21 = (
     ("README.md", ["tests-349%20passing", "349 automated tests", "210 deliberately injected bugs", "This README describes r21", "2026.10.31-2",
-                   "Nineteen rounds of external input", "This is r21 (2026-10-31).", "plus 98 local block rules",
+                   "Twenty rounds of external input", "This is r21 (2026-10-31).",     # 2026-11-17（r21b）：第 20 轮以后
+                   "plus 98 local block rules",
                    "632 hand-labelled", "270 targets", "561 community-sourced", "On mihomo and sing-box, with the default group choices"]),
-    ("README.zh-CN.md", ["tests-349%20passing", "349 项自动测试；故意改坏代码 210 处", "自动测试 349 项全部通过", "这份说明对应 r21", "外部意见一共 19 轮",
+    ("README.zh-CN.md", ["tests-349%20passing", "349 项自动测试；故意改坏代码 210 处", "自动测试 349 项全部通过", "这份说明对应 r21", "外部意见一共 20 轮",     # 2026-11-17（r21b）：第 20 轮以后
                          "第 19 轮是 r21 送审稿", "r12–r21 各版改了什么", "632 个人工写期望", "270 个目标", "561 条社区来源规则",
                          "在 mihomo 和 sing-box 上，按默认的组选择"]),
     ("PROJECT_STATE.md", ["**r21：三个测速间隔**", "T37 第 19 轮", "已验证（349 项；变异检查：210 类全部被发现）", "| 请审核方审 r21 |"]),
