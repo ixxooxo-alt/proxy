@@ -46,3 +46,11 @@
 依据：[mihomo v1.19.31 adapter/outbound/vmess.go:490](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vmess.go#L490)、[mihomo v1.19.31 adapter/outbound/vless.go:474](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vless.go#L474) 把 packet 和 packetaddr 当成同一模式；sing-box [VMess 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/vmess/outbound.go#L76)、[VLESS 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/vless/outbound.go#L78)、[VMess 1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/vmess/outbound.go#L70)、[VLESS 1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/vless/outbound.go#L65) 均不接受该别名，构造出站会返回 unknown packet encoding。生成结果已实测；目标内核结论来自固定版本源码，不是手机导入实测。
 
 建议转换时按协议将 packet 归一成 packetaddr，其他值按两个内核的实际枚举处理；无法表达的明确跳过。在官方内核的带节点验收中加入这两个样例，不只断言 JSON 能解析。
+
+### F04 · Copilot 网页实时连接没有跟随 Copilot 策略
+
+**类别：分流错误 · 中；公开和私密规则源共用。**
+
+位置：[source/services/ai.yaml:140](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/source/services/ai.yaml#L140) 的 github_copilot.rules；需求见 [docs/00-需求原文.md:155](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/docs/00-需求原文.md#L155)。GitHub [现行 Copilot 官方网络清单](https://docs.github.com/en/copilot/reference/copilot-allowlist-reference#specific-required-domains) 已列出七个特定的 Azure Web PubSub 主机，用于浏览器实时事件和状态更新，并明确不建议放行整个共享后缀。规则源没有为这批主机指定 Copilot。以其中的公开服务域名 `production-copilot-host.webpubsub.azure.com` 输入仓库路由模拟器，20/20 份配置在现有样本数据下都返回“国外默认”；已有的 Copilot suggestions 主机则 20/20 返回“Copilot”。
+
+影响：用户给两个组选择不同出口时，连接不会遵守 Copilot 的选择；默认都选日本时可能看不出差别。真实客户端是否会断流没有实测，远程集合更新也可能改变兜底结果。建议只把官网列出的七个完整主机加到 Copilot，并用一个同后缀但不属于 Copilot 的对照名防止误收其他租户。
