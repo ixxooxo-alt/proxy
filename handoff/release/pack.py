@@ -12,7 +12,7 @@
 另外要求工作区干净（跟踪的文件没有没提交的改动，也没有没跟踪、没被忽略的文件），这样包、提交、工作目录三者是同一份东西。
 所以顺序是先提交、再打包、再用 handoff/release/verify_package.sh 解包核对（它拿包和同一个提交比）。
 
-不收的：__pycache__、*.pyc、生成中断时留下的 .new-* / .bak-*、以“.”开头的文件（.gitignore 除外）——正常不会被提交，这里再挡一层。
+不收的：__pycache__、*.pyc、生成中断时留下的 .new-* / .bak-*、以“.”开头的文件（.gitignore、.gitattributes 除外）——正常不会被提交，这里再挡一层。
 zip 里的顶层目录叫 proxy-rules/。每个文件的修改时间都写成那个提交的时间（UTC），权限照提交里的（644 或 755），
 所以同一个提交打出来的 zip 逐字节相同。文件名里有中文：Python 的 zipfile 会自动设 UTF-8 标志。
 打完以后打印提交号、文件数、字节数和 SHA-256。
@@ -26,7 +26,7 @@ import time
 import zipfile
 
 SKIP_DIRS = {"__pycache__", ".git", ".idea", ".vscode"}
-KEEP_DOTFILES = {".gitignore"}
+KEEP_DOTFILES = {".gitignore", ".gitattributes"}  # .gitattributes 是 2026-11-18 加的（全项目复核 F06），送审稿打包时发现以前漏收
 # 少了这些就说明目录不对或者工程不完整，直接报错
 MUST = (".gitignore", "README.md", "README.zh-CN.md", "00-审核说明.md", "PROJECT_STATE.md", "build.py",
         "dist/manifest.json", "docs/05-验收记录.md", "docs/06-已知限制与待决事项.md", "docs/08-外部审核记录.md",
