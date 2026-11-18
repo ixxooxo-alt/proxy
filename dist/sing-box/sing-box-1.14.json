@@ -106,7 +106,8 @@
       }
     ],
     "final": "dns-foreign",
-    "strategy": "ipv4_only"
+    "strategy": "ipv4_only",
+    "reverse_mapping": true
   },
   "http_clients": [
     {
@@ -1226,7 +1227,17 @@
           "claudemcpclient.com",
           "claudemcpcontent.com",
           "claude.app",
-          "clau.de"
+          "clau.de",
+          "ant.dev",
+          "anthropic.team",
+          "antspace.dev",
+          "chatbotclaude.com",
+          "claude.dev",
+          "claude.new",
+          "claude.site",
+          "claudeacademy.com",
+          "claudepages.dev",
+          "claudestudio.com"
         ],
         "outbound": "Claude"
       },
@@ -1236,10 +1247,14 @@
           "cursor-cdn.com",
           "cursorapi.com",
           "cursor.com",
-          "spacex.ai"
+          "spacex.ai",
+          "spacexsi.com"
         ],
         "domain": [
-          "anysphere-binaries.s3.us-east-1.amazonaws.com"
+          "anysphere-binaries.s3.us-east-1.amazonaws.com",
+          "agent-stores.s3.us-east-1.amazonaws.com",
+          "agent-stores.s3.amazonaws.com",
+          "cursor.blob.core.windows.net"
         ],
         "outbound": "Grok"
       },
@@ -1453,7 +1468,11 @@
           "hbomax.com",
           "hbomaxcdn.com",
           "hbo.com",
-          "hbogo.com"
+          "hbogo.com",
+          "discomax.com"
+        ],
+        "domain": [
+          "hbomax-images.warnermediacdn.com"
         ],
         "outbound": "Max"
       },
@@ -2402,11 +2421,22 @@
               "claudemcpcontent.com",
               "claude.app",
               "clau.de",
+              "ant.dev",
+              "anthropic.team",
+              "antspace.dev",
+              "chatbotclaude.com",
+              "claude.dev",
+              "claude.new",
+              "claude.site",
+              "claudeacademy.com",
+              "claudepages.dev",
+              "claudestudio.com",
               "cursor.sh",
               "cursor-cdn.com",
               "cursorapi.com",
               "cursor.com",
               "spacex.ai",
+              "spacexsi.com",
               "cursorvm.com",
               "gemini.google",
               "gemini.gstatic.com",
@@ -2501,6 +2531,7 @@
               "hbomaxcdn.com",
               "hbo.com",
               "hbogo.com",
+              "discomax.com",
               "primevideo.com",
               "aiv-cdn.net",
               "aiv-delivery.net",
@@ -3044,6 +3075,9 @@
               "copilot-telemetry.githubusercontent.com",
               "cdn.openaimerge.com",
               "anysphere-binaries.s3.us-east-1.amazonaws.com",
+              "agent-stores.s3.us-east-1.amazonaws.com",
+              "agent-stores.s3.amazonaws.com",
+              "cursor.blob.core.windows.net",
               "gemini.google.com",
               "aistudio.google.com",
               "alkalimakersuite-pa.clients6.google.com",
@@ -3079,6 +3113,7 @@
               "youtube.googleapis.com",
               "yt3.ggpht.com",
               "yt3.googleusercontent.com",
+              "hbomax-images.warnermediacdn.com",
               "atv-ps.amazon.com",
               "msh.amazon.co.uk",
               "d1v5ir2lpwr8os.cloudfront.net",

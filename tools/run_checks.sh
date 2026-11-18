@@ -15,11 +15,14 @@
 #                                都给了时，用官方内核和这些真实数据核对路由与 DNS 去向（tools/check_real_routes.py）；
 #                                GEODATA_ORIGIN / SRS_ORIGIN / BM7_ORIGIN 可以写上数据文件的来历，会记进日志
 set -u
+# 用哪个 Python：缺省 python3；给了 PYTHON 就用它（2026-11-18 第二份全项目复核 C9：Windows 的虚拟环境里常常只有 python，
+# python3 会落到系统的商店占位程序上，退出码 49）
+PY="${PYTHON:-python3}"
 cd "$(dirname "$0")/.."
 mkdir -p docs/evidence
 failed=()
 digest="（生成失败，未计算）"
-env_line="Python：$(python3 --version 2>&1)，PyYAML：$(python3 -c 'import yaml;print(yaml.__version__)' 2>&1)"
+env_line="Python：$("$PY" --version 2>&1)，PyYAML：$("$PY" -c 'import yaml;print(yaml.__version__)' 2>&1)"
 
 # run_step 名称 日志文件 命令...：完整输出写进日志，保留命令的真实退出码
 run_step() {
@@ -43,23 +46,23 @@ run_step() {
   fi
 }
 
-if python3 build.py; then
-  digest=$(python3 -c 'import json;print(json.load(open("dist/manifest.json"))["source_sha256"])')
+if "$PY" build.py; then
+  digest=$("$PY" -c 'import json;print(json.load(open("dist/manifest.json"))["source_sha256"])')
 else
   failed+=("生成（build.py）")
 fi
 
-run_step "自动测试" docs/evidence/tests.log python3 -m unittest discover -s tests -v
+run_step "自动测试" docs/evidence/tests.log "$PY" -m unittest discover -s tests -v
 
 if [ -f "docs/evidence/cursor-对照明细.csv" ]; then
-  run_step "Cursor 对照报告核对" docs/evidence/cursor-report-check.log python3 tools/check_cursor_report.py --write
+  run_step "Cursor 对照报告核对" docs/evidence/cursor-report-check.log "$PY" tools/check_cursor_report.py --write
 fi
 
 # 节点筛选正则在 ICU 上的结果（推断 Loon / Quantumult X 用的是苹果系统自带的正则，底层是 ICU）。
 # 退出码 2 = 这台机器没有 ICU，算跳过，不算失败
 if [ -f tools/check_icu.py ]; then
   before=${#failed[@]}
-  run_step "ICU 正则核对" docs/evidence/icu-check.log python3 tools/check_icu.py --public --verbose
+  run_step "ICU 正则核对" docs/evidence/icu-check.log "$PY" tools/check_icu.py --public --verbose
   if [ "${#failed[@]}" -gt "$before" ] && grep -q "^退出码：2$" docs/evidence/icu-check.log; then
     unset "failed[$before]"
     failed=("${failed[@]}")
@@ -71,7 +74,7 @@ if [ -n "${MIHOMO_BIN:-}" ] && [ -n "${SINGBOX_BIN:-}" ]; then
   args=(--mihomo "$MIHOMO_BIN" --singbox "$SINGBOX_BIN")
   [ -n "${SINGBOX112_BIN:-}" ] && args+=(--singbox-112 "$SINGBOX112_BIN")
   [ -n "${GEODATA_DIR:-}" ] && args+=(--geodata-dir "$GEODATA_DIR")
-  run_step "官方程序检查" docs/evidence/official-check.log python3 tools/check_official.py "${args[@]}"
+  run_step "官方程序检查" docs/evidence/official-check.log "$PY" tools/check_official.py "${args[@]}"
 fi
 
 if [ -n "${MIHOMO_BIN:-}" ] && [ -n "${SINGBOX_BIN:-}" ] && [ -n "${GEODATA_DIR:-}" ] && [ -n "${SRS_DIR:-}" ] && [ -n "${BM7_SRC:-}" ]; then
@@ -81,30 +84,30 @@ if [ -n "${MIHOMO_BIN:-}" ] && [ -n "${SINGBOX_BIN:-}" ] && [ -n "${GEODATA_DIR:
   [ -n "${GEODATA_ORIGIN:-}" ] && args+=(--geodata-origin "$GEODATA_ORIGIN")
   [ -n "${SRS_ORIGIN:-}" ] && args+=(--srs-origin "$SRS_ORIGIN")
   [ -n "${BM7_ORIGIN:-}" ] && args+=(--bm7-origin "$BM7_ORIGIN")
-  run_step "真实数据路由核对" docs/evidence/real-route-check.log python3 tools/check_real_routes.py "${args[@]}"
+  run_step "真实数据路由核对" docs/evidence/real-route-check.log "$PY" tools/check_real_routes.py "${args[@]}"
 fi
 
 if [ -n "${MIHOMO_SRC:-}" ] || [ -n "${SINGBOX_SRC:-}" ]; then
   args=()
   [ -n "${MIHOMO_SRC:-}" ] && args+=(--mihomo-src "$MIHOMO_SRC")
   [ -n "${SINGBOX_SRC:-}" ] && args+=(--singbox-src "$SINGBOX_SRC")
-  run_step "字段名对照上游源码" docs/evidence/upstream-field-check.log python3 tools/verify_with_upstream_source.py "${args[@]}"
+  run_step "字段名对照上游源码" docs/evidence/upstream-field-check.log "$PY" tools/verify_with_upstream_source.py "${args[@]}"
 fi
 
 if [ -n "${ICON_REPO:-}" ]; then
-  run_step "图标核对" docs/evidence/icons-check.log python3 tools/check_icons.py --icon-repo "$ICON_REPO"
+  run_step "图标核对" docs/evidence/icons-check.log "$PY" tools/check_icons.py --icon-repo "$ICON_REPO"
 fi
 
 if [ -n "${DLC_SRC:-}" ] && [ -n "${BM7_SRC:-}" ]; then
   run_step "规则证据对照上游快照" docs/evidence/upstream-evidence-check.log \
-    python3 tools/check_upstream_evidence.py --dlc "$DLC_SRC" --bm7 "$BM7_SRC"
+    "$PY" tools/check_upstream_evidence.py --dlc "$DLC_SRC" --bm7 "$BM7_SRC"
 fi
 
 if [ -n "${DLC_SRC:-}" ]; then
   # 给了 BM7_SRC 时一并核对 Quantumult X 严格版用的上游大清单副本（2026-10-07 起）
   args=(--dlc "$DLC_SRC")
   [ -n "${BM7_SRC:-}" ] && args+=(--bm7 "$BM7_SRC")
-  run_step "严格版国内域名清单核对" docs/evidence/cn-list-check.log python3 tools/update_cn_list.py "${args[@]}" --check
+  run_step "严格版国内域名清单核对" docs/evidence/cn-list-check.log "$PY" tools/update_cn_list.py "${args[@]}" --check
 fi
 
 echo

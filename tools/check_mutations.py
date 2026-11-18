@@ -3,12 +3,14 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 224 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理全项目复核时加了 M211–M224），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 248 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理三份全项目复核时加了 M211–M248），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
 “发现”要三样都有（2026-11-18 起）：unittest 正常跑完、汇总是 FAILED（有 failures 或 errors）、失败列表不空；
 变异预设了由哪项测试或哪句断言发现时，输出里还要有它。以前只看返回值不为 0。
+跑变异之前先在没改动的副本上跑一遍全部测试（基线），不通过就不往下跑（退出码 1）：基线有失败时，每一类都会“看到失败”
+（2026-11-18 第二份全项目复核 C9）。--skip-baseline 跳过它，只给已经确认过基线的试跑用。
 认不出的参数（写错的选项、不存在的编号）为 2，什么都不跑。
 
 有一个变异（M45，回溯失控）只跑专门针对它的那一项测试：这种错误会让别的用到正则的测试卡住而不是报错，
@@ -31,8 +33,9 @@ def apply_edits(name, edits, dst):
             f.write(s2)
 
 
-def run_case(name, edits, expect_in_output=None, tests=None):
-    """tests：只跑这几项测试（unittest 的写法，如 test_regions.Portability.test_x）；缺省跑全部。"""
+def run_case(name, edits, expect_in_output=None, tests=None, baseline=False):
+    """tests：只跑这几项测试（unittest 的写法，如 test_regions.Portability.test_x）；缺省跑全部。
+    baseline：不改代码跑一遍，要全部通过（返回 True 表示通过）。"""
     tmp = tempfile.mkdtemp(prefix="mut-")
     dst = os.path.join(tmp, "p")
     shutil.copytree(SRC, dst, ignore=shutil.ignore_patterns("__pycache__", "dist"))
@@ -50,6 +53,10 @@ def run_case(name, edits, expect_in_output=None, tests=None):
             return False
         out = r.stdout + r.stderr
         last = [l for l in out.splitlines() if l.startswith(("FAILED", "OK", "Ran "))]
+        if baseline:
+            ok = r.returncode == 0 and bool(re.search(r"^Ran [1-9]\d* tests? in ", out, re.M))
+            print(f"[{'通过' if ok else '没有通过'}] {name}：{' / '.join(last) or '（没有 unittest 的汇总行）'}", flush=True)
+            return ok
         failing = sorted(set(re.findall(r"^(?:FAIL|ERROR): (\w+) \(([\w.]+)\)", out, re.M)))
         # “发现”的口径（2026-11-18 起；GPT 审核 r21 的建议，docs/08 第 20 轮，handoff/README.md 第 18 节第 9 条）：
         # 以前只看返回值，测试以外的原因异常退出也算“发现”。现在要 unittest 正常跑完（有 “Ran N tests” 和 FAILED 汇总，
@@ -287,8 +294,9 @@ cases = [
         "        nothing = neg(_alt([self.txt(ids), self.aflag(ids)]))\n", "        nothing = neg(self.txt(ids))\n", 1))], "🇯🇵中转 01"),
     ("M69 via / 经 后面、“解锁”前面又只认空格（“via-HK-01”“日本-解锁-01”又进自动类的组）", [("generator/regions.py", lambda s: s.replace(
         '_GAP = r"[\\s_-]"', '_GAP = r"\\s"', 1))], "via-HK-01"),
+    # 2026-11-18：“港”那条片段的排除条件加了台臺新坡德英法欧歐（第二份全项目复核 C5），这一类跟着改写，意思不变
     ("M70 单个字的“港”在更长的词里又单独算（“经香港 01”“港日中转 01”又进香港的自动组）", [("source/regions.yaml", lambda s: s.replace(
-        "      - '(?<!香)港(?![日韩韓美])'\n", "      - '港'\n", 1))], "经香港 01"),
+        "      - '(?<!香)港(?![日韩韓美台臺新坡德英法欧歐])'\n", "      - '港'\n", 1))], "经香港 01"),
     # ---- 2026-10-05 GPT 审核 r10（R10-F01 与对摘要的建议）----
     ("M71 mihomo：去掉节点服务器的解析策略（审核 r10 R10-F01：服务器是 gateway.lan 的节点又去问国内的公共 DNS）", [("generator/emit_mihomo.py", lambda s: s.replace(
         '            "proxy-server-nameserver-policy": node_server_dns_policy(p["lan"]["domain_suffix"]),\n', "", 1))], "proxy-server-nameserver-policy"),
@@ -369,10 +377,13 @@ cases = [
          "            if data[i] & 0xC0:\n                i += 2\n            else:\n                while data[i]:\n"
          "                    i += data[i] + 1\n                i += 1\n", 1))], "CNAME + A 的正常应答要读出地址和记录数"),
     ("M102 mihomo：nameserver-policy 里又没有“走代理组的产品域名 → 境外 DNS”那一层（r13 的样子：UDP、WireGuard 时这类名字交给国内 DNS）",
+     # 2026-11-18：这一段改成同去向的重复跳过、不同去向才报错（第三份全项目复核 F03），这一类跟着改写，意思不变
      [("generator/emit_mihomo.py", lambda s: s.replace(
-         "    for pattern, to_foreign in product_dns_policy(m, plan):\n        if pattern in policy:\n"
-         "            raise ValueError(f\"nameserver-policy 里 {pattern} 写了两次：要真实地址的名单和产品规则重复了\")\n"
-         "        policy[pattern] = foreign if to_foreign else domestic_layer\n",
+         "    for pattern, to_foreign in product_dns_policy(m, plan):\n        want = foreign if to_foreign else domestic_layer\n"
+         "        if pattern in policy:\n            if policy[pattern] is want:\n"
+         "                continue           # 同一个名字两边都说交给国内 DNS（例如 local.yaml 的直连规则和要真实地址的名单同值）\n"
+         "            raise ValueError(f\"nameserver-policy 里 {pattern} 写了两次、去向不同：要真实地址的名单和产品规则冲突了\")\n"
+         "        policy[pattern] = want\n",
          "", 1))], "默认走代理"),
     ("M103 mihomo：产品域名那一层把默认直连的组（Apple 那几个）也交给境外 DNS（直连时会拿境外 DNS 的结果）",
      [("generator/emit_mihomo.py", lambda s: s.replace(
@@ -391,8 +402,10 @@ cases = [
     ("M106 mihomo：“要真实地址的名单”不固定直连（待决事项 15）", [("generator/emit_mihomo.py", lambda s: s.replace(
         "    emit(plan.real_ip_direct, by_service=False)\n", "", 1))], "time.windows.com"),
     ("M107 mihomo：要真实地址的名单路由直连了，DNS 却没写明交给国内（又落到默认的境外 DNS；待决事项 15）",
+     # 2026-11-18：改成按整份名单写（第三份全项目复核 F01），这一类跟着改写，意思不变
      [("generator/emit_mihomo.py", lambda s: s.replace(
-         "    for r in plan.real_ip_direct:\n        policy[(\"+.\" + r.value) if r.kind == \"suffix\" else r.value] = domestic_layer\n",
+         "    for x in dns[\"real_ip\"]:\n        if \"suffix\" in x and x[\"suffix\"] in lan_sfx:\n            continue\n"
+         "        policy[(\"+.\" + x[\"suffix\"]) if \"suffix\" in x else x[\"domain\"]] = domestic_layer\n",
          "", 1))], "localhost.ptlogin2.qq.com"),
     ("M108 mihomo：不带点的名字又交给国内的公共 DNS（nameserver-policy 里没有 *；待决事项 14）", [("generator/emit_mihomo.py", lambda s: s.replace(
         '    policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"], DOTLESS_NAME: ["system"]}\n',
@@ -758,6 +771,82 @@ cases = [
     ("M224 只能走 TLS 的节点写了 tls: false 时报告里不再提（F01）", [("generator/nodes.py", lambda s: s.replace(
         "        report += [f\"提示 {name}（{d.get('type')}）：{x}\" for x in notes]\n", "", 1))],
      "test_tls_only_protocols_keep_tls_whatever_the_subscription_says"),
+    # 2026-11-18 F03 的同一类自查、第二份复核（C1、C2、C3、C5、C7、C9）、第三份复核（F01–F06）、使用者给的 Claude 域名
+    ("M225 原样写给 sing-box 的取值又不核对（加密方式、flow、指纹……）", [("generator/nodes.py", lambda s: s.replace(
+        "def _enum(v, allowed: set, key: str):\n", "def _enum(v, allowed: set, key: str):\n    return v\n", 1))],
+     "test_values_singbox_does_not_accept_are_skipped"),
+    ("M226 client-fingerprint 写 none 又原样写成 uTLS 指纹", [("generator/nodes.py", lambda s: s.replace(
+        '    if cf in (None, "", "none"):\n', '    if cf in (None, ""):\n', 1))],
+     "test_values_singbox_does_not_accept_are_skipped"),
+    ("M227 Reality 没有指纹也照样转换（sing-box 建出站报错）", [("generator/nodes.py", lambda s: s.replace(
+        "    if reality and not cf:\n", "    if False and reality and not cf:\n", 1))],
+     "test_reality_needs_a_fingerprint_a_public_key_and_a_hex_short_id"),
+    ("M228 写盘前检查不再核对 sing-box 不认的取值", [("generator/verify.py", lambda s: s.replace(
+        "            if value is not None and value not in allowed:\n", "            if False and value is not None and value not in allowed:\n", 1))],
+     "test_detects_values_singbox_does_not_accept"),
+    ("M229 Reality 的 short-id 留空又写成 \"None\"（第二份复核 C2）", [("generator/nodes.py", lambda s: s.replace(
+        '        sid = "" if sid is None else _text(sid, "reality-opts.short-id")\n', '        sid = str(sid)\n', 1))],
+     "test_reality_needs_a_fingerprint_a_public_key_and_a_hex_short_id"),
+    ("M230 Hysteria2 的 ports 又只按逗号分（单个端口、斜杠都转错，第二份复核 C2）", [("generator/nodes.py", lambda s: s.replace(
+        '    items = [x.strip() for x in re.split(r"[,/]", text) if x.strip()]\n', '    return [x.strip().replace("-", ":") for x in text.split(",")]\n', 1))],
+     "test_hysteria2_ports_and_hop_interval_like_mihomo"),
+    ("M231 不管什么出站都写 multiplex（第二份复核 C2）", [("generator/nodes.py", lambda s: s.replace(
+        '        if ob["type"] not in MULTIPLEX_TYPES:\n', '        if False and ob["type"] not in MULTIPLEX_TYPES:\n', 1))],
+     "test_multiplex_only_where_singbox_has_it"),
+    ("M232 订阅又按 PyYAML 的 YAML 1.1 读法解析（第二份复核 C3）", [("generator/nodes.py", lambda s: s.replace(
+        "    data = yaml.load(text, Loader=SubscriptionLoader)\n", "    data = yaml.safe_load(text)\n", 1))],
+     "test_subscription_is_parsed_like_mihomo"),
+    ("M233 文字字段遇到小数、日期也照样写成文字（第二份复核 C3）", [("generator/nodes.py", lambda s: s.replace(
+        "    if isinstance(v, int) and not isinstance(v, bool):\n", "    if not isinstance(v, bool):\n", 1))],
+     "test_subscription_is_parsed_like_mihomo"),
+    ("M234 Loon 的 ip-mode 又写成 ipv4-only（第二份复核 C1）", [("generator/emit_loon.py", lambda s: s.replace(
+        '"ip-mode = " + ("dual" if dns["ipv6_answers"] else "v4-only"),', '"ip-mode = " + ("dual" if dns["ipv6_answers"] else "ipv4-only"),', 1))],
+     "test_detects_loon_values_and_deprecated_parameters"),
+    ("M235 写盘前检查不再核对 Loon 的取值和已弃用参数（第二份复核 C1、C7）", [("generator/verify.py", lambda s: s.replace(
+        "        if key in LOON_ENUMS and value not in LOON_ENUMS[key]:\n", "        if False:\n", 1).replace(
+        "        if key in LOON_DEPRECATED:\n", "        if False:\n", 1))],
+     "test_detects_loon_values_and_deprecated_parameters"),
+    ("M236 mihomo 又只按路由去重以后的名单写国内 DNS（联网检测域名落到境外 DNS，第三份复核 F01）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '        if "suffix" in x and x["suffix"] in lan_sfx:\n            continue\n',
+        '        if "suffix" in x and x["suffix"] in lan_sfx or (("suffix" if "suffix" in x else "domain"), x.get("suffix") or x.get("domain")) in {(r.kind, r.value) for r in plan.lan}:\n            continue\n', 1))],
+     "test_every_real_ip_name_goes_to_domestic_dns_on_mihomo"),
+    ("M237 mihomo 的 DNS 分层又不看固定直连的服务（第三份复核 F03）", [("generator/emit_mihomo.py", lambda s: s.replace(
+        '    fixed_direct = [r for s in m.services if s.group == "DIRECT" for r in s.rules]\n', '    fixed_direct = []\n', 1))],
+     "test_local_direct_rule_under_a_proxied_product_uses_domestic_dns"),
+    ("M238 sing-box 又不开 reverse_mapping（第三份复核 F04）", [("generator/emit_singbox.py", lambda s: s.replace(
+        '        "reverse_mapping": True,\n', '', 1))],
+     "test_singbox_maps_real_addresses_back_to_names"),
+    ("M239 规则源又不拦和要真实地址的名单冲突的规则（第三份复核 F03）", [("generator/model.py", lambda s: s.replace(
+        "            if (r.kind, r.value) in real_keys:\n", "            if False:\n", 1))],
+     "test_rules_clashing_with_the_real_ip_list_are_rejected"),
+    ("M240 “港台 / 港新”又不是香港的词（港台中转进香港自动组，第二份复核 C5）", [("source/regions.yaml", lambda s: s.replace(
+        "            港台, 港臺, 港新]\n", "            ]\n", 1))],
+     "港台中转 01"),
+    ("M241 单个字的“港”又只排除日韩美（第二份复核 C5）", [("source/regions.yaml", lambda s: s.replace(
+        "'(?<!香)港(?![日韩韓美台臺新坡德英法欧歐])'", "'(?<!香)港(?![日韩韓美])'", 1))],
+     "test_single_character_hk_word_is_not_counted_inside_a_longer_word"),
+    ("M242 繁体“臺中”又是普通的词（“港臺中繼”“多平臺中轉”当成台湾）", [("source/regions.yaml", lambda s: s.replace(
+        "    words: [台北, 臺北, 新北, 台南, 臺南,", "    words: [台北, 臺北, 新北, 臺中, 台南, 臺南,", 1).replace(
+        "      - '臺中(?![转轉继繼])'", "", 1))],
+     "港臺中繼 01"),
+    ("M243 使用者给的 Claude 域名又不收", [("source/services/ai.yaml", lambda s: re.sub(
+        r"      - \{suffix: [a-z.]+, ev: owner-claude-domains\}\n", "", s))],
+     "claude.dev"),
+    ("M244 Max 又漏了 discomax.com（第二份复核 C4）", [("source/services/streaming.yaml", lambda s: re.sub(
+        r"      - \{suffix: discomax\.com[^\n]*\n", "", s))],
+     "discomax.com"),
+    ("M245 Cursor 的新登录域名 spacexsi.com 又不收（第三份复核 F02）", [("source/services/ai.yaml", lambda s: re.sub(
+        r"      - \{suffix: spacexsi\.com[^\n]*\n", "", s))],
+     "accounts.spacexsi.com"),
+    ("M246 SOCKS5 接收端拒绝以后又直接关（发 RST，第二份复核 C9、第三份 F05）", [("tools/check_real_routes.py", lambda s: s.replace(
+        "        finally:\n            _close_gently(c)\n", "        finally:\n            c.close()\n", 1))],
+     "test_refusal_ends_with_fin_not_rst"),
+    ("M247 read_remote 又只认 os.sep（第三份复核 F06）", [("tools/real_data.py", lambda s: s.replace(
+        '    if path.endswith(".txt") and "/Clash/" in path.replace("\\\\", "/"):', '    if path.endswith(".txt") and os.sep + "Clash" + os.sep in path:', 1))],
+     "test_read_remote_recognises_clash_lists_with_either_slash"),
+    ("M248 写盘前检查不再核对 multiplex 写在哪种出站上（第二份复核 C2）", [("generator/verify.py", lambda s: s.replace(
+        '        if "multiplex" in o and t not in nodes.MULTIPLEX_TYPES', '        if False and "multiplex" in o and t not in nodes.MULTIPLEX_TYPES', 1))],
+     "test_detects_values_singbox_does_not_accept"),
 ]
 
 
@@ -766,10 +855,11 @@ def main(argv):
     if "-h" in argv or "--help" in argv:
         print(__doc__)
         return 0
-    unknown = [x for x in argv if x != "--check-edits" and x not in known]
+    unknown = [x for x in argv if x not in ("--check-edits", "--skip-baseline") and x not in known]
     if unknown:
         # 认不出的参数不能当成“没有参数”：那样会把全部变异跑一遍（一小时左右）
-        print(f"认不出的参数：{'、'.join(unknown)}。能用的是 --check-edits、--help，或者变异的编号（{known[0]} … {known[-1]}）。", file=sys.stderr)
+        print(f"认不出的参数：{'、'.join(unknown)}。能用的是 --check-edits、--skip-baseline、--help，"
+              f"或者变异的编号（{known[0]} … {known[-1]}）。", file=sys.stderr)
         return 2
     if "--check-edits" in argv:
         tmp = tempfile.mkdtemp(prefix="mut-")
@@ -790,6 +880,11 @@ def main(argv):
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
     only = [x for x in argv if not x.startswith("--")]
+    # 先在没改动的副本上跑一遍：基线就有测试失败的话，后面每一类都会看到失败，结果不可信（2026-11-18 第二份全项目复核 C9：
+    # 它在 Windows 上碰到的就是这样）。--skip-baseline 跳过这一步，只给已经确认过基线的试跑用
+    if "--skip-baseline" not in argv and not run_case("基线（不改动任何代码）", [], baseline=True):
+        print("基线没有通过：先修好测试再跑变异检查", flush=True)
+        return 1
     res = [run_case(*c) for c in cases if not only or c[0].split()[0] in only]
     print(f"合计 {sum(res)}/{len(res)} 被发现", flush=True)
     return 0 if res and all(res) else 1

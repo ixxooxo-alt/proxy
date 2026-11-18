@@ -4,6 +4,8 @@
 订阅内容只在用户本机处理，产物写入 dist/private/，不进入公开产物。"""
 from __future__ import annotations
 
+import base64
+import datetime
 import json
 import re
 import urllib.request
@@ -40,13 +42,28 @@ def _bool(d: dict, used: set, key: str, default: bool = False) -> bool:
     return default if v is None else _bool_value(v, key)
 
 
+def _text(v, key: str) -> str:
+    """文字字段（密码、UUID、用户名、SNI、short-id……）。订阅里没加引号时，YAML 会把一些写法读成别的类型（第二份全项目复核 C3）：
+      - 整数照 mihomo 写成十进制：mihomo 也是先读成整数（go.yaml.in/yaml/v3 v3.0.5 的 resolve.go；0123 这种也按八进制读成 83），
+        再转成文字（common/structure/structure.go 的 decodeString，FormatInt），两边得到同一个值；
+      - 小数、true / false、日期：mihomo 要么报错、要么写成科学计数法（同一个 decodeString），读不出订阅里原来的字，跳过这个节点。
+    订阅按 mihomo 的读法解析（load_clash_proxies），yes / no / on / off 这类词在两边都是文字，不会变成 True / False。"""
+    if isinstance(v, str):
+        return v
+    if isinstance(v, int) and not isinstance(v, bool):
+        return str(v)
+    shown = json.dumps(v, ensure_ascii=False, default=str)
+    raise Unsupported(f"{key} 写成了 {shown}，读出来不是文字（订阅里没加引号）：mihomo 读这种写法会报错或者改成别的字，"
+                      "这里不猜，请在订阅里给它加上引号")
+
+
 def _req(d: dict, used: set, key: str) -> str:
     """必填字段：不存在、为 null 或空字符串都报告，不能写成 "None" 或空凭据（审核 F12）。"""
     used.add(key)
     v = d.get(key)
     if v is None or (isinstance(v, str) and not v.strip()) or isinstance(v, (dict, list, bool)):
         raise Unsupported(f"缺少必填字段 {key}")
-    return str(v)
+    return _text(v, key)
 
 
 # packet-encoding（VMess、VLESS 的 UDP 封装）：mihomo 把 packet 当成 packetaddr 的别名（v1.19.31 adapter/outbound/vmess.go、vless.go），
@@ -63,6 +80,32 @@ def _packet_encoding(d: dict, used: set, default: str | None) -> str | None:
         raise Unsupported(f"packet-encoding={pe!r}：sing-box 只认 packetaddr、xudp（mihomo 另把 packet 当成 packetaddr），无法确定原意")
     return PACKET_ENCODING[pe]
 
+
+# 原样写给 sing-box、取值有限的字段（全项目复核 F03 的同一类，2026-11-18）：sing-box 1.14.1、1.12.0 建出站时只认下面这些，
+# 别的取值报错，整份配置都启动不了（不只是少一个节点）。取值表是拿两个官方程序逐个跑 sing-box check 得来的
+# （handoff/notes/r22_singbox_enum_sweep.out）。不在表里的跳过这个节点、写进报告。例如 mihomo 文档列着的 aes-128-ccm、
+# chacha8-ietf-poly1305、lea-128-gcm 等加密方式，mihomo 认的 chrome120、firefox120、safari16 指纹，sing-box 都不认
+SS_METHODS = {"aes-128-gcm", "aes-192-gcm", "aes-256-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305",
+              "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305", "none",
+              "aes-128-ctr", "aes-192-ctr", "aes-256-ctr", "aes-128-cfb", "aes-192-cfb", "aes-256-cfb",
+              "rc4-md5", "chacha20-ietf", "xchacha20"}
+VMESS_SECURITY = {"auto", "none", "zero", "aes-128-gcm", "chacha20-poly1305", "aes-128-cfb"}
+VLESS_FLOWS = {"xtls-rprx-vision"}
+TUIC_CONGESTION = {"cubic", "new_reno", "bbr"}
+UTLS_FINGERPRINTS = {"chrome", "firefox", "edge", "safari", "360", "qq", "ios", "android", "random", "randomized",
+                     "chrome_psk", "chrome_psk_shuffle", "chrome_padding_psk_shuffle", "chrome_pq", "chrome_pq_psk"}
+MUX_PROTOCOLS = {"smux", "yamux", "h2mux"}
+
+
+def _enum(v, allowed: set, key: str):
+    if not isinstance(v, str) or v not in allowed:
+        raise Unsupported(f"{key}={json.dumps(v, ensure_ascii=False)}：sing-box 1.14.1、1.12.0 都不认这个取值"
+                          "（建出站时报错，整份配置启动不了），跳过这个节点")
+    return v
+
+
+# sing-box 1.14 各出站是否有 multiplex 字段（option/*.go 的结构体；1.12.0 相同）
+MULTIPLEX_TYPES = {"shadowsocks", "vmess", "vless", "trojan"}
 
 # sing-box 1.14 各出站是否有 network 字段（option/*.go 的结构体）；http、anytls 没有（审核 F01）
 NETWORK_FIELD = {"shadowsocks", "vmess", "vless", "trojan", "socks", "hysteria2", "tuic"}
@@ -82,9 +125,19 @@ def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | N
         if reality:
             raise Unsupported("提供了 reality-opts 却未启用 TLS，无法确定原意")
         return None          # 未启用 TLS 时 servername / alpn / 指纹在 mihomo 中同样不生效
+    # client-fingerprint：没写、写 none 在 mihomo 里都是不用 uTLS（v1.19.31 component/tls/utls.go 的 GetFingerprint），
+    # 以前把 none 原样写成 uTLS 指纹，sing-box 不认、整份配置启动不了（全项目复核 F03 的同一类）
+    if cf in (None, "", "none"):
+        cf = None
+    else:
+        _enum(cf, UTLS_FINGERPRINTS, "client-fingerprint")
+    if reality and not cf:
+        # sing-box 的 Reality 必须带 uTLS（不带时建出站报 uTLS is required by reality client）；
+        # mihomo 也一样，连接时报 REALITY is based on uTLS（transport/vmess/tls.go）
+        raise Unsupported("Reality 要有 client-fingerprint（uTLS 指纹）：订阅里没写或写的是 none，sing-box 建出站时报错，mihomo 连接时也报错")
     t = {"enabled": True}
     if sni:
-        t["server_name"] = str(sni)
+        t["server_name"] = _text(sni, sni_key)
     if insecure:
         t["insecure"] = True          # 原订阅就要求跳过校验时才设置，不主动放宽
     if alpn:
@@ -92,10 +145,24 @@ def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | N
     if cf:
         t["utls"] = {"enabled": True, "fingerprint": str(cf)}
     if reality:
+        if not isinstance(reality, dict):
+            raise Unsupported("reality-opts 不是键值表")
         extra = set(reality) - {"public-key", "short-id"}
         if extra:
             raise Unsupported(f"reality-opts 不支持的字段 {sorted(extra)}")
-        t["reality"] = {"enabled": True, "public_key": reality["public-key"], "short_id": str(reality.get("short-id", ""))}
+        # 第二份全项目复核 C2：short-id 留空（YAML 读成 null）以前写成了字符串 "None"、公钥是 null 时写成 JSON null，
+        # sing-box 1.14.1、1.12.0 建出站都报错，整份配置启动不了。mihomo 把留空的 short-id 当成空（解码时 null 不赋值），
+        # 公钥和 short-id 都按 base64url（不带 =）、十六进制解（transport/vless 的 RealityOptions.Parse），sing-box 同样
+        pk = reality.get("public-key")
+        pk = _text(pk, "reality-opts.public-key") if pk is not None else ""
+        if not re.fullmatch(r"[A-Za-z0-9_-]{43}", pk) or len(base64.urlsafe_b64decode(pk + "=")) != 32:
+            raise Unsupported("reality-opts.public-key 缺少，或者不是 32 字节的 base64url 公钥（sing-box、mihomo 都会报错）")
+        sid = reality.get("short-id")
+        sid = "" if sid is None else _text(sid, "reality-opts.short-id")
+        if not re.fullmatch(r"(?:[0-9a-fA-F]{2}){0,8}", sid):
+            raise Unsupported(f"reality-opts.short-id={json.dumps(sid, ensure_ascii=False)}：要是空的，或者 2–16 位、偶数个的十六进制"
+                              "（sing-box、mihomo 都会报错）")
+        t["reality"] = {"enabled": True, "public_key": pk, "short_id": sid}
     return t
 
 
@@ -109,6 +176,34 @@ def _forced_tls(d: dict, used: set, notes: list, t: str) -> dict:
     d2 = dict(d)
     d2["tls"] = True
     return _tls(d2, used, sni_key="sni", default_enabled=True)
+
+
+def _hy2_ports(text: str) -> list:
+    """Hysteria2 的 ports（第二份全项目复核 C2）。mihomo（v1.19.31 common/utils/ranges.go）逗号、斜杠都能分隔，每段是一个端口或 a-b，
+    最多 28 段；sing-box 的 server_ports 每一项都要写成 a:b，单个端口写 p:p（1.14.1、1.12.0 写成单个数字都报 bad port range）。
+    以前只按逗号分、单个端口原样写，整份配置启动不了。"""
+    items = [x.strip() for x in re.split(r"[,/]", text) if x.strip()]
+    if not items or len(items) > 28:
+        raise Unsupported(f"ports={json.dumps(text, ensure_ascii=False)}：要 1–28 段端口或端口区间（mihomo 也是）")
+    out = []
+    for x in items:
+        m = re.fullmatch(r"(\d+)(?:\s*-\s*(\d+))?", x)
+        a, b = (int(m.group(1)), int(m.group(2) or m.group(1))) if m else (0, 0)
+        if not 1 <= a <= b <= 65535:
+            raise Unsupported(f"ports 里的 {json.dumps(x, ensure_ascii=False)} 不是 1–65535 的端口或端口区间")
+        out.append(f"{a}:{b}")
+    return out
+
+
+def _hy2_hop(text: str) -> tuple:
+    """hop-interval：秒数，或者“最短-最长”的区间（mihomo v1.19.31 adapter/outbound/hysteria2.go：0 当成缺省的 30，小于 5 按 5，
+    最长小于最短时按最短）。返回 (最短, 最长)。"""
+    m = re.fullmatch(r"\s*(\d+)\s*(?:-\s*(\d+)\s*)?", text)
+    if not m:
+        raise Unsupported(f"hop-interval={json.dumps(text, ensure_ascii=False)} 不是秒数或秒数区间")
+    start, end = int(m.group(1)), int(m.group(2) or 0)
+    start = 30 if start == 0 else max(start, 5)
+    return start, max(end, start)
 
 
 def _transport(d: dict, used: set) -> dict | None:
@@ -223,10 +318,14 @@ def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
     if smux is not None and not isinstance(smux, dict):
         raise Unsupported("smux 不是键值表")
     if smux and _bool_value(smux.get("enabled", False), "smux.enabled"):
+        if ob["type"] not in MULTIPLEX_TYPES:
+            # 第二份全项目复核 C2：sing-box 只有这四种出站有 multiplex 字段（option/ 下的结构体），别的写了，
+            # 1.14.1、1.12.0 读配置时都报 unknown field "multiplex"，整份配置启动不了
+            raise Unsupported(f"订阅开了 smux，但 sing-box 的 {ob['type']} 出站没有多路复用（multiplex），无法表达")
         extra = set(smux) - {"enabled", "protocol", "max-connections", "min-streams", "max-streams", "padding"}
         if extra:
             raise Unsupported(f"smux 不支持的字段 {sorted(extra)}")
-        mx = {"enabled": True, "protocol": smux.get("protocol", "h2mux")}
+        mx = {"enabled": True, "protocol": _enum(smux.get("protocol", "h2mux"), MUX_PROTOCOLS, "smux.protocol")}
         for a, b in (("max-connections", "max_connections"), ("min-streams", "min_streams"), ("max-streams", "max_streams")):
             if a in smux:
                 mx[b] = int(smux[a])
@@ -275,7 +374,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
     ob = {"tag": str(name), "server": str(server), "server_port": port}
     if t == "ss":
         ob["type"] = "shadowsocks"
-        ob["method"] = _req(d, used, "cipher")
+        ob["method"] = _enum(_req(d, used, "cipher"), SS_METHODS, "cipher")
         ob["password"] = _req(d, used, "password")
         plugin = _take(d, used, "plugin")
         opts = _take(d, used, "plugin-opts", {}) or {}
@@ -316,7 +415,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["type"] = "vmess"
         ob["uuid"] = _req(d, used, "uuid")
         ob["alter_id"] = int(_take(d, used, "alterId", 0))
-        ob["security"] = _take(d, used, "cipher", "auto")
+        ob["security"] = _enum(_take(d, used, "cipher") or "auto", VMESS_SECURITY, "cipher")
         if _bool(d, used, "global-padding", False):
             ob["global_padding"] = True
         if _bool(d, used, "authenticated-length", False):
@@ -336,7 +435,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["uuid"] = _req(d, used, "uuid")
         flow = _take(d, used, "flow")
         if flow:
-            ob["flow"] = flow
+            ob["flow"] = _enum(flow, VLESS_FLOWS, "flow")
         if d.get("encryption") not in (None, "", "none"):
             used.add("encryption")
             raise Unsupported("VLESS encryption 在 sing-box 中不支持")
@@ -367,13 +466,16 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         used.add("auth")
         if pw is None or not str(pw).strip():
             raise Unsupported("缺少必填字段 password")
-        ob["password"] = str(pw)
+        ob["password"] = _text(pw, "password")
         ports = _take(d, used, "ports")
-        if ports:
-            ob["server_ports"] = [x.strip().replace("-", ":") for x in str(ports).split(",")]
+        if ports is not None and ports != "":
+            ob["server_ports"] = _hy2_ports(_text(ports, "ports"))
             hop = _take(d, used, "hop-interval")
-            if hop:
-                ob["hop_interval"] = f"{int(hop)}s"
+            if hop is not None and hop != "":
+                start, end = _hy2_hop(_text(hop, "hop-interval"))
+                ob["hop_interval"] = f"{start}s"
+                if end > start:
+                    notes.append(f"hop-interval 是区间 {start}-{end} 秒：sing-box 1.12 没有区间的写法，这里按 {start} 秒固定间隔换端口")
         used.add("hop-interval")
         if "up" in d:
             ob["up_mbps"] = _mbps(_take(d, used, "up"))
@@ -396,7 +498,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["password"] = _req(d, used, "password")
         cc = _take(d, used, "congestion-controller")
         if cc:
-            ob["congestion_control"] = cc
+            ob["congestion_control"] = _enum(cc, TUIC_CONGESTION, "congestion-controller")
         mode = _take(d, used, "udp-relay-mode")
         if mode:
             ob["udp_relay_mode"] = mode
@@ -432,10 +534,10 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
             ob["version"] = "5"
         u = _take(d, used, "username")
         pw = _take(d, used, "password")
-        if u:
-            ob["username"] = str(u)
-        if pw:
-            ob["password"] = str(pw)
+        if u is not None and u != "":
+            ob["username"] = _text(u, "username")
+        if pw is not None and pw != "":
+            ob["password"] = _text(pw, "password")
         if t == "http":
             tls = _tls(d, used, sni_key="sni", default_enabled=False)
             if tls:
@@ -457,8 +559,45 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
     return ob
 
 
+class SubscriptionLoader(yaml.SafeLoader):
+    """按 mihomo 的读法解析订阅里不带引号的值（第二份全项目复核 C3）。mihomo v1.19.31 用 go.yaml.in/yaml/v3 v3.0.5（go.mod），
+    它的 resolve.go 和 PyYAML 缺省的 YAML 1.1 读法有几处不同，这里改成和它一样：
+      - 布尔只认 true / True / TRUE / false / False / FALSE；yes、no、on、off、y、n 都是文字（PyYAML 读成 True / False，
+        以前 username: no 会被当成“没写用户名”丢掉，password: yes 会写成 "True"）；
+      - 整数按 Go 的 strconv.ParseInt(基数 0) 读：0x、0o、0b 前缀，0 开头按八进制（0123 → 83，两边一样），下划线先去掉；
+        没有 YAML 1.1 的六十进制（1:20 在两边都是文字）；
+      - 0 开头、带 8 或 9 的数字（0089）读成小数（PyYAML 当成文字）：mihomo 再转成文字时写成 8.9E+01，_text 遇到小数就跳过这个节点。
+    null、日期、合并键照 PyYAML 的。"""
+
+
+SubscriptionLoader.yaml_implicit_resolvers = {
+    k: [(tag, rx) for tag, rx in v if tag not in ("tag:yaml.org,2002:bool", "tag:yaml.org,2002:int", "tag:yaml.org,2002:float")]
+    for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()}
+SubscriptionLoader.add_implicit_resolver("tag:yaml.org,2002:bool", re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"), list("tTfF"))
+SubscriptionLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:int", re.compile(r"^[-+]?(?:0[bB][01_]+|0[oO][0-7_]+|0[xX][0-9a-fA-F_]+|0[0-7_]*|[1-9][0-9_]*)$"),
+    list("-+0123456789"))
+SubscriptionLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:float",
+    re.compile(r"^(?:[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"),
+    list("-+0123456789."))
+
+
+def _construct_go_int(loader, node):
+    s = loader.construct_scalar(node).replace("_", "")
+    sign = -1 if s.startswith("-") else 1
+    s = s.lstrip("+-")
+    base = {"0b": 2, "0B": 2, "0o": 8, "0O": 8, "0x": 16, "0X": 16}.get(s[:2])
+    if base:
+        return sign * int(s[2:], base)
+    return sign * (int(s, 8) if len(s) > 1 and s[0] == "0" else int(s))
+
+
+SubscriptionLoader.add_constructor("tag:yaml.org,2002:int", _construct_go_int)
+
+
 def load_clash_proxies(text: str) -> List[dict]:
-    data = yaml.safe_load(text)
+    data = yaml.load(text, Loader=SubscriptionLoader)
     if isinstance(data, dict) and isinstance(data.get("proxies"), list):
         return data["proxies"]
     raise ValueError("不是 Clash / mihomo 格式的订阅（缺少 proxies 列表）。"

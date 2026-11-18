@@ -33,6 +33,7 @@ class RunChecksExitCode(unittest.TestCase):
             with open(os.path.join(d, "tests", "test_only.py"), "w", encoding="utf-8") as f:
                 f.write(test_source)
             env = {k: v for k, v in os.environ.items() if k not in SCRUB}
+            env["PYTHON"] = sys.executable        # 跑测试的同一个解释器（Windows 的虚拟环境里常常没有 python3）
             r = subprocess.run(["bash", os.path.join(d, "tools", "run_checks.sh")], cwd=d, env=env,
                                capture_output=True, text=True, timeout=300)
             with open(os.path.join(d, "docs", "evidence", "tests.log"), encoding="utf-8") as f:

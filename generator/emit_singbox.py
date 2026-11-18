@@ -91,7 +91,7 @@ def _chunk(rules: List[Rule], target_map) -> List[dict]:
     return out
 
 
-def dns_layers(plan: Plan) -> List[Tuple[List[Rule], List[Rule]]]:
+def dns_layers(plan: Plan, real_ip=()) -> List[Tuple[List[Rule], List[Rule]]]:
     """把产品规则（含误杀例外）按 DNS 上的去向分层，返回 [(走代理组的, 归国内直连的), …]，先判断的在前。
 
     为什么需要：DNS 规则里“国内域名集合 → 国内 DNS”排在假地址之前。上游的国内域名集合会收一些本项目交给代理组的域名
@@ -106,8 +106,12 @@ def dns_layers(plan: Plan) -> List[Tuple[List[Rule], List[Rule]]]:
     分层依据“覆盖链上换了几次去向”：规则 r 被更宽的规则 b 覆盖、且两者去向不同，r 就比 b 深一层，必须先判断。
     同一层里两类规则不会同时命中同一个主机，所以层内先后无所谓。最外层（第 0 层）归国内直连的规则不用写：
     它们本来就由后面的国内域名集合或假地址规则处理，和以前一样。"""
-    rules = [r for r in plan.exceptions + plan.product_for("singbox") if r.kind in DOMAIN_KINDS]
-    cls = {id(r): (r.target == DOMESTIC_GROUP) for r in rules}
+    # 固定直连的服务（组是 DIRECT）也算“国内直连”一类：被更宽的走代理规则覆盖的那部分交给 dns-cn（第三份全项目复核 F03）。
+    # 已经在要真实地址的名单里的不再算（前面第 2 条 DNS 规则已经交给 dns-cn）
+    real = {(("suffix", x["suffix"]) if "suffix" in x else ("domain", x["domain"])) for x in real_ip}
+    fixed_direct = [r for r in plan.lan if r.service != "lan" and r.target == "DIRECT" and (r.kind, r.value) not in real]
+    rules = [r for r in plan.exceptions + plan.product_for("singbox") + fixed_direct if r.kind in DOMAIN_KINDS]
+    cls = {id(r): (r.target in (DOMESTIC_GROUP, "DIRECT")) for r in rules}
     depth: Dict[int, int] = {}
 
     def depth_of(r: Rule, stack=()) -> int:
@@ -272,7 +276,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
     rules.append({"action": "resolve", "server": "dns-foreign"})   # 未分类域名经代理 DNS 解析后判断是否国内 IP
     rules.append({"rule_set": "geoip-cn", "outbound": "国内直连"})
 
-    layers = dns_layers(plan)
+    layers = dns_layers(plan, dns["real_ip"])
     rule_sets = [{"type": "inline", "tag": PROXIED_SET_TAG, "rules": [_match_fields(layers[-1][0])]}]
     remote_tags = [(x["tag"], x["url"]) for x in m.adblock["remote_lists"]["singbox"]]
     remote_tags += [("geosite-cn", RULESET_BASE_SITE + "geosite-cn.srs"),
@@ -334,6 +338,11 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
         ],
         "final": "dns-foreign",
         "strategy": "prefer_ipv4" if dns["ipv6_answers"] else "ipv4_only",
+        # 把给出去的真实地址记下来，连接进来时换回域名再按规则判断（第三份全项目复核 F04）。不开的话，不是假地址、也嗅探不出
+        # 域名的连接（例如对时用的 NTP，time.windows.com 由 dns-cn 给真实地址）只能按 IP 判断：v1.14.1 route/route.go 的
+        # prepareMatchMetadata 只在开了它时才用 LookupReverseMapping 找回域名，于是不是国内 IP 的就走“国外默认”，
+        # 和“要真实地址的名单固定直连”（待决事项第 15 项）不符。1.12.0、1.14.1 的 RawDNSOptions 都有这一项
+        "reverse_mapping": True,
     }
 
     conf = {

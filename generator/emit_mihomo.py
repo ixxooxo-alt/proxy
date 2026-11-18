@@ -64,7 +64,11 @@ def product_dns_policy(m: Model, plan: Plan) -> List[Tuple[str, bool]]:
     集合合成一条 geosite:cn,private）。
     关键词规则写不进域名树；现在的产品规则里没有，有了就报错，要另想办法。"""
     direct = direct_default_groups(m)
-    rules = [r for r in plan.exceptions + plan.product_for("mihomo") if r.kind in ("domain", "suffix", "keyword")]
+    # 固定直连的服务（组是 DIRECT：公开规则里只有系统联网检测；local.yaml 的 extra_services 也可以写）一起参加分层：
+    # 被更宽的“走代理”规则覆盖的那部分交给国内 DNS（第三份全项目复核 F03：以前不看它们，local.yaml 里写在
+    # microsoft.com 之下的直连域名，设备查询和直连拨号都问境外 DNS）
+    fixed_direct = [r for s in m.services if s.group == "DIRECT" for r in s.rules]
+    rules = [r for r in plan.exceptions + plan.product_for("mihomo") + fixed_direct if r.kind in ("domain", "suffix", "keyword")]
     keyword = [f"{r.value} → {r.target}" for r in rules if r.kind == "keyword"]
     if keyword:
         raise ValueError("mihomo 的 nameserver-policy 写不了关键词规则，产品规则里出现了：" + "、".join(keyword))
@@ -333,13 +337,22 @@ def build(m: Model, plan: Plan, flavor: str, sub_urls: List[str] | None = None, 
     # 局域网后缀和不带点的名字（nas、printer）交给系统 DNS：公共 DNS 不可能认识它们（2026-10-07，待决事项第 14 项方案二：
     # 以前不带点的名字被交给国内的公共 DNS，解析不了）。节点自己的服务器地址另由 proxy-server-nameserver-policy 管，写法相同。
     policy = {",".join("+." + s for s in p["lan"]["domain_suffix"]): ["system"], DOTLESS_NAME: ["system"]}
-    # 要真实地址的名单：路由上固定直连（2b），直连就用国内 DNS 的结果（2026-10-07，待决事项第 15 项）
-    for r in plan.real_ip_direct:
-        policy[("+." + r.value) if r.kind == "suffix" else r.value] = domestic_layer
+    # 要真实地址的名单：路由上固定直连（2b），直连就用国内 DNS 的结果（2026-10-07，待决事项第 15 项）。
+    # 按整份名单写（局域网后缀除外，它们上面已经交给系统 DNS），和 sing-box 一样。以前按 plan.real_ip_direct 写，
+    # 那里为了路由不重复，去掉了系统联网检测服务里已有的三个（msftconnecttest.com、msftncsi.com、captive.apple.com），
+    # 它们于是落到缺省的境外 DNS（第三份全项目复核 F01）
+    lan_sfx = set(p["lan"]["domain_suffix"])
+    for x in dns["real_ip"]:
+        if "suffix" in x and x["suffix"] in lan_sfx:
+            continue
+        policy[("+." + x["suffix"]) if "suffix" in x else x["domain"]] = domestic_layer
     for pattern, to_foreign in product_dns_policy(m, plan):
+        want = foreign if to_foreign else domestic_layer
         if pattern in policy:
-            raise ValueError(f"nameserver-policy 里 {pattern} 写了两次：要真实地址的名单和产品规则重复了")
-        policy[pattern] = foreign if to_foreign else domestic_layer
+            if policy[pattern] is want:
+                continue           # 同一个名字两边都说交给国内 DNS（例如 local.yaml 的直连规则和要真实地址的名单同值）
+            raise ValueError(f"nameserver-policy 里 {pattern} 写了两次、去向不同：要真实地址的名单和产品规则冲突了")
+        policy[pattern] = want
     # 上游 private 集合（反向解析域、test / internal 这类保留后缀、tplinkwifi.net 这类路由器管理域名）也交给系统 DNS，
     # 只有路由器才答得对（待决事项第 14 项方案二）；写在 geosite:cn 之前（geosite 条目按书写顺序）。
     policy["geosite:private"] = ["system"]

@@ -1,0 +1,8 @@
+# 检出时一律用 LF 换行（2026-11-18 第二份全项目复核 C9、第三份 F06）：Windows 上 Git 缺省把换行改成 CRLF，
+# handoff/release/code_state.sh 算出的代码状态哈希、测试里逐字节的比较就都对不上了。
+* text=auto eol=lf
+# 下面这些是原样存档的审核材料，本来就是 CRLF，保持原样不转换
+docs/evidence/astra-r5/** -text
+docs/evidence/cursor-对照明细.csv -text
+*.gif binary
+*.png binary

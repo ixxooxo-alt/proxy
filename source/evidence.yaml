@@ -27,13 +27,13 @@ evidence:
   cursor-net:
     kind: official
     url: https://cursor.com/docs/enterprise/network-configuration
-    checked: 2026-09-29
-    note: "*.cursor.sh、*.cursor-cdn.com、*.cursorapi.com、downloads.cursor.com、anysphere-binaries S3；*.cursorvm.com 与 *.*.cursorvm.com 为 Grok Bot 托管计算机所需；9 月 30 日起的登录主机见 cursor-signin（2026-09-29 复核）"
+    checked: 2026-11-18
+    note: "*.cursor.sh、*.cursor-cdn.com、*.cursorapi.com、downloads.cursor.com、anysphere-binaries S3；*.cursorvm.com 与 *.*.cursorvm.com 为 Grok Bot 托管计算机所需；9 月 30 日起的登录主机见 cursor-signin（2026-09-29 复核）。2026-11-18 复核：另列了桌面版要连、通配写法盖不住的 agent-stores.s3.us-east-1.amazonaws.com、agent-stores.s3.amazonaws.com（同步 skills 和 agent 文件）、cursor.blob.core.windows.net（给 Windows 远程主机下载 Remote SSH 服务端）"
   cursor-signin:
     kind: official
     url: https://cursor.com/help/troubleshooting/sign-in-domains
-    checked: 2026-09-30
-    note: "9 月 30 日起登录改用 accounts.spacex.ai、accounts.x.ai（authenticator.cursor.sh 作为回退保留到 10 月 30 日）；最少需要放行 accounts.x.ai、accounts.spacex.ai、auth.x.ai、auth.grok.com、auth.grokusercontent.com、auth.grokipedia.com；建议整段放行 *.spacex.ai、*.x.ai、*.grok.com、*.grokusercontent.com、*.grokipedia.com"
+    checked: 2026-11-18
+    note: "2026-09-30 查阅：9 月 30 日起登录改用 accounts.spacex.ai、accounts.x.ai（authenticator.cursor.sh 作为回退保留到 10 月 30 日）；最少需要放行 accounts.x.ai、accounts.spacex.ai、auth.x.ai、auth.grok.com、auth.grokusercontent.com、auth.grokipedia.com；建议整段放行 *.spacex.ai、*.x.ai、*.grok.com、*.grokusercontent.com、*.grokipedia.com。2026-11-18 复核（第三份全项目复核 F02）：登录页换成 accounts.spacexsi.com（取代 authenticator.cursor.sh），旧页面的回退 11 月 30 日停用以后登录必须走它；建议整段放行 *.spacexsi.com、*.grok.com、*.grokusercontent.com、*.grokipedia.com，最少放行 accounts.spacexsi.com、auth.grok.com、auth.grokusercontent.com、auth.grokipedia.com；这一页不再列 spacex.ai、x.ai（规则照旧保留：企业网络页还列着 accounts.spacex.ai、accounts.x.ai）"
   meta-ig-api:
     kind: official
     url: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/messaging-api/
@@ -54,6 +54,9 @@ evidence:
     url: https://support.apple.com/en-us/101555
     checked: 2026-10-06
     note: "和 apple-ent-net 是同一页（“在企业网络中使用 Apple 产品”，2026-10-06 查阅时页面写的发布日期是 2026-08-07）。“Apple Push Notifications”一节：*.push.apple.com，TCP 443、80、5223、2197，iOS / iPadOS / tvOS / macOS / visionOS，用途 Push notifications。同日另查阅 https://support.apple.com/102266 （发布日期 2023-08-22）：设备用 TCP 5223 连接 APNs，443 用于激活、以及连不上 5223 时的退路；建议放行整个 17.0.0.0/8；443 的连接可以经过不解密的代理"
+  owner-claude-domains:
+    kind: requirement
+    note: 使用者 2026-11-18 给的 Claude 域名清单（docs/00“补充（2026-11-18，又两份另一个 AI 的完整审核；Claude 的域名）”一节，原话“注意确保这些规则都有添加到 Claude 分流分组里面”）。清单 17 个里 7 个以前就收了（官方网络要求 claude-net、claude-desktop-net 或 dlc 的 anthropic 快照）；这一条登记另外 10 个：官方文档和 dlc anthropic 快照里都没有，照使用者的清单收
   apple-ai-req:
     kind: requirement
     note: 需求补充（2026-09-29）：Apple AI 组照搬 Cursor 版 18 条规则（Cursor 版的 rules/apple-ai/APPLE_AI_18.list，“基线不得删除或改写”；逐条见对照明细副本 docs/evidence/cursor-对照明细.csv），关键词 siri 改为具体主机名；2026-10-07 用户放宽了“不增不减”，拿掉 ls.apple.com、apps.mzstatic.com、gateway.icloud.com 三条宽规则（待决事项第 8 项）；本登记只用于官方文档和上游快照里都没有同值依据的条目
@@ -98,11 +101,12 @@ evidence:
   gemini-api:
     kind: official-unfetched
     url: https://ai.google.dev/
-    note: Gemini API 端点 generativelanguage.googleapis.com、文档站 ai.google.dev
+    note: Gemini API 端点 generativelanguage.googleapis.com、文档站 ai.google.dev。2026-11-18 再试：文档页重定向到 aistudio.google.com，这台机器没有放行，仍未读到（第三份全项目复核说它核对过，这里没有自己核对）
   telegram-cidr:
-    kind: official-unfetched
+    kind: official
     url: https://core.telegram.org/resources/cidr.txt
-    note: Telegram 官方公布的 IP 段；本次环境抓取未获授权，按既有知识录入，发布前需对照官方文件复核
+    checked: 2026-11-18
+    note: Telegram 官方公布的 IP 段。以前这台机器抓取未获授权，按既有知识录入；2026-11-18 抓到官方文件，14 条（IPv4 9、IPv6 5），和规则逐条相同（第三份全项目复核的建议 2）
   netflix-oc:
     kind: official-unfetched
     url: https://openconnect.netflix.com/

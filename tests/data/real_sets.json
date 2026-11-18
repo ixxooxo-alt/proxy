@@ -6,7 +6,7 @@
  },
  "consistency": {
   "mihomo": {
-   "consistent": 222339,
+   "consistent": 222344,
    "default_direct": [
     {
      "host": "aaplimg.com",
@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1646,
+    "from_rules": 1674,
     "from_sets": 222448,
-    "hosts": 224094,
+    "hosts": 224122,
     "sets": {
      "cn": 111224
     },
@@ -94,7 +94,7 @@
      "regex": 0
     }
    },
-   "to_domestic": 222353,
+   "to_domestic": 222358,
    "without_product_dns_rules": 136
   },
   "singbox": {
@@ -103,9 +103,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1559,
+    "from_rules": 1587,
     "from_sets": 17996,
-    "hosts": 19555,
+    "hosts": 19583,
     "sets": {
      "geosite-cn": 9303
     },
@@ -123,9 +123,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1559,
+    "from_rules": 1587,
     "from_sets": 17996,
-    "hosts": 19555,
+    "hosts": 19583,
     "sets": {
      "geosite-cn": 9303
     },
@@ -241,6 +241,13 @@
    }
   },
   "accounts.spacex.ai": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
+  "accounts.spacexsi.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
@@ -383,6 +390,19 @@
     "cn": "suffix:alimama.com"
    }
   },
+  "agent-stores.s3.us-east-1.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
   "agent.global.api5.cursor.sh": {
    "loon": {},
    "mihomo": {
@@ -480,6 +500,20 @@
    "stash": {
     "geolocation-!cn": "suffix:gamer.com.tw"
    }
+  },
+  "ant.dev": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
+  "anthropic.team": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "antigravity.google": {
    "loon": {},
@@ -947,6 +981,19 @@
    "singbox": {},
    "stash": {}
   },
+  "claude.dev": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:claude.dev"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:claude.dev"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:claude.dev"
+   }
+  },
   "cloudaicompanion.googleapis.com": {
    "loon": {},
    "mihomo": {
@@ -1099,6 +1146,19 @@
     "geolocation-!cn": "suffix:microsoft.com"
    }
   },
+  "cursor.blob.core.windows.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:windows.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:windows.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:windows.net"
+   }
+  },
   "d111111abcdef8.cloudfront.net": {
    "loon": {},
    "mihomo": {
@@ -1136,6 +1196,19 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "default.any-any.prd.api.discomax.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:discomax.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:discomax.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:discomax.com"
    }
   },
   "default.exp-tas.com": {
@@ -1614,6 +1687,19 @@
    "stash": {
     "cn": "full:guzzoni.apple.com",
     "geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "hbomax-images.warnermediacdn.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:hbomax-images.warnermediacdn.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:hbomax-images.warnermediacdn.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:hbomax-images.warnermediacdn.com"
    }
   },
   "host.livekit.cloud": {
@@ -2177,6 +2263,19 @@
    }
   },
   "other-bucket.s3.amazonaws.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:amazonaws.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:amazonaws.com"
+   }
+  },
+  "other-bucket.s3.us-east-1.amazonaws.com": {
    "loon": {},
    "mihomo": {
     "geolocation-!cn": "suffix:amazonaws.com"
@@ -3059,6 +3158,13 @@
    "stash": {}
   },
   "www.byteoversea.net": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
+  "www.claudestudio.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
@@ -4054,7 +4160,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "3c08a49ac1836d749e843cf32da74c3d5586ee41a04b02b674309ea30943af0e",
+   "config_sha256": "f2b2d48b99330e6c7616e63b98cd5c0616e3e7f5739afb3049ffc051b60659f8",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -4077,7 +4183,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "877aa3dec50887da87fa7c85abb9970bb69526cf373d6b7ebe1adb57a4b97b24",
+   "dial_sha256": "d26e86da640f246ef5ffe80e918a935bf15f4d7f63de040f6ced780963119f1a",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -4382,6 +4488,10 @@
      "DomainSuffix(spacex.ai)",
      "Grok"
     ],
+    "accounts.spacexsi.com": [
+     "DomainSuffix(spacexsi.com)",
+     "Grok"
+    ],
     "accounts.x.ai": [
      "DomainSuffix(x.ai)",
      "Grok"
@@ -4414,6 +4524,10 @@
      "DomainSuffix(afpapi.alimama.com)",
      "广告拦截"
     ],
+    "agent-stores.s3.us-east-1.amazonaws.com": [
+     "Domain(agent-stores.s3.us-east-1.amazonaws.com)",
+     "Grok"
+    ],
     "agent.global.api5.cursor.sh": [
      "DomainSuffix(cursor.sh)",
      "Grok"
@@ -4441,6 +4555,14 @@
     "ani.gamer.com.tw": [
      "DomainSuffix(gamer.com.tw)",
      "Bahamut"
+    ],
+    "ant.dev": [
+     "DomainSuffix(ant.dev)",
+     "Claude"
+    ],
+    "anthropic.team": [
+     "DomainSuffix(anthropic.team)",
+     "Claude"
     ],
     "antigravity.google": [
      "DomainSuffix(antigravity.google)",
@@ -4582,6 +4704,10 @@
      "DomainSuffix(claude.app)",
      "Claude"
     ],
+    "claude.dev": [
+     "DomainSuffix(claude.dev)",
+     "Claude"
+    ],
     "cloudaicompanion.googleapis.com": [
      "Domain(cloudaicompanion.googleapis.com)",
      "Google AI"
@@ -4626,6 +4752,10 @@
      "DomainSuffix(copilot.microsoft.com)",
      "Copilot"
     ],
+    "cursor.blob.core.windows.net": [
+     "Domain(cursor.blob.core.windows.net)",
+     "Grok"
+    ],
     "d111111abcdef8.cloudfront.net": [
      "GeoSite(geolocation-!cn)",
      "国外默认"
@@ -4637,6 +4767,10 @@
     "daily-cloudcode-pa.googleapis.com": [
      "Domain(daily-cloudcode-pa.googleapis.com)",
      "Google AI"
+    ],
+    "default.any-any.prd.api.discomax.com": [
+     "DomainSuffix(discomax.com)",
+     "Max"
     ],
     "default.exp-tas.com": [
      "GeoSite(geolocation-!cn)",
@@ -4789,6 +4923,10 @@
     "guzzoni.apple.com": [
      "Domain(guzzoni.apple.com)",
      "Apple AI"
+    ],
+    "hbomax-images.warnermediacdn.com": [
+     "Domain(hbomax-images.warnermediacdn.com)",
+     "Max"
     ],
     "host.livekit.cloud": [
      "GeoSite(geolocation-!cn)",
@@ -4967,6 +5105,10 @@
      "国外默认"
     ],
     "other-bucket.s3.amazonaws.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "other-bucket.s3.us-east-1.amazonaws.com": [
      "GeoSite(geolocation-!cn)",
      "国外默认"
     ],
@@ -5230,6 +5372,10 @@
      "Match",
      "国外默认"
     ],
+    "www.claudestudio.com": [
+     "DomainSuffix(claudestudio.com)",
+     "Claude"
+    ],
     "www.crunchyroll.com": [
      "DomainSuffix(crunchyroll.com)",
      "其他流媒体"
@@ -5407,12 +5553,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "999b72aa1ce3ac757793ca6a5d930829122896125bdc93d96a55ddfe0734a311",
+   "routing_sha256": "8f3028fc284d4d15d8bb7daa01e0ccc8a83cf17e2f75b99f0a60b779dec983e5",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "fa7cc46e357785947dc63e65c2ecc0e32076cdfd0e5eecf25badb0353da5c66a",
+   "config_sha256": "9dc37a179cecdbd17716885cae97c7f4f876d1b4ec25486e7b04031dc0572127",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5435,7 +5581,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "36ab888da945b3ce9f82dea308145d6cf2fd176353d3641830a9f5f93a774508",
+   "dial_sha256": "17891654b4fe9e34b58865c920cef1624b657599187a83ca9e1a0394433bf246",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5652,7 +5798,11 @@
      "Google"
     ],
     "accounts.spacex.ai": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
+    "accounts.spacexsi.com": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "accounts.x.ai": [
@@ -5687,8 +5837,12 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "agent-stores.s3.us-east-1.amazonaws.com": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
     "agent.global.api5.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "aistudio.google.com": [
@@ -5715,12 +5869,20 @@
      "domain=[bahamut.akamaized.net gamer-cds.cdn.hinet.net gamer2-cds.cdn.hinet.net] domain_suffix=[gamer.com.tw bahamut.com.",
      "Bahamut"
     ],
+    "ant.dev": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "anthropic.team": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "antigravity.google": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
     ],
     "anysphere-binaries.s3.us-east-1.amazonaws.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "aod.itunes.apple.com": [
@@ -5764,11 +5926,11 @@
      "Grok"
     ],
     "api2.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "api5.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "apihub.googleapis.com": [
@@ -5855,6 +6017,10 @@
      "domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
+    "claude.dev": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "cloudaicompanion.googleapis.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
@@ -5899,6 +6065,10 @@
      "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
      "Copilot"
     ],
+    "cursor.blob.core.windows.net": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
     "d111111abcdef8.cloudfront.net": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
@@ -5910,6 +6080,10 @@
     "daily-cloudcode-pa.googleapis.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
+    ],
+    "default.any-any.prd.api.discomax.com": [
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
     ],
     "default.exp-tas.com": [
      "rule_set=geosite-geolocation-!cn",
@@ -5932,7 +6106,7 @@
      "Claude"
     ],
     "downloads.cursor.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "example-tenant.webpubsub.azure.com": [
@@ -6063,6 +6237,10 @@
      "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
      "Apple AI"
     ],
+    "hbomax-images.warnermediacdn.com": [
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
+    ],
     "host.livekit.cloud": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
@@ -6172,7 +6350,7 @@
      "国外默认"
     ],
     "marketplace.cursorapi.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "mask.apple-dns.net": [
@@ -6243,6 +6421,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "other-bucket.s3.us-east-1.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -6268,7 +6450,7 @@
      "Claude"
     ],
     "play.max.com": [
-     "domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
      "Max"
     ],
     "poe.com": [
@@ -6503,6 +6685,10 @@
      "没有规则命中（route.final）",
      "国外默认"
     ],
+    "www.claudestudio.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "www.crunchyroll.com": [
      "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
      "其他流媒体"
@@ -6680,12 +6866,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "36fcf3bf59e9893028e26d47f163ad5dac873813bc1134738a268d3b0b169032",
+   "routing_sha256": "ea2592e43022b6a451e4ebef50e5ca225067fb611a04cbcf0b783ac54d80130d",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "86e781a0ec8adaeb4b92117566f293e36411e17c8fe228a4b7fb0dd62e73605b",
+   "config_sha256": "c392cb06154fa8007284fca049770ce11086dea7908eced67c07888811281998",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -6708,7 +6894,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "22d24cdf3c5d0920405de16ccbcdf8b2e04ee97e0d02b879e138c9d3d1f31974",
+   "dial_sha256": "e44121ff5a31e1a057eec06c271e5fdc3235d5c2084d9087c194996ea6059dcc",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -6925,7 +7111,11 @@
      "Google"
     ],
     "accounts.spacex.ai": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
+    "accounts.spacexsi.com": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "accounts.x.ai": [
@@ -6960,8 +7150,12 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "agent-stores.s3.us-east-1.amazonaws.com": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
     "agent.global.api5.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "aistudio.google.com": [
@@ -6988,12 +7182,20 @@
      "domain=[bahamut.akamaized.net gamer-cds.cdn.hinet.net gamer2-cds.cdn.hinet.net] domain_suffix=[gamer.com.tw bahamut.com.",
      "Bahamut"
     ],
+    "ant.dev": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
+    "anthropic.team": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "antigravity.google": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
     ],
     "anysphere-binaries.s3.us-east-1.amazonaws.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "aod.itunes.apple.com": [
@@ -7037,11 +7239,11 @@
      "Grok"
     ],
     "api2.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "api5.cursor.sh": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "apihub.googleapis.com": [
@@ -7128,6 +7330,10 @@
      "domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
+    "claude.dev": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "cloudaicompanion.googleapis.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
@@ -7172,6 +7378,10 @@
      "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
      "Copilot"
     ],
+    "cursor.blob.core.windows.net": [
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
+     "Grok"
+    ],
     "d111111abcdef8.cloudfront.net": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
@@ -7183,6 +7393,10 @@
     "daily-cloudcode-pa.googleapis.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
+    ],
+    "default.any-any.prd.api.discomax.com": [
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
     ],
     "default.exp-tas.com": [
      "rule_set=geosite-geolocation-!cn",
@@ -7205,7 +7419,7 @@
      "Claude"
     ],
     "downloads.cursor.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "example-tenant.webpubsub.azure.com": [
@@ -7336,6 +7550,10 @@
      "domain=[guzzoni.apple.com mask-api.fe.apple-dns.net mask-api.icloud.com...] domain_suffix=[apple-relay.apple.com apple-r",
      "Apple AI"
     ],
+    "hbomax-images.warnermediacdn.com": [
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "Max"
+    ],
     "host.livekit.cloud": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
@@ -7445,7 +7663,7 @@
      "国外默认"
     ],
     "marketplace.cursorapi.com": [
-     "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
+     "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
     ],
     "mask.apple-dns.net": [
@@ -7516,6 +7734,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "other-bucket.s3.us-east-1.amazonaws.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -7541,7 +7763,7 @@
      "Claude"
     ],
     "play.max.com": [
-     "domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
+     "domain=hbomax-images.warnermediacdn.com domain_suffix=[max.com hbomax.com hbomaxcdn.com...]",
      "Max"
     ],
     "poe.com": [
@@ -7776,6 +7998,10 @@
      "没有规则命中（route.final）",
      "国外默认"
     ],
+    "www.claudestudio.com": [
+     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
+    ],
     "www.crunchyroll.com": [
      "domain=[api.viu.now.com dfp6rglgjqszk.cloudfront.net d1k2us671qcoau.cloudfront.net...] domain_suffix=[dazn.com dazn-api.",
      "其他流媒体"
@@ -7953,7 +8179,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "601b81771cea6d391fd6500df7d3e15b50db5fc51ce3ff37d6e7d4f2ffb14da7",
+   "routing_sha256": "b1d912766ed785d1e11800d810d51eba171a38fa42276366ce83c52d893ef568",
    "version": "sing-box version 1.12.0"
   }
  },

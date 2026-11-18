@@ -901,6 +901,23 @@ def _socks_addr(read, atyp=None) -> tuple:
     return ("domain" if atyp == 3 else "ip"), addr, port
 
 
+def _close_gently(c: socket.socket) -> None:
+    """先发 FIN（shutdown 写的一半）、读掉对方已经发来但还没读的字节，再关。接收缓冲区里有没读的数据时直接 close()，
+    内核发的是 RST 而不是 FIN（RFC 1122 §4.2.2.13）。Linux 上客户端照样先读到前面的应答；Windows 收到 RST 会把还没取走的
+    应答一起丢掉——拒绝不支持的命令时只读了请求的前 3 个字节，test_records_every_request_it_refuses 在 Windows 上因此读到空
+    （2026-11-18 第二份全项目复核 C9、第三份 F05）。最多多等 0.2 秒。"""
+    try:
+        c.shutdown(socket.SHUT_WR)
+        c.settimeout(0.2)
+        for _ in range(64):
+            if not c.recv(4096):
+                break
+    except OSError:
+        pass
+    finally:
+        c.close()
+
+
 class Socks5Recorder(threading.Thread):
     """本机的一个最简单的 SOCKS5 服务端，只用来记下代理出口实际交过来的目标（2026-10-13，GPT 审核 r14 的建议 S01）。
     以前测试节点连的是一个没人监听的端口：只能看到“DNS 替身没有收到查询”，看不到域名确实交给了节点——连接被提前拒绝、
@@ -1031,7 +1048,7 @@ class Socks5Recorder(threading.Thread):
         except OSError:
             return                                     # 回应答时对方已经断开之类：收到的那部分已经核对过（或已记下原因）
         finally:
-            c.close()
+            _close_gently(c)
 
     def _associate(self, c: socket.socket, kind: str, addr: str, port: int) -> None:
         """UDP ASSOCIATE：请求里写的是客户端将来发 UDP 用的地址；全 0 表示还不知道，就按 TCP 连接的地址收。"""

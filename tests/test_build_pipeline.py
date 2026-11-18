@@ -300,6 +300,65 @@ class StalePrivateFiles(unittest.TestCase):
         self.assertNotIn("not_refreshed 一项", out, "这一次没有写私密清单，不能叫人去看它")
 
 
+class DnsLayersForFixedDirect(unittest.TestCase):
+    """第三份全项目复核 F01、F03、F04：要真实地址的名单在 mihomo 上全交给国内 DNS；local.yaml 里写在走代理的产品下面的直连规则，
+    mihomo、sing-box 的 DNS 都交给国内；sing-box 开 reverse_mapping；和要真实地址的名单冲突的规则在读规则源时就报错。"""
+
+    def test_every_real_ip_name_goes_to_domestic_dns_on_mihomo(self):
+        import yaml as _yaml
+        from helpers import model_and_plan
+        m = model_and_plan()[0]
+        lan = set(m.project["lan"]["domain_suffix"])
+        want = [("+." + x["suffix"]) if "suffix" in x else x["domain"] for x in m.project["dns"]["real_ip"]
+                if not ("suffix" in x and x["suffix"] in lan)]
+        self.assertTrue({"+.msftconnecttest.com", "+.msftncsi.com", "captive.apple.com"} <= set(want))
+        for name in ("mihomo/mihomo-core.yaml", "mihomo/mihomo-profile.yaml", "mihomo/mihomo-simple-core.yaml",
+                     "mihomo/mihomo-simple-profile.yaml"):
+            dns = _yaml.safe_load(outputs()[name])["dns"]
+            domestic = dns["nameserver-policy"]["geosite:cn"]
+            for w in want:
+                self.assertEqual(dns["nameserver-policy"].get(w), domestic, f"{name}：{w} 要交给国内 DNS（以前落到境外 DNS）")
+
+    def test_singbox_maps_real_addresses_back_to_names(self):
+        for v in ("sing-box/sing-box-1.14.json", "sing-box/sing-box-1.12.json", "sing-box/sing-box-simple-1.14.json",
+                  "sing-box/sing-box-simple-1.12.json"):
+            self.assertIs(json.loads(outputs()[v])["dns"].get("reverse_mapping"), True, v)
+
+    def test_local_direct_rule_under_a_proxied_product_uses_domestic_dns(self):
+        t = TempRoot()
+        try:
+            t.write("local.yaml", "extra_services:\n  - id: my_mirror\n    group: DIRECT\n    title: 自己的镜像\n"
+                                  "    rules:\n      - {suffix: cn-mirror.github.com, ev: my-note}\n"
+                                  "      - {suffix: corp.example.com, ev: my-note}\n"
+                                  "evidence:\n  my-note: {kind: maintainer, note: 测试用}\n")
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(t.build("--singbox-nodes", os.path.join(ROOT, "tests", "node_samples.yaml")), 0)
+            with open(os.path.join(t.out, "private", "mihomo-profile.yaml"), encoding="utf-8") as f:
+                pol = yaml.safe_load(f)["dns"]["nameserver-policy"]
+            self.assertEqual(pol["+.cn-mirror.github.com"], pol["geosite:cn"], "github.com 走代理，下面的直连规则要交给国内 DNS")
+            self.assertNotIn("+.corp.example.com", pol, "没被走代理的规则盖住的，照旧不写（和国内直连的规则一样）")
+            with open(os.path.join(t.out, "private", "sing-box-1.14.json"), encoding="utf-8") as f:
+                rules = json.load(f)["dns"]["rules"]
+            hit = [i for i, r in enumerate(rules) if "cn-mirror.github.com" in (r.get("domain_suffix") or [])]
+            proxied = [i for i, r in enumerate(rules) if r.get("rule_set") == "product-proxied"]
+            self.assertTrue(hit and rules[hit[0]]["server"] == "dns-cn" and hit[0] < proxied[0], rules[:8])
+        finally:
+            t.close()
+
+    def test_rules_clashing_with_the_real_ip_list_are_rejected(self):
+        t = TempRoot()
+        try:
+            t.write("local.yaml", "extra_services:\n  - id: my_time\n    group: 国外默认\n    title: 测试\n"
+                                  "    rules:\n      - {domain: time.windows.com, ev: my-note}\n"
+                                  "evidence:\n  my-note: {kind: maintainer, note: 测试用}\n")
+            err = io.StringIO()
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                self.assertEqual(t.build(), 2)
+            self.assertIn("在要真实地址的名单", err.getvalue())
+        finally:
+            t.close()
+
+
 class LocalOnlyInPrivate(unittest.TestCase):
     """F11：local.yaml 里的公司域名、固定节点名只出现在 dist/private/。"""
 
@@ -410,6 +469,59 @@ class Verifier(unittest.TestCase):
         for v in (False, "true", 1):
             self.assertIn("节点 n 的 tls.insecure 是", probs({"type": "http", **base, "tls": {"enabled": True, "insecure": v}}))
         self.assertEqual(probs({"type": "http", **base, "tls": {"enabled": True, "insecure": True}}), "")
+
+    def test_detects_values_singbox_does_not_accept(self):
+        """F03 的同一类和第二份复核 C2：转换器再漏了，写盘前也拦住 sing-box 不认的取值、Reality 不带 uTLS、
+        不该有的 multiplex、单个数字的端口段、写错的 Reality 公钥 / short_id。"""
+        def probs(*obs):
+            conf = {"outbounds": [{"type": "direct", "tag": "D"}, *obs], "route": {"rules": [], "final": "D"}}
+            return "\n".join(verify.check_singbox(json.dumps(conf)))
+
+        base = {"tag": "n", "server": "x.example.net", "server_port": 443}
+        tls = {"enabled": True}
+        pk = "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+        for ob, needle in (({"type": "shadowsocks", "method": "aes-128-ccm", "password": "p"}, "节点 n 的 method 是"),
+                           ({"type": "vmess", "uuid": "u", "security": "aes-128-ctr"}, "节点 n 的 security 是"),
+                           ({"type": "vless", "uuid": "u", "flow": "xtls-rprx-direct"}, "节点 n 的 flow 是"),
+                           ({"type": "tuic", "uuid": "u", "password": "p", "congestion_control": "newreno", "tls": tls},
+                            "节点 n 的 congestion_control 是"),
+                           ({"type": "trojan", "password": "p", "tls": {**tls, "utls": {"enabled": True, "fingerprint": "none"}}},
+                            "节点 n 的 tls.utls.fingerprint 是"),
+                           ({"type": "vmess", "uuid": "u", "multiplex": {"enabled": True, "protocol": "mplex"}},
+                            "节点 n 的 multiplex.protocol 是"),
+                           ({"type": "vless", "uuid": "u", "tls": {**tls, "reality": {"enabled": True, "public_key": pk, "short_id": ""}}},
+                            "用了 Reality 却没有 uTLS"),
+                           ({"type": "socks", "multiplex": {"enabled": True, "protocol": "h2mux"}}, "写了 multiplex"),
+                           ({"type": "hysteria2", "password": "p", "tls": tls, "server_ports": ["443", "20000:30000"]},
+                            "server_ports 每一项都要写成 a:b"),
+                           ({"type": "vless", "uuid": "u", "tls": {**tls, "utls": {"enabled": True, "fingerprint": "chrome"},
+                                                                    "reality": {"enabled": True, "public_key": pk, "short_id": "None"}}},
+                            "Reality 公钥或 short_id 写法不对")):
+            self.assertIn(needle, probs({**base, **ob}), ob)
+        for ob in ({"type": "shadowsocks", "method": "none", "password": "p"},
+                   {"type": "vmess", "uuid": "u", "security": "zero", "multiplex": {"enabled": False, "protocol": "mplex"}},
+                   {"type": "vless", "uuid": "u", "flow": "", "tls": {**tls, "utls": {"enabled": True, "fingerprint": "chrome"},
+                                                                       "reality": {"enabled": True, "public_key": pk, "short_id": "ab"}}},
+                   {"type": "hysteria2", "password": "p", "tls": tls, "server_ports": ["443:443", "20000:30000"]},
+                   {"type": "tuic", "uuid": "u", "password": "p", "tls": tls}):
+            self.assertEqual(probs({**base, **ob}), "", ob)
+
+    def test_detects_loon_values_and_deprecated_parameters(self):
+        """第二份复核 C1、C7：Loon 的 ip-mode 以前写成官方取值里没有的 ipv4-only，dns-reject-mode 写成 LoopbackIP，
+        还写着已弃用的 switch-node-after-failure-times（官方“通用配置”页，2026-11-18 读取）。"""
+        def probs(general):
+            return "\n".join(verify.check_loon("[General]\n" + "\n".join(general) + "\n[Rule]\nFINAL,DIRECT\n"))
+        self.assertIn("ip-mode = ipv4-only 不是 Loon 认的取值", probs(["ip-mode = ipv4-only"]))
+        self.assertIn("dns-reject-mode = LoopbackIP 不是 Loon 认的取值", probs(["dns-reject-mode = LoopbackIP"]))
+        for key in ("switch-node-after-failure-times = 3", "ipv6 = false", "force-http-engine-hosts = a.example.com",
+                    "skip-first-packet = true"):
+            self.assertIn("已弃用的参数", probs([key]), key)
+        self.assertEqual(probs(["ip-mode = v4-only", "dns-reject-mode = LOOPBACKIP", "udp-fallback-mode = REJECT"]), "")
+        for name in ("loon/loon.conf", "loon/loon-strict.conf", "loon/loon-simple.conf", "loon/loon-simple-strict.conf"):
+            general = [x for x in verify._sections(outputs()[name])["General"] if "=" in x]
+            self.assertIn("ip-mode = v4-only", general, name)
+            self.assertIn("dns-reject-mode = LOOPBACKIP", general, name)
+            self.assertFalse([x for x in general if x.split("=")[0].strip() in verify.LOON_DEPRECATED], name)
 
     def test_detects_mihomo_dns_settings_the_core_would_refuse(self):
         """审核 r10 的 R10-F01 之后用到 proxy-server-nameserver-policy。mihomo 对它和 respect-rules 都有同一个要求：

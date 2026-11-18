@@ -23,7 +23,7 @@ targets:
     clients:
       - SFA（Android）
   loon:
-    core: "Loon 3.x（规则匹配顺序依据官方文档：本地 > 插件 > 订阅，域名规则先于 IP 规则，要求 3.0.3+）"
+    core: "Loon 3.2.5 (789) 及以上（[General] 用到的 hijack-dns 从这一版起；ip-mode 要 3.2.3 (754)，domain-reject-mode、udp-fallback-mode 要 3.2.0 (702)；规则匹配顺序依据官方文档：本地 > 插件 > 订阅，域名规则先于 IP 规则，3.0.3 起）"
     clients: [iPhone / iOS, iPad / iPadOS, Mac（Apple 芯片，官方支持的版本）]
   quantumultx:
     core: "Quantumult X 1.x（依据官方 sample.conf）"

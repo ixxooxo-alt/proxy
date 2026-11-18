@@ -647,6 +647,19 @@ def validate(m: Model) -> None:
             if covers(o.kind, o.value, r.kind, r.value) and m_group_is_independent(m, o.target):
                 errors.append(f"剩余集合 {r.target} 的 {r.kind},{r.value} 落在独立服务 {o.target} 的 {o.kind},{o.value} 范围内")
 
+    # 要真实地址的名单（dns.real_ip）固定直连（待决事项第 15 项）：同一个域名不能再交给别的组。路由上固定直连排在产品规则前面，
+    # 写了也不生效；mihomo 的 nameserver-policy 会写两次、去向不同（第三份全项目复核 F03 的第 4 点：以前 local.yaml 这样写，
+    # 生成时才报一个没有说明的 ValueError，sing-box 那边则不报错）。同在 DIRECT 服务里的（系统联网检测）意思一样，允许
+    real_keys = {("suffix", str(x["suffix"]).lower()) if "suffix" in x else ("domain", str(x.get("domain", "")).lower())
+                 for x in m.project["dns"]["real_ip"]}
+    for s in m.services:
+        if s.group == "DIRECT":
+            continue
+        for r in s.rules:
+            if (r.kind, r.value) in real_keys:
+                errors.append(f"[{s.id}] 的 {r.kind},{r.value} 在要真实地址的名单（project.yaml 的 dns.real_ip）里，"
+                              f"那里固定直连，不能再交给 {s.group}")
+
     # 例外
     for e in m.adblock.get("exceptions", []):
         kind = "suffix" if "suffix" in e else "domain"

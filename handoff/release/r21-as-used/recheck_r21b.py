@@ -5,7 +5,9 @@
   2. 代码状态哈希等于 r21 定稿时记下的值；manifest 的版本和统一源摘要不变；
   3. finalize.py 的文档核对部分：DOC_NEEDLES_R21、STALE（都从 finalize.py 读），加上这一轮的核对项和旧说法；没有占位符；
      docs/06 第 23 项在“2026-10-31 你定下的事项”里；docs/05 里有统一源摘要、代码状态和每个产物的摘要。
-用法（在工程根目录）：python3 -B handoff/release/r21-as-used/recheck_r21b.py"""
+用法（在工程根目录）：python3 -B handoff/release/r21-as-used/recheck_r21b.py
+2026-11-18 补（第二份全项目复核 C9、第三份 F06）：docs 下的文件名改用正斜杠拼（以前 os.path.join 在 Windows 上拼出反斜杠，
+和写死的 "docs/…" 对不上，误报 26 条旧说法）；代码状态哈希见 code_state.sh 的同日说明。只改了这两处，核对的内容没变。"""
 import json, os, re, subprocess, sys
 
 R21 = "c0e8707"
@@ -69,7 +71,7 @@ for k in ("Nineteen rounds of external input", "外部意见一共 19 轮", "（
     STALE[k] = []
 STALE["同样的道理放大六倍"] = ["docs/10-简易版框架.md"]                     # docs/10 那一处是更正说明里引的旧话
 files = (["README.md", "README.zh-CN.md", "PROJECT_STATE.md", "00-审核说明.md", "handoff/README.md"]
-         + sorted(os.path.join("docs", f) for f in os.listdir("docs") if f.endswith(".md")))
+         + sorted("docs/" + f for f in os.listdir("docs") if f.endswith(".md")))
 problems = []
 left = [(p, x) for p in files for x in re.findall(r"⟦[^⟧]*⟧", read(p)) if x != "⟦名字⟧"]
 if left:

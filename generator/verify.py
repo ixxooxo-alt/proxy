@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import yaml
 
+from . import nodes
 from . import strict as strict_mod
 
 BUILTIN = {"DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE"}
@@ -274,6 +275,31 @@ def check_singbox(text: str) -> List[str]:
             problems.append(f"节点 {o.get('tag')} 的 packet_encoding 是 {o.get('packet_encoding')!r}，sing-box 只认 packetaddr、xudp")
         if isinstance(tls, dict) and "insecure" in tls and tls["insecure"] is not True:
             problems.append(f"节点 {o.get('tag')} 的 tls.insecure 是 {tls['insecure']!r}：只在订阅要求跳过证书校验时写，写了就是 true")
+        # 同一类（F03）：sing-box 只认一部分取值的字段，取值表和转换器共用（generator/nodes.py，来自官方程序的逐个核对）
+        utls = tls.get("utls") if isinstance(tls, dict) else None
+        mux = o.get("multiplex")
+        for field, value, allowed in (
+                ("method", o.get("method") if t == "shadowsocks" else None, nodes.SS_METHODS),
+                ("security", o.get("security") if t == "vmess" else None, nodes.VMESS_SECURITY),
+                ("flow", o.get("flow") or None if t == "vless" else None, nodes.VLESS_FLOWS),
+                ("congestion_control", o.get("congestion_control") if t == "tuic" else None, nodes.TUIC_CONGESTION),
+                ("tls.utls.fingerprint", utls.get("fingerprint") if isinstance(utls, dict) and utls.get("enabled") else None,
+                 nodes.UTLS_FINGERPRINTS),
+                ("multiplex.protocol", mux.get("protocol") if isinstance(mux, dict) and mux.get("enabled") else None,
+                 nodes.MUX_PROTOCOLS)):
+            if value is not None and value not in allowed:
+                problems.append(f"节点 {o.get('tag')} 的 {field} 是 {value!r}：sing-box 1.14.1、1.12.0 不认，建出站时报错")
+        if isinstance(tls, dict) and isinstance(tls.get("reality"), dict) and tls["reality"].get("enabled") and \
+                not (isinstance(utls, dict) and utls.get("enabled")):
+            problems.append(f"节点 {o.get('tag')} 用了 Reality 却没有 uTLS：sing-box 建出站时报错")
+        if "multiplex" in o and t not in nodes.MULTIPLEX_TYPES and t not in ("selector", "urltest", "direct", "block"):
+            problems.append(f"节点 {o.get('tag')}（{t}）写了 multiplex：sing-box 的这种出站没有这个字段，读配置时就报错")
+        if t == "hysteria2" and any(not re.fullmatch(r"\d+:\d+", str(x)) for x in o.get("server_ports") or []):
+            problems.append(f"节点 {o.get('tag')} 的 server_ports 每一项都要写成 a:b：{o.get('server_ports')!r}")
+        reality = tls.get("reality") if isinstance(tls, dict) else None
+        if isinstance(reality, dict) and reality.get("enabled") and (
+                not isinstance(reality.get("public_key"), str) or not re.fullmatch(r"(?:[0-9a-fA-F]{2}){0,8}", str(reality.get("short_id", "")))):
+            problems.append(f"节点 {o.get('tag')} 的 Reality 公钥或 short_id 写法不对：sing-box 建出站时报错")
     for hc in c.get("http_clients", []):
         if hc.get("detour") and hc["detour"] not in known:
             problems.append(f"http_clients 的 {hc.get('tag')} 指向不存在的出站 {hc['detour']}")
@@ -375,9 +401,26 @@ def _check_domestic_after_ads(entries: List[dict], what: str) -> List[str]:
     return problems
 
 
+# Loon [General] 里取值有限的参数和已弃用的参数（官方“通用配置”页，2026-11-18 读取；第二份全项目复核 C1、C7）
+LOON_ENUMS = {"ip-mode": {"v4-only", "dual", "prefer-v4", "prefer-v6", "v6-only"},
+              "dns-reject-mode": {"LOOPBACKIP", "NOANSWER", "NXDOMAIN"},
+              "domain-reject-mode": {"DNS", "Request"},
+              "udp-fallback-mode": {"DIRECT", "REJECT"},
+              "interface-mode": {"auto", "cellular", "performance"}}
+LOON_DEPRECATED = {"ipv6", "switch-node-after-failure-times", "force-http-engine-hosts", "skip-first-packet"}
+
+
 def check_loon(text: str, strict: bool = False, own: Optional[dict] = None) -> List[str]:
     s = _sections(text)
     problems = []
+    for line in s.get("General", []):
+        if "=" not in line:
+            continue
+        key, value = (x.strip() for x in line.split("=", 1))
+        if key in LOON_DEPRECATED:
+            problems.append(f"[General] 写了 Loon 已弃用的参数 {key}")
+        if key in LOON_ENUMS and value not in LOON_ENUMS[key]:
+            problems.append(f"[General] 的 {key} = {value} 不是 Loon 认的取值（{'、'.join(sorted(LOON_ENUMS[key]))}）")
     filters = {line.split("=", 1)[0].strip() for line in s.get("Remote Filter", [])}
     graph: Dict[str, List[str]] = {}
     for line in s.get("Proxy Group", []):

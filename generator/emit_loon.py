@@ -1,15 +1,18 @@
 """Loon 产物（iPhone / iPad / Mac 共用）。
-语法依据：https://nsloon.app/docs/（规则优先级：本地 > 插件 > 订阅；域名规则先于 IP 规则，Loon 3.0.3+）
+语法依据：https://nsloon.app/docs/（规则优先级：本地 > 插件 > 订阅；域名规则先于 IP 规则，Loon 3.0.3+）。
+[General] 用到的参数里要求最高的是 hijack-dns（3.2.5 (789) 起）；ip-mode 3.2.3 (754) 起，domain-reject-mode、udp-fallback-mode
+3.2.0 (702) 起（官方“通用配置”页 https://nsloon.app/docs/General/，2026-11-18 读取）。所以这份配置要 Loon 3.2.5 (789) 及以上。
 策略组：select / url-test / fallback / load-balance，支持嵌套；节点筛选用 [Remote Filter] NameRegex
 （官方“节点筛选”页 https://nsloon.app/docs/Node/nodefilter 的常用正则里有否定前瞻 ^(?!.*A)，没有说明用的是什么正则引擎；
 地区正则由 source/regions.yaml 的词表拼出，见 generator/regions.py）。
 
-严格版（build 的 strict=True，另存为 loon-strict.conf；设定在 source/strict.yaml，说明见 generator/strict.py）与标准版只差三处：
+严格版（build 的 strict=True，另存为 loon-strict.conf；设定在 source/strict.yaml，说明见 generator/strict.py）与标准版只差两处：
   1. 末尾的 GEOIP,CN 加 no-resolve——官方 IP 规则页：加了它“规则只匹配目标地址已经是 IP 的请求，不会为域名执行 DNS 查询”；
      GEOIP 与 no-resolve 写在一起的官方例子在逻辑规则页（https://nsloon.app/docs/Rule/logic_rule/ 的子规则 (GEOIP,CN,no-resolve)），
      单独一行的写法没有官方例子，要在设备上确认。这样全部 IP 规则都带 no-resolve，没命中域名规则的域名不解析，落到 FINAL；
-  2. [Remote Rule] 在广告集合之后多订阅国内域名清单，交给“国内直连”；
-  3. 要真实地址的名单（real-ip）里标准版没有固定直连规则的名字，补上固定直连。"""
+  2. [Remote Rule] 在广告集合之后多订阅国内域名清单，交给“国内直连”。
+要真实地址的名单（real-ip）的固定直连规则，2026-10-07（待决事项第 15 项）起两版都写，不再是严格版独有的
+（以前这里写着第 3 处差别，2026-11-18 第二份全项目复核 C8 指出已经过时）。"""
 from __future__ import annotations
 
 from typing import List
@@ -74,19 +77,21 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
         real_ip.append(("*." + x["suffix"]) if "suffix" in x else x["domain"])
     L += [
         "[General]",
-        "ip-mode = " + ("dual" if dns["ipv6_answers"] else "ipv4-only"),
+        # 官方取值是 v4-only、dual、prefer-v4、prefer-v6、v6-only（通用配置页“IP 模式”）。以前写的 ipv4-only 不在里面
+        # （第二份全项目复核 C1），App 照样导入，但不按“只用 IPv4”办；v4-only：不查 AAAA，并拒绝 IPv6 连接
+        "ip-mode = " + ("dual" if dns["ipv6_answers"] else "v4-only"),
         "dns-server = " + ",".join(dns["domestic_plain"]),
         "doh-server = " + ",".join(dns["domestic_doh"]),
         "sni-sniffing = true",
         "disable-stun = false",
-        "dns-reject-mode = LoopbackIP",
+        "dns-reject-mode = LOOPBACKIP",            # 官方写法是全大写（LOOPBACKIP / NOANSWER / NXDOMAIN），以前写的 LoopbackIP
         "domain-reject-mode = DNS",
         "udp-fallback-mode = REJECT",
         "allow-wifi-access = false",
         "interface-mode = auto",
         f"test-timeout = {hc['timeout_ms'] // 1000}",
         "disconnect-on-policy-change = false",
-        f"switch-node-after-failure-times = {hc['max_failed_times']}",
+        # switch-node-after-failure-times 不再写：官方列在“已弃用参数”里（“Loon 现已自动检测节点可用性”；第二份全项目复核 C7）
         f"proxy-test-url = {hc['url_http']}",
         "internet-test-url = http://connectivitycheck.platform.hicloud.com/generate_204",
         "skip-proxy = 192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,100.64.0.0/10,127.0.0.0/8,localhost,*.local,*.lan,captive.apple.com",

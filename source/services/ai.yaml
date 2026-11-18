@@ -46,6 +46,17 @@ services:
       - {suffix: claudemcpcontent.com, ev: claude-desktop-net, note: 桌面版官方网络要求列出 *.claudemcpcontent.com}
       - {suffix: claude.app, ev: claude-desktop-net, note: 桌面版官方网络要求列出 claude.app 与 *.claude.app（从 Cursor 版迁入）}
       - {suffix: clau.de, ev: dlc, note: 短链接}
+      # 使用者 2026-11-18 给的 Claude 域名清单里另外这 10 个（官方网络要求和 dlc anthropic 快照里都没有，照清单收；docs/00 最后一节）
+      - {suffix: ant.dev, ev: owner-claude-domains}
+      - {suffix: anthropic.team, ev: owner-claude-domains}
+      - {suffix: antspace.dev, ev: owner-claude-domains}
+      - {suffix: chatbotclaude.com, ev: owner-claude-domains}
+      - {suffix: claude.dev, ev: owner-claude-domains}
+      - {suffix: claude.new, ev: owner-claude-domains}
+      - {suffix: claude.site, ev: owner-claude-domains}
+      - {suffix: claudeacademy.com, ev: owner-claude-domains}
+      - {suffix: claudepages.dev, ev: owner-claude-domains}
+      - {suffix: claudestudio.com, ev: owner-claude-domains}
     shared_excluded:
       - {host: storage.googleapis.com, ev: claude-net, to: Google, probe: [storage.googleapis.com], why: Google Cloud Storage，共享云存储 → Google}
       - {host: registry.npmjs.org, ev: claude-net, to: 开发下载, probe: [registry.npmjs.org], why: 通用开发依赖 → 开发下载}
@@ -69,7 +80,11 @@ services:
       - {suffix: cursorapi.com, ev: cursor-net, note: 扩展市场}
       - {suffix: cursor.com, ev: dlc, note: 官方网络文档只列了其中的 downloads.cursor.com（客户端更新）；整段后缀依据上游 dlc cursor 列表，子域都属于 Cursor（官网、控制台、登录跳转、文档）}
       - {domain: anysphere-binaries.s3.us-east-1.amazonaws.com, ev: cursor-net, note: 专属存储桶；不收整个 amazonaws.com}
-      - {suffix: spacex.ai, ev: cursor-signin, note: 9 月 30 日起的登录地址 accounts.spacex.ai 及相关认证主机；Cursor 登录文档建议整段放行 *.spacex.ai}
+      - {suffix: spacex.ai, ev: cursor-signin, note: 9 月 30 日起的登录地址 accounts.spacex.ai 及相关认证主机；Cursor 登录文档当时建议整段放行 *.spacex.ai（企业网络页 2026-11-18 仍列着 accounts.spacex.ai）}
+      - {suffix: spacexsi.com, ev: cursor-signin, note: 登录页换成 accounts.spacexsi.com，旧页面 11 月 30 日停用以后必须走它；登录文档建议整段放行 *.spacexsi.com（2026-11-18 第三份全项目复核 F02）}
+      - {domain: agent-stores.s3.us-east-1.amazonaws.com, ev: cursor-net, note: 桌面版同步 skills 和 agent 文件；专属存储桶，不收整个 amazonaws.com}
+      - {domain: agent-stores.s3.amazonaws.com, ev: cursor-net, note: 同上（不带区域的写法）}
+      - {domain: cursor.blob.core.windows.net, ev: cursor-net, note: 给 Windows 远程主机下载 Remote SSH 服务端；专属存储，不收整个 windows.net}
     shared_excluded:
       - {host: "*.cursorvm.com", ev: cursor-net, to: 远程控制, probe: [abc.cursorvm.com], why: Grok Bot 托管计算机，归“远程控制”组（见 remote_control）}
 

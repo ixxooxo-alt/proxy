@@ -6,5 +6,8 @@
 # 注意：source/local.yaml（个人覆盖，不进仓库）如果存在会被算进去；出公开版本时不应该有这个文件。
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+# 2026-11-18（第二份全项目复核 C9、第三份 F06）：Windows 的 Git Bash（MSYS2）里 sha256sum 缺省按二进制方式读，每行是
+# “哈希 *文件名”（Linux 是两个空格），合并哈希就不同；这里先把“ *”统一成两个空格，Linux 上的结果不变。
+# Windows 上检出时还要是 LF 换行（仓库根目录的 .gitattributes），不然每个文件的哈希都不同。
 find build.py generator source tests tools .gitignore -type f -not -path '*/__pycache__/*' -not -name '*.pyc' \
-  | LC_ALL=C sort | xargs sha256sum | sha256sum | cut -d' ' -f1
+  | LC_ALL=C sort | xargs sha256sum | sed 's/^\([0-9a-f]*\) \*/\1  /' | sha256sum | cut -d' ' -f1

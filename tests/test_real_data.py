@@ -877,6 +877,45 @@ class Socks5RecorderTool(unittest.TestCase):
         # 只看指定的传输方式（GPT 审核 r15 的建议：以前 TCP、UDP 的记录混在一起认主机）
         self.assertEqual(crr.received_by_node(rec, answers, hosts, "tcp"), {"a.example": "domain", "b.example": "-", "c.example": "-"})
 
+    def test_refusal_ends_with_fin_not_rst(self):
+        """第二份全项目复核 C9、第三份 F05：拒绝不支持的命令时只读了请求的前 3 个字节，剩下的还在接收缓冲区里就 close()，
+        内核发的是 RST。Windows 收到 RST 会把还没取走的应答一起丢掉（test_records_every_request_it_refuses 在 Windows 上读到空）；
+        Linux 上应答照样读得到，但接着再读会报 ConnectionResetError。现在先发 FIN、读掉剩下的再关：应答之后读到的是正常的结束。"""
+        import socket
+        import time
+        rec = self.crr.Socks5Recorder()
+        rec.start()
+        try:
+            with socket.create_connection(("127.0.0.1", rec.port), timeout=5) as s:
+                s.sendall(b"\x05\x01\x00")
+                self.assertEqual(s.recv(2), b"\x05\x00")
+                s.sendall(b"\x05\x02\x00\x01" + bytes(6))          # BIND：不支持；后 7 个字节接收端不会去读
+                time.sleep(0.15)
+                self.assertEqual(s.recv(10)[:2], b"\x05\x07")
+                self.assertEqual(s.recv(10), b"", "应答之后应当是正常的结束（FIN），不是连接被重置")
+        finally:
+            rec.close()
+
+    def test_read_remote_recognises_clash_lists_with_either_slash(self):
+        """第三份全项目复核 F06：以前只认 os.sep，Windows 上传正斜杠的路径时，blackmatrix7 给 Clash 的 .txt 被当成 .list 读，
+        “+.cn”这类后缀全成了字面主机名，而且不报错。"""
+        import shutil
+        import tempfile
+        from unittest import mock
+        d = tempfile.mkdtemp()
+        try:
+            os.makedirs(os.path.join(d, "rule", "Clash", "X"))
+            p = os.path.join(d, "rule", "Clash", "X", "X_Domain_For_Clash.txt")
+            with open(p, "w", encoding="utf-8") as f:
+                f.write("+.cn\nwww.example.com\n")
+            for sep in ("/", "\\"):
+                with mock.patch.object(rd.os, "sep", sep):
+                    rl = rd.read_remote(p)
+                self.assertIn("cn", rl.domains.suffix, sep)
+                self.assertNotIn("+.cn", rl.domains.full, sep)
+        finally:
+            shutil.rmtree(d)
+
     def test_refuses_what_rfc1928_says_to_refuse(self):
         """RFC 1928 要求拒绝或丢掉的，接收端不能记成“节点收到了”（2026-10-13，GPT 审核 r15 的 R15-F01，三个反例照审核报告的复现写）：
         客户端没提供“不要认证”时回 05 FF（第 3 节）；请求的 RSV 不是 0 时回错误（第 4 节）；UDP 包分了片（FRAG 不是 0）、RSV 不是 0、

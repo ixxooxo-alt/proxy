@@ -306,7 +306,8 @@ def read_clash_domain_text(path: str) -> RuleList:
 
 def read_remote(path: str) -> RuleList:
     """按文件写法选读法：blackmatrix7 给 Clash 的 .txt 域名清单用 read_clash_domain_text，其余（Loon / Quantumult X 的 .list）用 read_rule_list。"""
-    if path.endswith(".txt") and os.sep + "Clash" + os.sep in path:
+    # 斜杠、反斜杠都认（第三份全项目复核 F06：以前只认 os.sep，Windows 上传正斜杠的路径会被当成 .list，十几万条后缀被读成字面主机名）
+    if path.endswith(".txt") and "/Clash/" in path.replace("\\", "/"):
         return read_clash_domain_text(path)
     return read_rule_list(path)
 

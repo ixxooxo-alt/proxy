@@ -2,7 +2,8 @@
 # 覆盖转换器支持的每种协议，以及审核 F01 / F02 / F03 提到的边界：
 # HTTP / AnyTLS 的 UDP、与策略组同名的节点、v2ray-plugin 的 mux=false、路径里的 ?ed=、带额外请求头的 HTTP Upgrade。
 # 2026-11-18 全项目复核（docs/08 第 21 轮）加了四个：写了 tls: false 的 Trojan（F01）、用 mihomo 的 packet 写法的 VMess、VLESS（F03），
-# 和一个布尔字段写成带引号字符串、应被跳过的节点（F02）。
+# 和一个布尔字段写成带引号字符串、应被跳过的节点（F02）。同一天另两份复核（第 22、23 轮）和 F03 的同一类自查又加了三个：
+# client-fingerprint 写 none 的 VMess、short-id 留空的 Reality、单个端口和斜杠混写、带换端口区间的 Hysteria2。
 proxies:
   - {name: "香港 SS", type: ss, server: hk.example.net, port: 8388, cipher: 2022-blake3-aes-128-gcm, password: "RVhBTVBMRS1LRVktMTIzNA==", udp: true}
   - {name: "香港 SS 无 UDP", type: ss, server: hk2.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE}
@@ -36,6 +37,14 @@ proxies:
      alterId: 0, cipher: auto, tls: true, servername: us6.example.net, network: tcp, udp: true, packet-encoding: packet}
   - {name: "日本 VLESS packet", type: vless, server: jp5.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000006,
      tls: true, servername: jp5.example.net, network: tcp, udp: true, packet-encoding: packet}
+  # 2026-11-18 另两份全项目复核（docs/08 第 22、23 轮）和 F03 的同一类：这几种写法以前转出来 sing-box 读不了，整份配置启动不了
+  - {name: "台湾 VMess 指纹 none", type: vmess, server: tw2.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000007,
+     alterId: 0, cipher: auto, tls: true, servername: tw2.example.net, client-fingerprint: none, udp: true}
+  - {name: "日本 VLESS Reality 无 short-id", type: vless, server: jp6.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000008,
+     flow: xtls-rprx-vision, tls: true, servername: www.example.com, client-fingerprint: chrome, network: tcp, udp: true,
+     reality-opts: {public-key: "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA", short-id: }}
+  - {name: "新加坡 HY2 单端口跳跃", type: hysteria2, server: sg3.example.net, port: 443, ports: "443,20000-30000/40000-40010",
+     hop-interval: "30-60", password: EXAMPLE, sni: sg3.example.net}
   # 与策略组 / 出站同名：转换器必须改名，否则整份配置被 sing-box 拒绝（F02）
   - {name: "日本", type: ss, server: jp4.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
   - {name: "DIRECT", type: ss, server: x1.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}

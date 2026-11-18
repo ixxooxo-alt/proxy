@@ -102,6 +102,8 @@ cases:
   - {host: www.hulu.com, expect: Hulu US, why: Hulu 在 Disney+ 之前}
   - {host: www.hulu.jp, expect: Hulu Japan}
   - {host: play.max.com, expect: Max}
+  - {host: default.any-any.prd.api.discomax.com, expect: Max, why: Max 客户端的接口（2026-11-18 第二份全项目复核 C4）}
+  - {host: hbomax-images.warnermediacdn.com, expect: Max}
   - {host: www.primevideo.com, expect: Prime Video}
   - {host: atv-ps.amazon.com, expect: Prime Video, why: Prime Video 在 Amazon 之前}
   - {host: www.amazon.com, expect: 国外默认, why: Amazon 通用归国外默认}
@@ -144,6 +146,14 @@ cases:
   - {host: time.apple-dns.net, expect: Apple, why: apple-dns.net 其余主机仍归 Apple}
   - {host: www.siriusxm.com, expect: 国外默认, why: 关键词 siri 已改为具体主机名，不再误伤}
   - {host: claude.app, expect: Claude, why: 桌面版官方网络要求}
+  - {host: claude.dev, expect: Claude, why: 使用者 2026-11-18 给的 Claude 域名清单}
+  - {host: www.claudestudio.com, expect: Claude}
+  - {host: ant.dev, expect: Claude}
+  - {host: anthropic.team, expect: Claude}
+  - {host: accounts.spacexsi.com, expect: Grok, why: Cursor 的新登录页（2026-11-18 第三份全项目复核 F02）}
+  - {host: agent-stores.s3.us-east-1.amazonaws.com, expect: Grok, why: Cursor 桌面版同步 skills 和 agent 文件}
+  - {host: cursor.blob.core.windows.net, expect: Grok, why: Cursor 给 Windows 远程主机下载服务端}
+  - {host: other-bucket.s3.us-east-1.amazonaws.com, expect: 国外默认, why: 同一个云存储上别人的桶，不收整个 amazonaws.com}
   - {host: accounts.x.ai, expect: Grok, why: xAI 统一登录，Cursor 9 月 30 日起也用它登录}
   - {host: auth.x.ai, expect: Grok, why: Cursor 登录文档列出的最少登录主机}
   - {host: accounts.spacex.ai, expect: Grok}

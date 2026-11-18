@@ -4,7 +4,7 @@ import unittest
 
 from helpers import build, model_and_plan
 from generator import emit_singbox
-from generator.nodes import convert
+from generator.nodes import convert, load_clash_proxies
 
 SAMPLE = [
     {"name": "🇭🇰 香港 01", "type": "ss", "server": "hk1.example.net", "port": 8388,
@@ -12,7 +12,7 @@ SAMPLE = [
     {"name": "日本 东京 VLESS", "type": "vless", "server": "jp1.example.net", "port": 443,
      "uuid": "00000000-0000-4000-8000-000000000001", "flow": "xtls-rprx-vision", "tls": True,
      "servername": "www.example.com", "client-fingerprint": "chrome", "network": "tcp", "udp": True,
-     "reality-opts": {"public-key": "EXAMPLE_PUBLIC_KEY", "short-id": "abcd"}},
+     "reality-opts": {"public-key": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA", "short-id": "abcd"}},
     {"name": "美国 Trojan WS", "type": "trojan", "server": "us1.example.net", "port": 443,
      "password": "EXAMPLE", "sni": "us1.example.net", "network": "ws",
      "ws-opts": {"path": "/ws", "headers": {"Host": "us1.example.net"}}},
@@ -49,7 +49,7 @@ class NodeConversion(unittest.TestCase):
         self.assertEqual(v["flow"], "xtls-rprx-vision")
         self.assertEqual(v["tls"], {"enabled": True, "server_name": "www.example.com",
                                     "utls": {"enabled": True, "fingerprint": "chrome"},
-                                    "reality": {"enabled": True, "public_key": "EXAMPLE_PUBLIC_KEY", "short_id": "abcd"}})
+                                    "reality": {"enabled": True, "public_key": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA", "short_id": "abcd"}})
         self.assertNotIn("transport", v)
         t = self.by["美国 Trojan WS"]
         self.assertEqual(t["transport"], {"type": "ws", "path": "/ws", "headers": {"Host": "us1.example.net"}})
@@ -324,3 +324,143 @@ class FullReview20261118(unittest.TestCase):
                 ob, rep = one({**base, k: True})
                 self.assertIsNone(ob, (t, k))
                 self.assertIn(k, rep)
+
+
+class FullReviewsTwoAndThree(unittest.TestCase):
+    """2026-11-18 的另两份全项目复核（docs/08 第 22、23 轮）和 F03 的同一类自查：sing-box 不认的取值、Reality、Hysteria2 的端口、
+    多路复用、按 mihomo 的读法解析订阅。以前这些写法会被原样写进配置，sing-box 读配置或建出站时报错，整份配置启动不了。"""
+    BASE = {"server": "x.example.net", "port": 443}
+    UUID = {"uuid": "00000000-0000-4000-8000-000000000001"}
+    PK = "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+
+    def test_values_singbox_does_not_accept_are_skipped(self):
+        """F03 的同一类：加密方式、flow、拥塞控制、uTLS 指纹、多路复用协议只放行 sing-box 1.14.1、1.12.0 都认的取值
+        （handoff/notes/r22_singbox_enum_sweep.py 拿官方程序逐个核对）。"""
+        u = self.UUID
+        bad = [({"type": "ss", "cipher": "aes-128-ccm", "password": "p"}, "cipher"),
+               ({"type": "ss", "cipher": "AES-128-GCM", "password": "p"}, "cipher"),
+               ({"type": "ss", "cipher": "chacha20", "password": "p"}, "cipher"),
+               ({"type": "vmess", **u, "cipher": "aes-128-ctr"}, "cipher"),
+               ({"type": "vless", **u, "tls": True, "flow": "xtls-rprx-vision-udp443"}, "flow"),
+               ({"type": "tuic", **u, "password": "p", "congestion-controller": "bbr_meta_v1"}, "congestion-controller"),
+               ({"type": "vless", **u, "tls": True, "client-fingerprint": "chrome120"}, "client-fingerprint"),
+               ({"type": "trojan", "password": "p", "client-fingerprint": "randomizednoalpn"}, "client-fingerprint"),
+               ({"type": "ss", "cipher": "aes-128-gcm", "password": "p", "smux": {"enabled": True, "protocol": "mplex"}},
+                "smux.protocol")]
+        for c, key in bad:
+            ob, rep = one({"name": "n", **self.BASE, **c})
+            self.assertIsNone(ob, c)
+            self.assertIn(f"{key}=", rep, c)
+            self.assertIn("sing-box 1.14.1、1.12.0 都不认", rep, c)
+        good = [({"type": "ss", "cipher": "2022-blake3-aes-128-gcm", "password": "p"}, lambda o: o["method"] == "2022-blake3-aes-128-gcm"),
+                ({"type": "ss", "cipher": "none", "password": "p"}, lambda o: o["method"] == "none"),
+                ({"type": "vmess", **u}, lambda o: o["security"] == "auto"),
+                ({"type": "vmess", **u, "cipher": ""}, lambda o: o["security"] == "auto"),
+                ({"type": "vmess", **u, "cipher": "zero"}, lambda o: o["security"] == "zero"),
+                ({"type": "tuic", **u, "password": "p", "congestion-controller": "new_reno"},
+                 lambda o: o["congestion_control"] == "new_reno"),
+                ({"type": "vless", **u, "tls": True, "client-fingerprint": "chrome"},
+                 lambda o: o["tls"]["utls"] == {"enabled": True, "fingerprint": "chrome"}),
+                # none 在 mihomo 里是不用 uTLS（component/tls/utls.go）：不写 uTLS（以前写成指纹 none，sing-box 不认）
+                ({"type": "vless", **u, "tls": True, "client-fingerprint": "none"}, lambda o: "utls" not in o["tls"]),
+                # 没开 TLS 时指纹用不到，写了什么都不管
+                ({"type": "vmess", **u, "client-fingerprint": "chrome120"}, lambda o: "tls" not in o),
+                ({"type": "ss", "cipher": "aes-128-gcm", "password": "p", "smux": {"enabled": True, "protocol": "smux"}},
+                 lambda o: o["multiplex"]["protocol"] == "smux")]
+        for c, ok in good:
+            ob, rep = one({"name": "n", **self.BASE, **c})
+            self.assertIsNotNone(ob, (c, rep))
+            self.assertTrue(ok(ob), (c, ob))
+
+    def test_reality_needs_a_fingerprint_a_public_key_and_a_hex_short_id(self):
+        """第二份复核 C2：short-id 留空以前写成 "None"、公钥 null 写成 JSON null；Reality 没有指纹时 sing-box 建出站就报错。"""
+        base = {"name": "n", "type": "vless", **self.BASE, **self.UUID, "tls": True, "servername": "www.example.com",
+                "flow": "xtls-rprx-vision", "client-fingerprint": "chrome"}
+        for sid, want in ((None, ""), ("", ""), ("abcd", "abcd"), ("0123456789abcdef", "0123456789abcdef"), (12, "12")):
+            ob, rep = one({**base, "reality-opts": {"public-key": self.PK, "short-id": sid}})
+            self.assertEqual(ob["tls"]["reality"], {"enabled": True, "public_key": self.PK, "short_id": want}, (sid, rep))
+        ob, _ = one({**base, "reality-opts": {"public-key": self.PK}})
+        self.assertEqual(ob["tls"]["reality"]["short_id"], "")
+        for opts, needle in (({"public-key": self.PK, "short-id": "abc"}, "short-id"),
+                             ({"public-key": self.PK, "short-id": "0123456789abcdef01"}, "short-id"),
+                             ({"public-key": self.PK, "short-id": "zz"}, "short-id"),
+                             ({"short-id": "ab"}, "public-key"), ({"public-key": None}, "public-key"),
+                             ({"public-key": "EXAMPLE"}, "public-key"), ({"public-key": self.PK + "="}, "public-key")):
+            ob, rep = one({**base, "reality-opts": opts})
+            self.assertIsNone(ob, opts)
+            self.assertIn(needle, rep, opts)
+        for extra in ({"client-fingerprint": None}, {"client-fingerprint": "none"}):
+            ob, rep = one({**base, **extra, "reality-opts": {"public-key": self.PK}})
+            self.assertIsNone(ob, extra)
+            self.assertIn("Reality 要有 client-fingerprint", rep)
+
+    def test_hysteria2_ports_and_hop_interval_like_mihomo(self):
+        """第二份复核 C2：mihomo 的 ports 逗号、斜杠都能分隔，可以有单个端口；sing-box 每一项都要写成 a:b。
+        hop-interval 可以是区间；mihomo 把 0 当成 30、小于 5 的按 5。"""
+        base = {"name": "n", "type": "hysteria2", **self.BASE, "password": "p"}
+        for ports, want in (("443,20000-30000/40000-40010", ["443:443", "20000:30000", "40000:40010"]),
+                            (443, ["443:443"]), ("20000 - 30000", ["20000:30000"]), ("443,,444", ["443:443", "444:444"])):
+            ob, rep = one({**base, "ports": ports})
+            self.assertEqual(ob["server_ports"], want, (ports, rep))
+            self.assertNotIn("hop_interval", ob)
+        for ports in ("0-10", "443-70000", "30000-20000", "a-b", ",".join(str(1000 + i) for i in range(29))):
+            ob, rep = one({**base, "ports": ports})
+            self.assertIsNone(ob, ports)
+            self.assertIn("ports", rep)
+        for hop, want, note in (("30", "30s", False), (3, "5s", False), ("0", "30s", False), ("30-60", "30s", True),
+                                ("60-30", "60s", False)):
+            ob, rep = one({**base, "ports": "20000-30000", "hop-interval": hop})
+            self.assertEqual(ob["hop_interval"], want, hop)
+            self.assertEqual("区间" in rep, note, (hop, rep))
+        ob, rep = one({**base, "ports": "20000-30000", "hop-interval": "x"})
+        self.assertIsNone(ob)
+        self.assertIn("hop-interval", rep)
+
+    def test_multiplex_only_where_singbox_has_it(self):
+        """第二份复核 C2：sing-box 只有 shadowsocks、vmess、vless、trojan 有 multiplex 字段，别的写了读配置就报错。"""
+        smux = {"smux": {"enabled": True}}
+        for c in ({"type": "socks5"}, {"type": "http"}, {"type": "hysteria2", "password": "p"},
+                  {"type": "tuic", **self.UUID, "password": "p"}, {"type": "anytls", "password": "p", "udp": True}):
+            ob, rep = one({"name": "n", **self.BASE, **c, **smux})
+            self.assertIsNone(ob, c)
+            self.assertIn("没有多路复用", rep)
+            ob, _ = one({"name": "n", **self.BASE, **c, "smux": {"enabled": False}})
+            self.assertNotIn("multiplex", ob, c)
+        for c in ({"type": "ss", "cipher": "aes-128-gcm", "password": "p"}, {"type": "vmess", **self.UUID},
+                  {"type": "vless", **self.UUID}, {"type": "trojan", "password": "p"}):
+            ob, rep = one({"name": "n", **self.BASE, **c, **smux})
+            self.assertEqual(ob["multiplex"], {"enabled": True, "protocol": "h2mux"}, (c, rep))
+
+    def test_subscription_is_parsed_like_mihomo(self):
+        """第二份复核 C3：mihomo 用 go.yaml.in/yaml/v3 v3.0.5 读订阅。0 开头的数字两边都按八进制读（审核方说 mihomo 保留前导零，
+        核对源码不是这样）；不同的是 yes / no / on / off（PyYAML 读成布尔，mihomo 是文字）、六十进制（1:20）、0089 这种
+        （mihomo 读成小数）。这里按 mihomo 的读法。"""
+        text = "\n".join([
+            "proxies:",
+            "  - {name: a, type: ss, server: x.example.net, port: 0443, cipher: aes-128-gcm, password: 01234567, udp: true}",
+            "  - {name: b, type: socks5, server: x.example.net, port: 1080, username: no, password: yes}",
+            "  - {name: c, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 0089}",
+            "  - {name: d, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: p, udp: on}",
+            "  - {name: e, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 1:20}",
+            "  - {name: f, type: ss, server: x.example.net, port: 0x1BB, cipher: aes-128-gcm, password: 1_000}",
+            "  - {name: g, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 1.5}",
+            "  - {name: h, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: true}",
+            "  - {name: i, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 2026-11-18}",
+            "  - {name: j, type: ss, server: x.example.net, port: 0o17, cipher: aes-128-gcm, password: 1e3, udp: ~}"])
+        ps = {p["name"]: p for p in load_clash_proxies(text)}
+        self.assertEqual((ps["a"]["password"], ps["a"]["port"], ps["a"]["udp"]), (342391, 291, True))
+        self.assertEqual((ps["b"]["username"], ps["b"]["password"]), ("no", "yes"))
+        self.assertEqual((ps["c"]["password"], ps["d"]["udp"], ps["e"]["password"]), (89.0, "on", "1:20"))
+        self.assertEqual((ps["f"]["port"], ps["f"]["password"]), (443, 1000))
+        self.assertEqual((ps["j"]["port"], ps["j"]["password"], ps["j"]["udp"]), (15, 1000.0, None))
+        out, report, _ = convert(list(ps.values()))
+        by = {o["tag"]: o for o in out}
+        self.assertEqual(by["a"]["password"], "342391", "和 mihomo 一样：先读成整数，再写成十进制")
+        self.assertEqual((by["b"]["username"], by["b"]["password"]), ("no", "yes"), "以前 username: no 被当成没写、password: yes 写成 True")
+        self.assertEqual(by["e"]["password"], "1:20")
+        self.assertEqual(by["f"]["password"], "1000")
+        text = "\n".join(report)
+        for name, needle in (("c", "password 写成了 89.0"), ("d", "udp 应该是 true / false"), ("g", "password 写成了 1.5"),
+                             ("h", "缺少必填字段 password"), ("i", "password 写成了"), ("j", "password 写成了 1000.0")):
+            self.assertNotIn(name, by)
+            self.assertIn(needle, text, name)
