@@ -28,3 +28,11 @@
 位置：[generator/nodes.py:308](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L308) 调用 [generator/nodes.py:39](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L39)。Trojan 的缺省值虽是开启，但订阅里额外写的布尔 `tls: false` 会覆盖它。用合成输入调用转换器，输出中 TLS 为 null，跳过/警告记录为空。对普通 TCP Trojan，[mihomo v1.19.31 adapter/outbound/trojan.go:44](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/trojan.go#L44) 的选项没有这个 TLS 开关，[mihomo v1.19.31 adapter/outbound/trojan.go:150](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/trojan.go#L150) 的普通 TCP 路径会建立 TLS。目标内核在 [sing-box v1.14.1 protocol/trojan/outbound.go:55](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/trojan/outbound.go#L55) 只在 TLS 配置存在时建立 TLS 拨号器，第 139 行以下在没有拨号器时走普通连接；[1.12.0 对应分支](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/trojan/outbound.go#L127) 也是条件握手。
 
 结论限于转换结果及源码路径：这使源格式不会关闭的 TLS 在目标格式里消失，正规服务端还可能直接拒绝连接。没有抓取真实流量或用户数据。建议按协议固定 Trojan 的 TLS 语义；收到矛盾字段时宁可跳过该节点并报原因。加一项普通 TCP Trojan 的回归测试，同时保留 HTTP / VMess 真能选择 TLS 开关的区别。
+
+### F02 · 引号里的 false 会让转换器关闭证书校验
+
+**类别：安全或泄漏 · 高；仅私密 sing-box 产物。**
+
+位置：[generator/nodes.py:41](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L41)、[generator/nodes.py:55](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L55)、[README.zh-CN.md:66](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/README.zh-CN.md#L66)。YAML 布尔值 false 和字符串 "false" 不同；Python 对非空字符串取 bool 总为真。用启用 TLS 的合成 HTTP 输入核对：后者生成 `tls.insecure: true`，转换报告没有提示。普通布尔 false 不受影响。
+
+依据：[mihomo v1.19.31 adapter/parser.go:15](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/parser.go#L15) 使用结构体解码；[mihomo v1.19.31 common/structure/structure.go:233](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/common/structure/structure.go#L233) 的布尔解码接受布尔值以及弱类型模式下的整数，不把字符串当成真。源端可拒绝的输入不能在转换后悄悄放宽验证。建议在读取布尔字段时先检查类型，无法无歧义映射就跳过并报告；一起检查 TLS 开关、UDP 和插件等直接用 Python 真值判断的位置。测试至少覆盖原生 false、原生 true 和引号里的 false。没有证据表明公开模板或现用订阅触发过。
