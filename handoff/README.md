@@ -265,7 +265,7 @@ r10、r11 在 `main` 的历史里，r7 在 `baseline-r7` 分支，r12 是 `r12` 
 ## 19. r22：三份全项目复核（2026-11-18，同一个云端会话；先审后跑）
 
 1. **来源**：2026-11-18 使用者请别的 AI 完整审核 r21b（会话分支 `b9a9f14`），同一天收到三份：审核 PR #10（报告存在 `docs/evidence/review-r21b-full/`），以及对话里贴来的两份（`review-r21b-full-2/`、`-3/`；指向使用者电脑上目录的链接前缀换成了占位，见各自的 `README.txt`）。使用者还给了 17 个 Claude 域名（10 个以前没收）。逐条核实和处理：`docs/08` 第 21、22、23 轮；原话：`docs/00` 最后两节。
-2. **中途断过一次**：额度用完，恢复以后先把进行中的改动提交成检查点 `0da7caa`（`handoff/notes/r22_wip/` 是当时的进度说明和草稿，保留着，看过程用）。
+2. **中途断过两次**（都是额度用完）：第一次恢复以后先把进行中的改动提交成检查点 `0da7caa`；第二次在快速检查跑完、变异第二批试跑跑到一半时，先提交成检查点 `f902ed2`，剩下的 13 类之后补跑（`handoff/notes/r22_wip/` 是两次的进度说明和草稿，保留着，看过程用）。
 3. **环境**：审核里引的 Loon、Cursor、Telegram 官方页面，原来的环境打不开（代理返回 403）；经使用者同意建了一个只给这个仓库用的个人环境，放行 `nsloon.app`、`cursor.com`、`core.telegram.org`、`ai.google.dev`（最后一个的文档页会跳到 `aistudio.google.com`，仍读不到）。新会话如果又打不开这些页面，用同一个环境，或者照 `docs/08` 里记的原文核对。
 4. **代码**（都在 `docs/08` 那三轮的表里，这里只列位置）：`generator/nodes.py`（`_forced_tls`、`_bool_value`、`_text`、`_enum` 和几个取值表、`_hy2_ports`、`_hy2_hop`、`MULTIPLEX_TYPES`、`SubscriptionLoader`）；`generator/verify.py`（节点出站、Loon 的取值和已弃用参数）；`generator/emit_mihomo.py`（要真实地址的名单按整份写、固定直连的服务参加 DNS 分层）、`emit_singbox.py`（同上、`reverse_mapping`）、`emit_loon.py`；`generator/model.py`（和要真实地址的名单冲突的规则）；`build.py`（`_not_refreshed`、暂存先登记）；`source/`（Copilot、Claude、Cursor、Max 的规则，证据，`regions.yaml` 的“港X”和“臺中”，Loon 目标版本）；`tools/`（`check_mutations.py` 的口径和基线、`check_real_routes.py` 的 `_close_gently`、`real_data.py`、`run_checks.sh` 的 `PYTHON`）；`handoff/release/`（`pack.py`、`verify_package.sh`、`package_check.py`、`selftest_package.py`、`code_state.sh`）；`.gitignore`、`.gitattributes`。
 5. **测试和变异**：测试 349 → 369 项；变异 210 → 248 类（M211–M248；M14、M70、M102、M107、M182 跟着改写）。样例节点 19 → 26 个（三份复核加的七个）。
