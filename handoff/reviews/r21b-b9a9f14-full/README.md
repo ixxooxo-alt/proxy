@@ -54,3 +54,13 @@
 位置：[source/services/ai.yaml:140](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/source/services/ai.yaml#L140) 的 github_copilot.rules；需求见 [docs/00-需求原文.md:155](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/docs/00-需求原文.md#L155)。GitHub [现行 Copilot 官方网络清单](https://docs.github.com/en/copilot/reference/copilot-allowlist-reference#specific-required-domains) 已列出七个特定的 Azure Web PubSub 主机，用于浏览器实时事件和状态更新，并明确不建议放行整个共享后缀。规则源没有为这批主机指定 Copilot。以其中的公开服务域名 `production-copilot-host.webpubsub.azure.com` 输入仓库路由模拟器，20/20 份配置在现有样本数据下都返回“国外默认”；已有的 Copilot suggestions 主机则 20/20 返回“Copilot”。
 
 影响：用户给两个组选择不同出口时，连接不会遵守 Copilot 的选择；默认都选日本时可能看不出差别。真实客户端是否会断流没有实测，远程集合更新也可能改变兜底结果。建议只把官网列出的七个完整主机加到 Copilot，并用一个同后缀但不属于 Copilot 的对照名防止误收其他租户。
+
+### F05 · 打包会把工程中的非默认私密文件收进去
+
+**类别：安全或泄漏 · 高；发布链，有条件。**
+
+位置：[handoff/release/pack.py:29](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/handoff/release/pack.py#L29)、[handoff/release/pack.py:55](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/handoff/release/pack.py#L55)、[build.py:202](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/build.py#L202)、[README.zh-CN.md:54](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/README.zh-CN.md#L54)。打包遍历工作目录，只排除字面上的 dist/private/ 和 source/local.yaml；它不按被审提交的文件清单收包。正常 CLI 的 --out 可以改输出目录，README 还允许从本地 YAML 读节点。若这两类文件留在工程内，一个未跟踪的输入文件或自选输出目录下的 private 都可能被打进要公开交付的 ZIP。
+
+用无敏感数据的路径测试 wanted() 和 git check-ignore：默认 dist/private 下的配置被两者排除，export/private 下同名文件却被允许打包、Git 也不忽略；仓库根的普通节点输入 YAML 同样如此。README 第 68 行说可分享的范围还应明确为“只分享公开清单中的文件，不能整个复制含 private 子目录的 dist”。没有发现本次提交含真实订阅，也没有据此认定原 ZIP 泄漏。
+
+建议正式发布从指定提交的对象或干净检出、按受控文件清单打包；没有 Git 时用明确的交付清单并拒绝额外文件。验收应覆盖非默认输出、仓库内未跟踪输入和多出的敏感目录；内容扫描不能替代文件边界。
