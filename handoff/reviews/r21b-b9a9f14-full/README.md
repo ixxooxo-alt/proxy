@@ -96,3 +96,11 @@
 位置：[build.py:143](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/build.py#L143) 至第 153 行、[.gitignore:10](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/.gitignore#L10)。暂存文件要等 write 和文件关闭都成功才加入清理列表。以无害文本模拟“写入一部分后报 I/O 错”，最终目标没有被替换，但本轮的 .new- 后缀文件留在目录。忽略规则 .new-* / .bak-* 只匹配以点开头的文件名，git check-ignore 对实际的 generated.yaml.new-123 不匹配。默认 private 目录仍整体忽略；这不是已经泄漏的证据。
 
 建议在创建暂存文件成功后就登记清理，保证当前失败项也能移除；忽略规则按实际文件名匹配。回归测试检查目标保持原样、目录里也没有本次暂存残片。
+
+### F10 · 私密产物对比脚本不能使用相对输出路径
+
+**类别：建议 · 低；一次性验收工具。**
+
+位置：[handoff/notes/r21_private_vs_r20.py:32](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/handoff/notes/r21_private_vs_r20.py#L32) 至第 47 行。输出根目录若是相对路径，传给子进程的节点文件和 --out 也是相对路径，而子进程又把 cwd 改到了其下的子目录，结果重复拼了目录。实际以相对输出目录运行，第一轮构建即报告 FileNotFoundError；对同一输入改成绝对路径后通过，24 份私密产物的对比输出与仓库存档逐字节相同。
+
+建议解析参数时就转成绝对路径，或保证传给子进程的路径相对于它实际使用的 cwd。发布时已成功那一次的对比结论不受影响；manifest 仍按脚本约定整份排除。
