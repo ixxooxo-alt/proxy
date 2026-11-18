@@ -1,0 +1,6 @@
+[发现] M245 Cursor 的新登录域名 spacexsi.com 又不收（第三份复核 F02）：Ran 369 tests in 347.390s / FAILED (failures=5, skipped=2)；失败项 ['test_all_cases_all_clients.test_all_cases_all_clients', 'test_emulator_agrees_with_recorded_official_cores.test_emulator_agrees_with_recorded_official_cores', 'test_expectations_hold_with_real_sets.test_expectations_hold_with_real_sets', 'test_recorded_dial_runs_used_the_current_dial_config.test_recorded_dial_runs_used_the_current_dial_config', 'test_recorded_official_runs_used_the_current_rules.test_recorded_official_runs_used_the_current_rules']；输出含预期信息
+[发现] M246 SOCKS5 接收端拒绝以后又直接关（发 RST，第二份复核 C9、第三份 F05）：Ran 369 tests in 340.060s / FAILED (errors=1, skipped=2)；失败项 ['test_refusal_ends_with_fin_not_rst.test_refusal_ends_with_fin_not_rst']；输出含预期信息
+[发现] M247 read_remote 又只认 os.sep（第三份复核 F06）：Ran 369 tests in 345.400s / FAILED (failures=1, skipped=2)；失败项 ['test_read_remote_recognises_clash_lists_with_either_slash.test_read_remote_recognises_clash_lists_with_either_slash']；输出含预期信息
+[发现] M248 写盘前检查不再核对 multiplex 写在哪种出站上（第二份复核 C2）：Ran 369 tests in 351.449s / FAILED (failures=1, skipped=2)；失败项 ['test_detects_values_singbox_does_not_accept.test_detects_values_singbox_does_not_accept']；输出含预期信息
+合计 4/4 被发现
+exit 0
