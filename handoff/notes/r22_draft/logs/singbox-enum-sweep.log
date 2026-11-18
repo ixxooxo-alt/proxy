@@ -1,3 +1,8 @@
+运行时间（UTC）：2026-11-18 07:40:44
+Python：Python 3.13.18，PyYAML：6.0.3
+提交：166f5e4；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 -B handoff/notes/r22_singbox_enum_sweep.py /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box
+
 sing-box version 1.14.1
 sing-box version 1.12.0
 
@@ -11,8 +16,8 @@ Shadowsocks 加密方式（cipher → method）
   2022-blake3-aes-256-gcm: 1.14.1 认，1.12.0 认
   2022-blake3-chacha20-poly1305: 1.14.1 认，1.12.0 认
   none: 1.14.1 认，1.12.0 认
-  plain: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: plain
-  dummy: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: dummy
+  plain: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: plain
+  dummy: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: dummy
   aes-128-ctr: 1.14.1 认，1.12.0 认
   aes-192-ctr: 1.14.1 认，1.12.0 认
   aes-256-ctr: 1.14.1 认，1.12.0 认
@@ -20,25 +25,25 @@ Shadowsocks 加密方式（cipher → method）
   aes-192-cfb: 1.14.1 认，1.12.0 认
   aes-256-cfb: 1.14.1 认，1.12.0 认
   rc4-md5: 1.14.1 认，1.12.0 认
-  rc4: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: rc4
+  rc4: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: rc4
   chacha20-ietf: 1.14.1 认，1.12.0 认
-  chacha20: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: chacha20
+  chacha20: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: chacha20
   xchacha20: 1.14.1 认，1.12.0 认
-  aes-128-ccm: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aes-128-ccm
-  aes-256-ccm: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aes-256-ccm
-  aes-128-gcm-siv: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aes-128-gcm-siv
-  aes-256-gcm-siv: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aes-256-gcm-siv
-  chacha8-ietf-poly1305: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: chacha8-ietf-poly1305
-  xchacha8-ietf-poly1305: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: xchacha8-ietf-poly1305
-  2022-blake3-chacha8-poly1305: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: 2022-blake3-chacha8-poly1305
-  lea-128-gcm: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: lea-128-gcm
-  rabbit128-poly1305: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: rabbit128-poly1305
-  aegis-128l: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aegis-128l
-  aegis-256: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aegis-256
-  aez-384: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: aez-384
-  deoxys-ii-256-128: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: deoxys-ii-256-128
-  AES-128-GCM: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: AES-128-GCM
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown method: not-a-real-value-xyz
+  aes-128-ccm: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aes-128-ccm
+  aes-256-ccm: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aes-256-ccm
+  aes-128-gcm-siv: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aes-128-gcm-siv
+  aes-256-gcm-siv: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aes-256-gcm-siv
+  chacha8-ietf-poly1305: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: chacha8-ietf-poly1305
+  xchacha8-ietf-poly1305: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: xchacha8-ietf-poly1305
+  2022-blake3-chacha8-poly1305: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: 2022-blake3-chacha8-poly1305
+  lea-128-gcm: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: lea-128-gcm
+  rabbit128-poly1305: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: rabbit128-poly1305
+  aegis-128l: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aegis-128l
+  aegis-256: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aegis-256
+  aez-384: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: aez-384
+  deoxys-ii-256-128: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: deoxys-ii-256-128
+  AES-128-GCM: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: AES-128-GCM
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown method: not-a-real-value-xyz
   两个版本都认：['aes-128-gcm', 'aes-192-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305', 'xchacha20-ietf-poly1305', '2022-blake3-aes-128-gcm', '2022-blake3-aes-256-gcm', '2022-blake3-chacha20-poly1305', 'none', 'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr', 'aes-128-cfb', 'aes-192-cfb', 'aes-256-cfb', 'rc4-md5', 'chacha20-ietf', 'xchacha20']
 
 VMess 加密（cipher → security）
@@ -48,28 +53,28 @@ VMess 加密（cipher → security）
   aes-128-gcm: 1.14.1 认，1.12.0 认
   chacha20-poly1305: 1.14.1 认，1.12.0 认
   aes-128-cfb: 1.14.1 认，1.12.0 认
-  aes-128-ctr: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: vmess: unsupported security type: aes-128-ctr
-  legacy: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: vmess: unsupported security type: legacy
-  AUTO: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: vmess: unsupported security type: AUTO
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: vmess: unsupported security type: not-a-real-value-xyz
+  aes-128-ctr: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: vmess: unsupported security type: aes-128-ctr
+  legacy: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: vmess: unsupported security type: legacy
+  AUTO: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: vmess: unsupported security type: AUTO
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: vmess: unsupported security type: not-a-real-value-xyz
   两个版本都认：['auto', 'none', 'zero', 'aes-128-gcm', 'chacha20-poly1305', 'aes-128-cfb']
 
 VLESS flow
   xtls-rprx-vision: 1.14.1 认，1.12.0 认
-  xtls-rprx-vision-udp443: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unsupported flow: xtls-rprx-vision-udp443
-  xtls-rprx-direct: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unsupported flow: xtls-rprx-direct
-  xtls-rprx-origin: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unsupported flow: xtls-rprx-origin
-  xtls-rprx-splice: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unsupported flow: xtls-rprx-splice
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unsupported flow: not-a-real-value-xyz
+  xtls-rprx-vision-udp443: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unsupported flow: xtls-rprx-vision-udp443
+  xtls-rprx-direct: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unsupported flow: xtls-rprx-direct
+  xtls-rprx-origin: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unsupported flow: xtls-rprx-origin
+  xtls-rprx-splice: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unsupported flow: xtls-rprx-splice
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unsupported flow: not-a-real-value-xyz
   两个版本都认：['xtls-rprx-vision']
 
 TUIC congestion-controller（→ congestion_control）
   cubic: 1.14.1 认，1.12.0 认
   new_reno: 1.14.1 认，1.12.0 认
   bbr: 1.14.1 认，1.12.0 认
-  newreno: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown congestion control algorithm: newreno
-  bbr_meta_v1: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown congestion control algorithm: bbr_meta_v1
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown congestion control algorithm: not-a-real-value-xyz
+  newreno: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown congestion control algorithm: newreno
+  bbr_meta_v1: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown congestion control algorithm: bbr_meta_v1
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown congestion control algorithm: not-a-real-value-xyz
   两个版本都认：['cubic', 'new_reno', 'bbr']
 
 TUIC udp-relay-mode（→ udp_relay_mode）
@@ -94,23 +99,24 @@ client-fingerprint（→ tls.utls.fingerprint）
   chrome_padding_psk_shuffle: 1.14.1 认，1.12.0 认
   chrome_pq: 1.14.1 认，1.12.0 认
   chrome_pq_psk: 1.14.1 认，1.12.0 认
-  chrome120: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: chrome120
-  firefox120: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: firefox120
-  safari16: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: safari16
-  randomizednoalpn: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: randomizednoalpn
-  none: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: none
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown uTLS fingerprint: not-a-real-value-xyz
+  chrome120: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: chrome120
+  firefox120: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: firefox120
+  safari16: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: safari16
+  randomizednoalpn: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: randomizednoalpn
+  none: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: none
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown uTLS fingerprint: not-a-real-value-xyz
   两个版本都认：['chrome', 'firefox', 'edge', 'safari', '360', 'qq', 'ios', 'android', 'random', 'randomized', 'chrome_psk', 'chrome_psk_shuffle', 'chrome_padding_psk_shuffle', 'chrome_pq', 'chrome_pq_psk']
 
 smux protocol（→ multiplex.protocol）
   smux: 1.14.1 认，1.12.0 认
   yamux: 1.14.1 认，1.12.0 认
   h2mux: 1.14.1 认，1.12.0 认
-  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: unknown protocol: not-a-real-value-xyz
+  not-a-real-value-xyz: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: unknown protocol: not-a-real-value-xyz
   两个版本都认：['smux', 'yamux', 'h2mux']
 
 Reality（不带 uTLS / 带 uTLS chrome）
-  不带 uTLS: 1.14.1 不认，1.12.0 不认；[31mFATAL[0m[0000] initialize outbound[0]: uTLS is required by reality client
+  不带 uTLS: 1.14.1 不认，1.12.0 不认；FATAL[0000] initialize outbound[0]: uTLS is required by reality client
   带 uTLS chrome: 1.14.1 认，1.12.0 认
 
 对照都被拒绝，结果可用
+退出码：0

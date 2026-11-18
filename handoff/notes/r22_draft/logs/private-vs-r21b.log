@@ -1,0 +1,59 @@
+运行时间（UTC）：2026-11-18 07:40:23
+Python：Python 3.13.18，PyYAML：6.0.3
+提交：166f5e4；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 -B handoff/notes/r22_private_vs_r21b.py <r21b> <repo> <work>/r22-private-cmp
+
+r21b：build.py 退出码 0
+当前：build.py 退出码 0
+私密产物：loon-simple-strict.conf、loon-simple.conf、loon-strict.conf、loon.conf、manifest.json、mihomo-core.yaml、mihomo-profile.yaml、mihomo-simple-core.yaml、mihomo-simple-profile.yaml、quantumultx-simple-strict.conf、quantumultx-simple.conf、quantumultx-strict.conf、quantumultx.conf、sing-box-1.12.json、sing-box-1.14.json、sing-box-simple-1.12.json、sing-box-simple-1.14.json、sing-box-节点转换报告.txt、stash-simple-strict.yaml、stash-simple.yaml、stash-strict.yaml、stash.yaml、节点分组报告.txt、请勿分享.txt
+
+loon-simple-strict.conf：去掉注释以后：Loon 的 General 2 行；地区筛选正则 8 行；新收的规则 23 行；Loon 的 General（旧） 3 行；地区筛选正则（旧） 8 行
+
+loon-simple.conf：去掉注释以后：Loon 的 General 2 行；地区筛选正则 8 行；新收的规则 23 行；Loon 的 General（旧） 3 行；地区筛选正则（旧） 8 行
+
+loon-strict.conf：去掉注释以后：Loon 的 General 2 行；地区筛选正则 13 行；新收的规则 23 行；Loon 的 General（旧） 3 行；地区筛选正则（旧） 13 行
+
+loon.conf：去掉注释以后：Loon 的 General 2 行；地区筛选正则 13 行；新收的规则 23 行；Loon 的 General（旧） 3 行；地区筛选正则（旧） 13 行
+
+manifest.json：不逐项比；本身核对：outputs 列了 22 个文件，摘要都相符，版本和公开 manifest 相同，not_refreshed 是空的
+
+mihomo-core.yaml：新收的规则 46 处；联网检测域名交给国内 DNS 3 处；地区筛选正则 25 处
+
+mihomo-profile.yaml：新收的规则 46 处；联网检测域名交给国内 DNS 3 处；地区筛选正则 25 处
+
+mihomo-simple-core.yaml：新收的规则 46 处；联网检测域名交给国内 DNS 3 处；地区筛选正则 9 处
+
+mihomo-simple-profile.yaml：新收的规则 46 处；联网检测域名交给国内 DNS 3 处；地区筛选正则 9 处
+
+quantumultx-simple-strict.conf：去掉注释以后：地区筛选正则 8 行；新收的规则 23 行；地区筛选正则（旧） 8 行
+
+quantumultx-simple.conf：去掉注释以后：地区筛选正则 8 行；新收的规则 23 行；地区筛选正则（旧） 8 行
+
+quantumultx-strict.conf：去掉注释以后：地区筛选正则 25 行；新收的规则 23 行；地区筛选正则（旧） 25 行
+
+quantumultx.conf：去掉注释以后：地区筛选正则 25 行；新收的规则 23 行；地区筛选正则（旧） 25 行
+
+sing-box-1.12.json：去掉新收的规则和 reverse_mapping、照预期改了节点以后相同
+
+sing-box-1.14.json：去掉新收的规则和 reverse_mapping、照预期改了节点以后相同
+
+sing-box-simple-1.12.json：去掉新收的规则和 reverse_mapping、照预期改了节点以后相同
+
+sing-box-simple-1.14.json：去掉新收的规则和 reverse_mapping、照预期改了节点以后相同
+
+sing-box-节点转换报告.txt：第一行相同；少了 HY2 的跳过一行，多了 Trojan、HY2 的提示和 HTTPS 的跳过三行
+
+stash-simple-strict.yaml：地区筛选正则 8 处；新收的规则 23 处
+
+stash-simple.yaml：地区筛选正则 8 处；新收的规则 23 处
+
+stash-strict.yaml：地区筛选正则 25 处；新收的规则 23 处
+
+stash.yaml：地区筛选正则 25 处；新收的规则 23 处
+
+节点分组报告.txt：逐字节相同
+
+请勿分享.txt：逐字节相同
+
+全部符合：24 份私密产物里，只有这一版有意改的地方不同；私密 manifest 本身核对过
+退出码：0

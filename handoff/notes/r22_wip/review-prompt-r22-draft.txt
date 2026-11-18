@@ -1,0 +1,29 @@
+请审核 GitHub 公开仓库 ixxooxo-alt/proxy 的 r22 送审稿：分支 claude/r12-gpt-review-handling-q4onlv 的提交 ⟦DOCS⟧（代码在它的上一个提交 ⟦CODE⟧ 里，后面只改了文档和检查日志）。
+上一个发布版是 main 上的 r21b（a6671c1）；送审稿相对的基准是会话分支的 b9a9f14（r21b 加两个只改文档的提交，配置相同）。对比页面：https://github.com/ixxooxo-alt/proxy/compare/b9a9f14...⟦DOCS⟧
+打不开 GitHub 的话，看附件 ⟦ZIP⟧：它是同一个提交的完整工程（没有 .git 和带订阅的私密产物）。
+
+背景：这个仓库从一份规则源（source/）用生成器（generator/、build.py）生成 Loon、Quantumult X、mihomo、sing-box（SFA）、Stash 五种客户端的分流配置（dist/，25 个公开产物，订阅是占位符）。2026-11-18 同一天有三份对 b9a9f14 的完整审核：审核 PR #10（报告在 docs/evidence/review-r21b-full/）和使用者在对话里贴来的两份（docs/evidence/review-r21b-full-2/、-3/）。r22 送审稿处理了这三份报告，另外按使用者的清单把 10 个 Claude 域名收进 Claude 组。逐条核实和处理在 docs/08-外部审核记录.md 第 21、22、23 轮；这一版改了什么、请重点看哪里在 00-审核说明.md 最前面两节。送审稿只跑了快速检查（handoff/notes/r22_draft/，日志在 logs/），全套检查（变异检查全部 248 类、tools/run_checks.sh）等审完再跑；docs/05 仍是 r21 的验收记录。
+
+请重点看：
+1. 三份报告的逐条核实对不对，处理有没有做错、做漏，特别是没有照建议做的几处：第 21 轮 F01（Trojan 照 mihomo 一律开 TLS、报告里提示，不跳过）、F08（私密目录的旧文件标出来、不删）；第 22 轮 C1 的 ipv6-vif = off（我们认为会让 IPv6 绕过 Loon，是推断）、C3（报告说 mihomo 保留前导零，我们按 go.yaml.in/yaml/v3 v3.0.5 的 resolve.go 核对不是这样）、C5（没有把“港”后面的排除扩到澳加俄印土）。
+2. SFA 节点转换的改动（generator/nodes.py）：会不会把 mihomo 和 sing-box 都能用的节点误跳过；SubscriptionLoader 和 go-yaml v3 的读法还有哪里不同；取值白名单（handoff/notes/r22_singbox_enum_sweep.py 用官方程序逐个核对的）够不够、有没有过严。
+3. DNS 的三处改动：mihomo 的 nameserver-policy 按整份“要真实地址的名单”写；固定直连的服务参加 DNS 分层（emit_mihomo.product_dns_policy、emit_singbox.dns_layers）；sing-box 开 dns.reverse_mapping 的副作用。
+4. Loon：ip-mode = v4-only、dns-reject-mode = LOOPBACKIP、去掉 switch-node-after-failure-times、目标版本 3.2.5 (789)；依据是官方“通用配置”页 https://nsloon.app/docs/General/。
+5. 节点名分地区（source/regions.yaml）：“港台 / 港臺 / 港新”成了香港的词、“港坡”归新加坡、“港德 / 港英 / 港法 / 港欧”归其他地区、“臺中”加了排除；会不会把常见的节点名分错（tools/check_node_names.py、tools/check_icu.py 可以跑）。
+6. 打包和验包（handoff/release/pack.py、verify_package.sh、package_check.py、selftest_package.py）：先提交、只从提交打包；验包的判定和清理有没有漏洞。
+7. 测试和变异是不是真的管住了这些改动（tests/、tools/check_mutations.py 的 M211–M248 和收紧后的“发现”口径、基线预检）；文档里还有没有旧说法、数字和日志对不对得上。
+
+能运行的话（需要 Python 3.10+ 和 PyYAML）：
+  python3 build.py --check                                  # 产物与规则源一致
+  python3 -m unittest discover -s tests                     # 369 项，约 5 分钟（Windows 上请说明有没有跳过的）
+  python3 tools/check_mutations.py --check-edits            # 248 类变异的改动都能套上；只跑几类：python3 tools/check_mutations.py M211 M225 M240
+  python3 -B handoff/release/selftest_package.py            # 打包验包自测（要 git；HEAD 要是审核的提交）
+  官方内核和真实数据的检查（tools/check_official.py、tools/check_real_routes.py）用法见 00-审核说明.md“可以运行的检查”。
+
+输出要求：
+- 开头先写总的结论：有没有确定的导入失败、分流错误、泄漏；送审稿能不能定稿。
+- 每个问题写明：文件和具体位置、为什么错、依据（官方文档链接或源码位置）、建议怎么改；标明严重程度（导入失败 / 分流错误 / 安全或泄漏 / 文档不符 / 建议）。
+- 能确认的问题和推测的问题分开写；拿不出依据的，不要当成错误报。已经写明的限制和取舍不用重复报，但如果你认为某个取舍本身不对，请指出。
+- 写清验证边界：实际运行了什么、看了哪些文件、哪些没做（例如没有真机）。
+- 能开 PR 的话：base 选 claude/r12-gpt-review-handling-q4onlv（不要选 main），不要合并，不要直接推送到任何已有分支，一个问题一个提交；不要改 dist/、docs/evidence/、docs/00-需求原文.md。开不了 PR 就写报告。
+- 仓库是公开的：报告和 PR 里不要放订阅链接、节点信息和任何凭据，也不要放你本机的目录路径。

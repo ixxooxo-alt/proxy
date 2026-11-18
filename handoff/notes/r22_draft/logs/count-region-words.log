@@ -1,0 +1,7 @@
+运行时间（UTC）：2026-11-18 07:40:34
+提交：166f5e4（这个脚本只读 tests/ 和 generator/，它们和提交相同）
+命令：python3 -B handoff/notes/r22_draft/count_region_words.py <r21b> <repo>
+
+base-r21b：词和国旗 399 个，写法 126 种，名字 49976 个
+proxy：词和国旗 402 个，写法 126 种，名字 50354 个
+退出码：0
