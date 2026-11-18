@@ -36,3 +36,13 @@
 位置：[generator/nodes.py:41](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L41)、[generator/nodes.py:55](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L55)、[README.zh-CN.md:66](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/README.zh-CN.md#L66)。YAML 布尔值 false 和字符串 "false" 不同；Python 对非空字符串取 bool 总为真。用启用 TLS 的合成 HTTP 输入核对：后者生成 `tls.insecure: true`，转换报告没有提示。普通布尔 false 不受影响。
 
 依据：[mihomo v1.19.31 adapter/parser.go:15](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/parser.go#L15) 使用结构体解码；[mihomo v1.19.31 common/structure/structure.go:233](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/common/structure/structure.go#L233) 的布尔解码接受布尔值以及弱类型模式下的整数，不把字符串当成真。源端可拒绝的输入不能在转换后悄悄放宽验证。建议在读取布尔字段时先检查类型，无法无歧义映射就跳过并报告；一起检查 TLS 开关、UDP 和插件等直接用 Python 真值判断的位置。测试至少覆盖原生 false、原生 true 和引号里的 false。没有证据表明公开模板或现用订阅触发过。
+
+### F03 · 合法的 packet 别名无法建立 sing-box 出站
+
+**类别：导入失败（准确说是初始化失败）· 高；仅相关订阅。**
+
+位置：[generator/nodes.py:274](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L274)、[generator/nodes.py:294](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/nodes.py#L294)；写盘前 [generator/verify.py:240](https://github.com/ixxooxo-alt/proxy/blob/b9a9f14598d300495859c6390559646e5c81254f/generator/verify.py#L240) 查标签和组结构，不校验这个节点枚举。使用仓库自带的 VMess、VLESS 样例，只把 UDP 封装改成 mihomo 支持的 `packet`，完整生成返回 0；完整版/简易版、1.12/1.14 四份私密 JSON 都保留了 `packet_encoding: "packet"`。
+
+依据：[mihomo v1.19.31 adapter/outbound/vmess.go:490](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vmess.go#L490)、[mihomo v1.19.31 adapter/outbound/vless.go:474](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vless.go#L474) 把 packet 和 packetaddr 当成同一模式；sing-box [VMess 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/vmess/outbound.go#L76)、[VLESS 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/vless/outbound.go#L78)、[VMess 1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/vmess/outbound.go#L70)、[VLESS 1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/vless/outbound.go#L65) 均不接受该别名，构造出站会返回 unknown packet encoding。生成结果已实测；目标内核结论来自固定版本源码，不是手机导入实测。
+
+建议转换时按协议将 packet 归一成 packetaddr，其他值按两个内核的实际枚举处理；无法表达的明确跳过。在官方内核的带节点验收中加入这两个样例，不只断言 JSON 能解析。
