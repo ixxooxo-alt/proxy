@@ -16,7 +16,8 @@ r22 送审稿（2026-11-18：三份全项目复核和使用者的 Claude 域名�
                                工具只给当前版本的简易版筛选（全部节点、Stash 全部节点、境外DNS）起了名字，这一版“港”的正则变了，r21b 的对不上。
                                不影响配置；定稿前改工具（旧版的这几条也起名、补测试），记进 docs/08 第 23 轮
     mutations-check-edits.log  248 类变异的改动都能套到当前代码上
-    selftest-package.log       打包、验包脚本的自测（好包、坏包、删除前的判断）
+    selftest-package.log       打包、验包脚本的自测（好包、坏包、删除前的判断）。打送审稿的包时发现 pack.py 漏收 .gitattributes，改了（提交 be463a1），
+                               这份是改完以后在 be463a1 上重跑的，共 24 项通过（run_quick.sh 那一次也是 24 项通过）
     private-vs-r21b.log        handoff/notes/r22_private_vs_r21b.py：带本地补充、虚构订阅和节点的私密产物，相对 r21b 只差有意改的地方；私密 manifest 本身也核对
     singbox-enum-sweep.log     handoff/notes/r22_singbox_enum_sweep.py：sing-box 1.14.1、1.12.0 认哪些取值
   另外（不在 run_quick.sh 里）：

@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-11-18 07:39:09
+运行时间（UTC）：2026-11-18 13:16:49
 Python：Python 3.13.18，PyYAML：6.0.3
-提交：166f5e4；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：be463a1；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同（pack.py 改了以后重跑；这一步不在 run_quick.sh 那一次里）
 命令：python3 -B handoff/release/selftest_package.py
 
 [符合] pack.py 从干净的克隆打包
