@@ -1,5 +1,5 @@
 # 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
-# 统一源版本 2026.10.31-1；目标：Stash（按 2026-10-13 下载的官方文档写，当时最新是 iOS 3.4.0、macOS 4.2.0；没有用到文档标了 iOS 3.6 / macOS 4.3 才有的写法；更早的版本没有核对）
+# 统一源版本 2026.11.18-1；目标：Stash（按 2026-10-13 下载的官方文档写，当时最新是 iOS 3.4.0、macOS 4.2.0；没有用到文档标了 iOS 3.6 / macOS 4.3 才有的写法；更早的版本没有核对）
 # 适用：iPhone / iPad / Mac 共用同一份配置。Stash 没有能在电脑上运行的内核，这份配置只按官方文档核对过，导入后请按 docs/09 验收。
 # 这是【简易版】（2026.10.31-2）：每个地区一个组，里面直接是这个地区的全部节点，点哪个用哪个；选中的节点挂了不会自动换，要换就回组里点别的。
 # “国外默认”是七个地区，后面接全部节点（首次默认日本）。分流规则和 DNS 与完整版 stash.yaml 相同，只是策略组不同（说明见 docs/10）。
@@ -608,6 +608,13 @@ rules:
   - DOMAIN,origin-tracker.githubusercontent.com,Copilot
   - DOMAIN,copilot-telemetry.githubusercontent.com,Copilot
   - DOMAIN,copilot-reports.github.com,Copilot
+  - DOMAIN,production-copilot-host.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-centralus.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-centralus-02.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-eastasia.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-austriaeast.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-westus.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-westus3.webpubsub.azure.com,Copilot
   - DOMAIN,copilot-workspace.githubnext.com,Copilot
   - DOMAIN,copilotprodattachments.blob.core.windows.net,Copilot
   # -- microsoft_copilot --

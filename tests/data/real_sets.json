@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1639,
+    "from_rules": 1646,
     "from_sets": 222448,
-    "hosts": 224087,
+    "hosts": 224094,
     "sets": {
      "cn": 111224
     },
@@ -103,9 +103,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1552,
+    "from_rules": 1559,
     "from_sets": 17996,
-    "hosts": 19548,
+    "hosts": 19555,
     "sets": {
      "geosite-cn": 9303
     },
@@ -123,9 +123,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1552,
+    "from_rules": 1559,
     "from_sets": 17996,
-    "hosts": 19548,
+    "hosts": 19555,
     "sets": {
      "geosite-cn": 9303
     },
@@ -137,7 +137,7 @@
    "to_domestic": 17701
   }
  },
- "generated": "2026-10-17",
+ "generated": "2026-11-18",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -1220,6 +1220,19 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:cursor.com"
+   }
+  },
+  "example-tenant.webpubsub.azure.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:azure.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:azure.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:azure.com"
    }
   },
   "example.cn": {
@@ -2320,6 +2333,32 @@
    "quantumultx": {},
    "singbox": {},
    "stash": {}
+  },
+  "production-copilot-host-eastasia.webpubsub.azure.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:azure.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:azure.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:azure.com"
+   }
+  },
+  "production-copilot-host.webpubsub.azure.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:azure.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:azure.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:azure.com"
+   }
   },
   "proxy.golang.org": {
    "loon": {},
@@ -4015,7 +4054,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "0cf2064446b69c5423dc72b781c1ca4979801afa6f56df1467934ba313e4dd87",
+   "config_sha256": "3c08a49ac1836d749e843cf32da74c3d5586ee41a04b02b674309ea30943af0e",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -4038,7 +4077,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "dae91fb882d9a81dd29b770e42b06ce39b66e9a7d80019c2b38ff140963d3fcd",
+   "dial_sha256": "877aa3dec50887da87fa7c85abb9970bb69526cf373d6b7ebe1adb57a4b97b24",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -4623,6 +4662,10 @@
      "DomainSuffix(cursor.com)",
      "Grok"
     ],
+    "example-tenant.webpubsub.azure.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
     "example.cn": [
      "GeoSite(cn)",
      "国内直连"
@@ -4970,6 +5013,14 @@
     "prod.hjholdings.tv": [
      "DomainSuffix(prod.hjholdings.tv)",
      "Hulu Japan"
+    ],
+    "production-copilot-host-eastasia.webpubsub.azure.com": [
+     "Domain(production-copilot-host-eastasia.webpubsub.azure.com)",
+     "Copilot"
+    ],
+    "production-copilot-host.webpubsub.azure.com": [
+     "Domain(production-copilot-host.webpubsub.azure.com)",
+     "Copilot"
     ],
     "proxy.golang.org": [
      "Domain(proxy.golang.org)",
@@ -5356,12 +5407,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "695173c241fe15e679197326e2694fb6c53ef70de142e30decb8b3d8996243c8",
+   "routing_sha256": "999b72aa1ce3ac757793ca6a5d930829122896125bdc93d96a55ddfe0734a311",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "358c74a69ac93197bfe50af0575c90936741b744e3df150114757b9b2bfabdda",
+   "config_sha256": "fa7cc46e357785947dc63e65c2ecc0e32076cdfd0e5eecf25badb0353da5c66a",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5384,7 +5435,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "84f9c8e982489c7c5b14c160accc925bd1df3437507d8620b8ad2a8e9222bbf7",
+   "dial_sha256": "36ab888da945b3ce9f82dea308145d6cf2fd176353d3641830a9f5f93a774508",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5884,6 +5935,10 @@
      "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
      "Grok"
     ],
+    "example-tenant.webpubsub.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "example.cn": [
      "rule_set=geosite-cn",
      "国内直连"
@@ -6231,6 +6286,14 @@
     "prod.hjholdings.tv": [
      "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
      "Hulu Japan"
+    ],
+    "production-copilot-host-eastasia.webpubsub.azure.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "production-copilot-host.webpubsub.azure.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
     ],
     "proxy.golang.org": [
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
@@ -6617,12 +6680,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "7766b0c5ca3992034b2f3cafb7d952dadf29ca96a84a139dfcfecf70c51d21a4",
+   "routing_sha256": "36fcf3bf59e9893028e26d47f163ad5dac873813bc1134738a268d3b0b169032",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "32294f3515c29a3f1d8e86b85705b20a757413df12148fcee2e80efbed21920f",
+   "config_sha256": "86e781a0ec8adaeb4b92117566f293e36411e17c8fe228a4b7fb0dd62e73605b",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -6645,7 +6708,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "693dd6b4cd620ed521e741909a6c29a1542cd6242b21d5cf9057b22bf1aa7b72",
+   "dial_sha256": "22d24cdf3c5d0920405de16ccbcdf8b2e04ee97e0d02b879e138c9d3d1f31974",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -7145,6 +7208,10 @@
      "domain=anysphere-binaries.s3.us-east-1.amazonaws.com domain_suffix=[cursor.sh cursor-cdn.com cursorapi.com...]",
      "Grok"
     ],
+    "example-tenant.webpubsub.azure.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "example.cn": [
      "rule_set=geosite-cn",
      "国内直连"
@@ -7492,6 +7559,14 @@
     "prod.hjholdings.tv": [
      "domain_suffix=[hulu.jp happyon.jp hjholdings.jp...]",
      "Hulu Japan"
+    ],
+    "production-copilot-host-eastasia.webpubsub.azure.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
+    ],
+    "production-copilot-host.webpubsub.azure.com": [
+     "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
+     "Copilot"
     ],
     "proxy.golang.org": [
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
@@ -7878,7 +7953,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "5d92167bc5391c350d8c9d614ab2041058cf0fd9c39fbfdde3502afbda8fbc39",
+   "routing_sha256": "601b81771cea6d391fd6500df7d3e15b50db5fc51ce3ff37d6e7d4f2ffb14da7",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -7955,7 +8030,7 @@
    "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.10.17-1",
+ "source_version": "2026.11.18-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
@@ -7977,17 +8052,17 @@
   "mihomo": {
    "geoip.dat": {
     "bytes": 16515432,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-11-18 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "391b522361c52804e486a98b53d97f3d9c1d3e4e4217bb34954774a0b456b9fd"
    },
    "geoip.metadb": {
     "bytes": 8389459,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-11-18 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "2f9c61b9f261f0a06c2391500d4056d1ab27e738260a5531704c8625234821e2"
    },
    "geosite.dat": {
     "bytes": 4253623,
-    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-10-06 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
+    "origin": "MetaCubeX/meta-rules-dat 2026-10-05 的发布文件（release 分支 f7c0420），2026-11-18 按提交号取回，SHA-256 与 2026-10-05 下载的相同",
     "sha256": "79e7a395c57da61aeb3f68db01121c1a0730ab2bd1c8bbe4c0c327786e225134"
    }
   },
@@ -8001,22 +8076,22 @@
   "singbox": {
    "geoip-cn.srs": {
     "bytes": 34185,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出",
     "sha256": "ebee603fdf402314b44b9f653cdcf6d9cc9c41e84e2b3515e3123c5c920a93bc"
    },
    "geosite-category-ads-all.srs": {
     "bytes": 8244,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出",
     "sha256": "a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324"
    },
    "geosite-cn.srs": {
     "bytes": 56145,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出",
     "sha256": "fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c"
    },
    "geosite-geolocation-!cn.srs": {
     "bytes": 168020,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出",
     "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
    }
   },
@@ -8028,17 +8103,17 @@
    },
    "geosite-category-ads-all.srs": {
     "bytes": 8244,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出（近似 Stash 自带的 domain-list-community 数据）",
     "sha256": "a233c2e155fa8f984e8d3c48fd9c5ca9600e47889b91f6fe83e4ad5685ae5324"
    },
    "geosite-cn.srs": {
     "bytes": 56145,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出（近似 Stash 自带的 domain-list-community 数据）",
     "sha256": "fc4cb8e6db7107783c93ed1c65f81708f07189bc8452667d6bbdf92401fd6a8c"
    },
    "geosite-geolocation-!cn.srs": {
     "bytes": 168020,
-    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-10-06 检出（近似 Stash 自带的 domain-list-community 数据）",
+    "origin": "SagerNet/sing-geosite rule-set 分支 be94d52（2026-10-05）、sing-geoip rule-set 分支 7fe82a8（2026-09-12），2026-11-18 检出（近似 Stash 自带的 domain-list-community 数据）",
     "sha256": "30b1abf132e955f5770e1939132880fdd30120401907c06ee3b6606973e3d2d6"
    }
   }

@@ -220,3 +220,107 @@ class NodeConversionNegative(unittest.TestCase):
         ob = {o["tag"]: o for o in conf["outbounds"]}
         jp = [renamed.get(t, t) for t in ob["日本·手动"]["outbounds"]]
         self.assertIn("日本", jp, "改名后仍按订阅原名进入日本组")
+
+
+
+class FullReview20261118(unittest.TestCase):
+    """全项目复核（2026-11-18，docs/08 第 21 轮）F01–F03 和同一类：只能走 TLS 的协议、布尔字段的写法、packet-encoding 的取值。"""
+    BASE = {"server": "x.example.net", "port": 443}
+
+    def test_tls_only_protocols_keep_tls_whatever_the_subscription_says(self):
+        """F01：mihomo 的 Trojan、Hysteria2、TUIC、AnyTLS 没有 tls 开关（不认这个字段），订阅里写了 tls: false 也照样走 TLS。
+        以前 Trojan 按 tls: false 转成了不加密的出站。现在四种都开 TLS，并在报告里提一句。"""
+        cases = [{"type": "trojan", "password": "p"},
+                 {"type": "trojan", "password": "p", "network": "ws", "ws-opts": {"path": "/ws"}},
+                 {"type": "hysteria2", "password": "p"},
+                 {"type": "tuic", "uuid": "u", "password": "p"},
+                 {"type": "anytls", "password": "p", "udp": True}]
+        for c in cases:
+            for v in (False, "false", 0, None):
+                ob, rep = one({"name": "n", **self.BASE, **c, "tls": v, "sni": "x.example.net", "skip-cert-verify": False})
+                self.assertIsNotNone(ob, (c, v, rep))
+                self.assertEqual(ob["tls"], {"enabled": True, "server_name": "x.example.net"}, (c, v))
+                self.assertIn("只能走 TLS", rep, (c, v))
+            for extra in ({}, {"tls": True}):
+                ob, rep = one({"name": "n", **self.BASE, **c, **extra})
+                self.assertEqual(ob["tls"], {"enabled": True}, (c, extra))
+                self.assertEqual(rep, "", "没写 tls、或者写了 true，不用提")
+            ob, _ = one({"name": "n", **self.BASE, **c, "tls": False, "skip-cert-verify": True})
+            self.assertIs(ob["tls"]["insecure"], True, "订阅要求跳过证书校验的，照旧跳过")
+        # 真有 TLS 开关的协议（mihomo 的 VMess、VLESS、HTTP 有 tls 字段）：照订阅的开关
+        for c in ({"type": "vmess", "uuid": "u"}, {"type": "vless", "uuid": "u"}, {"type": "http"}):
+            ob, rep = one({"name": "n", **self.BASE, **c, "tls": False})
+            self.assertNotIn("tls", ob, c)
+            self.assertEqual(rep, "", c)
+            ob, _ = one({"name": "n", **self.BASE, **c, "tls": True})
+            self.assertEqual(ob["tls"], {"enabled": True}, c)
+
+    def test_boolean_fields_must_really_be_booleans(self):
+        """F02：带引号的 "false" 在 Python 里是真，以前 skip-cert-verify: "false" 反而跳过了证书校验。布尔字段只认 true / false
+        （和整数：mihomo 的解码器把整数按非零为真）；别的写法 mihomo 也读不了，跳过这个节点并说明是哪个字段。"""
+        ss = {"type": "ss", "cipher": "aes-128-gcm", "password": "p"}
+        bad = [({"type": "http", "tls": True, "skip-cert-verify": "false"}, "skip-cert-verify"),
+               ({"type": "trojan", "password": "p", "skip-cert-verify": "false"}, "skip-cert-verify"),
+               ({"type": "vmess", "uuid": "u", "tls": "true"}, "tls"),
+               ({"type": "vless", "uuid": "u", "tls": True, "skip-cert-verify": "no"}, "skip-cert-verify"),
+               ({**ss, "udp": "false"}, "udp"),
+               ({**ss, "tfo": "true"}, "tfo"),
+               ({**ss, "mptcp": "false"}, "mptcp"),
+               ({**ss, "udp-over-tcp": "false"}, "udp-over-tcp"),
+               ({**ss, "smux": {"enabled": "false"}}, "smux.enabled"),
+               ({**ss, "smux": {"enabled": True, "padding": "false"}}, "smux.padding"),
+               ({**ss, "plugin": "v2ray-plugin", "plugin-opts": {"mode": "websocket", "tls": "false"}}, "plugin-opts.tls"),
+               ({**ss, "plugin": "v2ray-plugin", "plugin-opts": {"mode": "websocket", "mux": "false"}}, "plugin-opts.mux"),
+               ({"type": "vmess", "uuid": "u", "network": "ws", "ws-opts": {"path": "/", "v2ray-http-upgrade": "false"}},
+                "ws-opts.v2ray-http-upgrade"),
+               ({"type": "vmess", "uuid": "u", "global-padding": "false"}, "global-padding"),
+               ({"type": "vmess", "uuid": "u", "authenticated-length": "false"}, "authenticated-length"),
+               ({"type": "tuic", "uuid": "u", "password": "p", "reduce-rtt": "false"}, "reduce-rtt"),
+               ({"type": "tuic", "uuid": "u", "password": "p", "disable-sni": "false"}, "disable-sni"),
+               ({"type": "socks5", "tls": "false"}, "tls"),
+               ({"type": "socks5", "skip-cert-verify": "false"}, "skip-cert-verify")]
+        for c, key in bad:
+            ob, rep = one({"name": "n", **self.BASE, **c})
+            self.assertIsNone(ob, c)
+            self.assertIn(f"{key} 应该是 true / false", rep, c)
+        ob, rep = one({"name": "n", **self.BASE, **ss, "smux": "true"})
+        self.assertIsNone(ob)
+        self.assertIn("smux 不是键值表", rep)
+        # 真正的布尔值和整数照常转换
+        good = [({**ss, "udp": 0}, lambda o: o["network"] == "tcp"),
+                ({**ss, "udp": 1}, lambda o: "network" not in o),
+                ({**ss, "udp": False}, lambda o: o["network"] == "tcp"),
+                ({"type": "http", "tls": True, "skip-cert-verify": False}, lambda o: o["tls"] == {"enabled": True}),
+                ({"type": "http", "tls": True, "skip-cert-verify": 0}, lambda o: o["tls"] == {"enabled": True}),
+                ({"type": "http", "tls": True, "skip-cert-verify": True}, lambda o: o["tls"]["insecure"] is True),
+                ({"type": "trojan", "password": "p", "skip-cert-verify": 1}, lambda o: o["tls"]["insecure"] is True),
+                ({"type": "socks5", "tls": False, "skip-cert-verify": False}, lambda o: "tls" not in o),
+                ({**ss, "plugin": "v2ray-plugin", "plugin-opts": {"mode": "websocket", "mux": 0}},
+                 lambda o: "mux=0" in o["plugin_opts"]),
+                ({**ss, "plugin": "v2ray-plugin", "plugin-opts": {"mode": "websocket", "mux": True, "tls": True}},
+                 lambda o: o["plugin_opts"] == "mode=websocket;tls;host=bing.com;mux=1"),
+                ({**ss, "smux": {"enabled": False}}, lambda o: "multiplex" not in o)]
+        for c, ok in good:
+            ob, rep = one({"name": "n", **self.BASE, **c})
+            self.assertIsNotNone(ob, (c, rep))
+            self.assertTrue(ok(ob), (c, ob))
+
+    def test_packet_encoding_values(self):
+        """F03：packet 是 mihomo 对 packetaddr 的另一种写法（v1.19.31 adapter/outbound/vmess.go、vless.go），sing-box 1.14.1 / 1.12.0
+        不认，建出站时报 unknown packet encoding。转换成 packetaddr；认不出的值跳过并报告。"""
+        for t, absent in (("vmess", None), ("vless", "xudp")):
+            base = {"name": "n", "type": t, **self.BASE, "uuid": "u", "udp": True}
+            for v, want in (("packet", "packetaddr"), ("packetaddr", "packetaddr"), ("xudp", "xudp"), ("", absent), (None, absent)):
+                ob, rep = one({**base, "packet-encoding": v})
+                self.assertEqual(ob.get("packet_encoding"), want, (t, v))
+                self.assertEqual(rep, "", (t, v))
+            ob, _ = one(base)
+            self.assertEqual(ob.get("packet_encoding"), absent, "没写时：VMess 不加，VLESS 照 mihomo 用 xudp")
+            ob, rep = one({**base, "packet-encoding": "foo"})
+            self.assertIsNone(ob)
+            self.assertIn("packet-encoding", rep)
+            # mihomo 另有 xudp、packet-addr 两个开关：没有映射，照旧报告并跳过
+            for k in ("xudp", "packet-addr"):
+                ob, rep = one({**base, k: True})
+                self.assertIsNone(ob, (t, k))
+                self.assertIn(k, rep)

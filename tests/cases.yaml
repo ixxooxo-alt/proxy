@@ -48,6 +48,9 @@ cases:
   - {host: api.githubcopilot.com, expect: Copilot, why: GitHub Copilot 在 GitHub 之前}
   - {host: api.individual.githubcopilot.com, expect: Copilot}
   - {host: copilot-proxy.githubusercontent.com, expect: Copilot}
+  - {host: production-copilot-host.webpubsub.azure.com, expect: Copilot, why: 网页上 Copilot 的实时连接，官方放行清单列出的 7 个主机之一（2026-11-18 全项目复核 F04）}
+  - {host: production-copilot-host-eastasia.webpubsub.azure.com, expect: Copilot}
+  - {host: example-tenant.webpubsub.azure.com, expect: 国外默认, why: 同一后缀上别人的 Azure Web PubSub 服务；只收官方列出的 7 个完整主机，不收后缀}
   - {host: raw.githubusercontent.com, expect: GitHub}
   - {host: github.com, expect: GitHub}
   - {host: copilot.microsoft.com, expect: Copilot, why: Microsoft Copilot 在 Microsoft 之前}

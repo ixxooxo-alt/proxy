@@ -3,10 +3,12 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 210 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 224 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理全项目复核时加了 M211–M224），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
+“发现”要三样都有（2026-11-18 起）：unittest 正常跑完、汇总是 FAILED（有 failures 或 errors）、失败列表不空；
+变异预设了由哪项测试或哪句断言发现时，输出里还要有它。以前只看返回值不为 0。
 认不出的参数（写错的选项、不存在的编号）为 2，什么都不跑。
 
 有一个变异（M45，回溯失控）只跑专门针对它的那一项测试：这种错误会让别的用到正则的测试卡住而不是报错，
@@ -49,11 +51,21 @@ def run_case(name, edits, expect_in_output=None, tests=None):
         out = r.stdout + r.stderr
         last = [l for l in out.splitlines() if l.startswith(("FAILED", "OK", "Ran "))]
         failing = sorted(set(re.findall(r"^(?:FAIL|ERROR): (\w+) \(([\w.]+)\)", out, re.M)))
-        caught = r.returncode != 0
+        # “发现”的口径（2026-11-18 起；GPT 审核 r21 的建议，docs/08 第 20 轮，handoff/README.md 第 18 节第 9 条）：
+        # 以前只看返回值，测试以外的原因异常退出也算“发现”。现在要 unittest 正常跑完（有 “Ran N tests” 和 FAILED 汇总，
+        # 汇总里有 failures 或 errors）、失败列表不空；变异写了预设的信息（预设由哪项测试、哪句断言发现）时，输出里还要有它——
+        # 别的测试失败、预设的那项没失败，说明预设的那一层没拦住，不算
+        finished = bool(re.search(r"^Ran \d+ tests? in ", out, re.M)) and \
+            bool(re.search(r"^FAILED \((?:failures|errors)=\d+", out, re.M))
+        expected = not expect_in_output or expect_in_output in out
+        caught = r.returncode != 0 and finished and bool(failing) and expected
         extra = "（只跑了 " + "、".join(t.split(".")[-1] for t in tests) + "）" if tests else ""
         if expect_in_output:
-            extra += "；输出含预期信息" if expect_in_output in out else "；未见预期信息"
-        print(f"[{'发现' if caught else '未发现'}] {name}：{' / '.join(last)}；"
+            extra += "；输出含预期信息" if expected else f"；未见预期信息（{expect_in_output}）"
+        if r.returncode != 0 and not caught:
+            extra += "；不算发现：" + ("测试没有正常跑完（没有 unittest 的 FAILED 汇总）" if not finished else
+                                    "失败列表是空的" if not failing else "预设的测试没有失败")
+        print(f"[{'发现' if caught else '未发现'}] {name}：{' / '.join(last) or '（没有 unittest 的汇总行）'}；"
               f"失败项 {[f'{c.split(chr(46))[-1]}.{t}' for t, c in failing]}{extra}", flush=True)
         return caught
     finally:
@@ -124,8 +136,9 @@ cases = [
         "local_tracking:\n", "local_tracking:\n  - {suffix: graph.instagram.com, ev: dlc, note: x}\n", 1))], "graph.instagram.com"),
     ("M13 HTTP 出站又写 network 字段（F01）", [("generator/nodes.py", lambda s: s.replace(
         'NETWORK_FIELD = {"shadowsocks",', 'NETWORK_FIELD = {"http", "shadowsocks",', 1))], "network"),
+    # 2026-11-18：mux 改成按布尔读（全项目复核 F02 的同一类），这一类跟着改写成同样的意思（写了 false 仍得到 mux=1）
     ("M14 v2ray-plugin 的 mux=false 又被省略（F03）", [("generator/nodes.py", lambda s: s.replace(
-        '("0" if o.get("mux") is False', '("1" if o.get("mux") is False', 1))], "mux=0"),
+        '_bool_value(o["mux"], "plugin-opts.mux") else "0"))', '_bool_value(o["mux"], "plugin-opts.mux") else "1"))', 1))], "mux=0"),
     ("M15 缺密码又写成字符串 None（F12）", [("generator/nodes.py", lambda s: s.replace(
         '        ob["password"] = _req(d, used, "password")\n        plugin = _take(d, used, "plugin")',
         '        ob["password"] = str(d.get("password"))\n        used.add("password")\n        plugin = _take(d, used, "plugin")', 1))], None),
@@ -593,7 +606,8 @@ cases = [
      "test_singbox_unmatched_names_ask_only_dns_foreign"),
     ("M182 sing-box 的 idle_timeout 照旧 30 分钟（检查间隔 1 小时时内核起不来）", [("generator/emit_singbox.py", lambda s: s.replace(
         '    return "30m" if interval_s <= 1800 else f"{interval_s}s"\n', '    return "30m"\n', 1))],
-     "test_foreign_dns_group"),
+     # r21 起简易版“境外DNS”是 600 秒（idle_timeout 本来就是 30 分钟），这个变异只在直接查换算的那项测试上看得出来（r21 的“未见预期信息”）
+     "test_duration_parser"),
     ("M183 sing-box 的国外默认在没有节点时也塞一个占位出站", [("generator/emit_singbox.py", lambda s: s.replace(
         "            members += pick(g.nodes, allow_empty=bool(members))\n", "            members += pick(g.nodes)\n", 1))],
      "test_foreign_default"),
@@ -694,6 +708,56 @@ cases = [
     ("M210 规则源又接受 Stash 完整版选择组的正数间隔（要等写盘前检查才报）", [("generator/model.py", lambda s: s.replace(
         "        if not isinstance(iv, int) or isinstance(iv, bool) or iv >= 0:\n", "        if not isinstance(iv, int) or isinstance(iv, bool) or iv == 0:\n", 1))],
      "test_select_interval_in_the_source_must_be_negative"),
+    # 2026-11-18 全项目复核（docs/08 第 21 轮）F01–F04、F08、F09：每一处改动各改回去一次
+    ("M211 Trojan 又照订阅里的 tls: false 关掉 TLS（F01）", [("generator/nodes.py", lambda s: s.replace(
+        '        ob["tls"] = _forced_tls(d, used, notes, "Trojan")\n',
+        '        ob["tls"] = _tls(d, used, sni_key="sni", default_enabled=True)\n', 1))],
+     "test_tls_only_protocols_keep_tls_whatever_the_subscription_says"),
+    ("M212 写盘前检查不再核对只能走 TLS 的节点开没开 TLS（F01）", [("generator/verify.py", lambda s: s.replace(
+        '        if t in ("trojan", "hysteria2", "tuic", "anytls") and not', '        if False and t in ("trojan", "hysteria2", "tuic", "anytls") and not', 1))],
+     "test_detects_node_outbounds_that_lose_tls_or_cannot_start"),
+    ("M213 布尔字段又按 Python 的真假读（带引号的 \"false\" 当成开，F02 的同一类）", [("generator/nodes.py", lambda s: s.replace(
+        "    if isinstance(v, int):\n        return v != 0\n", "    if isinstance(v, int):\n        return v != 0\n    return bool(v)\n", 1))],
+     "test_boolean_fields_must_really_be_booleans"),
+    ("M214 skip-cert-verify 又按 Python 的真假读（\"false\" 反而跳过证书校验，F02）", [("generator/nodes.py", lambda s: s.replace(
+        '    insecure = _bool(d, used, "skip-cert-verify", False)\n', '    insecure = bool(_take(d, used, "skip-cert-verify", False))\n', 1))],
+     "test_boolean_fields_must_really_be_booleans"),
+    ("M215 写盘前检查不再核对 tls.insecure 的写法（F02）", [("generator/verify.py", lambda s: s.replace(
+        '        if isinstance(tls, dict) and "insecure" in tls and tls["insecure"] is not True:',
+        '        if False and isinstance(tls, dict) and "insecure" in tls and tls["insecure"] is not True:', 1))],
+     "test_detects_node_outbounds_that_lose_tls_or_cannot_start"),
+    ("M216 packet-encoding 的 packet 又原样写给 sing-box（F03）", [("generator/nodes.py", lambda s: s.replace(
+        'PACKET_ENCODING = {"packetaddr": "packetaddr", "packet": "packetaddr", "xudp": "xudp"}',
+        'PACKET_ENCODING = {"packetaddr": "packetaddr", "packet": "packet", "xudp": "xudp"}', 1))],
+     "test_packet_encoding_values"),
+    ("M217 写盘前检查不再核对 packet_encoding（F03）", [("generator/verify.py", lambda s: s.replace(
+        '        if t in ("vmess", "vless") and o.get("packet_encoding", "") not in', '        if False and t in ("vmess", "vless") and o.get("packet_encoding", "") not in', 1))],
+     "test_detects_node_outbounds_that_lose_tls_or_cannot_start"),
+    ("M218 Copilot 网页实时连接的 7 个主机又不收（F04）", [("source/services/ai.yaml", lambda s: re.sub(
+        r"      - \{domain: production-copilot-host[^\n]*\n", "", s))],
+     "production-copilot-host.webpubsub.azure.com"),
+    ("M219 Copilot 收了整个 webpubsub.azure.com 后缀（官方说不要放行整个后缀，F04）", [("source/services/ai.yaml", lambda s: s.replace(
+        "      - {domain: production-copilot-host.webpubsub.azure.com, ev: ghcopilot-net}\n",
+        "      - {suffix: webpubsub.azure.com, ev: ghcopilot-net}\n", 1))],
+     "example-tenant.webpubsub.azure.com"),
+    ("M220 私密目录里不是这一次生成的文件又不登记（F08）", [("build.py", lambda s: s.replace(
+        "    if not os.path.isdir(pdir):\n        return {}\n", "    if True:\n        return {}\n", 1))],
+     "test_files_not_refreshed_are_listed_and_kept"),
+    ("M221 私密目录里有旧文件时终端不再提示（F08）", [("build.py", lambda s: s.replace(
+        "    if not_refreshed:\n        print(f\"注意：", "    if False:\n        print(f\"注意：", 1))],
+     "test_no_private_inputs_this_time"),
+    ("M222 临时文件又等写完才登记（写到一半出错时留下半成品，F09）", [("build.py", lambda s: s.replace(
+        '            staged.append((path, tmp))     # 先登记再写：写到一半出错（例如磁盘写满）时这个半成品也会被删掉（全项目复核 F09）\n'
+        '            with open(tmp, "w", encoding="utf-8", newline="\\n") as f:\n                f.write(text)\n',
+        '            with open(tmp, "w", encoding="utf-8", newline="\\n") as f:\n                f.write(text)\n'
+        '            staged.append((path, tmp))\n', 1))],
+     "test_failure_in_the_middle_of_a_write_leaves_no_temp_file"),
+    ("M223 .gitignore 又只认点开头的临时文件名（F09）", [(".gitignore", lambda s: s.replace(
+        "*.new-*\n*.bak-*\n", ".new-*\n.bak-*\n", 1))],
+     "test_git_really_ignores_them"),
+    ("M224 只能走 TLS 的节点写了 tls: false 时报告里不再提（F01）", [("generator/nodes.py", lambda s: s.replace(
+        "        report += [f\"提示 {name}（{d.get('type')}）：{x}\" for x in notes]\n", "", 1))],
+     "test_tls_only_protocols_keep_tls_whatever_the_subscription_says"),
 ]
 
 

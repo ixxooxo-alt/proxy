@@ -1,5 +1,5 @@
 # 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
-# 统一源版本 2026.10.31-1；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
+# 统一源版本 2026.11.18-1；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
 # 产物类型：客户端托管版（Clash Verge Rev Windows/macOS、Clash Meta for Android：端口、TUN、控制面由客户端设置）
 # 这是【简易版】（2026.10.31-2）：每个地区一个组，里面直接是这个地区的全部节点，点哪个用哪个；选中的节点挂了不会自动换，要换就回组里点别的。
 # “国外默认”是七个地区，后面接全部节点（首次默认日本）。分流规则与完整版 mihomo-profile.yaml 相同，只多一条（见下）；策略组不同（说明见 docs/10）。
@@ -130,6 +130,13 @@ dns:
     copilot-proxy.githubusercontent.com: *dns-foreign
     origin-tracker.githubusercontent.com: *dns-foreign
     copilot-reports.github.com: *dns-foreign
+    production-copilot-host.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-centralus.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-centralus-02.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-eastasia.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-austriaeast.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-westus.webpubsub.azure.com: *dns-foreign
+    production-copilot-host-westus3.webpubsub.azure.com: *dns-foreign
     copilot-workspace.githubnext.com: *dns-foreign
     copilotprodattachments.blob.core.windows.net: *dns-foreign
     +.copilot.microsoft.com: *dns-foreign
@@ -1319,6 +1326,13 @@ rules:
   - DOMAIN,origin-tracker.githubusercontent.com,Copilot
   - DOMAIN,copilot-telemetry.githubusercontent.com,Copilot
   - DOMAIN,copilot-reports.github.com,Copilot
+  - DOMAIN,production-copilot-host.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-centralus.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-centralus-02.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-eastasia.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-austriaeast.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-westus.webpubsub.azure.com,Copilot
+  - DOMAIN,production-copilot-host-westus3.webpubsub.azure.com,Copilot
   - DOMAIN,copilot-workspace.githubnext.com,Copilot
   - DOMAIN,copilotprodattachments.blob.core.windows.net,Copilot
   # -- microsoft_copilot --

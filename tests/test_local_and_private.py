@@ -160,6 +160,9 @@ class GitIgnore(unittest.TestCase):
     PRIVATE = ("dist/private/loon.conf", "dist/private/manifest.json", "dist/private/sing-box-1.14.json",
                "dist/private/请勿分享.txt", "source/local.yaml")
     PUBLIC = ("dist/loon/loon.conf", "dist/manifest.json", "source/local.example.yaml", "source/project.yaml", "build.py")
+    # 生成中断时留下的临时文件（build.write_all 起的名字是“原名.new-进程号”“原名.bak-进程号”）。
+    # 以前的写法 .new-* / .bak-* 只认点开头的名字，盖不住这些（全项目复核 F09）
+    TEMP = ("dist/loon/loon.conf.new-123", "dist/manifest.json.bak-123", "docs/04-规则清单与证据.md.new-4567")
 
     def test_private_paths_are_listed(self):
         with open(os.path.join(ROOT, ".gitignore"), encoding="utf-8") as f:
@@ -173,7 +176,7 @@ class GitIgnore(unittest.TestCase):
         d = tempfile.mkdtemp()
         try:
             shutil.copy(os.path.join(ROOT, ".gitignore"), d)
-            for rel in self.PRIVATE + self.PUBLIC:
+            for rel in self.PRIVATE + self.PUBLIC + self.TEMP:
                 path = os.path.join(d, *rel.split("/"))
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:
@@ -183,7 +186,7 @@ class GitIgnore(unittest.TestCase):
             r = subprocess.run(["git", "-C", d, "-c", "core.quotepath=off", "status", "--porcelain", "-uall"],
                                check=True, env=env, capture_output=True, text=True, encoding="utf-8")
             seen = {line[3:] for line in r.stdout.splitlines()}
-            for rel in self.PRIVATE:
+            for rel in self.PRIVATE + self.TEMP:
                 self.assertNotIn(rel, seen, f"{rel} 会被 git add 收进去")
             for rel in self.PUBLIC:
                 self.assertIn(rel, seen, f"{rel} 是公开内容，不该被忽略")

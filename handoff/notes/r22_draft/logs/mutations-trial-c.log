@@ -1,0 +1,7 @@
+[发现] M220 私密目录里不是这一次生成的文件又不登记（F08）：Ran 356 tests in 222.349s / FAILED (failures=2, skipped=2)；失败项 ['test_files_not_refreshed_are_listed_and_kept.test_files_not_refreshed_are_listed_and_kept', 'test_no_private_inputs_this_time.test_no_private_inputs_this_time']；输出含预期信息
+[发现] M221 私密目录里有旧文件时终端不再提示（F08）：Ran 356 tests in 225.824s / FAILED (failures=2, skipped=2)；失败项 ['test_files_not_refreshed_are_listed_and_kept.test_files_not_refreshed_are_listed_and_kept', 'test_no_private_inputs_this_time.test_no_private_inputs_this_time']；输出含预期信息
+[发现] M222 临时文件又等写完才登记（写到一半出错时留下半成品，F09）：Ran 356 tests in 235.163s / FAILED (failures=1, skipped=2)；失败项 ['test_failure_in_the_middle_of_a_write_leaves_no_temp_file.test_failure_in_the_middle_of_a_write_leaves_no_temp_file']；输出含预期信息
+[发现] M223 .gitignore 又只认点开头的临时文件名（F09）：Ran 356 tests in 235.487s / FAILED (failures=1, skipped=2)；失败项 ['test_git_really_ignores_them.test_git_really_ignores_them']；输出含预期信息
+[发现] M224 只能走 TLS 的节点写了 tls: false 时报告里不再提（F01）：Ran 356 tests in 235.068s / FAILED (failures=1, skipped=2)；失败项 ['test_tls_only_protocols_keep_tls_whatever_the_subscription_says.test_tls_only_protocols_keep_tls_whatever_the_subscription_says']；输出含预期信息
+合计 5/5 被发现
+exit 0

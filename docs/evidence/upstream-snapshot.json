@@ -1,7 +1,7 @@
 {
  "generated_by": "tools/check_upstream_evidence.py",
  "snapshots": {"dlc": {"evidence_id": "dlc", "repo": "https://github.com/v2fly/domain-list-community", "commit": "c1c2cf0d252871e8739747714df06e8d2671f72f", "date": "2026-09-22T19:29:39+08:00"}, "bm7": {"evidence_id": "bm7-snap", "repo": "https://github.com/blackmatrix7/ios_rule_script", "commit": "51d2e1dd8429a91be575157d6f8ed051c93559f8", "date": "2026-09-21T21:38:01+00:00"}},
- "summary": {"rules_checked": 856, "community_rules": 561, "failures": 0, "category_ads_all_domain_entries": 910, "category_ads_all_keyword_regexp_entries": 1},
+ "summary": {"rules_checked": 863, "community_rules": 561, "failures": 0, "category_ads_all_domain_entries": 910, "category_ads_all_keyword_regexp_entries": 1},
  "rules": [
   {"service": "openai", "group": "OpenAI", "kind": "suffix", "value": "openai.com", "ev": "openai-net", "dlc": {"status": "same", "hits": ["openai:openai.com"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "openai", "group": "OpenAI", "kind": "suffix", "value": "chatgpt.com", "ev": "openai-net", "dlc": {"status": "same", "hits": ["openai:chatgpt.com"]}, "bm7": {"status": "absent", "hits": []}},
@@ -74,6 +74,13 @@
   {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "origin-tracker.githubusercontent.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
   {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "copilot-telemetry.githubusercontent.com", "ev": "ghcopilot-net", "dlc": {"status": "same", "hits": ["github-copilot:full:copilot-telemetry.githubusercontent.com @ads"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "copilot-reports.github.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-centralus.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-centralus-02.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-eastasia.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-austriaeast.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-westus.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
+  {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "production-copilot-host-westus3.webpubsub.azure.com", "ev": "ghcopilot-net", "dlc": {"status": "absent", "hits": []}, "bm7": {"status": "absent", "hits": []}},
   {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "copilot-workspace.githubnext.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["github-copilot:full:copilot-workspace.githubnext.com"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "github_copilot", "group": "Copilot", "kind": "domain", "value": "copilotprodattachments.blob.core.windows.net", "ev": "dlc", "dlc": {"status": "same", "hits": ["github-copilot:full:copilotprodattachments.blob.core.windows.net"]}, "bm7": {"status": "absent", "hits": []}},
   {"service": "microsoft_copilot", "group": "Copilot", "kind": "suffix", "value": "copilot.microsoft.com", "ev": "dlc", "dlc": {"status": "same", "hits": ["category-ai-!cn:copilot.microsoft.com"]}, "bm7": {"status": "absent", "hits": []}},

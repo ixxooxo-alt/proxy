@@ -7,7 +7,10 @@
 报告类的文本逐字节比。允许的差别只有：Stash 完整版的选择组加了 interval -1、Stash 简易版的组 interval -1 → 3600、sing-box 简易版的“境外DNS”
 interval / idle_timeout 3600s / 3600s → 600s / 30m，以及私密产物里的 manifest.json（版本和摘要）。别的差别都算不符，退出码非 0。
 不联网，不读、不写仓库里的 source/local.yaml。
-用法：python3 -B r21_private_vs_r20.py <r20 工程目录> <当前工程目录> <临时输出目录>"""
+用法：python3 -B r21_private_vs_r20.py <r20 工程目录> <当前工程目录> <临时输出目录>
+2026-11-18 补（全项目复核 F10）：三个参数先转成绝对路径。以前输出目录写成相对路径时，传给子进程的节点文件和 --out 也是相对路径，
+子进程的工作目录却换到了下面的子目录，路径重复拼接，第一轮构建就报找不到文件。2026-10-31 实际运行时传的是绝对路径（~/proxy-work/…），
+那一次的结论不受影响（审核方用绝对路径重跑，24 份私密产物的对比输出和存档逐字节相同）。"""
 import json
 import os
 import shutil
@@ -16,7 +19,7 @@ import sys
 
 import yaml
 
-old, new, out = sys.argv[1:4]
+old, new, out = (os.path.abspath(x) for x in sys.argv[1:4])
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
 nodes["proxies"].append({"name": "境外DNS", "type": "ss", "server": "dns-node.example.net", "port": 443,
                          "cipher": "aes-128-gcm", "password": "not-a-real-password", "udp": True})

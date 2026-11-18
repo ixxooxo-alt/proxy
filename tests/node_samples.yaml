@@ -1,6 +1,8 @@
 # 官方程序检查用的样例节点（全部虚构：example 域名、假密码、假 UUID）。
 # 覆盖转换器支持的每种协议，以及审核 F01 / F02 / F03 提到的边界：
 # HTTP / AnyTLS 的 UDP、与策略组同名的节点、v2ray-plugin 的 mux=false、路径里的 ?ed=、带额外请求头的 HTTP Upgrade。
+# 2026-11-18 全项目复核（docs/08 第 21 轮）加了四个：写了 tls: false 的 Trojan（F01）、用 mihomo 的 packet 写法的 VMess、VLESS（F03），
+# 和一个布尔字段写成带引号字符串、应被跳过的节点（F02）。
 proxies:
   - {name: "香港 SS", type: ss, server: hk.example.net, port: 8388, cipher: 2022-blake3-aes-128-gcm, password: "RVhBTVBMRS1LRVktMTIzNA==", udp: true}
   - {name: "香港 SS 无 UDP", type: ss, server: hk2.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE}
@@ -26,10 +28,19 @@ proxies:
   - {name: "美国 HTTP", type: http, server: us3.example.net, port: 8080, username: user, password: EXAMPLE}
   - {name: "美国 HTTPS", type: http, server: us4.example.net, port: 443, tls: true, sni: us4.example.net}
   - {name: "美国 SOCKS5", type: socks5, server: us5.example.net, port: 1080, udp: true}
+  # mihomo 的 Trojan 没有 tls 开关、不认这个字段，照样走 TLS；转换后也必须开 TLS（全项目复核 F01）
+  - {name: "新加坡 Trojan 写了 tls false", type: trojan, server: sg2.example.net, port: 443, password: EXAMPLE, sni: sg2.example.net,
+     tls: false, udp: true}
+  # packet 是 mihomo 对 packetaddr 的另一种写法，sing-box 不认，转换时要写成 packetaddr（全项目复核 F03）
+  - {name: "美国 VMess packet", type: vmess, server: us6.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000005,
+     alterId: 0, cipher: auto, tls: true, servername: us6.example.net, network: tcp, udp: true, packet-encoding: packet}
+  - {name: "日本 VLESS packet", type: vless, server: jp5.example.net, port: 443, uuid: 00000000-0000-4000-8000-000000000006,
+     tls: true, servername: jp5.example.net, network: tcp, udp: true, packet-encoding: packet}
   # 与策略组 / 出站同名：转换器必须改名，否则整份配置被 sing-box 拒绝（F02）
   - {name: "日本", type: ss, server: jp4.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
   - {name: "DIRECT", type: ss, server: x1.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
   - {name: "无可用节点", type: ss, server: x2.example.net, port: 8388, cipher: aes-128-gcm, password: EXAMPLE, udp: true}
-  # 应被报告并跳过：AnyTLS 未开启 UDP、缺密码
+  # 应被报告并跳过：AnyTLS 未开启 UDP、缺密码、布尔字段写成带引号的字符串（全项目复核 F02：mihomo 读不了，以前这里当成“开”）
   - {name: "韩国 AnyTLS 无 UDP", type: anytls, server: kr3.example.net, port: 443, password: EXAMPLE}
   - {name: "缺密码", type: trojan, server: x3.example.net, port: 443}
+  - {name: "美国 HTTPS 布尔写成字符串", type: http, server: us7.example.net, port: 443, tls: true, skip-cert-verify: "false"}

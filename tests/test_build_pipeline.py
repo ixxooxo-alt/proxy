@@ -1,5 +1,8 @@
 """生成流程的可靠性（2026-09-30 审核 F07 / F09 / F10 / F11）：
 失败时不改动现有产物；写盘前拦住结构错误；--check 校验 manifest；local.yaml 只进私密产物。"""
+import contextlib
+import hashlib
+import io
 import json
 import os
 import shutil
@@ -98,6 +101,40 @@ class Transaction(unittest.TestCase):
                 build.write_all(self.writes())
         self.assert_untouched()
 
+    def test_failure_in_the_middle_of_a_write_leaves_no_temp_file(self):
+        """全项目复核 F09：临时文件已经建好、写到一半出错（例如磁盘写满）。以前它要等写完才登记，出错时没人删，留在目录里。"""
+        real_open = open
+        calls = {"n": 0}
+
+        class HalfWritten:
+            def __init__(self, f):
+                self.f = f
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                self.f.close()
+                return False
+
+            def write(self, text):
+                self.f.write(text[:1])
+                self.f.flush()
+                raise OSError("模拟：写到一半磁盘写满")
+
+        def flaky_open(path, *a, **k):
+            f = real_open(path, *a, **k)
+            if ".new-" in str(path):
+                calls["n"] += 1
+                if calls["n"] == 2:
+                    return HalfWritten(f)
+            return f
+        with mock.patch("builtins.open", side_effect=flaky_open):
+            with self.assertRaises(OSError):
+                build.write_all(self.writes())
+        self.assertEqual(calls["n"], 2, "第二个文件写到一半出错")
+        self.assert_untouched()
+
     def test_success_replaces_all(self):
         build.write_all(self.writes())
         self.assertEqual(_tree(self.d), {"a.txt": "NEW", "b.txt": "NEW", os.path.join("sub", "c.txt"): "NEW"})
@@ -178,6 +215,89 @@ class ManifestCheck(unittest.TestCase):
         rels = [r for r, _ in build._source_files()]
         self.assertIn("build.py", rels)
         self.assertNotIn("source/local.yaml", rels)
+
+
+class StalePrivateFiles(unittest.TestCase):
+    """全项目复核 F08：同一个输出目录先带节点生成、再只带订阅生成，上一次的 sing-box 配置和两份报告还在 private/ 里，
+    却不在新的清单里。不删（可能是你自己放的），在私密清单的 not_refreshed 和终端上标出来，写明来源。"""
+    NODES = os.path.join(ROOT, "tests", "node_samples.yaml")
+    SUB = "https://sub.example.invalid/fake"
+    STALE = {"sing-box-1.14.json", "sing-box-1.12.json", "sing-box-simple-1.14.json", "sing-box-simple-1.12.json",
+             "sing-box-节点转换报告.txt", "节点分组报告.txt"}
+
+    def setUp(self):
+        self.out = tempfile.mkdtemp()
+        self.pdir = os.path.join(self.out, "private")
+
+    def tearDown(self):
+        shutil.rmtree(self.out)
+
+    def run_build(self, *args):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            self.assertEqual(build.main(["--out", self.out, *args]), 0)
+        return buf.getvalue()
+
+    def manifest(self):
+        with open(os.path.join(self.pdir, "manifest.json"), encoding="utf-8") as f:
+            return json.load(f)
+
+    def files(self):
+        out = {}
+        for n in os.listdir(self.pdir):
+            with open(os.path.join(self.pdir, n), "rb") as f:
+                out[n] = f.read()
+        return out
+
+    def test_files_not_refreshed_are_listed_and_kept(self):
+        out = self.run_build("--sub-url", self.SUB, "--singbox-nodes", self.NODES)
+        self.assertNotIn("不是这一次生成的", out)
+        first = self.manifest()
+        self.assertEqual(first["not_refreshed"], {})
+        self.assertTrue(self.STALE <= set(first["outputs"]))
+        before = self.files()
+        # 第二次只给订阅：sing-box 的四份和两份报告不会重新生成
+        out = self.run_build("--sub-url", self.SUB)
+        man = self.manifest()
+        self.assertEqual(set(man["not_refreshed"]), self.STALE)
+        self.assertFalse(set(man["outputs"]) & self.STALE, "新清单的 outputs 只列这一次生成的")
+        after = self.files()
+        for n in self.STALE:
+            self.assertEqual(after[n], before[n], f"{n} 不删、不改")
+            item = man["not_refreshed"][n]
+            self.assertEqual(item["sha256"], hashlib.sha256(before[n]).hexdigest())
+            self.assertIn(f"以前生成的（当时的统一源 {first['source_version']}、生成器 {first['generator_version']}）",
+                          item["origin"])
+            self.assertRegex(item["modified"], r"^\d{4}-\d\d-\d\d \d\d:\d\d$")
+        self.assertIn(f"还有 {len(self.STALE)} 个文件不是这一次生成的", out)
+        for n in self.STALE:
+            self.assertIn(n, out)
+        second = man
+        # 第三次还是只给订阅：来源沿用上一次清单里记的；另放一个自己的文件、改一个旧文件
+        with open(os.path.join(self.pdir, "我的笔记.txt"), "w", encoding="utf-8") as f:
+            f.write("x\n")
+        with open(os.path.join(self.pdir, "节点分组报告.txt"), "a", encoding="utf-8") as f:
+            f.write("改过\n")
+        self.run_build("--sub-url", self.SUB)
+        man = self.manifest()
+        self.assertEqual(set(man["not_refreshed"]), self.STALE | {"我的笔记.txt"})
+        self.assertEqual(man["not_refreshed"]["sing-box-1.14.json"], second["not_refreshed"]["sing-box-1.14.json"])
+        self.assertIn("自己放的", man["not_refreshed"]["我的笔记.txt"]["origin"])
+        self.assertEqual(man["not_refreshed"]["节点分组报告.txt"]["origin"], "上一次的私密清单里有它，之后又被改过",
+                         "改过的文件不能说成是生成的")
+        self.assertTrue(os.path.exists(os.path.join(self.pdir, "我的笔记.txt")))
+        # 再带上节点：都刷新了，只剩自己放的那个
+        self.run_build("--sub-url", self.SUB, "--singbox-nodes", self.NODES)
+        self.assertEqual(set(self.manifest()["not_refreshed"]), {"我的笔记.txt"})
+
+    def test_no_private_inputs_this_time(self):
+        """这一次什么私密输入都没给：不写私密清单（旧的照旧留着），终端照样提示整个目录都不是这一次的。"""
+        self.run_build("--singbox-nodes", self.NODES)
+        before = self.files()
+        out = self.run_build()
+        self.assertEqual(self.files(), before)
+        self.assertIn(f"还有 {len(before)} 个文件不是这一次生成的", out)
+        self.assertNotIn("not_refreshed 一项", out, "这一次没有写私密清单，不能叫人去看它")
 
 
 class LocalOnlyInPrivate(unittest.TestCase):
@@ -266,6 +386,30 @@ class Verifier(unittest.TestCase):
             self.assertIn(needle, text)
         self.assertNotIn("节点丙", text)
         self.assertEqual(text.count("resolve 动作"), 1, "指向存在的服务器、或者没写服务器的 resolve 不算问题")
+
+    def test_detects_node_outbounds_that_lose_tls_or_cannot_start(self):
+        """全项目复核（2026-11-18）F01–F03 的最后一道：转换器再出错，写盘前也要拦住——只能走 TLS 的协议没开 TLS（F01）、
+        tls.insecure 写了却不是 true（F02：只在订阅要求跳过证书校验时写）、packet_encoding 不是 sing-box 认的值（F03）。"""
+        def probs(*obs):
+            conf = {"outbounds": [{"type": "direct", "tag": "D"}, *obs], "route": {"rules": [], "final": "D"}}
+            return "\n".join(verify.check_singbox(json.dumps(conf)))
+
+        base = {"tag": "n", "server": "x.example.net", "server_port": 443}
+        for t, extra in (("trojan", {"password": "p"}), ("hysteria2", {"password": "p"}),
+                         ("tuic", {"uuid": "u", "password": "p"}), ("anytls", {"password": "p"})):
+            self.assertIn("节点 n（" + t + "）没有开 TLS", probs({"type": t, **base, **extra}))
+            self.assertIn("没有开 TLS", probs({"type": t, **base, **extra, "tls": {"enabled": False}}))
+            self.assertEqual(probs({"type": t, **base, **extra, "tls": {"enabled": True}}), "")
+        for t in ("vmess", "vless", "http"):
+            self.assertEqual(probs({"type": t, **base, "uuid": "u"} if t != "http" else {"type": t, **base}), "", f"{t} 可以不加密")
+        for t in ("vmess", "vless"):
+            for v in ("packet", "foo"):
+                self.assertIn(f"节点 n 的 packet_encoding 是 '{v}'", probs({"type": t, **base, "uuid": "u", "packet_encoding": v}))
+            for v in ("packetaddr", "xudp", ""):
+                self.assertEqual(probs({"type": t, **base, "uuid": "u", "packet_encoding": v}), "", (t, v))
+        for v in (False, "true", 1):
+            self.assertIn("节点 n 的 tls.insecure 是", probs({"type": "http", **base, "tls": {"enabled": True, "insecure": v}}))
+        self.assertEqual(probs({"type": "http", **base, "tls": {"enabled": True, "insecure": True}}), "")
 
     def test_detects_mihomo_dns_settings_the_core_would_refuse(self):
         """审核 r10 的 R10-F01 之后用到 proxy-server-nameserver-policy。mihomo 对它和 respect-rules 都有同一个要求：

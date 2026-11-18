@@ -263,6 +263,17 @@ def check_singbox(text: str) -> List[str]:
                 problems.append(f"组 {o['tag']} 的 interval / idle_timeout 写法不认识：{o.get('interval')!r} / {o.get('idle_timeout')!r}")
             elif iv > idle:
                 problems.append(f"组 {o['tag']} 的检查间隔 {o.get('interval')} 超过了 idle_timeout {o.get('idle_timeout')}（内核会启动失败）")
+    # 节点出站（全项目复核 F01–F03）：只能走 TLS 的协议必须开着 TLS（mihomo 对它们总是用 TLS）；packet_encoding 只能是
+    # sing-box 认的值（1.14.1、1.12.0 的 protocol/vmess、vless 的 outbound.go，别的值建立出站时报错，sing-box check 不一定先报）；
+    # tls.insecure 只在订阅要求跳过证书校验时写，写了就必须是 true
+    for o in c.get("outbounds", []):
+        t, tls = o.get("type"), o.get("tls")
+        if t in ("trojan", "hysteria2", "tuic", "anytls") and not (isinstance(tls, dict) and tls.get("enabled") is True):
+            problems.append(f"节点 {o.get('tag')}（{t}）没有开 TLS：这个协议只能走 TLS，mihomo 用同一份订阅时也总是用 TLS")
+        if t in ("vmess", "vless") and o.get("packet_encoding", "") not in ("", "packetaddr", "xudp"):
+            problems.append(f"节点 {o.get('tag')} 的 packet_encoding 是 {o.get('packet_encoding')!r}，sing-box 只认 packetaddr、xudp")
+        if isinstance(tls, dict) and "insecure" in tls and tls["insecure"] is not True:
+            problems.append(f"节点 {o.get('tag')} 的 tls.insecure 是 {tls['insecure']!r}：只在订阅要求跳过证书校验时写，写了就是 true")
     for hc in c.get("http_clients", []):
         if hc.get("detour") and hc["detour"] not in known:
             problems.append(f"http_clients 的 {hc.get('tag')} 指向不存在的出站 {hc['detour']}")

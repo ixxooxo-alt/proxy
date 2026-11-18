@@ -4,6 +4,7 @@
 订阅内容只在用户本机处理，产物写入 dist/private/，不进入公开产物。"""
 from __future__ import annotations
 
+import json
 import re
 import urllib.request
 from typing import Dict, List, Tuple
@@ -22,6 +23,23 @@ def _take(d: dict, used: set, key: str, default=None):
     return d.get(key, default)
 
 
+def _bool_value(v, key: str) -> bool:
+    """布尔字段只认真正的 true / false（和整数：mihomo 的解码器开着弱类型，整数按非零为真）。
+    带引号的 "false" 在 Python 里是真，以前会被当成开启——例如 skip-cert-verify: "false" 反而跳过证书校验；
+    mihomo 读到字符串直接报错（v1.19.31 common/structure/structure.go 的 decodeBool），这里也跳过这个节点（全项目复核 F02）。"""
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, int):
+        return v != 0
+    raise Unsupported(f"{key} 应该是 true / false，订阅里写的是 {json.dumps(v, ensure_ascii=False)}（mihomo 也读不了这种写法）")
+
+
+def _bool(d: dict, used: set, key: str, default: bool = False) -> bool:
+    used.add(key)
+    v = d.get(key)
+    return default if v is None else _bool_value(v, key)
+
+
 def _req(d: dict, used: set, key: str) -> str:
     """必填字段：不存在、为 null 或空字符串都报告，不能写成 "None" 或空凭据（审核 F12）。"""
     used.add(key)
@@ -31,14 +49,29 @@ def _req(d: dict, used: set, key: str) -> str:
     return str(v)
 
 
+# packet-encoding（VMess、VLESS 的 UDP 封装）：mihomo 把 packet 当成 packetaddr 的别名（v1.19.31 adapter/outbound/vmess.go、vless.go），
+# sing-box 1.14.1、1.12.0 只认空、packetaddr、xudp，别的值在建立出站时报 unknown packet encoding（protocol/vmess、vless 的 outbound.go）。
+# 以前原样写进去，配置生成成功、SFA 却建不起这个出站（全项目复核 F03）
+PACKET_ENCODING = {"packetaddr": "packetaddr", "packet": "packetaddr", "xudp": "xudp"}
+
+
+def _packet_encoding(d: dict, used: set, default: str | None) -> str | None:
+    pe = _take(d, used, "packet-encoding")
+    if pe is None or pe == "":
+        return default
+    if pe not in PACKET_ENCODING:
+        raise Unsupported(f"packet-encoding={pe!r}：sing-box 只认 packetaddr、xudp（mihomo 另把 packet 当成 packetaddr），无法确定原意")
+    return PACKET_ENCODING[pe]
+
+
 # sing-box 1.14 各出站是否有 network 字段（option/*.go 的结构体）；http、anytls 没有（审核 F01）
 NETWORK_FIELD = {"shadowsocks", "vmess", "vless", "trojan", "socks", "hysteria2", "tuic"}
 
 
 def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | None:
-    enabled = _take(d, used, "tls", default_enabled)
+    enabled = _bool(d, used, "tls", default_enabled)
     sni = _take(d, used, sni_key)
-    insecure = bool(_take(d, used, "skip-cert-verify", False))
+    insecure = _bool(d, used, "skip-cert-verify", False)
     alpn = _take(d, used, "alpn")
     cf = _take(d, used, "client-fingerprint")
     reality = _take(d, used, "reality-opts")
@@ -66,6 +99,18 @@ def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | N
     return t
 
 
+def _forced_tls(d: dict, used: set, notes: list, t: str) -> dict:
+    """Trojan、Hysteria2、TUIC、AnyTLS 只能走 TLS。mihomo 的这四种节点没有 tls 开关（v1.19.31 adapter/outbound/ 下 trojan.go、hysteria2.go、
+    tuic.go、anytls.go 的选项结构体里都没有这个字段，解码时不认的键直接忽略），订阅里写了什么都照样走 TLS；这里也总是开 TLS，
+    和 mihomo 用同一份订阅时一样。以前 Trojan 按订阅里的 tls: false 把 TLS 关掉，转出来是不加密的 Trojan（全项目复核 F01）。
+    订阅里写了 tls 又不是 true 时，在报告里提一句（不跳过：mihomo 照样能用这个节点）。"""
+    if "tls" in d and d["tls"] is not True:
+        notes.append(f"订阅里写了 tls: {json.dumps(d['tls'], ensure_ascii=False)}，但 {t} 只能走 TLS（mihomo 也不认这个字段），照常开 TLS")
+    d2 = dict(d)
+    d2["tls"] = True
+    return _tls(d2, used, sni_key="sni", default_enabled=True)
+
+
 def _transport(d: dict, used: set) -> dict | None:
     net = _take(d, used, "network", "tcp")
     if net in (None, "tcp"):
@@ -79,7 +124,7 @@ def _transport(d: dict, used: set) -> dict | None:
         if extra:
             raise Unsupported(f"ws-opts 不支持的字段 {sorted(extra)}")
         headers = dict(o.get("headers") or {})
-        if o.get("v2ray-http-upgrade"):
+        if _bool_value(o.get("v2ray-http-upgrade", False), "ws-opts.v2ray-http-upgrade"):    # 按布尔读（全项目复核 F02 的同一类）
             # HTTP Upgrade：Host 单独成字段，其余请求头原样保留（审核 F03：以前只留 Host / path）
             if o.get("max-early-data") or o.get("early-data-header-name"):
                 raise Unsupported("v2ray-http-upgrade 与 early-data 同时出现，sing-box 的 httpupgrade 没有等效写法")
@@ -155,7 +200,7 @@ def _transport(d: dict, used: set) -> dict | None:
 
 
 def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
-    udp = _take(d, used, "udp", udp_capable_default)
+    udp = _bool(d, used, "udp", udp_capable_default)
     if not udp:
         if ob["type"] in NETWORK_FIELD:
             ob["network"] = "tcp"          # 保持原语义：订阅未开启 UDP 转发
@@ -163,9 +208,9 @@ def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
             # sing-box 的 AnyTLS 出站总会转发 UDP（UoT），也没有 network 字段，无法保留“不转发 UDP”（审核 F01）
             raise Unsupported("订阅未开启 UDP，但 sing-box 的 AnyTLS 无法禁止 UDP 转发；需要时请在订阅里开启 udp")
         # http：sing-box 的 HTTP 出站本来只走 TCP，不写 network 语义相同
-    if _take(d, used, "tfo", False):
+    if _bool(d, used, "tfo", False):
         ob["tcp_fast_open"] = True
-    if _take(d, used, "mptcp", False):
+    if _bool(d, used, "mptcp", False):
         ob["tcp_multi_path"] = True
     ipv = _take(d, used, "ip-version")
     if ipv not in (None, "dual"):
@@ -175,7 +220,9 @@ def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
             used.add(k)
             raise Unsupported(f"{k} 暂未映射")
     smux = _take(d, used, "smux")
-    if smux and smux.get("enabled"):
+    if smux is not None and not isinstance(smux, dict):
+        raise Unsupported("smux 不是键值表")
+    if smux and _bool_value(smux.get("enabled", False), "smux.enabled"):
         extra = set(smux) - {"enabled", "protocol", "max-connections", "min-streams", "max-streams", "padding"}
         if extra:
             raise Unsupported(f"smux 不支持的字段 {sorted(extra)}")
@@ -183,7 +230,7 @@ def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
         for a, b in (("max-connections", "max_connections"), ("min-streams", "min_streams"), ("max-streams", "max_streams")):
             if a in smux:
                 mx[b] = int(smux[a])
-        if smux.get("padding"):
+        if _bool_value(smux.get("padding", False), "smux.padding"):
             mx["padding"] = True
         ob["multiplex"] = mx
 
@@ -209,7 +256,9 @@ def _plugin_opts(opts, allowed: set) -> dict:
     return opts
 
 
-def convert_one(d: dict) -> dict:
+def convert_one(d: dict, notes: list | None = None) -> dict:
+    """notes：转换成功、但要在报告里提一句的事（例如 Trojan 写了 tls: false）。"""
+    notes = [] if notes is None else notes
     used = set(COMMON_IGNORED)
     t = d.get("type")
     name, server = d.get("name"), d.get("server")
@@ -248,18 +297,19 @@ def convert_one(d: dict) -> dict:
                     raise Unsupported(f"v2ray-plugin 的 {k} 在 sing-box 的插件参数里没有等效写法")
             host = o.get("host") or MIHOMO_PLUGIN_DEFAULT_HOST
             parts = ["mode=websocket"]
-            if o.get("tls"):
+            if _bool_value(o.get("tls", False), "plugin-opts.tls"):
                 parts.append("tls")
             parts.append(f"host={host}")
             if o.get("path"):
                 parts.append(f"path={o['path']}")
             # mihomo 缺省开启 mux、写 false 才关闭；sing-box 缺省 mux=1。显式写出，避免 false 被当成缺省重新开启（审核 F03）
-            parts.append("mux=" + ("0" if o.get("mux") is False or str(o.get("mux")).lower() in ("false", "0") else "1"))
+            # 2026-11-18：mux 也按布尔读，写成字符串的跳过（全项目复核 F02 的同一类；以前把 "false"、"0" 字符串当成关闭）
+            parts.append("mux=" + ("1" if o.get("mux") is None or _bool_value(o["mux"], "plugin-opts.mux") else "0"))
             ob["plugin_opts"] = ";".join(parts)
             ob["plugin"] = "v2ray-plugin"
         elif plugin:
             raise Unsupported(f"ss 插件 {plugin} 不支持")
-        if _take(d, used, "udp-over-tcp", False):
+        if _bool(d, used, "udp-over-tcp", False):
             ob["udp_over_tcp"] = {"enabled": True, "version": int(_take(d, used, "udp-over-tcp-version", 2))}
         _dial(d, used, ob, False)
     elif t == "vmess":
@@ -267,11 +317,11 @@ def convert_one(d: dict) -> dict:
         ob["uuid"] = _req(d, used, "uuid")
         ob["alter_id"] = int(_take(d, used, "alterId", 0))
         ob["security"] = _take(d, used, "cipher", "auto")
-        if _take(d, used, "global-padding", False):
+        if _bool(d, used, "global-padding", False):
             ob["global_padding"] = True
-        if _take(d, used, "authenticated-length", False):
+        if _bool(d, used, "authenticated-length", False):
             ob["authenticated_length"] = True
-        pe = _take(d, used, "packet-encoding")
+        pe = _packet_encoding(d, used, None)
         if pe:
             ob["packet_encoding"] = pe
         tls = _tls(d, used, sni_key="servername", default_enabled=False)
@@ -291,7 +341,7 @@ def convert_one(d: dict) -> dict:
             used.add("encryption")
             raise Unsupported("VLESS encryption 在 sing-box 中不支持")
         used.add("encryption")
-        ob["packet_encoding"] = _take(d, used, "packet-encoding", "xudp") or "xudp"
+        ob["packet_encoding"] = _packet_encoding(d, used, "xudp")
         tls = _tls(d, used, sni_key="servername", default_enabled=False)
         if tls:
             ob["tls"] = tls
@@ -305,7 +355,8 @@ def convert_one(d: dict) -> dict:
         if "ss-opts" in d:
             used.add("ss-opts")
             raise Unsupported("trojan ss-opts（trojan-go）不支持")
-        ob["tls"] = _tls(d, used, sni_key="sni", default_enabled=True)
+        # 普通 TCP 和 ws 都总是走 TLS；以前按订阅里的 tls: false 把 TLS 关掉（全项目复核 F01），见 _forced_tls
+        ob["tls"] = _forced_tls(d, used, notes, "Trojan")
         tr = _transport(d, used)
         if tr:
             ob["transport"] = tr
@@ -334,9 +385,7 @@ def convert_one(d: dict) -> dict:
                 raise Unsupported(f"hysteria2 obfs={obfs} 不支持")
             ob["obfs"] = {"type": "salamander", "password": _req(d, used, "obfs-password")}
         used.add("obfs-password")
-        d2 = dict(d)
-        d2["tls"] = True
-        ob["tls"] = _tls(d2, used, sni_key="sni", default_enabled=True)
+        ob["tls"] = _forced_tls(d, used, notes, "Hysteria2")
         _dial(d, used, ob, True)
     elif t == "tuic":
         ob["type"] = "tuic"
@@ -351,20 +400,18 @@ def convert_one(d: dict) -> dict:
         mode = _take(d, used, "udp-relay-mode")
         if mode:
             ob["udp_relay_mode"] = mode
-        if _take(d, used, "reduce-rtt", False):
+        if _bool(d, used, "reduce-rtt", False):
             ob["zero_rtt_handshake"] = True
         hb = _take(d, used, "heartbeat-interval")
         if hb:
             ob["heartbeat"] = f"{int(hb)}ms"
-        if _take(d, used, "disable-sni", False):
+        if _bool(d, used, "disable-sni", False):
             raise Unsupported("disable-sni 暂未映射")
         for k in ("request-timeout", "max-udp-relay-packet-size", "max-open-streams", "fast-open", "ip"):
             if k in d:
                 used.add(k)
                 raise Unsupported(f"tuic {k} 暂未映射")
-        d2 = dict(d)
-        d2["tls"] = True
-        ob["tls"] = _tls(d2, used, sni_key="sni", default_enabled=True)
+        ob["tls"] = _forced_tls(d, used, notes, "TUIC")
         _dial(d, used, ob, True)
     elif t == "anytls":
         ob["type"] = "anytls"
@@ -377,9 +424,7 @@ def convert_one(d: dict) -> dict:
         v = _take(d, used, "min-idle-session")
         if v is not None:
             ob["min_idle_session"] = int(v)
-        d2 = dict(d)
-        d2["tls"] = True
-        ob["tls"] = _tls(d2, used, sni_key="sni", default_enabled=True)
+        ob["tls"] = _forced_tls(d, used, notes, "AnyTLS")
         _dial(d, used, ob, False)
     elif t in ("socks5", "http"):
         ob["type"] = "socks" if t == "socks5" else "http"
@@ -399,11 +444,10 @@ def convert_one(d: dict) -> dict:
                 used.add("headers")
                 raise Unsupported("http 代理自定义 headers 暂未映射")
         else:
-            if d.get("tls"):
-                used.add("tls")
+            if _bool(d, used, "tls", False):
                 raise Unsupported("socks5 over TLS 在 sing-box 中不支持")
-            used.update({"tls", "skip-cert-verify"})
-        _dial(d, used, ob, t == "socks5" and bool(d.get("udp")))
+            _bool(d, used, "skip-cert-verify", False)     # 没有 TLS 时用不到，只查写法（全项目复核 F02）
+        _dial(d, used, ob, False)
     else:
         raise Unsupported(f"不支持的协议类型 {t}")
 
@@ -438,10 +482,11 @@ def convert(proxies: List[dict], reserved=frozenset()) -> Tuple[List[dict], List
             report.append(f"跳过第 {i} 项：不是节点（{type(d).__name__}）")
             continue
         name = str(d.get("name", "?"))
+        notes = []
         try:
             if name in seen:
                 raise Unsupported("节点名称重复")
-            ob = convert_one(d)
+            ob = convert_one(d, notes)
         except Unsupported as e:
             report.append(f"跳过 {name}（{d.get('type')}）：{e}")
             continue
@@ -449,6 +494,7 @@ def convert(proxies: List[dict], reserved=frozenset()) -> Tuple[List[dict], List
             report.append(f"跳过 {name}（{d.get('type')}）：字段缺失或格式错误 {e}")
             continue
         seen.add(name)
+        report += [f"提示 {name}（{d.get('type')}）：{x}" for x in notes]
         tag = name
         if tag in taken:
             n = 1

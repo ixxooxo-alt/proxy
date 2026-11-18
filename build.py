@@ -23,6 +23,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -32,7 +33,7 @@ from generator.audit import render_audit  # noqa: E402
 from generator.model import SourceError, build_plan, load  # noqa: E402
 from generator.util import sha256_text  # noqa: E402
 
-GENERATOR_VERSION = "1.12.1"
+GENERATOR_VERSION = "1.13.0"
 
 PUBLIC_OUTPUTS = {
     "mihomo/mihomo-profile.yaml": lambda m, p: emit_mihomo.build(m, p, "profile"),
@@ -144,9 +145,9 @@ def write_all(writes: dict) -> None:
         for path, text in writes.items():
             os.makedirs(os.path.dirname(path), exist_ok=True)
             tmp = f"{path}.new-{tag}"
+            staged.append((path, tmp))     # 先登记再写：写到一半出错（例如磁盘写满）时这个半成品也会被删掉（全项目复核 F09）
             with open(tmp, "w", encoding="utf-8", newline="\n") as f:
                 f.write(text)
-            staged.append((path, tmp))
     except Exception:
         for _, tmp in staged:
             if os.path.exists(tmp):
@@ -176,7 +177,47 @@ def write_all(writes: dict) -> None:
             os.remove(backup)
 
 
-def _private_manifest(public_manifest: str, private: dict, root: str) -> str:
+def _not_refreshed(pdir: str, produced: set) -> dict:
+    """私密目录里不是这一次生成的文件（全项目复核 F08）。例如上次带节点生成的 sing-box 配置，这次没给节点就不会重新生成；
+    以前它们照旧留在目录里、却不在新的清单里，容易被当成这一次的。不删（可能是你自己放的），返回 {文件名: 摘要、修改时间、来源}，
+    写进私密产物的 manifest.json，终端也提示。来源按上一次的私密清单判断。"""
+    if not os.path.isdir(pdir):
+        return {}
+    try:
+        with open(os.path.join(pdir, "manifest.json"), encoding="utf-8") as f:
+            old = json.load(f)
+    except (OSError, ValueError):
+        old = {}
+    old = old if isinstance(old, dict) else {}
+    old_out = old.get("outputs") if isinstance(old.get("outputs"), dict) else {}
+    old_stale = old.get("not_refreshed") if isinstance(old.get("not_refreshed"), dict) else {}
+    out = {}
+    for n in sorted(os.listdir(pdir)):
+        fp = os.path.join(pdir, n)
+        if n in produced or not os.path.isfile(fp):
+            continue
+        with open(fp, "rb") as f:
+            sha = hashlib.sha256(f.read()).hexdigest()
+        prev = old_stale.get(n) if isinstance(old_stale.get(n), dict) else {}
+        if n in ("manifest.json", "请勿分享.txt"):
+            origin = "上一次生成私密产物时写的（这一次没有生成私密产物）"
+        elif old_out.get(n) == sha:
+            origin = (f"以前生成的（当时的统一源 {old.get('source_version')}、生成器 {old.get('generator_version')}），"
+                      "这一次没有重新生成")
+        elif prev.get("sha256") == sha and prev.get("origin"):
+            origin = prev["origin"]          # 上一次就没有重新生成、也没改过：来源照上一次清单里记的
+        elif n in old_out or prev:
+            origin = "上一次的私密清单里有它，之后又被改过"
+        elif ".new-" in n or ".bak-" in n:
+            origin = "以前生成时中断留下的临时文件，可以删掉"
+        else:
+            origin = "不在上一次的私密清单里：更早生成的，或者你自己放的"
+        out[n] = {"sha256": sha, "modified": time.strftime("%Y-%m-%d %H:%M", time.localtime(os.path.getmtime(fp))),
+                  "origin": origin}
+    return out
+
+
+def _private_manifest(public_manifest: str, private: dict, root: str, not_refreshed: dict) -> str:
     local_path = os.path.join(root, "source", "local.yaml")
     local_sha = None
     if os.path.exists(local_path):
@@ -190,6 +231,8 @@ def _private_manifest(public_manifest: str, private: dict, root: str) -> str:
         "source_sha256": pub["source_sha256"],
         "local_yaml_sha256": local_sha,
         "outputs": {k: sha256_text(v) for k, v in sorted(private.items())},
+        # 私密目录里还在、但不是这一次生成的文件（全项目复核 F08，见 _not_refreshed）：照旧留着、不删，这里列出来、终端也提示
+        "not_refreshed": not_refreshed,
     }, ensure_ascii=False, indent=2) + "\n"
 
 
@@ -318,9 +361,11 @@ def main(argv=None, root: str = ROOT) -> int:
     writes = {os.path.join(a.out, rel): text for rel, text in files.items()}
     if same_path(a.out, os.path.join(root, "dist")):
         writes[os.path.join(root, "docs", "04-规则清单与证据.md")] = render_audit(model, plan)
+    # 私密目录里不是这一次生成的文件（全项目复核 F08）：不删，在清单和终端上标出来
+    pdir = os.path.join(a.out, "private")
+    not_refreshed = _not_refreshed(pdir, set(private) | ({"manifest.json", "请勿分享.txt"} if private else set()))
     if private:
-        pdir = os.path.join(a.out, "private")
-        private["manifest.json"] = _private_manifest(files["manifest.json"], private, root)
+        private["manifest.json"] = _private_manifest(files["manifest.json"], private, root, not_refreshed)
         private["请勿分享.txt"] = PRIVATE_NOTE
         writes.update({os.path.join(pdir, rel): text for rel, text in private.items()})
     try:
@@ -333,6 +378,12 @@ def main(argv=None, root: str = ROOT) -> int:
         why = "、".join(x for x, on in (("订阅", bool(sub_urls)), ("节点", bool(a.singbox_nodes or a.singbox_sub_url)),
                                         ("local.yaml", has_local)) if on)
         print(f"私密产物已写入 {display_path(os.path.join(a.out, 'private'), root)}（含{why}，请勿分享）")
+    if not_refreshed:
+        print(f"注意：{display_path(pdir, root)} 里还有 {len(not_refreshed)} 个文件不是这一次生成的，内容是以前的、可能已经过期："
+              f"{'、'.join(not_refreshed)}。没有删它们。常见的原因是这一次没有给相应的参数（例如没给节点，就不会重新生成 sing-box 的）；"
+              "要更新就带上参数再生成，不用了可以删掉"
+              + ("。私密产物的 manifest.json 里 not_refreshed 一项列着它们的修改时间和来源" if private else "")
+              + "（全项目复核 F08）")
     return 0
 
 
