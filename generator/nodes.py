@@ -735,25 +735,65 @@ class SubscriptionLoader(yaml.SafeLoader):
       - 以数字、+、-、. 开头的：先看是不是日期（四种写法，日期不存在的不算），再去掉下划线按 Go 的 ParseInt、ParseUint
         （64 位）读整数，再按小数读，都不是就保留原来的文字。以前 0x_、2026-02-30 这类值会让整份订阅读不下去，
         超过 64 位的整数照原样留成整数（mihomo 读成小数、再写成科学计数法）；
-      - 同一个键在同一张表里写了两次：mihomo（go-yaml 的 decode.go）整份报 mapping key already defined，这里也整份不转换，
-        只报键名和行号（以前悄悄用了后一个值，例如 skip-cert-verify 先 true 后 false）。
-    null、合并键（<<）照 PyYAML 的；“=”在 PyYAML 里是一个特别的值、SafeLoader 读到会出错，go-yaml 当文字，这里也当文字。"""
+      - 同一个键在同一张表里写了两次：mihomo（go-yaml 的 decode.go）读这张表时报 mapping key already defined，订阅整份读不了，
+        这里也整份不转换，只报键名和行号（以前悄悄用了后一个值，例如 skip-cert-verify 先 true 后 false）。查哪些表见 duplicate_keys。
+    null、合并键（<<）照 PyYAML 的；“=”在 PyYAML 里是一个特别的值、SafeLoader 读到会出错，go-yaml 当文字，这里也当文字。
+    年份是 0000 的日期 go-yaml 也读成时间（Go 的 time 有 0 年），Python 的日期表示不了，这里留成文字：只差在 mihomo 读不了这个节点、
+    转换器把它当文字转出来。"""
 
-    def __init__(self, stream):
-        super().__init__(stream)
-        self.duplicate_keys = []
 
-    def construct_mapping(self, node, deep=False):
+MERGE_TAG = "tag:yaml.org,2002:merge"
+
+
+def duplicate_keys(root) -> list:
+    """订阅里同一张表写了两次的键：[(键, 第一次的行, 重复的行)]。在组装出节点树以后、构造之前查（load_clash_proxies）。
+    照 mihomo 的范围：它用 proxy-providers 读订阅时只认 proxies 这一个字段（v1.19.31 adapter/provider/provider.go 的 ProxySchema），
+    go-yaml 只在真正读进来的表上查重复——最外层和 proxies 里面（顺着锚点、合并用到的表也算）。别的部分（proxy-groups、rules、
+    不认识的键）它不读也不查，转换也用不到，这里同样不查。比的是键的原文，合并（<<）进来的键被同名的键盖掉是合法的。
+    2026-11-19 交送审稿前自查改的：以前在构造每张表时查，又查整份订阅——PyYAML 构造时会把合并展开进被引用的那张表，
+    那张表要是自己也合并、又盖掉了继承来的键，轮到它时就被误认成重复；mihomo 不读的部分里有重复也会整份不转换（官方 mihomo 实测
+    两种都能读，handoff/notes/r22b_review_probes.py）。"""
+    found, walked, tops = [], set(), set()
+
+    def own_keys(node):
+        seen = {}
+        for key_node, _ in node.value:
+            if isinstance(key_node, yaml.ScalarNode):
+                line = key_node.start_mark.line + 1
+                if key_node.value in seen:
+                    found.append((key_node.value, seen[key_node.value], line))
+                else:
+                    seen[key_node.value] = line
+
+    def walk(node):                                   # proxies 里面：每一张表都查
+        if id(node) in walked:
+            return
+        walked.add(id(node))
         if isinstance(node, yaml.MappingNode):
-            seen = {}
-            for key_node, _ in node.value:            # 合并（<<）展开之前看：继承来的键被同名的键盖掉是合法的
-                if isinstance(key_node, yaml.ScalarNode):
-                    line = key_node.start_mark.line + 1
-                    if key_node.value in seen:
-                        self.duplicate_keys.append((key_node.value, seen[key_node.value], line))
-                    else:
-                        seen[key_node.value] = line
-        return super().construct_mapping(node, deep=deep)
+            own_keys(node)
+            for key_node, value_node in node.value:
+                walk(key_node)
+                walk(value_node)
+        elif isinstance(node, yaml.SequenceNode):
+            for item in node.value:
+                walk(item)
+
+    def top(node):                                    # 最外层（和用 << 合并进最外层的表）：查它自己的键，往下只进 proxies
+        if id(node) in tops:
+            return
+        tops.add(id(node))
+        own_keys(node)
+        for key_node, value_node in node.value:
+            if key_node.tag == MERGE_TAG:
+                for m in value_node.value if isinstance(value_node, yaml.SequenceNode) else [value_node]:
+                    if isinstance(m, yaml.MappingNode):
+                        top(m)
+            elif isinstance(key_node, yaml.ScalarNode) and key_node.value == "proxies":
+                walk(value_node)
+
+    if isinstance(root, yaml.MappingNode):
+        top(root)
+    return found
 
 
 GO_PLAIN_TAG = "tag:proxy-rules.local,2026:go-plain"
@@ -770,16 +810,17 @@ _GO_SPECIAL_FLOATS = {**{x: math.nan for x in (".nan", ".NaN", ".NAN")},
                       **{x: math.inf for x in (".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF")},
                       **{x: -math.inf for x in ("-.inf", "-.Inf", "-.INF")}}
 _GO_TIMESTAMPS = (   # 2006-1-2T15:4:5.999999999Z07:00、小写 t 的同一种、2006-1-2 15:4:5.999999999、2006-1-2（Go 的 time.Parse）
-    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?(Z|[+-]\d\d:\d\d)"),
-    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})t(\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?(Z|[+-]\d\d:\d\d)"),
-    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?()"),
-    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})()()()()"))
+    # 数字只认 0–9（Python 的 \d 还认全角等别的数字，Go 不认；2026-11-19 交送审稿前自查改的）
+    re.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})(?:[.,][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})"),
+    re.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})t([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})(?:[.,][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})"),
+    re.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})(?:[.,][0-9]+)?()"),
+    re.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})()()()()"))
 
 
 def _go_timestamp(s: str):
     """go-yaml 的 parseTimestamp：前四位是数字、接着是“-”，再按四种写法用 Go 的 time.Parse 试（日期、时间要真实存在）。
     认得出就返回 datetime.date，否则 None。"""
-    if not re.match(r"\d{4}-", s):
+    if not re.match(r"[0-9]{4}-", s):
         return None
     for rx in _GO_TIMESTAMPS:
         m = rx.fullmatch(s)
@@ -846,14 +887,16 @@ SubscriptionLoader.add_constructor(GO_PLAIN_TAG, lambda loader, node: go_plain_s
 def load_clash_proxies(text: str) -> List[dict]:
     loader = SubscriptionLoader(text)
     try:
-        data = loader.get_single_data()
+        root = loader.get_single_node()
+        dups = duplicate_keys(root)
+        if dups:
+            shown = "；".join(f"第 {line} 行的 {key}（第 {first} 行已经有了）" for key, first, line in dups[:5])
+            more = f"等 {len(dups)} 处" if len(dups) > 5 else ""
+            raise ValueError(f"订阅里同一个键在同一处写了两次：{shown}{more}。mihomo 读这样的订阅会整份报错（mapping key already defined），"
+                             "这里也不猜用哪一个，整份不转换；请让机场修正订阅")
+        data = loader.construct_document(root) if root is not None else None
     finally:
         loader.dispose()
-    if loader.duplicate_keys:
-        shown = "；".join(f"第 {line} 行的 {key}（第 {first} 行已经有了）" for key, first, line in loader.duplicate_keys[:5])
-        more = f"等 {len(loader.duplicate_keys)} 处" if len(loader.duplicate_keys) > 5 else ""
-        raise ValueError(f"订阅里同一个键在同一处写了两次：{shown}{more}。mihomo 读这样的订阅会整份报错（mapping key already defined），"
-                         "这里也不猜用哪一个，整份不转换；请让机场修正订阅")
     if isinstance(data, dict) and isinstance(data.get("proxies"), list):
         return data["proxies"]
     raise ValueError("不是 Clash / mihomo 格式的订阅（缺少 proxies 列表）。"

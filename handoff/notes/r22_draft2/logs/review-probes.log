@@ -1,0 +1,73 @@
+运行时间（UTC）：2026-11-19 02:32:53
+Python：Python 3.13.18，PyYAML：6.0.3
+提交：b9046a9；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+命令：python3 -B handoff/notes/r22b_review_probes.py /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box <work>/r22b-probes
+
+Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026
+sing-box version 1.14.1
+sing-box version 1.12.0
+
+1. 不带引号的值（写成节点名字，从 mihomo 的控制接口读回）
+[符合] '0x_'：mihomo 读成 '0x_'，转换器也是：转换器 '0x_'
+[符合] '0b_'：mihomo 读成 '0b_'，转换器也是：转换器 '0b_'
+[符合] '0o_'：mihomo 读成 '0o_'，转换器也是：转换器 '0o_'
+[符合] '0_'：mihomo 读成 '0'，转换器也是：转换器 0
+[符合] '1_000'：mihomo 读成 '1000'，转换器也是：转换器 1000
+[符合] '0x_20'：mihomo 读成 '32'，转换器也是：转换器 32
+[符合] '1__0'：mihomo 读成 '10'，转换器也是：转换器 10
+[符合] '0x1_'：mihomo 读成 '1'，转换器也是：转换器 1
+[符合] '_1'：mihomo 读成 '1'，转换器也是：转换器 1
+[符合] '01234567'：mihomo 读成 '342391'，转换器也是：转换器 342391
+[符合] '0o17'：mihomo 读成 '15'，转换器也是：转换器 15
+[符合] '0089'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['8.9E+01']，转换器 89.0
+[符合] '1_0.5'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['1.05E+01']，转换器 10.5
+[符合] '.5'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['5E-01']，转换器 0.5
+[符合] '123456789012345678901'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['1.2345678901234568E+20']，转换器 1.2345678901234568e+20
+[符合] '-9223372036854775809'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['-9.223372036854776E+18']，转换器 -9.223372036854776e+18
+[符合] '10000000000000000000'：mihomo 读成 '10000000000000000000'，转换器也是：转换器 10000000000000000000
+[符合] '0x1FFFFFFFFFFFFFFFFF'：mihomo 读成 '0x1FFFFFFFFFFFFFFFFF'，转换器也是：转换器 '0x1FFFFFFFFFFFFFFFFF'
+[符合] '0o7777777777777777777777777'：mihomo 读成 '0o7777777777777777777777777'，转换器也是：转换器 '0o7777777777777777777777777'
+[符合] '2026-02-30'：mihomo 读成 '2026-02-30'，转换器也是：转换器 '2026-02-30'
+[符合] '2026-01-02T03:04:05'：mihomo 读成 '2026-01-02T03:04:05'，转换器也是：转换器 '2026-01-02T03:04:05'
+[符合] '='：mihomo 读成 '='，转换器也是：转换器 '='
+[符合] '1e400'：mihomo 读成 '1e400'，转换器也是：转换器 '1e400'
+[符合] '0b2'：mihomo 读成 '0b2'，转换器也是：转换器 '0b2'
+[符合] '08'：mihomo 读成小数，转换器也读成小数（跳过节点）：mihomo ['8E+00']，转换器 8.0
+[符合] '1:20'：mihomo 读成 '1:20'，转换器也是：转换器 '1:20'
+[符合] '2026-1-2'：mihomo 读成日期（-t 报错），转换器也读成日期（跳过节点）：转换器 datetime.date(2026, 1, 2)
+[符合] '2026-1-2 3:4:5.5'：mihomo 读成日期（-t 报错），转换器也读成日期（跳过节点）：转换器 datetime.date(2026, 1, 2)
+[符合] '2026-01-02T03:04:05Z'：mihomo 读成日期（-t 报错），转换器也读成日期（跳过节点）：转换器 datetime.date(2026, 1, 2)
+
+2. 同一张表里同一个键写两次
+[符合] mihomo -t 整份报错（mapping key already defined）
+[符合] 转换器整份不转换，只报键名和行号
+
+3. sing-box check
+[符合] SS2022 aes-128 合格的 16 字节密钥：sing-box 1.14.1 check 通过
+[符合] SS2022 aes-128 合格的 16 字节密钥：sing-box 1.12.0 check 通过
+[符合] SS2022 aes-128 合格的 16 字节密钥：转换器放行
+[符合] SS2022 aes-128 不是 base64：sing-box 1.14.1 check 报错：FATAL[0000] initialize outbound[0]: decode key: illegal base64 data at input byte 3
+[符合] SS2022 aes-128 不是 base64：sing-box 1.12.0 check 报错：FATAL[0000] initialize outbound[0]: decode key: illegal base64 data at input byte 3
+[符合] SS2022 aes-128 不是 base64：转换器跳过：第 1 段不是标准 base64（字符不对或没有补齐 =）
+[符合] SS2022 aes-256 只有 16 字节：sing-box 1.14.1 check 报错：FATAL[0000] initialize outbound[0]: bad key length, required 32, got 16
+[符合] SS2022 aes-256 只有 16 字节：sing-box 1.12.0 check 报错：FATAL[0000] initialize outbound[0]: bad key length, required 32, got 16
+[符合] SS2022 aes-256 只有 16 字节：转换器跳过：第 1 段解出来是 16 字节，2022-blake3-aes-256-gcm 要 32 字节
+[符合] SS2022 chacha20 两段：sing-box 1.14.1 check 报错：FATAL[0000] initialize outbound[0]: Shadowsocks 2022 EIH support only available in AES ciphers
+[符合] SS2022 chacha20 两段：sing-box 1.12.0 check 报错：FATAL[0000] initialize outbound[0]: Shadowsocks 2022 EIH support only available in AES ciphers
+[符合] SS2022 chacha20 两段：转换器跳过：chacha20-poly1305 不支持用冒号连起来的多段密钥
+[符合] SS2022 aes-128 两段：sing-box 1.14.1 check 通过
+[符合] SS2022 aes-128 两段：sing-box 1.12.0 check 通过
+[符合] SS2022 aes-128 两段：转换器放行
+[符合] TUIC 带 uTLS：sing-box 1.14.1 的 check 能过（问题在拨号时，check 查不出来）
+[符合] TUIC 带 uTLS：sing-box 1.12.0 的 check 能过（问题在拨号时，check 查不出来）
+
+4. 转换器的处理
+[符合] TUIC 带指纹：不写 uTLS：提示 n（tuic）：写了 client-fingerprint，但 TUIC 走 QUIC：mihomo 的 TUIC 没有这个字段、不用 uTLS，sing-box 在 QUIC 上用 uTLS 一连就报错，这里不写
+[符合] VMess auto 加 TLS：写明 aes-128-gcm：提示 n（vmess）：cipher 是 auto 又开了 TLS：sing-box 会把内层加密改成 zero（只靠外层 TLS），mihomo 在 arm64 / amd64 上用的是 aes-128-gcm，这里照它写明 aes-128-gcm
+[符合] VMess 大写 AES-128-GCM：转小写
+[符合] VLESS flow xtls-rprx-vision-udp443：取前 16 个字符：提示 n（vless）：flow 写的是 xtls-rprx-vision-udp443：mihomo 只取前 16 个字符，按 xtls-rprx-vision 处理
+[符合] 带引号的端口 0100：八进制 64：提示 n（trojan）：port 写成了 "0100"：mihomo 按 Go 的规则读成 64（0 开头是八进制、0x 开头是十六进制），这里也是
+[符合] port: true：跳过：跳过 n（trojan）：port 应该是数字，订阅里写的是 true（mihomo 也读不了这种写法）
+
+全部符合
+退出码：0

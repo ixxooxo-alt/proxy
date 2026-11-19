@@ -1,0 +1,43 @@
+（2026-11-19 写给使用者：交给能操作他 Mac 屏幕、也能通过“iPhone 镜像”操作 iPhone 的 GPT，测 r22 第二份送审稿。第一份送审稿的那份命令（handoff/notes/r22_draft/）不要再用：公开配置相对第一份只改了版本号那一行和地区分组的筛选，已经按那份测过的，除了节点分组都还算数，节点分组要按这份重看。⟦⟧ 里的由使用者按自己的情况改。下面整段复制。）
+
+你要在我的 Mac 和 iPhone 上，帮我做一套代理分流配置的真机验收。你有操作这台 Mac 的权限，也可以通过 Mac 上的“iPhone 镜像”操作我的 iPhone。Loon、Quantumult X、Stash（iPhone 版和 Mac 版）和 Clash Verge Rev（Mac）都已经装好。请用简体中文和我交流、写报告。
+
+一、测哪一版
+- GitHub 公开仓库 ixxooxo-alt/proxy 的 r22 第二份送审稿，固定在提交 ⟦提交⟧（还没发布到 main 分支）。导入一律用下面这几个地址，不要用 main 上的：
+  Loon：https://raw.githubusercontent.com/ixxooxo-alt/proxy/⟦提交⟧/dist/loon/loon.conf
+  Quantumult X：https://raw.githubusercontent.com/ixxooxo-alt/proxy/⟦提交⟧/dist/quantumultx/quantumultx.conf
+  Stash：https://raw.githubusercontent.com/ixxooxo-alt/proxy/⟦提交⟧/dist/stash/stash.yaml
+  Clash Verge Rev：https://raw.githubusercontent.com/ixxooxo-alt/proxy/⟦提交⟧/dist/mihomo/mihomo-profile.yaml
+- 步骤和通过标准以同一提交里的 docs/09-真机验收操作清单.md 为准：
+  https://github.com/ixxooxo-alt/proxy/blob/⟦提交⟧/docs/09-真机验收操作清单.md
+  导入、换订阅、切回旧配置的说明在 docs/01-导入、更新、诊断与回滚.md；已知限制在 docs/06-已知限制与待决事项.md（都在同一提交里）。
+- 导入以后先看配置开头的注释，写的必须是“统一源版本 2026.11.19-1”，不是就停下来告诉我。
+- raw.githubusercontent.com 在国内直连常常打不开：打不开时先开着我原来的代理再导入。
+
+二、开始之前
+1. 记下现在的状态：iPhone 和 Mac 上各在用哪个代理 App、哪份配置，VPN 和系统代理是开是关；各个 App、iOS、macOS 的版本。全部测完要恢复成这个样子。
+2. 新配置一律另外导入一份，不覆盖、不删除我原来的配置。
+3. 公开配置里的订阅是占位地址（REPLACE-ME.invalid）。⟦二选一：订阅由我自己填 / 你从我原来的配置里复制过去⟧。
+
+三、测试顺序（每测完一个 App，先给我一份小结，我说继续再往下）
+1. iPhone · Loon（标准版）：docs/09 第 1 节里和 Loon 有关的每一行（版本要 3.2.5 (789) 及以上，不够先问我；能导入、不明显变卡；81 个策略组和图标；两条广告订阅；节点分组；手动组和自动组；“香港·手动优先”的成员）。第 2 节只测我常用的：⟦例如 ChatGPT、Claude、Google、YouTube、Netflix、淘宝、微信、哔哩哔哩⟧。第 3 节广告与例外。第 5 节的 DNS 泄露测试和“IPv6（Loon）”那一行。
+2. iPhone · Quantumult X（标准版）：第 1 节里和 Quantumult X 有关的每一行（特别是带 /、+ 的策略名能不能正常显示和选择，“自动”“负载均衡”组里有没有节点）；第 2 节同上。
+3. iPhone · Stash（标准版）：第 1c 节，最要紧的是第 3、4、16 步；第 14 步要把订阅改成空的，先问我再做。
+4. Mac · Clash Verge Rev：第 1 节里 Clash 系的几行（“DNS 覆写”关着、内核版本、走代理的网站名字不交给国内 DNS）；再按第 6 节读连接记录，用仓库里的 tools/check_connections.py 分析（把仓库克隆下来、切到上面那个提交）。导入并切换到这份 r22 配置这一步，我在这里先同意了；第 6 节别的约束照守，改其他设置先问我。
+5. 有时间再做，先问我：Mac 版 Loon / Quantumult X / Stash 的第 1 节导入检查；严格版（第 1b 节）；简易版（第 1d 节）。
+同一时间只开一个代理 App：测完一个先关掉，再开下一个。
+这一版相对上一份送审稿，配置里改的只有地区分组的筛选（名字里“港”后面紧跟“德、英、法、欧、歐”的节点：前面没有“香”的算专线落地到别国，进“其他地区”；“香港英皇道”这种完整的香港地名留在香港）。所以每个 App 的“节点分组”那一行，请把香港、台湾、日本、韩国、新加坡、美国、其他地区这几个组里各有哪些节点名照实列出来（节点名可以写），名字里带“港德 / 港英 / 港法 / 港欧”或完整香港地名的节点，单独标出它进了哪个组。我的订阅里没有这类名字就写“没有这类节点”。
+
+四、必须遵守
+- 订阅地址、节点的服务器地址、端口、密码，我的 Apple ID、手机号等个人信息，不能出现在报告、截图和你发给我的文字里（截图先遮住）。节点名可以写（看分组要用）。
+- 不安装、不信任任何证书，不开 MITM，不加脚本或复写。配置内容一个字都不改：不对就记下来，不要自己修。
+- 会断网或断开 iPhone 镜像的操作（关 Wi-Fi、切蜂窝网、开飞行模式）、删除任何东西、改系统设置（各 App 自己的 VPN 开关以外）、更新或购买 App、安装 git 或 Python 之类的工具，都先问我。手机上要输密码或 Face ID 确认的，叫我来。
+- 只打开这几个代理 App、浏览器（打开测试网页）、终端（Mac 上跑检查工具）、设置里的 VPN 和版本信息；不打开信息、相册、银行等其他 App。
+- 不改 GitHub 仓库，不开 PR、不提 issue、不评论。
+- 全部测完，把 iPhone 和 Mac 恢复成开始前记下的状态。
+
+五、怎么记、怎么交
+- docs/09 表格里的每一行：通过 / 不通过 / 没做（写原因）；写清你实际看到了什么，附遮好的截图。
+- 亲眼看到的和推测的分开写；没看到就写没看到，不要按“应该没问题”记成通过。docs/06 里写明的已知限制，照实记录现象并标明“已知限制”。Mac 上的结果不能当成 iPhone 上的结果。
+- IPv6 那一行：先在不开代理时用 Safari 打开 https://test-ipv6.com，看当前网络有没有 IPv6；没有就写“没做：当前网络没有 IPv6”，蜂窝网下的那一次留给我自己做。
+- 最后给我一份完整报告（Markdown）：开头写总的结论（有没有导入失败、分流不对、DNS 泄露的迹象），然后按“设备 · App”分节；附 App、iOS、macOS、mihomo 内核的版本和测试时间。我会把报告转给维护这个仓库的 Claude 核对。
