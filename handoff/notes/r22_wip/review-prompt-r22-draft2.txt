@@ -1,4 +1,4 @@
-请审核 GitHub 公开仓库 ixxooxo-alt/proxy 的 r22 第二份送审稿：分支 claude/r12-gpt-review-handling-q4onlv 的提交 ⟦DOCS⟧（代码和产物在提交 a4cfd65 里，之后的提交只改了文档和检查日志）。
+请审核 GitHub 公开仓库 ixxooxo-alt/proxy 的 r22 第二份送审稿：分支 claude/r12-gpt-review-handling-q4onlv 的提交 ⟦DOCS⟧（代码在提交 a4cfd65 里；规则和产物最后改在 6b3e2e0（Claude 组加的那一个主机）、6c5f173（重新生成的官方内核快照），之后的提交只改了文档和检查日志）。
 这一份处理的是对第一份送审稿 f60ee42 的两份审核：你开的审核 PR #11（报告在 docs/evidence/gpt-r22-draft/）和另一个 AI 的报告（docs/evidence/review-r22-draft/）；交出去之前我自己又查出 F13 的修法会误拒合法的订阅，也改了（docs/08 第 25 轮的“交送审稿前自查补记”）。另外按使用者 2026-11-19 的选择，Claude 组加了 Claude Code 的运行遥测主机 http-intake.logs.us5.datadoghq.com（官方网络要求写明可选；只收这一个，docs/00 最后一节）。
 相对第一份送审稿的对比页面：https://github.com/ixxooxo-alt/proxy/compare/f60ee42...⟦DOCS⟧
 （上一个发布版是 main 上的 r21b a6671c1；和它的对比：https://github.com/ixxooxo-alt/proxy/compare/b9a9f14...⟦DOCS⟧）
