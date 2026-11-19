@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1675,
+    "from_rules": 1677,
     "from_sets": 222448,
-    "hosts": 224123,
+    "hosts": 224125,
     "sets": {
      "cn": 111224
     },
@@ -103,9 +103,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1588,
+    "from_rules": 1590,
     "from_sets": 17996,
-    "hosts": 19584,
+    "hosts": 19586,
     "sets": {
      "geosite-cn": 9303
     },
@@ -123,9 +123,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1588,
+    "from_rules": 1590,
     "from_sets": 17996,
-    "hosts": 19584,
+    "hosts": 19586,
     "sets": {
      "geosite-cn": 9303
     },
@@ -868,6 +868,19 @@
     "geolocation-!cn": "suffix:apple.com"
    }
   },
+  "cdn.jsdelivr.net": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:jsdelivr.net"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:jsdelivr.net"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:jsdelivr.net"
+   }
+  },
   "cdn.oaistatic.com": {
    "loon": {},
    "mihomo": {
@@ -879,6 +892,26 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:oaistatic.com"
+   }
+  },
+  "cdn.tailwindcss.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
+  "cdnjs.cloudflare.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:cloudflare.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:cloudflare.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:cloudflare.com"
    }
   },
   "challenges.cloudflare.com": {
@@ -1038,6 +1071,19 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "code.jquery.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:jquery.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:jquery.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:jquery.com"
    }
   },
   "collector.github.com": {
@@ -1410,6 +1456,21 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:amazon.com"
+   }
+  },
+  "fonts.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:fonts.googleapis.com",
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "cn": "full:fonts.googleapis.com",
+    "geolocation-!cn": "suffix:googleapis.com"
    }
   },
   "fonts.gstatic.com": {
@@ -2070,6 +2131,19 @@
     "geolocation-!cn": "suffix:stripe.network"
    }
   },
+  "maps.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
   "marketplace.cursorapi.com": {
    "loon": {},
    "mihomo": {
@@ -2215,6 +2289,19 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:googleapis.com"
+   }
+  },
+  "objects.githubusercontent.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:githubusercontent.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:githubusercontent.com"
    }
   },
   "occ-0-1.1.nflxso.net": {
@@ -2740,6 +2827,19 @@
     "geolocation-!cn": "suffix:.doubleclick.net"
    }
   },
+  "status.npmjs.org": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:npmjs.org"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:npmjs.org"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:npmjs.org"
+   }
+  },
   "stitch.withgoogle.com": {
    "loon": {},
    "mihomo": {
@@ -2962,6 +3062,19 @@
    "quantumultx": {},
    "singbox": {},
    "stash": {}
+  },
+  "unpkg.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:unpkg.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:unpkg.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:unpkg.com"
+   }
   },
   "user.wixsite.com": {
    "loon": {
@@ -3298,6 +3411,21 @@
    },
    "stash": {
     "geolocation-!cn": "suffix:google.de"
+   }
+  },
+  "www.gstatic.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:gstatic.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-cn": "full:www.gstatic.com",
+    "geosite-geolocation-!cn": "suffix:gstatic.com"
+   },
+   "stash": {
+    "cn": "full:www.gstatic.com",
+    "geolocation-!cn": "suffix:gstatic.com"
    }
   },
   "www.hjholdings.tv": {
@@ -4181,7 +4309,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "d58e75a52d4e9f9867d72401fca877bae00cc53903242c245964909a585b9d32",
+   "config_sha256": "23570d0080c2398e1af57459b7d1b96143b24559dea9a710b8cef2ad35b812b5",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -4204,7 +4332,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "b33b73c01347f747fb77efb9f972acbad1a0560cdab03de3f397753e1fff7ee4",
+   "dial_sha256": "232384cd57995e68e02e68d94816f89d2b5c092434e5430027b91d68d3147fd3",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -4686,16 +4814,28 @@
      "开发下载"
     ],
     "browser-intake-us5-datadoghq.com": [
-     "Match",
-     "国外默认"
+     "Domain(browser-intake-us5-datadoghq.com)",
+     "Claude"
     ],
     "captive.apple.com": [
      "Domain(captive.apple.com)",
      "DIRECT"
     ],
+    "cdn.jsdelivr.net": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
     "cdn.oaistatic.com": [
      "DomainSuffix(oaistatic.com)",
      "OpenAI"
+    ],
+    "cdn.tailwindcss.com": [
+     "Match",
+     "国外默认"
+    ],
+    "cdnjs.cloudflare.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
     ],
     "challenges.cloudflare.com": [
      "Domain(challenges.cloudflare.com)",
@@ -4744,6 +4884,10 @@
     "cloudresourcemanager.googleapis.com": [
      "DomainSuffix(googleapis.com)",
      "Google"
+    ],
+    "code.jquery.com": [
+     "GeoSite(geolocation-!cn)",
+     "国外默认"
     ],
     "collector.github.com": [
      "DomainSuffix(collector.github.com)",
@@ -4860,6 +5004,10 @@
     "fls-na.amazon.com": [
      "DomainSuffix(amazon.com)",
      "国外默认"
+    ],
+    "fonts.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
     ],
     "fonts.gstatic.com": [
      "DomainSuffix(gstatic.com)",
@@ -5065,6 +5213,10 @@
      "DomainSuffix(media-amazon.com)",
      "国外默认"
     ],
+    "maps.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
+    ],
     "marketplace.cursorapi.com": [
      "DomainSuffix(cursorapi.com)",
      "Grok"
@@ -5112,6 +5264,10 @@
     "oauth2.googleapis.com": [
      "DomainSuffix(googleapis.com)",
      "Google"
+    ],
+    "objects.githubusercontent.com": [
+     "DomainSuffix(githubusercontent.com)",
+     "GitHub"
     ],
     "occ-0-1.1.nflxso.net": [
      "DomainSuffix(nflxso.net)",
@@ -5273,13 +5429,17 @@
      "DomainSuffix(doubleclick.net)",
      "广告拦截"
     ],
+    "status.npmjs.org": [
+     "DomainSuffix(npmjs.org)",
+     "开发下载"
+    ],
     "stitch.withgoogle.com": [
      "DomainSuffix(stitch.withgoogle.com)",
      "Google AI"
     ],
     "storage.googleapis.com": [
-     "DomainSuffix(googleapis.com)",
-     "Google"
+     "Domain(storage.googleapis.com)",
+     "Claude"
     ],
     "sydney.bing.com": [
      "Domain(sydney.bing.com)",
@@ -5339,6 +5499,10 @@
     ],
     "unknown-foreign.example": [
      "Match",
+     "国外默认"
+    ],
+    "unpkg.com": [
+     "GeoSite(geolocation-!cn)",
      "国外默认"
     ],
     "user.wixsite.com": [
@@ -5435,6 +5599,10 @@
     ],
     "www.google.de": [
      "DomainSuffix(google.de)",
+     "Google"
+    ],
+    "www.gstatic.com": [
+     "DomainSuffix(gstatic.com)",
      "Google"
     ],
     "www.hjholdings.tv": [
@@ -5586,12 +5754,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "97e06d8caed809be7273b0c81671b95cdf1826d6f9acb66dfc8684a79bd2b5fa",
+   "routing_sha256": "81743fefbb079169ec78c0f154d0c4b94adf3522f2baecc85499afd630bf6bba",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "ae0e8ed878ab26d783fe239526b1ce22306ab83c75af36299975a5b24b5ff601",
+   "config_sha256": "1ef067177244cecad299b24fa2ad33f548803ebf2d4d5dadb059373e98e510bd",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5614,7 +5782,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "c38638266caa239235f8e1a6aa78ac7cc89cb3746cf533e59e99ecbed3a32038",
+   "dial_sha256": "cf72e5c4e7e4b2b0e1b15f6f09f4523c91068b6eb5144485409e50f7937c5fb2",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5903,11 +6071,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "anthropic.team": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "antigravity.google": [
@@ -5923,7 +6091,7 @@
      "Apple Music/TV"
     ],
     "api.anthropic.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -6011,16 +6179,28 @@
      "开发下载"
     ],
     "browser-intake-us5-datadoghq.com": [
-     "没有规则命中（route.final）",
-     "国外默认"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "Claude"
     ],
     "captive.apple.com": [
      "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
      "DIRECT"
     ],
+    "cdn.jsdelivr.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "cdn.oaistatic.com": [
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
+    ],
+    "cdn.tailwindcss.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "cdnjs.cloudflare.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
     ],
     "challenges.cloudflare.com": [
      "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
@@ -6047,15 +6227,15 @@
      "Google"
     ],
     "claude.ai": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "claude.app": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "claude.dev": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -6069,6 +6249,10 @@
     "cloudresourcemanager.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
+    ],
+    "code.jquery.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
     ],
     "collector.github.com": [
      "domain_suffix=collector.github.com",
@@ -6139,7 +6323,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -6185,6 +6369,10 @@
     "fls-na.amazon.com": [
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
+    ],
+    "fonts.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
     ],
     "fonts.gstatic.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
@@ -6283,7 +6471,7 @@
      "国外默认"
     ],
     "http-intake.logs.us5.datadoghq.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
@@ -6390,6 +6578,10 @@
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
     ],
+    "maps.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
     "marketplace.cursorapi.com": [
      "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
@@ -6437,6 +6629,10 @@
     "oauth2.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
+    ],
+    "objects.githubusercontent.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
     ],
     "occ-0-1.1.nflxso.net": [
      "domain_suffix=[netflix.com netflix.net nflxext.com...]",
@@ -6491,7 +6687,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "play.max.com": [
@@ -6598,13 +6794,17 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "status.npmjs.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
     "stitch.withgoogle.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
     ],
     "storage.googleapis.com": [
-     "domain_suffix=[google.com googleapis.com gstatic.com...]",
-     "Google"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "Claude"
     ],
     "sydney.bing.com": [
      "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
@@ -6664,6 +6864,10 @@
     ],
     "unknown-foreign.example": [
      "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "unpkg.com": [
+     "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
     "user.wixsite.com": [
@@ -6731,7 +6935,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -6759,6 +6963,10 @@
      "Google"
     ],
     "www.google.de": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.gstatic.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
     ],
@@ -6911,12 +7119,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "268b086e25e9e599c41b6a76cf490808c2b9860891094909387ab4a34e1f07df",
+   "routing_sha256": "f9e5297c4e01ff6ee6515d099fdefb819bed40cdb9dfdcdb5f4dbf132343f7e6",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "d49278cbee64a03bf7f3f9bcd2698369589c6a7ebcdf9b0cdce8a1bafbdb67d4",
+   "config_sha256": "9caddab57b8a1177b408831530a1bcea71b6f0a31b619eb5f12d4727fb632272",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -6939,7 +7147,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "40849cd9c8f4bb220afb0264ed8a07defe8799e8f263d00a691f326e6f2ac8a8",
+   "dial_sha256": "10663c82e51ba0c9def6bc23cb444ba61799481105b9133180af971825db63e2",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -7228,11 +7436,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "anthropic.team": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "antigravity.google": [
@@ -7248,7 +7456,7 @@
      "Apple Music/TV"
     ],
     "api.anthropic.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -7336,16 +7544,28 @@
      "开发下载"
     ],
     "browser-intake-us5-datadoghq.com": [
-     "没有规则命中（route.final）",
-     "国外默认"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "Claude"
     ],
     "captive.apple.com": [
      "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
      "DIRECT"
     ],
+    "cdn.jsdelivr.net": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
+    ],
     "cdn.oaistatic.com": [
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
+    ],
+    "cdn.tailwindcss.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "cdnjs.cloudflare.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
     ],
     "challenges.cloudflare.com": [
      "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
@@ -7372,15 +7592,15 @@
      "Google"
     ],
     "claude.ai": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "claude.app": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "claude.dev": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -7394,6 +7614,10 @@
     "cloudresourcemanager.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
+    ],
+    "code.jquery.com": [
+     "rule_set=geosite-geolocation-!cn",
+     "国外默认"
     ],
     "collector.github.com": [
      "domain_suffix=collector.github.com",
@@ -7464,7 +7688,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -7510,6 +7734,10 @@
     "fls-na.amazon.com": [
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
+    ],
+    "fonts.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
     ],
     "fonts.gstatic.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
@@ -7608,7 +7836,7 @@
      "国外默认"
     ],
     "http-intake.logs.us5.datadoghq.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
@@ -7715,6 +7943,10 @@
      "domain_suffix=[amazon.com amazon.co.jp amazon.co.uk...]",
      "国外默认"
     ],
+    "maps.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
     "marketplace.cursorapi.com": [
      "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
      "Grok"
@@ -7762,6 +7994,10 @@
     "oauth2.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
+    ],
+    "objects.githubusercontent.com": [
+     "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
+     "GitHub"
     ],
     "occ-0-1.1.nflxso.net": [
      "domain_suffix=[netflix.com netflix.net nflxext.com...]",
@@ -7816,7 +8052,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "play.max.com": [
@@ -7923,13 +8159,17 @@
      "domain=[adstudio-assets.scdn.co an.facebook.com analytics.google.com...] domain_suffix=[adservice.google.com googleadapi",
      "REJECT"
     ],
+    "status.npmjs.org": [
+     "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
+     "开发下载"
+    ],
     "stitch.withgoogle.com": [
      "domain=[gemini.google.com aistudio.google.com alkalimakersuite-pa.clients6.google.com...] domain_suffix=[gemini.google g",
      "Google AI"
     ],
     "storage.googleapis.com": [
-     "domain_suffix=[google.com googleapis.com gstatic.com...]",
-     "Google"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "Claude"
     ],
     "sydney.bing.com": [
      "domain=[copilot-proxy.githubusercontent.com origin-tracker.githubusercontent.com copilot-telemetry.githubusercontent.com",
@@ -7989,6 +8229,10 @@
     ],
     "unknown-foreign.example": [
      "没有规则命中（route.final）",
+     "国外默认"
+    ],
+    "unpkg.com": [
+     "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
     "user.wixsite.com": [
@@ -8056,7 +8300,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -8084,6 +8328,10 @@
      "Google"
     ],
     "www.google.de": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
+    ],
+    "www.gstatic.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
      "Google"
     ],
@@ -8236,7 +8484,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "9ac8c2fe8f5b4d566dc73db3b4c37483773ccf272278ad02338caf36c70c3c8b",
+   "routing_sha256": "6faf2391124cb408e0421f0880bbe6e33d4c8a00fd0f692996d18cbd6f12bb93",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -8313,7 +8561,7 @@
    "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.11.19-1",
+ "source_version": "2026.11.19-2",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
