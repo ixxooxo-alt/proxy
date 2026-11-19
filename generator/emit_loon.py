@@ -171,7 +171,7 @@ def build(m: Model, plan: Plan, sub_urls: List[str] | None = None, strict: bool 
             L.append(rule_line(r))
 
     L.append("# ==== 2 局域网、内网与系统联网检测（固定直连） ====")
-    emit(plan.lan)
+    emit(plan.lan_for("loon"))
     L.append("# ==== 2b 要真实地址的名单（[General] 的 real-ip）：这些名字先在本机由国内 DNS 解析、再选出口，所以固定直连 ====")
     emit(plan.real_ip_direct, by_service=False)
     L.append("# ==== 3a 广告误杀例外：按业务目标放行（本地规则优先于订阅的广告集合） ====")

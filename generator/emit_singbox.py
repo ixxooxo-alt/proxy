@@ -109,7 +109,7 @@ def dns_layers(plan: Plan, real_ip=()) -> List[Tuple[List[Rule], List[Rule]]]:
     # 固定直连的服务（组是 DIRECT）也算“国内直连”一类：被更宽的走代理规则覆盖的那部分交给 dns-cn（第三份全项目复核 F03）。
     # 已经在要真实地址的名单里的不再算（前面第 2 条 DNS 规则已经交给 dns-cn）
     real = {(("suffix", x["suffix"]) if "suffix" in x else ("domain", x["domain"])) for x in real_ip}
-    fixed_direct = [r for r in plan.lan if r.service != "lan" and r.target == "DIRECT" and (r.kind, r.value) not in real]
+    fixed_direct = [r for r in plan.lan_for("singbox") if r.service != "lan" and r.target == "DIRECT" and (r.kind, r.value) not in real]
     rules = [r for r in plan.exceptions + plan.product_for("singbox") + fixed_direct if r.kind in DOMAIN_KINDS]
     cls = {id(r): (r.target in (DOMESTIC_GROUP, "DIRECT")) for r in rules}
     depth: Dict[int, int] = {}
@@ -263,7 +263,7 @@ def build(m: Model, plan: Plan, variant: str, nodes: Optional[List[dict]] = None
         # 解析不了内部名字（审核 r9 的 F02 的另一半）。目标本来就是 IP 时这条规则什么都不做。
         {"domain_suffix": list(p["lan"]["domain_suffix"]), "action": "resolve", "server": LOCAL_DNS_TAG},
     ]
-    rules += _chunk(plan.lan, target_map)
+    rules += _chunk(plan.lan_for("singbox"), target_map)
     rules += _chunk(plan.real_ip_direct, target_map)    # 要真实地址的名单：DNS 规则交给 dns-cn，连接也固定直连（待决事项第 15 项）
     rules += _chunk(plan.exceptions, target_map)
     rules += _chunk(plan.ads_local, target_map)

@@ -345,6 +345,53 @@ class DnsLayersForFixedDirect(unittest.TestCase):
         finally:
             t.close()
 
+    def test_local_direct_rule_for_one_client_stays_on_that_client(self):
+        """GPT 审核 r22 送审稿 R22-F05：只写给 Loon 的本地直连规则，别的客户端的路由和 DNS 里都不能有（以前五个客户端都写了，
+        mihomo、sing-box 的 DNS 也交给了国内）。"""
+        t = TempRoot()
+        try:
+            t.write("local.yaml", "extra_services:\n  - id: loon_only\n    group: DIRECT\n    title: 只给 Loon\n    clients: [loon]\n"
+                                  "    rules:\n      - {suffix: cn-mirror.github.com, ev: my-note}\n"
+                                  "evidence:\n  my-note: {kind: maintainer, note: 测试用}\n")
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(t.build("--singbox-nodes", os.path.join(ROOT, "tests", "node_samples.yaml")), 0)
+
+            def read(n):
+                with open(os.path.join(t.out, "private", n), encoding="utf-8") as f:
+                    return f.read()
+            self.assertIn("DOMAIN-SUFFIX,cn-mirror.github.com,DIRECT", read("loon.conf"))
+            for n in ("quantumultx.conf", "mihomo-profile.yaml", "stash.yaml", "sing-box-1.14.json"):
+                self.assertNotIn("cn-mirror.github.com", read(n), n)
+        finally:
+            t.close()
+
+    def test_fixed_direct_rule_hiding_a_more_specific_rule_is_rejected(self):
+        """R22-F06：固定直连整个盖住一条更具体、去向不同的规则时，路由上直连先命中、DNS 却按更具体的那条走；读规则源时就报错。
+        两条写给不同客户端时不算矛盾。"""
+        ev = "evidence:\n  my-note: {kind: maintainer, note: 测试用}\n"
+        corp = ("  - id: my_corp\n    group: DIRECT\n    title: 公司\n{c1}    rules:\n      - {{suffix: corp.example.com, ev: my-note}}\n"
+                "  - id: my_www\n    group: 国外默认\n    title: 公司官网\n{c2}    rules:\n      - {{domain: www.corp.example.com, ev: my-note}}\n")
+        for local, needle in (
+                ("extra_services:\n" + corp.format(c1="", c2=""), "整个落在 [my_corp] 固定直连的 suffix,corp.example.com 里"),
+                ("extra_services:\n  - id: my_ntp\n    group: 国外默认\n    title: 测试\n"
+                 "    rules:\n      - {domain: cn.pool.ntp.org, ev: my-note}\n", "整个落在 要真实地址的名单")):
+            t = TempRoot()
+            try:
+                t.write("local.yaml", local + ev)
+                err = io.StringIO()
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                    self.assertEqual(t.build(), 2)
+                self.assertIn(needle, err.getvalue())
+            finally:
+                t.close()
+        t = TempRoot()
+        try:
+            t.write("local.yaml", "extra_services:\n" + corp.format(c1="    clients: [loon]\n", c2="    clients: [mihomo]\n") + ev)
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(t.build(), 0)
+        finally:
+            t.close()
+
     def test_rules_clashing_with_the_real_ip_list_are_rejected(self):
         t = TempRoot()
         try:

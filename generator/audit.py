@@ -179,7 +179,7 @@ def _strict_section(m: Model, plan: Plan) -> list:
         kept_s, kept_f, _ = strict_mod.cn_entries(m, plan, client)
         for d in sorted((set(suffix) - set(kept_s)) | (set(full) - set(kept_f))):
             gone.setdefault(d, []).append(client)
-    local = {c: [r for r in plan.lan + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(c)
+    local = {c: [r for r in plan.lan_for(c) + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(c)
                  if r.kind in ("domain", "suffix")] for c in ("loon", "quantumultx")}
     from .model import most_specific
     mx_s, mx_f = m.max_domains

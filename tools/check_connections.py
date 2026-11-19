@@ -149,7 +149,7 @@ class Expectation:
 
     def __init__(self, plan):
         self.plan = plan
-        self.ip_rules = [r for r in plan.lan if r.kind in ("ip4", "ip6")] + list(plan.service_ip_for(self.FAMILY))
+        self.ip_rules = [r for r in plan.lan_for(self.FAMILY) if r.kind in ("ip4", "ip6")] + list(plan.service_ip_for(self.FAMILY))
 
     def target(self, host: str) -> Optional[str]:
         try:

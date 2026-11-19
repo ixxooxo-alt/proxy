@@ -67,7 +67,7 @@ def product_dns_policy(m: Model, plan: Plan) -> List[Tuple[str, bool]]:
     # 固定直连的服务（组是 DIRECT：公开规则里只有系统联网检测；local.yaml 的 extra_services 也可以写）一起参加分层：
     # 被更宽的“走代理”规则覆盖的那部分交给国内 DNS（第三份全项目复核 F03：以前不看它们，local.yaml 里写在
     # microsoft.com 之下的直连域名，设备查询和直连拨号都问境外 DNS）
-    fixed_direct = [r for s in m.services if s.group == "DIRECT" for r in s.rules]
+    fixed_direct = [r for r in plan.lan_for("mihomo") if r.service != "lan" and r.target == "DIRECT"]   # 只写给别的客户端的不算（R22-F05）
     rules = [r for r in plan.exceptions + plan.product_for("mihomo") + fixed_direct if r.kind in ("domain", "suffix", "keyword")]
     keyword = [f"{r.value} → {r.target}" for r in rules if r.kind == "keyword"]
     if keyword:
@@ -251,7 +251,7 @@ def build_rules_text(m: Model, plan: Plan, dns_group: str = "") -> List[str]:
             lines.append("  - " + _scalar(rule_line(r)))
 
     section("2 局域网、内网与系统联网检测（固定直连）")
-    emit(plan.lan)
+    emit(plan.lan_for("mihomo"))
     section("2b 要真实地址的名单（fake-ip-filter 里的那几个）：固定直连，DNS 也交给国内（见 dns 段）")
     emit(plan.real_ip_direct, by_service=False)
     if dns_group:

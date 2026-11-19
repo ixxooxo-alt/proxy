@@ -230,7 +230,7 @@ def build_rules_text(m: Model, plan: Plan, strict: bool) -> List[str]:
             add(rule_line(r))
 
     section("2 局域网、内网与系统联网检测（固定直连）")
-    emit(plan.lan)
+    emit(plan.lan_for("stash"))
     section("2b 要真实地址的名单（dns 段 fake-ip-filter 里的那些）：先在本机由国内 DNS 解析，所以固定直连")
     emit(plan.real_ip_direct, by_service=False)
     section("3a 广告误杀例外：按没有广告规则时的业务目标放行")

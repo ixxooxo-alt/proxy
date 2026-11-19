@@ -660,6 +660,27 @@ def validate(m: Model) -> None:
                 errors.append(f"[{s.id}] 的 {r.kind},{r.value} 在要真实地址的名单（project.yaml 的 dns.real_ip）里，"
                               f"那里固定直连，不能再交给 {s.group}")
 
+    # GPT 审核 r22 送审稿 R22-F06：固定直连（组是 DIRECT 的服务、要真实地址的名单）整个盖住一条更具体、去向不同的规则时，
+    # 路由上固定直连排在前面，那一条永远不生效；DNS 却按更具体的走（mihomo 的域名树、sing-box 的分层都是越具体越优先），
+    # 两边对不上（例如 local.yaml 里 corp.example.com 直连、www.corp.example.com 给国外默认：连接直连、名字却问境外 DNS）。
+    # 读规则源时就报出是哪两条。“宽的走代理、里面划出窄的直连”是合法写法，不在这里。按客户端看：两条写进同一个客户端才算
+    fixed = [(r.kind, r.value, set(s.clients or ALL_CLIENTS), f"[{s.id}]")
+             for s in m.services if s.group == "DIRECT" for r in s.rules if r.kind in ("domain", "suffix")]
+    fixed += [(k, v, set(ALL_CLIENTS), "要真实地址的名单（project.yaml 的 dns.real_ip）") for k, v in real_keys]
+    for s in m.services:
+        if s.group == "DIRECT":
+            continue
+        mine = set(s.clients or ALL_CLIENTS)
+        for r in s.rules:
+            if r.kind not in ("domain", "suffix"):
+                continue
+            for fk, fv, theirs, where in fixed:
+                both = mine & theirs
+                if both and (fk, fv) != (r.kind, r.value) and covers(fk, fv, r.kind, r.value):
+                    errors.append(f"[{s.id}] 的 {r.kind},{r.value} 交给 {s.group}，却整个落在 {where} 固定直连的 {fk},{fv} 里"
+                                  f"（{'、'.join(c for c in ALL_CLIENTS if c in both)}）：路由上固定直连排在前面，这一条永远不生效，"
+                                  "DNS 却按它走。要直连就删掉这一条，要走代理就把固定直连的那条收窄")
+
     # 例外
     for e in m.adblock.get("exceptions", []):
         kind = "suffix" if "suffix" in e else "domain"
@@ -767,10 +788,16 @@ class Plan:
     def service_ip_for(self, family: str) -> List[Rule]:
         return [r for r in self.service_ip if self.emitted_to(r, family)]
 
+    def lan_for(self, family: str) -> List[Rule]:
+        """局域网段（局域网、保留地址、组是 DIRECT 的服务）里，这个客户端族实际写出的规则。local.yaml 里只写给某几个客户端
+        （clients）的直连服务，以前五个客户端都写进了（路由固定直连、mihomo 和 sing-box 的 DNS 也交国内），
+        GPT 审核 r22 送审稿 R22-F05。路由、DNS 分层、预期计算都用这一份。"""
+        return [r for r in self.lan if self.emitted_to(r, family)]
+
     def intended_target(self, host: str, family: Optional[str] = None) -> Optional[str]:
         """按语义阶段求一个主机名的预期目标（不含远程集合；远程集合在测试里用样本模拟）。
-        family 给出时只看该客户端族实际写出的产品规则（例如国内常用网站只写进 mihomo / sing-box / Stash）。"""
-        for stage in (self.lan, self.real_ip_direct, self.exceptions, self.ads_local):
+        family 给出时只看该客户端族实际写出的规则（例如国内常用网站只写进 mihomo / sing-box / Stash）。"""
+        for stage in (self.lan_for(family) if family else self.lan, self.real_ip_direct, self.exceptions, self.ads_local):
             for r in stage:
                 if rule_matches_host(r.kind, r.value, host):
                     return r.target

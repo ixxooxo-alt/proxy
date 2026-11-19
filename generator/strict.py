@@ -101,7 +101,7 @@ def cn_entries(m, plan, family: str, data=None) -> Tuple[List[str], List[str], i
     去掉的是已经被这一端【本地规则】覆盖的条目（例如清单里的 qwen.ai：本地规则把它交给国外默认）。两端都是本地规则优先于
     远程规则，这些条目本来就不会生效；去掉以后，“清单里有、本地规则另有安排”的域名走哪里，不再依赖两类规则谁先谁后
     （Quantumult X 的规则先后没有完整的官方说明）。"""
-    local = [r for r in plan.lan + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(family)
+    local = [r for r in plan.lan_for(family) + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(family)
              if r.kind in ("domain", "suffix")]
     by_suffix = {r.value for r in local if r.kind == "suffix"}
     by_exact = {r.value for r in local if r.kind == "domain"}

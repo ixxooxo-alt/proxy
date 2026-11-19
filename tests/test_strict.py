@@ -351,7 +351,7 @@ class OwnLists(unittest.TestCase):
             self.assertGreater(dropped, 0)
             self.assertLess(dropped, 60, "被本地规则覆盖而去掉的应该只是少数")
             # 去掉的每一条，确实已经被这一端的本地规则接住（去向由本地规则决定）
-            local = [r for r in plan.lan + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(fam)
+            local = [r for r in plan.lan_for(fam) + plan.real_ip_direct + plan.exceptions + plan.ads_local + plan.product_for(fam)
                      if r.kind in ("domain", "suffix")]
             gone = (set(suffix) - set(kept_s)) | (set(full) - set(kept_f))
             for d in gone:
