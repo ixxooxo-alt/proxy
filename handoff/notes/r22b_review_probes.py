@@ -4,7 +4,9 @@
 1. 订阅里不带引号的值，mihomo v1.19.31 读成什么：把值写成节点名字（name 是文字字段，mihomo 读成什么就转成什么文字），
    启动 mihomo、从控制接口读回名字，和转换器的 go_plain_scalar 对照——整数应当一样，小数在 mihomo 里写成科学计数法
    （转换器遇到小数跳过节点），日期 mihomo 读不了（-t 报 time.Time，转换器同样跳过）。
-2. 同一张表里同一个键写两次：mihomo -t 报 mapping key already defined（整份读不下去）。
+2. 同一张表里同一个键写两次：mihomo -t 报 mapping key already defined（整份读不下去）。2026-11-19 交第二份送审稿前自查加：
+   go-yaml 只在读进来的表上查——最外层重复报错；不认识的顶层键里重复、嵌套合并（被引用的表自己也合并、又盖掉继承来的键）都能过；
+   mihomo 用 proxy-providers 读订阅时只认 proxies，订阅的 proxy-groups 里有重复照样读得出节点，proxies 里有重复则一个也读不出。
 3. sing-box 1.14.1、1.12.0 的 check：不合格的 SS2022 密钥报 FATAL（整份启动不了）；TUIC 带 uTLS 能过 check（所以只能在转换时拦）。
 4. 转换器对上面这些写法的处理（跳过 / 转换 / 提示）。
 
@@ -71,6 +73,34 @@ def mihomo_names(mihomo, work, values):
     return got
 
 
+def mihomo_provider_names(mihomo, work, provider_text):
+    """把 provider_text 当成订阅，用 proxy-providers（type: file）交给 mihomo，从控制接口读回这个 provider 里的节点名；读不出来是空列表。"""
+    port = free_port()
+    with open(os.path.join(work, "sub.yaml"), "w", encoding="utf-8") as f:
+        f.write(provider_text)
+    lines = ["mode: rule", "log-level: warning", f"external-controller: 127.0.0.1:{port}",
+             "proxy-providers:", "  sub:", "    type: file", "    path: ./sub.yaml", "    health-check: {enable: false}",
+             "proxy-groups:", "  - {name: G, type: select, use: [sub]}", "rules:", "  - MATCH,DIRECT"]
+    cfg = os.path.join(work, "provider.yaml")
+    with open(cfg, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    p = subprocess.Popen([mihomo, "-d", work, "-f", cfg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for _ in range(100):
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/providers/proxies", timeout=1) as r:
+                    data = json.load(r)["providers"]
+                break
+            except OSError:
+                time.sleep(0.1)
+        else:
+            raise SystemExit("mihomo 的控制接口没有起来")
+    finally:
+        p.terminate()
+        p.wait(timeout=10)
+    return [x["name"] for x in (data.get("sub") or {}).get("proxies") or []]
+
+
 def mihomo_test(mihomo, work, text):
     cfg = os.path.join(work, "t.yaml")
     with open(cfg, "w", encoding="utf-8") as f:
@@ -117,6 +147,34 @@ def main(mihomo, sb114, sb112, work):
         check("转换器整份不转换", False, "没有报错")
     except ValueError as e:
         check("转换器整份不转换，只报键名和行号", "第 4 行的 password（第 3 行已经有了）" in str(e) and "q" not in str(e).split("。")[0][-3:])
+    # 交第二份送审稿前自查（2026-11-19）：mihomo 在哪些地方查重复，转换器跟着在哪些地方查
+    sock = "type: socks5, server: 127.0.0.1"
+    for label, text, mihomo_ok in (
+            ("最外层的键重复", f"mode: rule\nmode: global\nproxies:\n  - {{name: a, {sock}, port: 1}}\nrules:\n  - MATCH,DIRECT\n", False),
+            ("不认识的顶层键里重复", f"mode: rule\nx: {{tls: true, tls: false}}\nproxies:\n  - {{name: a, {sock}, port: 1}}\n"
+                              "rules:\n  - MATCH,DIRECT\n", True),
+            ("嵌套合并（被引用的表自己也合并、又盖掉继承来的键）",
+             f"mode: rule\nbase: &base {{{sock}, port: 1}}\nproxies:\n  - &a {{<<: *base, name: a, port: 2}}\nhk: {{<<: *a, name: b}}\n"
+             "rules:\n  - MATCH,DIRECT\n", True)):
+        rc, out = mihomo_test(mihomo, work, text)
+        check(f"{label}：mihomo -t {'通过' if mihomo_ok else '报错'}", (rc == 0) == mihomo_ok and (mihomo_ok or "already defined" in out),
+              out.strip().splitlines()[-1][-80:] if out.strip() else "")
+        try:
+            nodes.load_clash_proxies(text)
+            ours = True
+        except ValueError:
+            ours = False
+        check(f"{label}：转换器{'照常转换' if mihomo_ok else '整份不转换'}", ours == mihomo_ok)
+    for label, text, want in (
+            ("订阅的 proxy-groups 里有重复", f"proxies:\n  - {{name: a, {sock}, port: 1}}\nproxy-groups:\n  - {{name: g, name: h}}\n", ["a"]),
+            ("订阅的 proxies 里有重复", f"proxies:\n  - {{name: a, {sock}, port: 1, port: 2}}\n", [])):
+        got = mihomo_provider_names(mihomo, work, text)
+        check(f"{label}：mihomo 用 proxy-providers 读出的节点是 {want}", got == want, f"读出 {got}")
+        try:
+            ours = [p["name"] for p in nodes.load_clash_proxies(text)]
+        except ValueError:
+            ours = []
+        check(f"{label}：转换器读出的节点是 {want}", ours == want, f"读出 {ours}")
     print("\n3. sing-box check")
     for label, method, key, ok in (("aes-128 合格的 16 字节密钥", "2022-blake3-aes-128-gcm", K16, True),
                                    ("aes-128 不是 base64", "2022-blake3-aes-128-gcm", "NOT!BASE64", False),

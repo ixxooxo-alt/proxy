@@ -580,7 +580,8 @@ class ReviewsOfR22Draft(unittest.TestCase):
                  "123456789012345678901": 1.2345678901234568e20, "-9223372036854775809": -9.223372036854776e18,
                  "10000000000000000000": 10000000000000000000, "0x1FFFFFFFFFFFFFFFFF": "0x1FFFFFFFFFFFFFFFFF",
                  "2026-02-30": "2026-02-30", "2026-01-02T03:04:05": "2026-01-02T03:04:05", "2026-1-2": datetime.date(2026, 1, 2),
-                 "=": "=", "1e400": "1e400", "0b2": "0b2"}
+                 "=": "=", "1e400": "1e400", "0b2": "0b2",
+                 "2０２６-1-2": "2０２６-1-2"}   # 全角数字：Go 只认 0–9，不是日期（交送审稿前自查，2026-11-19）
         for raw, want in cases.items():
             got = load_clash_proxies(f"proxies:\n  - {{name: n, password: {raw}}}\n")[0]["password"]
             self.assertEqual((type(got), got), (type(want), want), raw)
@@ -607,3 +608,30 @@ class ReviewsOfR22Draft(unittest.TestCase):
         text = "\n".join(["base: &b {type: trojan, server: x.example.net, port: 443, password: p, sni: a.example}",
                           "proxies:", "  - {<<: *b, name: a, sni: b.example}"])
         self.assertEqual(load_clash_proxies(text)[0]["sni"], "b.example")
+
+    def test_duplicate_keys_are_checked_where_mihomo_checks_them(self):
+        """交送审稿前自查（2026-11-19）：mihomo 用 proxy-providers 读订阅只认 proxies（v1.19.31 adapter/provider/provider.go 的
+        ProxySchema），go-yaml 只在读进来的表上查重复，所以只有最外层和 proxies 里面算；合并（<<）要在展开之前看。以前构造时才查、
+        又查整份：被引用的表自己也合并、又盖掉继承来的键时被误认成重复，proxy-groups、不认识的键里的重复也整份不转换。
+        能读的几种官方 mihomo 实测过（handoff/notes/r22b_review_probes.py）。"""
+        node = "type: trojan, server: x.example.net, port: 443, password: p"
+        readable = {
+            "嵌套合并": f"base: &base {{{node}, sni: a.example}}\nproxies:\n  - &a {{<<: *base, name: a, sni: b.example}}\n"
+                        "hk: {<<: *a, name: b}\n",
+            "不认识的键里重复": f"x: {{tls: true, tls: false}}\nproxies:\n  - {{{node}, name: a}}\n",
+            "proxy-groups 里重复": f"proxies:\n  - {{{node}, name: a}}\nproxy-groups:\n  - {{name: g, name: h}}\n"}
+        for label, text in readable.items():
+            got = load_clash_proxies(text)
+            self.assertEqual([p["name"] for p in got], ["a"], label)
+        self.assertEqual(load_clash_proxies(readable["嵌套合并"])[0]["sni"], "b.example")
+        rejected = {
+            "最外层": (f"proxies: []\nproxies:\n  - {{{node}, name: a}}\n", "第 2 行的 proxies（第 1 行已经有了）"),
+            "节点里面的表": (f"proxies:\n  - {{{node}, name: a, ws-opts: {{headers: {{Host: a, Host: b}}}}}}\n",
+                       "第 2 行的 Host（第 2 行已经有了）"),
+            "合并进节点的表": (f"b: &b {{sni: a.example, sni: b.example}}\nproxies:\n  - {{<<: *b, {node}, name: a}}\n",
+                        "第 1 行的 sni（第 1 行已经有了）"),
+            "合并进最外层的表": ("base: &base\n  proxies:\n    - {name: b, name: c}\n<<: *base\n", "第 3 行的 name（第 3 行已经有了）")}
+        for label, (text, where) in rejected.items():
+            with self.assertRaises(ValueError, msg=label) as cm:
+                load_clash_proxies(text)
+            self.assertIn(where, str(cm.exception), label)

@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 269 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理三份全项目复核时加了 M211–M248），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 272 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理三份全项目复核时加了 M211–M248，2026-11-19 处理 r22 送审稿的两份审核时加了 M249–M269、交第二份送审稿前自查加了 M270–M272），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -921,7 +921,7 @@ cases = [
         '            return datetime.date(y, mo, day)\n', '            return datetime.date(y, mo, min(day, 28))\n', 1))],
      "test_scalars_are_resolved_like_go_yaml"),
     ("M264 同一张表里重复的键又不查（悄悄用后一个值，R22-F13）", [("generator/nodes.py", lambda s: s.replace(
-        '                        self.duplicate_keys.append((key_node.value, seen[key_node.value], line))', '                        pass', 1))],
+        '                    found.append((key_node.value, seen[key_node.value], line))', '                    pass', 1))],
      "test_duplicate_keys_reject_the_subscription"),
     ("M265 只写给一个客户端的固定直连又写给全部客户端（R22-F05）", [("generator/model.py", lambda s: s.replace(
         '        return [r for r in self.lan if self.emitted_to(r, family)]', '        return list(self.lan)', 1))],
@@ -938,6 +938,18 @@ cases = [
     ("M269 变异检查的预设测试名又按开头匹配（R22-F16）", [("tools/check_mutations.py", lambda s: s.replace(
         '        expected = any(t == expect for t, _ in failing)', '        expected = any(t.startswith(expect) for t, _ in failing)', 1))],
      "test_expected_test_name_must_match_exactly"),
+    # 2026-11-19 交第二份送审稿前自查：重复键只在 mihomo 查的地方查、合并展开之前查；日期只认 0–9
+    ("M270 重复键又查整份订阅（proxy-groups、不认识的键里的重复也整份不转换）", [("generator/nodes.py", lambda s: s.replace(
+        '            elif isinstance(key_node, yaml.ScalarNode) and key_node.value == "proxies":\n                walk(value_node)\n',
+        '            else:\n                walk(value_node)\n', 1))],
+     "test_duplicate_keys_are_checked_where_mihomo_checks_them"),
+    ("M271 重复键又在构造以后查（合并展开以后，盖掉继承来的键被当成重复）", [("generator/nodes.py", lambda s: s.replace(
+        '        dups = duplicate_keys(root)\n', '        loader.construct_document(root)\n        dups = duplicate_keys(root)\n', 1))],
+     "test_duplicate_keys_are_checked_where_mihomo_checks_them"),
+    ("M272 日期又认全角数字（Python 的 \\d，Go 只认 0–9）", [("generator/nodes.py", lambda s: s.replace(
+        '    if not re.match(r"[0-9]{4}-", s):', '    if not re.match(r"\\d{4}-", s):', 1).replace(
+        're.compile(r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})()()()()"))', 're.compile(r"(\\d{4})-(\\d{1,2})-(\\d{1,2})()()()()"))', 1))],
+     "test_scalars_are_resolved_like_go_yaml"),
 ]
 
 
