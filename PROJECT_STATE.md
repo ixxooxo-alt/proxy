@@ -56,7 +56,7 @@
 | T36 你 2026-10-31 定的三个测速间隔（第 23 项 ③、Stash 两版） | 已完成（r21，未实测）：`project.yaml` 三个新设定，`emit_stash`、`emit_singbox`、`model`、`verify`、测试 349 项、变异检查 210 类（M203–M210 新加）；送审稿的快速检查见 `handoff/notes/r21_draft/`，全套检查见 `docs/05` | `docs/06`“2026-10-31 你定下的事项”，`docs/10` 第 4.4、4.5、6.4 节 |
 | T37 第 19 轮：GPT 审核 r21 送审稿（PR #8） | 已完成：R21-F01（sing-box 闲置以后不一定马上重测）、R21-F02（Stash 文档写了测速结果在组之间共享）、R21-F03（说明里留着旧值）改了文档；建议（规则源这一层只收负数）改了 `model.py`，加了测试和变异 M210；定稿前补了两项测试（`docs/08` 第 19 轮的补记） | `docs/08` 第 19 轮、`docs/evidence/gpt-r21-draft/` |
 | T39 第 21–23 轮：三份全项目复核、Claude 域名（r22） | 送审稿已完成（2026-11-18）：F01–F10、C1–C9、第三份的 F01–F06 逐条核实，属实的都改了，没照做的几处写了理由（`docs/08`）；测试、变异 M211–M248、样例节点、私密产物对比（`handoff/notes/r22_private_vs_r21b.py`）、打包验包自测都补了。全套检查等审完再跑 |
-| T40 第 24、25 轮：r22 送审稿的两份审核（另一个 AI、GPT 的审核 PR #11） | 第二份送审稿已完成（2026-11-19）：GPT 的 R22-F01–F17、另一个 AI 的 F01–F05 逐条核实，属实的都改了，没照做的三处写了理由（`docs/08` 第 24、25 轮）；测试 ⟦第二份测试数⟧ 项、变异 M249–M272、官方程序核对（`handoff/notes/r22b_review_probes.py`）、私密产物对第一份送审稿的对比（`handoff/notes/r22b_private_vs_r22draft.py`）、打包验包自测都补了。交出去之前自查又改了重复键的范围；你 2026-11-19 选了 ①，Claude 组加了 `http-intake.logs.us5.datadoghq.com`（Claude Code 的运行遥测）。全套检查等审完再跑 | `docs/08` 第 24、25 轮，`docs/evidence/gpt-r22-draft/`、`review-r22-draft/` |
+| T40 第 24、25 轮：r22 送审稿的两份审核（另一个 AI、GPT 的审核 PR #11） | 第二份送审稿已完成（2026-11-19）：GPT 的 R22-F01–F17、另一个 AI 的 F01–F05 逐条核实，属实的都改了，没照做的三处写了理由（`docs/08` 第 24、25 轮）；测试 383 项、变异 M249–M272、官方程序核对（`handoff/notes/r22b_review_probes.py`）、私密产物对第一份送审稿的对比（`handoff/notes/r22b_private_vs_r22draft.py`）、打包验包自测都补了。交出去之前自查又改了重复键的范围；你 2026-11-19 选了 ①，Claude 组加了 `http-intake.logs.us5.datadoghq.com`（Claude Code 的运行遥测）。全套检查等审完再跑 | `docs/08` 第 24、25 轮，`docs/evidence/gpt-r22-draft/`、`review-r22-draft/` |
 | T38 第 20 轮：GPT 审核 r21 正式版（PR #9） | 已完成（只改文档，r21b）：R21-F04（旧配置的时间线不能整体“放大六倍”）改了 `docs/10` 第 6.4 节，同一类的一处旧原文加了补注；两条加强建议（变异检查“发现”的口径、私密产物对比不比 manifest）记进 `handoff/README.md` 第 18 节，下一版改代码时做 | `docs/08` 第 20 轮、`docs/evidence/gpt-r21/` |
 
 ## 待验证 / 受阻
@@ -74,7 +74,7 @@
 | 简易版真机 | 待验证 | `docs/09`“1d. 简易版”：Loon、Quantumult X 的“国外默认”混写能不能用；Stash 首次导入地区组选中的是不是占位节点、`interval: 3600` 是否大约每小时刷新一次延迟（第 7b 步）；Stash 完整版的选择组是不是不再自己测、自动换节点还在（第 1c 节第 16 步）；Clash 上“境外DNS”是不是藏住了；SFA 上多一张“境外DNS”卡片、第一次启动（没有规则缓存）能不能起来（第 7c 步，2026-10-29 加的） |
 | Mac 上开着 Clash Verge Rev 的虚拟网卡时，用名字访问局域网设备、局域网里的节点 | 待验证（r13 读源码推断出来的） | 按源码，这时 App 把系统 DNS 改成了 114.114.114.114，内核的“系统 DNS”也就是它，`nas.lan` 这类名字解析不到。没有 Mac 可以试；`docs/09` 第 1 节“局域网”一行。配置里改不了，遇到了再商量办法（`docs/06`“2026-10-07（r13）”一节） |
 | 用真实订阅的节点名核对分组 | 待用户提供 | 样本是归纳的常见写法和独立来源的国家 / 城市名，不是任何一家机场的真实节点名。r10 把只写“地名 + 中转”“国旗 + 中转”的节点从自动类的组里拿掉了，用户的机场如果大多这样命名，自动组会少很多（`docs/06` 待决事项第 12 项）；反过来，规则不认识的中转说法（`经由`、`跳板`、`Entry` 等）会被当成落地放进自动组（`docs/06` 最后一节）。两头都要看真实的节点名才知道有多少。用户说以后多订阅几家再把节点列表截图发来；届时用 `tools/check_node_names.py` 核对，再补词表或 `local.yaml` |
-| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58。2026-11-18 两份全项目复核在 Windows 上跑了 r21b 的 349 项：Python 3.12.13 上 343 项通过、5 项跳过、1 项失败，Python 3.14.5 上 345 项通过、3 项跳过、1 项失败（审核方报告的数字，这里没有复现），失败的都是 SOCKS5 接收端那一项（`docs/08` 第 23 轮 F05，r22 已改）；r22 第二份送审稿的 ⟦第二份测试数⟧ 项还没有在 Windows 上跑过。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
+| Windows 上重跑测试 | 待验证 | r5 已由 Astra 在 Windows（Python 3.12.13）上跑过 58/58。2026-11-18 两份全项目复核在 Windows 上跑了 r21b 的 349 项：Python 3.12.13 上 343 项通过、5 项跳过、1 项失败，Python 3.14.5 上 345 项通过、3 项跳过、1 项失败（审核方报告的数字，这里没有复现），失败的都是 SOCKS5 接收端那一项（`docs/08` 第 23 轮 F05，r22 已改）；r22 第二份送审稿的 383 项还没有在 Windows 上跑过。`tools/check_icu.py` 在 Windows（icu.dll）和 macOS（libicucore）上的路径没有跑过，找不到 ICU 时那一项测试会自动跳过 |
 | 带真实订阅的私密配置过官方检查 | 待验证 | 公开配置和样例节点已通过 mihomo / sing-box 官方检查；真实订阅只在你的电脑上，需要你本机运行一次 |
 | 十三个平台真机验收（优先：QX 策略名、Loon 手动优先组成员；r16 起多了 Stash 的 iPhone / iPad / Mac） | 待验证（2026-10-20 Loon iPhone 做了 8 项里的 7 项，第 8 项“节点挂了会不会自动换”等有挂掉的节点时再做；`docs/05`“真机记录”） | 没有设备、订阅与账号；操作步骤见 `docs/09-真机验收操作清单.md`，记录表见 `docs/05-验收记录.md` |
 | 21 条维护者知识规则的实测 | 待验证 | 两个上游快照里都没有，需要真机抓包或实测命中（清单见 `docs/evidence/上游规则对照.md`） |
@@ -97,7 +97,7 @@
 6. 在 Loon / Quantumult X 上导入本版配置（保留旧配置；可以先导入、再在 App 里换订阅，见 `docs/01`），按 `docs/09` 第 1 节检查：有没有报错；81 个策略组是不是都在、图标有没有出来；地区组里的节点对不对；“自动”组是不是“手动”组的一部分；Loon 的两条广告订阅是否都加载成功（看条数，再试 `app-measurement.com`）；Quantumult X 的“自动”“负载均衡”组里有没有节点。结果发回来。
 7. 想用严格版：Loon / Quantumult X 按 `docs/09` 第 1b 节的 13 步走一遍（2026-10-19 起 `main` 上就有严格版引用的规则文件；2026-11-17 起 `main` 是 r21b）；Stash 的严格版按“1c”的第 12、13 步。哪一步不对先切回标准版，把现象发回来。
 8. 把订阅里的节点名交给 `python3 tools/check_node_names.py`（或把节点列表截图 / 文本发回来），按报告在 `source/local.yaml` 的 `node_names` 里补或指定，常见写法并入 `source/regions.yaml`。
-9. 在 Windows 上运行 `python -m unittest discover -s tests`，确认全部测试通过（r22 第二份送审稿 ⟦第二份测试数⟧ 项）。
+9. 在 Windows 上运行 `python -m unittest discover -s tests`，确认全部测试通过（r22 第二份送审稿 383 项）。
 10. 填订阅后运行 `mihomo -t -d . -f dist/private/mihomo-core.yaml`（SFA 用户再跑 `sing-box check -c dist/private/sing-box-1.14.json`），记录结果。
 11. 按 `docs/09-真机验收操作清单.md` 做其余真机验收：Loon 的“香港·手动优先”成员列表、QX 带 `/`、`+` 的策略名；电脑上的分流结果用 `tools/check_connections.py` 分析。
 12. `docs/06` 第 6、10、11、12 项等真机上的现象或机场节点名，按结果修改 `source/` 并重新生成。（第 21 项你 2026-10-13 选了维持现状；以后想改，方案 ②、③ 的做法和代价留在 `docs/06`“2026-10-13 你定下的事项”。）

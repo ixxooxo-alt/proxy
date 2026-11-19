@@ -5,11 +5,11 @@ r22 第二份送审稿（2026-11-19：第一份送审稿 f60ee42 的两份审核
   bash handoff/notes/r22_draft2/run_quick.sh <r21b 的工程目录> <第一份送审稿 f60ee42 的工程目录>
     （照 handoff/notes/r22_draft/run_quick.sh 改的：私密产物改成和第一份送审稿比，另加官方程序核对；打包验包自测去掉 PYTHONUNBUFFERED 跑。
      r21b 用的是会话分支 b9a9f14 的检出；第一份送审稿用的是 git archive f60ee42 解出来的目录）
-  ⟦快速检查时间⟧（UTC），提交 ⟦代码提交⟧（代码和产物与提交相同，日志第 3 行）：
+  2026-11-19 06:51–07:00（UTC），提交 6c5f173（代码和产物与提交相同，日志第 3 行）：
     build-check.log            python3 build.py --check：产物与统一源一致
-    tests-py3.13/3.12/3.11.log 全部测试，各 ⟦测试数⟧ 项通过
-    official-check.log         官方 mihomo v1.19.31（-t）、sing-box v1.14.1 / v1.12.0（check），含简易版、带样例节点的私密配置和实际分组：⟦官方检查结果⟧
-    icu-check.log              节点筛选正则在 ICU 上（“港德 / 港英 / 港法 / 港欧 / 港歐”改成了前面不能是“香”的片段）：⟦ICU 结果⟧
+    tests-py3.13/3.12/3.11.log 全部测试，各 383 项通过
+    official-check.log         官方 mihomo v1.19.31（-t）、sing-box v1.14.1 / v1.12.0（check），含简易版、带样例节点的私密配置和实际分组：全部符合预期（样例节点 26 个：转换 23 个、其中改名 3 个，跳过 3 个——跳过的是故意放进样例的不支持的写法；mihomo 实际分组用 2302 个假节点）
+    icu-check.log              节点筛选正则在 ICU 上（“港德 / 港英 / 港法 / 港欧 / 港歐”改成了前面不能是“香”的片段）：宽、严两套和简易版的“全部节点”那一条，ICU 与 Python、与手写期望都完全一致，长名字都按时结束
     upstream-field-check.log   配置里的字段名在 mihomo / sing-box 源码里都有
     icons-check.log            图标地址都在图标仓库里
     compare-r21b.log           tools/compare_versions.py，报告是同目录的 与r21b的对比.md（r21b 简易版的几条筛选仍显示成“未知的正则”：
@@ -24,6 +24,6 @@ r22 第二份送审稿（2026-11-19：第一份送审稿 f60ee42 的两份审核
                                http-intake.logs.us5.datadoghq.com 加进 Claude 组，规则变了，按 handoff/release/README.md 第 3 步重新生成。
                                用例与排除项 307 条、不同的目标 286 个，三个官方内核和模拟器的结果与人工期望全部一致，写入主机 282 个、IP 28 个
     mutations-trial-a/b/c.log  变异试跑：这一轮新加的 M249–M272、改写的 M15 / M185 / M232 / M237 / M264，和四个预设是一段文字的旧变异（M2、M82、M240、M242，
-                               看收紧后的“发现”判据会不会误判），在提交 ⟦试跑提交⟧ 上（a 批先跑了基线；b、c 批用 --skip-baseline）：⟦试跑结果⟧
+                               看收紧后的“发现”判据会不会误判），在提交 a4cfd65 上（a 批先跑了基线；b、c 批用 --skip-baseline）：基线通过，32 类都被发现（都是预设的那一项失败、或预设的文字在失败那一项自己的输出里）
 日志里本机的仓库目录、临时目录、r21b 目录、第一份送审稿的目录、工作目录换成了 <repo>、<tmp>、<r21b>、<draft1>、<work>；
 放官方程序和上游数据的目录（~/proxy-vendor）照原样留着，和 docs/evidence/ 的日志一样。
