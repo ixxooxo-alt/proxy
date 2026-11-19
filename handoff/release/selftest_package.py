@@ -71,10 +71,11 @@ def fixture_commit(clone, label, edit):
 
 
 def replace_tests(files):
-    """把克隆里的 tests/ 换成只有这几个文件。"""
+    """把克隆里 tests/ 下的测试（test_*.py）换成只有这几个；数据文件留着（pack.py 要求 tests/cases.yaml 在）。"""
     def edit(clone):
-        shutil.rmtree(os.path.join(clone, "tests"))
-        os.makedirs(os.path.join(clone, "tests"))
+        for name in os.listdir(os.path.join(clone, "tests")):
+            if name.startswith("test_") and name.endswith(".py"):
+                os.remove(os.path.join(clone, "tests", name))
         for name, text in files.items():
             with open(os.path.join(clone, "tests", name), "w", encoding="utf-8") as f:
                 f.write(text)

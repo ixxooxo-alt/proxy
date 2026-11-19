@@ -3,7 +3,7 @@
 
 每个变异在临时目录的独立副本里进行，不改动项目本身。副本不含 dist/，这样“产物与统一源一致”那项检查不会
 替语义测试把错误兜住（副本里那一项会显示为 skipped）。
-用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 248 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理三份全项目复核时加了 M211–M248），可以分几批同时跑，见 handoff/release/run_mutations.sh）
+用法：python3 tools/check_mutations.py [M1 M2 …]      不带参数时跑全部；每个变异约 4 分钟（2026-10-07：测试一遍约 230 秒；共 269 个（2026-10-21 加了简易版的 M171–M196，2026-10-23 处理审核时加了 M197–M202，2026-10-31 使用者定了测速间隔以后加了 M203–M209，处理审核 r21 送审稿时加了 M210，2026-11-18 处理三份全项目复核时加了 M211–M248），可以分几批同时跑，见 handoff/release/run_mutations.sh）
       python3 tools/check_mutations.py --check-edits  只确认每个变异的改动还能套到当前代码上（不跑测试，几秒钟）
       python3 tools/check_mutations.py --help         显示这段说明
 退出码：有变异没被发现、或者测试没有正常结束（超时）时为 1。超时不算“被发现”：测试卡住和测试报错是两回事。
@@ -33,6 +33,38 @@ def apply_edits(name, edits, dst):
             f.write(s2)
 
 
+def failure_sections(out: str) -> dict:
+    """unittest 输出里每一项失败（FAIL / ERROR）自己的那一段：{(方法名, 括号里的编号): 那一段的文字}。
+    一段从“FAIL: 方法名 (编号)”那一行开始，到下一条“=====”分隔线、或者“-----”加“Ran N tests”的汇总为止；
+    测试自己打印到标准输出的字不在任何一段里。"""
+    sections = {}
+    for m in re.finditer(r"^(?:FAIL|ERROR): (\w+) \(([\w.]+)\).*?(?=^={20,}$|^-{20,}\nRan \d+ tests? in |\Z)", out, re.M | re.S):
+        key = (m.group(1), m.group(2))
+        sections[key] = sections.get(key, "") + m.group(0)
+    return sections
+
+
+def judge(out: str, returncode: int, expect=None):
+    """这个变异算不算“发现”（2026-11-18 起的口径，GPT 审核 r22 送审稿 R22-F16 又收紧）：unittest 要正常跑完、汇总是 FAILED、
+    失败项不空；变异写了预设的信息时——写的是测试方法名（test_ 开头）就要有一项失败的方法名和它完全相同，写成“模块.类.方法”
+    就要完整相同；写的是别的文字，就要出现在某一项失败自己的那一段（测试名、说明、断言信息）里。
+    以前在全部输出里找子串：别的测试失败、某项通过的测试恰好打印了这几个字，也算发现；预设的名字是别的测试名字的开头，也算。
+    返回 (发现, 失败项 [(方法名, 编号)], 预设的信息对上了, unittest 正常跑完)。"""
+    finished = bool(re.search(r"^Ran \d+ tests? in ", out, re.M)) and \
+        bool(re.search(r"^FAILED \((?:failures|errors)=\d+", out, re.M))
+    sections = failure_sections(out)
+    failing = sorted(sections)
+    if not expect:
+        expected = True
+    elif re.fullmatch(r"test_\w+", expect):
+        expected = any(t == expect for t, _ in failing)
+    elif re.fullmatch(r"test_\w+\.\w+\.test_\w+", expect):          # 模块.类.方法（域名一类的文字不会是这个样子）
+        expected = any(c == expect for _, c in failing)
+    else:
+        expected = any(expect in text for text in sections.values())
+    return returncode != 0 and finished and bool(failing) and expected, failing, expected, finished
+
+
 def run_case(name, edits, expect_in_output=None, tests=None, baseline=False):
     """tests：只跑这几项测试（unittest 的写法，如 test_regions.Portability.test_x）；缺省跑全部。
     baseline：不改代码跑一遍，要全部通过（返回 True 表示通过）。"""
@@ -57,18 +89,10 @@ def run_case(name, edits, expect_in_output=None, tests=None, baseline=False):
             ok = r.returncode == 0 and bool(re.search(r"^Ran [1-9]\d* tests? in ", out, re.M))
             print(f"[{'通过' if ok else '没有通过'}] {name}：{' / '.join(last) or '（没有 unittest 的汇总行）'}", flush=True)
             return ok
-        failing = sorted(set(re.findall(r"^(?:FAIL|ERROR): (\w+) \(([\w.]+)\)", out, re.M)))
-        # “发现”的口径（2026-11-18 起；GPT 审核 r21 的建议，docs/08 第 20 轮，handoff/README.md 第 18 节第 9 条）：
-        # 以前只看返回值，测试以外的原因异常退出也算“发现”。现在要 unittest 正常跑完（有 “Ran N tests” 和 FAILED 汇总，
-        # 汇总里有 failures 或 errors）、失败列表不空；变异写了预设的信息（预设由哪项测试、哪句断言发现）时，输出里还要有它——
-        # 别的测试失败、预设的那项没失败，说明预设的那一层没拦住，不算
-        finished = bool(re.search(r"^Ran \d+ tests? in ", out, re.M)) and \
-            bool(re.search(r"^FAILED \((?:failures|errors)=\d+", out, re.M))
-        expected = not expect_in_output or expect_in_output in out
-        caught = r.returncode != 0 and finished and bool(failing) and expected
+        caught, failing, expected, finished = judge(out, r.returncode, expect_in_output)
         extra = "（只跑了 " + "、".join(t.split(".")[-1] for t in tests) + "）" if tests else ""
         if expect_in_output:
-            extra += "；输出含预期信息" if expected else f"；未见预期信息（{expect_in_output}）"
+            extra += "；失败项里有预设的信息" if expected else f"；失败项里没有预设的信息（{expect_in_output}）"
         if r.returncode != 0 and not caught:
             extra += "；不算发现：" + ("测试没有正常跑完（没有 unittest 的 FAILED 汇总）" if not finished else
                                     "失败列表是空的" if not failing else "预设的测试没有失败")
@@ -147,8 +171,8 @@ cases = [
     ("M14 v2ray-plugin 的 mux=false 又被省略（F03）", [("generator/nodes.py", lambda s: s.replace(
         '_bool_value(o["mux"], "plugin-opts.mux") else "0"))', '_bool_value(o["mux"], "plugin-opts.mux") else "1"))', 1))], "mux=0"),
     ("M15 缺密码又写成字符串 None（F12）", [("generator/nodes.py", lambda s: s.replace(
-        '        ob["password"] = _req(d, used, "password")\n        plugin = _take(d, used, "plugin")',
-        '        ob["password"] = str(d.get("password"))\n        used.add("password")\n        plugin = _take(d, used, "plugin")', 1))], None),
+        '        ob["password"] = _req(d, used, "password")\n        problem = ss2022_key_problem(',
+        '        ob["password"] = str(d.get("password"))\n        used.add("password")\n        problem = ss2022_key_problem(', 1))], None),
     ("M16 节点与组同名不再改名（F02）", [("generator/nodes.py", lambda s: s.replace(
         "        if tag in taken:\n            n = 1", "        if False:\n            n = 1", 1))], None),
     ("M17 私密步骤失败前先写公开产物（F07）", [("build.py", lambda s: s.replace(
@@ -632,7 +656,7 @@ cases = [
     ("M185 Quantumult X 把 server-tag-regex 写在写明的成员前面", [("generator/emit_qx.py", lambda s: s.replace(
         '        parts = [_pol(x) for x in g.members]\n        if g.nodes is not None:\n            parts.append(f"server-tag-regex={_regex(g.nodes)}")\n',
         '        parts = ([f"server-tag-regex={_regex(g.nodes)}"] if g.nodes is not None else []) + [_pol(x) for x in g.members]\n', 1))],
-     "test_generated_outputs_pass"),
+     "test_simple.Verifier.test_generated_outputs_pass"),      # 写完整编号：test_strict 里有同名的方法（R22-F16）
     ("M186 Loon 的国外默认漏了 F-ALL（有写明的成员时不再接筛选）", [("generator/emit_loon.py", lambda s: s.replace(
         "        if g.nodes is not None:\n            members.append(_filter_name(g.nodes))\n",
         "        if g.nodes is not None and not g.members:\n            members.append(_filter_name(g.nodes))\n", 1))],
@@ -794,7 +818,8 @@ cases = [
         '        if ob["type"] not in MULTIPLEX_TYPES:\n', '        if False and ob["type"] not in MULTIPLEX_TYPES:\n', 1))],
      "test_multiplex_only_where_singbox_has_it"),
     ("M232 订阅又按 PyYAML 的 YAML 1.1 读法解析（第二份复核 C3）", [("generator/nodes.py", lambda s: s.replace(
-        "    data = yaml.load(text, Loader=SubscriptionLoader)\n", "    data = yaml.safe_load(text)\n", 1))],
+        "    loader = SubscriptionLoader(text)\n",
+        "    loader = SubscriptionLoader(text)\n    loader.yaml_implicit_resolvers = yaml.SafeLoader.yaml_implicit_resolvers\n", 1))],
      "test_subscription_is_parsed_like_mihomo"),
     ("M233 文字字段遇到小数、日期也照样写成文字（第二份复核 C3）", [("generator/nodes.py", lambda s: s.replace(
         "    if isinstance(v, int) and not isinstance(v, bool):\n", "    if not isinstance(v, bool):\n", 1))],
@@ -811,7 +836,7 @@ cases = [
         '        if "suffix" in x and x["suffix"] in lan_sfx or (("suffix" if "suffix" in x else "domain"), x.get("suffix") or x.get("domain")) in {(r.kind, r.value) for r in plan.lan}:\n            continue\n', 1))],
      "test_every_real_ip_name_goes_to_domestic_dns_on_mihomo"),
     ("M237 mihomo 的 DNS 分层又不看固定直连的服务（第三份复核 F03）", [("generator/emit_mihomo.py", lambda s: s.replace(
-        '    fixed_direct = [r for s in m.services if s.group == "DIRECT" for r in s.rules]\n', '    fixed_direct = []\n', 1))],
+        '    fixed_direct = [r for r in plan.lan_for("mihomo") if r.service != "lan" and r.target == "DIRECT"]', '    fixed_direct = []  #', 1))],
      "test_local_direct_rule_under_a_proxied_product_uses_domestic_dns"),
     ("M238 sing-box 又不开 reverse_mapping（第三份复核 F04）", [("generator/emit_singbox.py", lambda s: s.replace(
         '        "reverse_mapping": True,\n', '', 1))],
@@ -847,6 +872,72 @@ cases = [
     ("M248 写盘前检查不再核对 multiplex 写在哪种出站上（第二份复核 C2）", [("generator/verify.py", lambda s: s.replace(
         '        if "multiplex" in o and t not in nodes.MULTIPLEX_TYPES', '        if False and "multiplex" in o and t not in nodes.MULTIPLEX_TYPES', 1))],
      "test_detects_values_singbox_does_not_accept"),
+    # ---- 2026-11-19：r22 送审稿的两份审核（GPT 的 R22-F05–F16，另一个 AI 的 F01–F03；docs/08 第 24、25 轮）。
+    # 验包、打包脚本（R22-F01–F03）的改动由 handoff/release/selftest_package.py 管，不在这里
+    ("M249 SS2022 的密钥又不核对（R22-F07）", [("generator/nodes.py", lambda s: s.replace(
+        '        problem = ss2022_key_problem(ob["method"], ob["password"])', '        problem = None', 1))],
+     "test_ss2022_keys_are_checked_like_singbox"),
+    ("M250 写盘前检查不再核对 SS2022 的密钥（R22-F07）", [("generator/verify.py", lambda s: s.replace(
+        '            why = nodes.ss2022_key_problem(o.get("method"), o.get("password"))', '            why = None', 1))],
+     "test_ss2022_keys_are_checked_like_singbox"),
+    ("M251 VMess 的 cipher 又不先转小写（R22-F08）", [("generator/nodes.py", lambda s: s.replace(
+        '_text(cipher, "cipher").lower()', '_text(cipher, "cipher")', 1))],
+     "test_values_are_normalized_like_mihomo_before_the_whitelist"),
+    ("M252 VLESS 的 flow 又不按 mihomo 只取前 16 个字符（R22-F08）", [("generator/nodes.py", lambda s: s.replace(
+        '            elif flow[:16] != "xtls-rprx-vision":', '            elif flow != "xtls-rprx-vision":', 1))],
+     "test_values_are_normalized_like_mihomo_before_the_whitelist"),
+    ("M253 不加引号写成数字的指纹又不先转成文字（R22-F08）", [("generator/nodes.py", lambda s: s.replace(
+        '        cf = _text(cf, "client-fingerprint")', '        cf = cf', 1))],
+     "test_values_are_normalized_like_mihomo_before_the_whitelist"),
+    ("M254 VMess 的 auto 加 TLS 又照写 auto（sing-box 改成 zero，R22-F09）", [("generator/nodes.py", lambda s: s.replace(
+        '            if ob["security"] == "auto":\n                # sing-box 1.14.1', '            if False:\n                # sing-box 1.14.1', 1))],
+     "test_vmess_auto_with_tls_gets_an_explicit_cipher"),
+    ("M255 写盘前检查不再核对 VMess 的 auto 加 TLS（R22-F09）", [("generator/verify.py", lambda s: s.replace(
+        '        if t == "vmess" and o.get("security", "auto") == "auto"', '        if False and t == "vmess"', 1))],
+     "test_vmess_auto_with_tls_gets_an_explicit_cipher"),
+    ("M256 TUIC、Hysteria2 又写 uTLS 指纹（QUIC 上一连就报错，R22-F10）", [("generator/nodes.py", lambda s: s.replace(
+        '    if quic:\n        # TUIC、Hysteria2 走 QUIC', '    if False:\n        # TUIC、Hysteria2 走 QUIC', 1))],
+     "test_quic_protocols_do_not_get_utls"),
+    ("M257 写盘前检查不再核对 QUIC 出站上的 uTLS（R22-F10）", [("generator/verify.py", lambda s: s.replace(
+        '        if t in ("tuic", "hysteria2") and isinstance(utls, dict)', '        if False and isinstance(utls, dict)', 1))],
+     "test_quic_protocols_do_not_get_utls"),
+    ("M258 五个旧版 Chrome 指纹不再在报告里说明（R22-F11）", [("generator/nodes.py", lambda s: s.replace(
+        '        if cf in UTLS_SINGBOX_CHROME_ALIASES and notes is not None:', '        if False:', 1))],
+     "test_legacy_chrome_fingerprints_are_kept_with_a_note"),
+    ("M259 整数字段又把 true / false 当成数字（port: true 成了 1，R22-F14）", [("generator/nodes.py", lambda s: s.replace(
+        '    if isinstance(v, bool):\n        raise Unsupported(f"{key} 应该是数字', '    if False:\n        raise Unsupported(f"{key} 应该是数字', 1))],
+     "test_integer_fields_are_read_like_go"),
+    ("M260 带引号的端口又按十进制读（\"0100\" 成了 100，R22-F14）", [("generator/nodes.py", lambda s: s.replace(
+        '        n = _go_parse_int(v)\n', '        n = int(v, 10) if re.fullmatch(r"[0-9]+", v) else _go_parse_int(v)\n', 1))],
+     "test_integer_fields_are_read_like_go"),
+    ("M261 Hysteria2 不加引号的 password: 0 又被当成缺密码（另一个 AI 的 F03）", [("generator/nodes.py", lambda s: s.replace(
+        '        pw = _take(d, used, "password")\n        if pw is None or pw == "":\n            pw = _take(d, used, "auth")\n',
+        '        pw = _take(d, used, "password") or _take(d, used, "auth")\n', 1))],
+     "test_integer_fields_are_read_like_go"),
+    ("M262 超过 64 位的整数又留成整数（mihomo 读成小数，R22-F12）", [("generator/nodes.py", lambda s: s.replace(
+        '        if n > limit:\n            return None\n', '        if False:\n            return None\n', 1))],
+     "test_scalars_are_resolved_like_go_yaml"),
+    ("M263 不存在的日期（2026-02-30）又读成日期（R22-F12）", [("generator/nodes.py", lambda s: s.replace(
+        '            return datetime.date(y, mo, day)\n', '            return datetime.date(y, mo, min(day, 28))\n', 1))],
+     "test_scalars_are_resolved_like_go_yaml"),
+    ("M264 同一张表里重复的键又不查（悄悄用后一个值，R22-F13）", [("generator/nodes.py", lambda s: s.replace(
+        '                        self.duplicate_keys.append((key_node.value, seen[key_node.value], line))', '                        pass', 1))],
+     "test_duplicate_keys_reject_the_subscription"),
+    ("M265 只写给一个客户端的固定直连又写给全部客户端（R22-F05）", [("generator/model.py", lambda s: s.replace(
+        '        return [r for r in self.lan if self.emitted_to(r, family)]', '        return list(self.lan)', 1))],
+     "test_local_direct_rule_for_one_client_stays_on_that_client"),
+    ("M266 固定直连整个盖住更具体的规则时不再报错（R22-F06）", [("generator/model.py", lambda s: s.replace(
+        '                if both and (fk, fv) != (r.kind, r.value) and covers(fk, fv, r.kind, r.value):', '                if False:', 1))],
+     "test_fixed_direct_rule_hiding_a_more_specific_rule_is_rejected"),
+    ("M267 “港英 / 港德”又在完整的香港地名里命中（香港英皇道成了其他地区，R22-F15）", [("source/regions.yaml", lambda s: s.replace(
+        "    - '(?<!香)港[德英法欧歐]'", "    - '港[德英法欧歐]'", 1))],
+     "test_composed_regex"),
+    ("M268 变异检查的预设文字又在全部输出里找（R22-F16）", [("tools/check_mutations.py", lambda s: s.replace(
+        '        expected = any(expect in text for text in sections.values())', '        expected = expect in out', 1))],
+     "test_expected_text_must_be_in_a_failure_of_its_own"),
+    ("M269 变异检查的预设测试名又按开头匹配（R22-F16）", [("tools/check_mutations.py", lambda s: s.replace(
+        '        expected = any(t == expect for t, _ in failing)', '        expected = any(t.startswith(expect) for t, _ in failing)', 1))],
+     "test_expected_test_name_must_match_exactly"),
 ]
 
 

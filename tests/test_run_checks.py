@@ -83,5 +83,43 @@ class MutationToolArguments(unittest.TestCase):
         self.assertNotIn("[发现]", r.stdout)
 
 
+class MutationJudge(unittest.TestCase):
+    """GPT 审核 r22 送审稿 R22-F16：“发现”要看失败项自己。以前在全部输出里找预设的字：别的测试失败、通过的测试恰好打印了
+    这几个字也算；预设的测试名是另一个测试名的开头也算。"""
+
+    @classmethod
+    def setUpClass(cls):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("check_mutations_for_test", os.path.join(ROOT, "tools", "check_mutations.py"))
+        cls.mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.mod)
+
+    @staticmethod
+    def output(failures, printed=""):
+        sep = "=" * 70
+        body = "".join(f"{sep}\nFAIL: {m} ({c})\n{'-' * 70}\nTraceback (most recent call last):\nAssertionError: {msg}\n\n"
+                       for m, c, msg in failures)
+        return printed + body + "-" * 70 + "\nRan 9 tests in 1.000s\n\nFAILED (failures=%d)\n" % len(failures)
+
+    def test_expected_text_must_be_in_a_failure_of_its_own(self):
+        out = self.output([("test_other", "test_x.X.test_other", "数量不对")], printed="国外默认\n")
+        self.assertFalse(self.mod.judge(out, 1, "国外默认")[0], "预设的字只出现在通过的测试打印的内容里")
+        out = self.output([("test_fallback", "test_strict.S.test_fallback", "兜底应交给 国外默认")])
+        self.assertTrue(self.mod.judge(out, 1, "国外默认")[0])
+
+    def test_expected_test_name_must_match_exactly(self):
+        out = self.output([("test_generated_outputs_pass_the_structure_check",
+                            "test_stash.S.test_generated_outputs_pass_the_structure_check", "x")])
+        self.assertFalse(self.mod.judge(out, 1, "test_generated_outputs_pass")[0], "只是名字开头相同")
+        out = self.output([("test_generated_outputs_pass", "test_simple.Verifier.test_generated_outputs_pass", "x")])
+        self.assertTrue(self.mod.judge(out, 1, "test_generated_outputs_pass")[0])
+        self.assertTrue(self.mod.judge(out, 1, "test_simple.Verifier.test_generated_outputs_pass")[0])
+        self.assertFalse(self.mod.judge(out, 1, "test_strict.StrictOutputs.test_generated_outputs_pass")[0])
+
+    def test_unfinished_or_empty_runs_are_not_caught(self):
+        self.assertFalse(self.mod.judge("Traceback (most recent call last):\nImportError: x\n", 1, None)[0])
+        self.assertFalse(self.mod.judge("-" * 70 + "\nRan 9 tests in 1.000s\n\nOK\n", 0, None)[0])
+
+
 if __name__ == "__main__":
     unittest.main()
