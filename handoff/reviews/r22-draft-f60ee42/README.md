@@ -82,3 +82,11 @@
 
 **建议：**先按每个源字段已经证实的含义归一化，再校验输出白名单；不要任意放宽所有字符串。把三种输入分别和规范写法生成的有效字段做对照。
 
+### R22-F09　VMess 外面有 TLS 时，两个内核对内部的 auto 不作同一种处理
+
+**严重程度：安全或泄漏；协议参数被改变，并非外层 TLS 被关闭。**
+
+**位置：**[generator/nodes.py:414–432](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L414-L432) 直接把 VMess 的 `cipher: auto` 作为 `security: auto`，另行照抄 TLS，报告不提示这两项的组合。**源码确认：**[mihomo 1.19.31](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vmess.go#L475-L486)把 `auto` 原样交给[其 VMess 客户端](https://github.com/MetaCubeX/sing-vmess/blob/v0.2.5/client.go#L42-L54)，[按处理器架构选择 AES-GCM 或 ChaCha20](https://github.com/MetaCubeX/sing-vmess/blob/v0.2.5/protocol.go#L137-L142)。而 [sing-box 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/vmess/outbound.go#L95-L104) 和 [1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/vmess/outbound.go#L89-L98) 只要已建 TLS 配置就把内部 `auto` 改作 `zero`。所以“枚举值两端都认”不能保证保留内层加密。外层 TLS 仍在，没有观察到公网明文或凭据泄漏。
+
+**建议：**对明确写了 `auto` 且开启 TLS 的源条目，按可核实的目标架构输出等效的显式内部算法；目标架构未知时不要静默降为 `zero`，应跳过并说明。测试分开检查有无 TLS 的实际含义。
+
