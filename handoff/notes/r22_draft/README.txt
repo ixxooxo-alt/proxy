@@ -1,6 +1,6 @@
 r22 送审稿（2026-11-18：三份全项目复核和使用者的 Claude 域名清单）的快速检查。不是出版本时的全套检查（tools/run_checks.sh、变异检查全套），那些等审完、
 按意见改完、定稿以后再跑；所以 docs/05 和 docs/evidence/ 的检查日志仍是 r21 的（docs/evidence/ 里改了的只有规则数据：upstream-snapshot.json、上游规则对照.md，
-和新存档的两份审核报告）。
+和新存档的三份审核报告：PR #10 一份、对话转来两份。2026-11-19 按 GPT 审核 r22 送审稿 R22-F17 改：以前写成两份）。
 
   bash handoff/notes/r22_draft/run_quick.sh <r21b 的工程目录>
     （照 handoff/notes/r21_draft/run_quick.sh 改的：对比的旧版本换成 r21b，另加打包验包自测、r22 相对 r21b 的私密产物对比、sing-box 取值核对。
