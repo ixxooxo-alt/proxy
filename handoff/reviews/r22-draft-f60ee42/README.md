@@ -126,3 +126,11 @@
 
 **建议：**在 `SubscriptionLoader` 的映射构造阶段拒绝显式重复键，只报键名和行号，不输出值；区分合法的 YAML 合并继承与同一映射内的显式重复。为普通键、嵌套键和合法继承各加一个测试。
 
+### R22-F14　带引号的端口被当成十进制，有时连的不是订阅指定的端口
+
+**严重程度：分流错误；私密 SFA 出站。**
+
+**位置与实跑：**[generator/nodes.py:363–374](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L363-L374) 直接使用 Python `int(value)`。对带引号的标量 `"0100"`，转换器写出十进制 100；`"0x01bb"` 则被跳过。以 VMess 为例，[mihomo 的端口字段是 int](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vmess.go#L53-L61)，[弱类型解码按 Go 的基数 0 读字符串](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/common/structure/structure.go#L131-L155)，这两个值分别是十进制 64、443。反过来，例如字符串 `"08"` 是 Python 接受、Go 按该路径不接受的写法。此处讨论的是**引号中的端口字符串**，和 C3 所说未加引号的 `0123` 是不同层。
+
+**建议：**端口从源字段的实际类型入手，字符串走与 Go 等价的基数和语法，再做 1–65535 的范围校验；不要把布尔值当数字 1。测试要断言最终输出的端口，不只检查能生成。
+
