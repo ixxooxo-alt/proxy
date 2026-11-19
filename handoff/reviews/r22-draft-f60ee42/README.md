@@ -90,3 +90,13 @@
 
 **建议：**对明确写了 `auto` 且开启 TLS 的源条目，按可核实的目标架构输出等效的显式内部算法；目标架构未知时不要静默降为 `zero`，应跳过并说明。测试分开检查有无 TLS 的实际含义。
 
+### R22-F10　在 TUIC、Hysteria2 上也写入 TCP 使用的 uTLS 指纹
+
+**严重程度：分流错误；特定私密出站建好后无法正常拨号。**
+
+**位置与实跑：**[generator/nodes.py:128–146](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L128-L146)、同文件第 169–178、490、516 行。用仓库合成样例，只给 TUIC 和 Hysteria2 增加相同的常规浏览器指纹；两者都被保留、都生成 `tls.utls.enabled: true`，均没有提示。取值试验用的是 **Trojan**（`handoff/notes/r22_singbox_enum_sweep.py:41–43`），不覆盖 QUIC 拨号。
+
+**源码确认：**mihomo 的 [TUIC](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/tuic.go#L34-L71) 和 [Hysteria2](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/hysteria2.go#L39-L72) 选项没有 `client-fingerprint`。sing-box 却会[真正启用 uTLS](https://github.com/SagerNet/sing-box/blob/v1.14.1/common/tls/client.go#L100-L108)。例如 TUIC [使用 QUIC 拨号](https://github.com/SagerNet/sing-quic/blob/v0.7.0/tuic/client.go#L165-L171)，Hysteria2 [创建 QUIC Transport](https://github.com/SagerNet/sing-quic/blob/v0.7.0/hysteria2/client.go#L288-L297)，都需要其[标准 TLS 配置](https://github.com/SagerNet/sing-quic/blob/v0.7.0/quic.go#L166-L208)；[1.14.1 的 uTLS 实现明确对这个调用返回错误](https://github.com/SagerNet/sing-box/blob/v1.14.1/common/tls/utls_client.go#L77-L83)。[1.12.0 的相应接口](https://github.com/SagerNet/sing-box/blob/v1.12.0/common/tls/utls_client.go#L49-L56)与[该版 QUIC 依赖](https://github.com/SagerNet/sing-quic/blob/v0.5.0-beta.3/quic.go#L34-L69)有同样限制。这是普通客户端模式的源码结论，没有向真实节点拨号。
+
+**建议：**这两种源协议保留正常 TLS，并按 mihomo 实际行为忽略该浏览器指纹且报告；不要连合法的证书校验字段一起去掉。测试“组合”，而非只测试指纹字符串。
+
