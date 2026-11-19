@@ -52,3 +52,13 @@
 
 **建议：**为固定直连阶段加与 `product_for(family)` 一样的按端筛选；每端的路由、DNS 和预期计算共用筛选结果。测试既断言指定端包含，也断言另外四端没有这条覆盖。
 
+### R22-F06　固定直连父规则与更具体的代理规则仍会造成路由、DNS 分歧
+
+**严重程度：分流错误；特定本地补充。**
+
+**位置与依据：**[generator/model.py:650–661](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/model.py#L650-L661) 仅比“类型和值都相等”；[generator/emit_mihomo.py:75–99](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/emit_mihomo.py#L75-L99)、[generator/emit_singbox.py:112–133](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/emit_singbox.py#L112-L133) 的 DNS 按域名具体程度排。路由却先匹配固定 DIRECT 或真实地址名单，再匹配产品；[mihomo 的 DNS 域名树](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/dns/resolver.go#L568-L599)会使用更具体的匹配。
+
+**实跑：**① 加一条固定 DIRECT 的保留域名后缀，再把它的一个确切子域给国外默认：两个端的连接都 DIRECT，mihomo 的该名 DNS 走境外，sing-box 的 A 给假地址、HTTPS 走境外。② 在既有 `pool.ntp.org` 下加一条给国外默认的确切子域：路由仍 DIRECT；mihomo 选境外 DNS，sing-box 因真实地址规则在前选国内 DNS。两种输入均通过规则源校验。现有测试只覆盖“窄直连盖过宽代理”和同值冲突。
+
+**建议：**按客户端检查：如果一条必须直连的规则完全覆盖了较后、不同目标的产品规则，就在读规则源时报清哪两条矛盾；保留“宽代理下划出窄直连”的合法用法。加入上述两个方向的用例。
+
