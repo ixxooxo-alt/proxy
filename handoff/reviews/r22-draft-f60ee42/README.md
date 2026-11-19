@@ -24,3 +24,11 @@
 
 **建议：**让一个可信的测试运行器以 `result.testsRun > 0`、`result.wasSuccessful()` 和进程退出码作判据；日志留作诊断。给正确包加一项不带跳过开关的验收，覆盖测试本身会打印文字的情况。
 
+### R22-F03　ZIP 的同名成员未纳入逐项核对
+
+**严重程度：安全或泄漏；交付包内容核验。**
+
+**位置与依据：**[handoff/release/package_check.py:37–63](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/handoff/release/package_check.py#L37-L63)。先取得成员文件名，解包后再按名字 `z.read(n)`，并建成以文件名为键的字典。同名成员因此合成一条；集合、数量、内容和解包后的扫描都不能证明 ZIP 的每一个物理成员都与提交一致。标准库[明确区分按名称与按 ZipInfo 读取](https://docs.python.org/3/library/zipfile.html#zipfile.ZipFile.open)。这是验包判据的问题；没有证据表明本次正确包含重复项。
+
+**建议：**解包前对每个 `ZipInfo` 检查并规范化成员路径，重复目标以及文件与目录冲突立即拒绝；按唯一条目比对，再解包。回归测试用两条同名、无敏感内容的成员即可。
+
