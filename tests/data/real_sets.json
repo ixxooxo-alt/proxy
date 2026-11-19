@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1674,
+    "from_rules": 1675,
     "from_sets": 222448,
-    "hosts": 224122,
+    "hosts": 224123,
     "sets": {
      "cn": 111224
     },
@@ -103,9 +103,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1587,
+    "from_rules": 1588,
     "from_sets": 17996,
-    "hosts": 19583,
+    "hosts": 19584,
     "sets": {
      "geosite-cn": 9303
     },
@@ -123,9 +123,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1587,
+    "from_rules": 1588,
     "from_sets": 17996,
-    "hosts": 19583,
+    "hosts": 19584,
     "sets": {
      "geosite-cn": 9303
     },
@@ -137,7 +137,7 @@
    "to_domestic": 17701
   }
  },
- "generated": "2026-11-18",
+ "generated": "2026-11-19",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -847,6 +847,13 @@
    "stash": {
     "geolocation-!cn": "suffix:pypa.io"
    }
+  },
+  "browser-intake-us5-datadoghq.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "captive.apple.com": {
    "loon": {},
@@ -1715,6 +1722,13 @@
     "geolocation-!cn": "suffix:host.livekit.cloud"
    }
   },
+  "http-intake.logs.us5.datadoghq.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
   "hulu.playback.edge.bamgrid.com": {
    "loon": {},
    "mihomo": {
@@ -2287,6 +2301,13 @@
    "stash": {
     "geolocation-!cn": "suffix:amazonaws.com"
    }
+  },
+  "other.logs.us5.datadoghq.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": {
    "loon": {},
@@ -4160,7 +4181,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "f2b2d48b99330e6c7616e63b98cd5c0616e3e7f5739afb3049ffc051b60659f8",
+   "config_sha256": "d58e75a52d4e9f9867d72401fca877bae00cc53903242c245964909a585b9d32",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -4183,7 +4204,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "d26e86da640f246ef5ffe80e918a935bf15f4d7f63de040f6ced780963119f1a",
+   "dial_sha256": "b33b73c01347f747fb77efb9f972acbad1a0560cdab03de3f397753e1fff7ee4",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -4664,6 +4685,10 @@
      "Domain(bootstrap.pypa.io)",
      "开发下载"
     ],
+    "browser-intake-us5-datadoghq.com": [
+     "Match",
+     "国外默认"
+    ],
     "captive.apple.com": [
      "Domain(captive.apple.com)",
      "DIRECT"
@@ -4932,6 +4957,10 @@
      "GeoSite(geolocation-!cn)",
      "国外默认"
     ],
+    "http-intake.logs.us5.datadoghq.com": [
+     "Domain(http-intake.logs.us5.datadoghq.com)",
+     "Claude"
+    ],
     "hulu.playback.edge.bamgrid.com": [
      "Domain(hulu.playback.edge.bamgrid.com)",
      "Hulu US"
@@ -5110,6 +5139,10 @@
     ],
     "other-bucket.s3.us-east-1.amazonaws.com": [
      "GeoSite(geolocation-!cn)",
+     "国外默认"
+    ],
+    "other.logs.us5.datadoghq.com": [
+     "Match",
      "国外默认"
     ],
     "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
@@ -5553,12 +5586,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "8f3028fc284d4d15d8bb7daa01e0ccc8a83cf17e2f75b99f0a60b779dec983e5",
+   "routing_sha256": "97e06d8caed809be7273b0c81671b95cdf1826d6f9acb66dfc8684a79bd2b5fa",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "9dc37a179cecdbd17716885cae97c7f4f876d1b4ec25486e7b04031dc0572127",
+   "config_sha256": "ae0e8ed878ab26d783fe239526b1ce22306ab83c75af36299975a5b24b5ff601",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5581,7 +5614,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "17891654b4fe9e34b58865c920cef1624b657599187a83ca9e1a0394433bf246",
+   "dial_sha256": "c38638266caa239235f8e1a6aa78ac7cc89cb3746cf533e59e99ecbed3a32038",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5870,11 +5903,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "anthropic.team": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "antigravity.google": [
@@ -5890,7 +5923,7 @@
      "Apple Music/TV"
     ],
     "api.anthropic.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -5977,6 +6010,10 @@
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
     ],
+    "browser-intake-us5-datadoghq.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
     "captive.apple.com": [
      "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
      "DIRECT"
@@ -6010,15 +6047,15 @@
      "Google"
     ],
     "claude.ai": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "claude.app": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "claude.dev": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -6102,7 +6139,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -6244,6 +6281,10 @@
     "host.livekit.cloud": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
+    ],
+    "http-intake.logs.us5.datadoghq.com": [
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
      "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
@@ -6425,6 +6466,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "other.logs.us5.datadoghq.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
     "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -6446,7 +6491,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "play.max.com": [
@@ -6686,7 +6731,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -6866,12 +6911,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "ea2592e43022b6a451e4ebef50e5ca225067fb611a04cbcf0b783ac54d80130d",
+   "routing_sha256": "268b086e25e9e599c41b6a76cf490808c2b9860891094909387ab4a34e1f07df",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "c392cb06154fa8007284fca049770ce11086dea7908eced67c07888811281998",
+   "config_sha256": "d49278cbee64a03bf7f3f9bcd2698369589c6a7ebcdf9b0cdce8a1bafbdb67d4",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -6894,7 +6939,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "e44121ff5a31e1a057eec06c271e5fdc3235d5c2084d9087c194996ea6059dcc",
+   "dial_sha256": "40849cd9c8f4bb220afb0264ed8a07defe8799e8f263d00a691f326e6f2ac8a8",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -7183,11 +7228,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "anthropic.team": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "antigravity.google": [
@@ -7203,7 +7248,7 @@
      "Apple Music/TV"
     ],
     "api.anthropic.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -7290,6 +7335,10 @@
      "domain=[get.pnpm.io pip.pypa.io bootstrap.pypa.io...] domain_suffix=[npmjs.org npmjs.com yarnpkg.com...]",
      "开发下载"
     ],
+    "browser-intake-us5-datadoghq.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
     "captive.apple.com": [
      "domain=[captive.apple.com connectivitycheck.platform.hicloud.com connect.rom.miui.com...] domain_suffix=[msftconnecttest",
      "DIRECT"
@@ -7323,15 +7372,15 @@
      "Google"
     ],
     "claude.ai": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "claude.app": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "claude.dev": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -7415,7 +7464,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -7557,6 +7606,10 @@
     "host.livekit.cloud": [
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
+    ],
+    "http-intake.logs.us5.datadoghq.com": [
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
      "domain=hulu.playback.edge.bamgrid.com domain_suffix=[hulu.com hulustream.com huluim.com]",
@@ -7738,6 +7791,10 @@
      "rule_set=geosite-geolocation-!cn",
      "国外默认"
     ],
+    "other.logs.us5.datadoghq.com": [
+     "没有规则命中（route.final）",
+     "国外默认"
+    ],
     "p16-tiktok-dm-sticker-sign-sg.ibyteimg.com": [
      "domain=[p16-tiktokcdn-com.akamaized.net lf16-effectcdn.byteeffecttos-g.com] domain_suffix=[tiktok.com tiktokv.com tiktok",
      "TikTok"
@@ -7759,7 +7816,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "play.max.com": [
@@ -7999,7 +8056,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain_suffix=[anthropic.com claude.ai claude.com...]",
+     "domain=http-intake.logs.us5.datadoghq.com domain_suffix=[anthropic.com claude.ai claude.com...]",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -8179,7 +8236,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "b1d912766ed785d1e11800d810d51eba171a38fa42276366ce83c52d893ef568",
+   "routing_sha256": "9ac8c2fe8f5b4d566dc73db3b4c37483773ccf272278ad02338caf36c70c3c8b",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -8256,7 +8313,7 @@
    "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.11.18-1",
+ "source_version": "2026.11.19-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {

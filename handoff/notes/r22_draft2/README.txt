@@ -20,6 +20,9 @@ r22 第二份送审稿（2026-11-19：第一份送审稿 f60ee42 的两份审核
     review-probes.log          handoff/notes/r22b_review_probes.py：官方 mihomo、sing-box 核对订阅读法、重复键（含查的范围：最外层、proxies、proxy-providers 怎么读）、SS2022 密钥、QUIC 上的 uTLS
     singbox-enum-sweep.log     handoff/notes/r22_singbox_enum_sweep.py：sing-box 1.14.1、1.12.0 认哪些取值（和第一份送审稿时相同的核对）
   另外（不在 run_quick.sh 里）：
+    real-routes-snapshot.log   官方内核快照（tests/data/real_sets.json）重新生成的输出：使用者 2026-11-19 选了把 Claude Code 的遥测主机
+                               http-intake.logs.us5.datadoghq.com 加进 Claude 组，规则变了，按 handoff/release/README.md 第 3 步重新生成。
+                               用例与排除项 307 条、不同的目标 286 个，三个官方内核和模拟器的结果与人工期望全部一致，写入主机 282 个、IP 28 个
     mutations-trial-a/b/c.log  变异试跑：这一轮新加的 M249–M272、改写的 M15 / M185 / M232 / M237 / M264，和四个预设是一段文字的旧变异（M2、M82、M240、M242，
                                看收紧后的“发现”判据会不会误判），在提交 ⟦试跑提交⟧ 上（a 批先跑了基线；b、c 批用 --skip-baseline）：⟦试跑结果⟧
 日志里本机的仓库目录、临时目录、r21b 目录、第一份送审稿的目录、工作目录换成了 <repo>、<tmp>、<r21b>、<draft1>、<work>；
