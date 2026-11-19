@@ -42,3 +42,13 @@
 
 **建议：**文档将承诺限定为“反查命中且记下的名字命中固定规则”。为仍需固定的服务验证其专用别名，只为有证据的确切名字补规则；不要整段收共享 DNS/CDN 后缀。验收增加带一跳 CNAME 的回答和随后无域名的 UDP，观察所选出站。现有测试只查开关为 `true`。
 
+### R22-F05　仅一个客户端应当直连的本地规则在其他端也生效
+
+**严重程度：分流错误 / 安全或泄漏；特定私密配置。**
+
+**位置与依据：**[generator/model.py:491–500](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/model.py#L491-L500) 接受本地服务的 `clients`，[generator/model.py:793–807](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/model.py#L793-L807) 却把所有固定 DIRECT 规则都放进不区分客户端的 `plan.lan`。[generator/emit_mihomo.py:67–72](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/emit_mihomo.py#L67-L72)、[generator/emit_singbox.py:109–114](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/emit_singbox.py#L109-L114)又把这些规则送入 DNS 分层；路由也直接使用 `plan.lan`（上述两文件第 254、266 行）。
+
+**实跑：**只为 Loon 添加一条 GitHub 子域的 DIRECT 规则。模型中 `emitted_to(..., "mihomo")` 为假；实际生成的 mihomo 和 sing-box 却均匹配 DIRECT，mihomo 的 DNS 策略和 sing-box 的 HTTPS 查询都指向国内 DNS。去掉这条本地规则，原目标是 GitHub。公开源目前没有限定客户端的 DIRECT 服务，不把它报成默认泄漏。
+
+**建议：**为固定直连阶段加与 `product_for(family)` 一样的按端筛选；每端的路由、DNS 和预期计算共用筛选结果。测试既断言指定端包含，也断言另外四端没有这条覆盖。
+
