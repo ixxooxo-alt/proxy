@@ -57,18 +57,27 @@ services:
       - {suffix: claudeacademy.com, ev: owner-claude-domains}
       - {suffix: claudepages.dev, ev: owner-claude-domains}
       - {suffix: claudestudio.com, ev: owner-claude-domains}
-      # Claude Code 的运行遥测（官方网络要求：只在直接用 Anthropic API 时发，可选，DISABLE_TELEMETRY 或 DO_NOT_TRACK 能关）。
-      # 以前当成第三方遥测不收；使用者 2026-11-19 选了收进 Claude 组（docs/00 最后一节），只收这一个主机：
-      # 它是 Datadog US5 的公共日志入口，别的 App 往 US5 传日志也会走 Claude 组；不收 datadoghq.com
+      # Claude Code 官方网络要求页面列出的第三方主机（2026-11-19 重新查阅）。以前当成共用的服务，归 Google、GitHub、开发下载组或者不收；
+      # 使用者 2026-11-19 先选了收 Datadog 的运行遥测，接着要求“官方页面有说过的所有的网址都加进去 Claude 分流”（docs/00 最后两节）。
+      # 都只收页面写的那一个主机（精确域名），不收它们的根域：同一根域的其他主机照旧归原来的组（生成器把更具体的规则排在前面）。
+      # 这些都是很多 App 共用的公共服务，它们的这几个主机从此跟着 Claude 组走（docs/06 2026-11-19 一节）。
+      # 页面上的 *-review.googlesource.com 是一类主机（任何以 -review 结尾的），只能用关键词或正则写，规则源不收关键词规则，见下面 shared_excluded
       - {domain: http-intake.logs.us5.datadoghq.com, ev: claude-net, note: Claude Code 的运行遥测（可选）；使用者 2026-11-19 选的}
+      - {domain: browser-intake-us5-datadoghq.com, ev: claude-net, note: Claude Code 的错误报告（可选）}
+      - {domain: storage.googleapis.com, ev: claude-net, note: 插件安装数和元数据；2.1.116 以前的原生安装和自动更新；Google Cloud Storage 的公共入口}
+      - {domain: registry.npmjs.org, ev: claude-net, note: 插件安装、npx 启动的 MCP 服务器、npm / bun 安装 Claude Code；npm 的公共源}
+      - {domain: github.com, ev: claude-net, note: 克隆 GitHub 上的插件市场和插件；github.com 本身，GitHub 的其他主机照旧归 GitHub}
+      - {domain: raw.githubusercontent.com, ev: claude-net, note: /release-notes 的更新日志；GitHub 的公共原始文件入口}
+      - {domain: formulae.brew.sh, ev: claude-net, note: Homebrew 安装方式的版本检查}
+      - {domain: fonts.googleapis.com, ev: claude-net, note: Artifact 的字体（可选，挡掉就换后备字体）}
+      - {domain: fonts.gstatic.com, ev: claude-net, note: Artifact 的字体（可选）}
+      - {domain: cdnjs.cloudflare.com, ev: claude-net, note: Artifact 用的 JavaScript 库}
+      - {domain: cdn.jsdelivr.net, ev: claude-net, note: Artifact 用的 JavaScript 库}
+      - {domain: cdn.tailwindcss.com, ev: claude-net, note: Artifact 用的 JavaScript 库}
+      - {domain: code.jquery.com, ev: claude-net, note: Artifact 用的 JavaScript 库}
+      - {domain: unpkg.com, ev: claude-net, note: Artifact 用的 JavaScript 库}
     shared_excluded:
-      - {host: storage.googleapis.com, ev: claude-net, to: Google, probe: [storage.googleapis.com], why: Google Cloud Storage，共享云存储 → Google}
-      - {host: registry.npmjs.org, ev: claude-net, to: 开发下载, probe: [registry.npmjs.org], why: 通用开发依赖 → 开发下载}
-      - {host: "github.com / raw.githubusercontent.com", ev: claude-net, to: GitHub, probe: [github.com, raw.githubusercontent.com], why: GitHub 专属 → GitHub}
-      - {host: formulae.brew.sh, ev: claude-net, to: 开发下载, probe: [formulae.brew.sh], why: Homebrew → 开发下载}
-      - {host: "*-review.googlesource.com", ev: claude-net, to: Google, probe: [chromium-review.googlesource.com], why: Google 代码托管 → Google}
-      - {host: browser-intake-us5-datadoghq.com, ev: claude-net, to: 国外默认, probe: [browser-intake-us5-datadoghq.com], why: Claude Code 的错误报告（第三方遥测，可选）；同一页的 http-intake.logs.us5.datadoghq.com 使用者 2026-11-19 选了收进来，这一个没有选}
-      - {host: "fonts.googleapis.com / fonts.gstatic.com / cdnjs / jsdelivr / unpkg", ev: claude-net, why: 公共 CDN，全网共用}
+      - {host: "*-review.googlesource.com", ev: claude-net, to: Google, probe: [chromium-review.googlesource.com], why: Gerrit 的变更查询（可选）。页面写的是一类主机（任何以 -review 结尾的），五个客户端都只能用关键词或正则写，规则源不收关键词规则；使用者 2026-11-19 要求页面列的都进 Claude 组时，这一类照旧归 Google（googlesource.com）}
       - {host: servd-anthropic-website.b-cdn.net, ev: dlc, to: 国外默认, probe: [servd-anthropic-website.b-cdn.net], why: 上游收录；官网静态资源，位于共享 CDN，未收录（落入国外默认）}
 
   # ---------- Grok 组：Cursor 与 Grok / xAI（2026-09-30 用户决定合并）----------
@@ -178,7 +187,7 @@ services:
       - {domain: copilot-workspace.githubnext.com, ev: dlc}
       - {domain: copilotprodattachments.blob.core.windows.net, ev: dlc, note: 专属存储主机；不收整个 windows.net}
     shared_excluded:
-      - {host: "github.com/login/*、github.com/copilot/*", ev: ghcopilot-net, to: GitHub, probe: [github.com], why: 与 GitHub 共用主机，只能按路径区分，统一归 GitHub}
+      - {host: "github.com/login/*、github.com/copilot/*", ev: ghcopilot-net, to: Claude, probe: [github.com], why: 与 GitHub 共用主机，只能按路径区分，不归 Copilot；github.com 这个主机本身 2026-11-19 起按使用者的要求归 Claude（Claude Code 官方网络要求列出，见 claude 一项），所以 Copilot 的登录也走 Claude 组}
       - {host: "api.github.com/copilot_internal/*", ev: ghcopilot-net, to: GitHub, probe: [api.github.com], why: 与 GitHub API 共用主机，统一归 GitHub}
       - {host: collector.github.com, ev: ghcopilot-net, to: GitHub, probe: [collector.github.com], why: GitHub 通用分析遥测 → GitHub；官方放行清单列出，已加入误杀例外}
       - {host: default.exp-tas.com, ev: ghcopilot-net, to: 国外默认, probe: [default.exp-tas.com], why: 微软实验分配服务，VS Code 等共用 → 国外默认}

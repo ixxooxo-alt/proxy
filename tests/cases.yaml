@@ -23,9 +23,9 @@ cases:
   - {host: claude.ai, expect: Claude}
   - {host: downloads.claude.ai, expect: Claude}
   - {host: platform.claude.com, expect: Claude}
-  - {host: storage.googleapis.com, expect: Google, why: Claude Code 放行清单中的共享云存储}
-  - {host: registry.npmjs.org, expect: 开发下载, why: 通用依赖，不归 Claude}
-  - {host: formulae.brew.sh, expect: 开发下载}
+  - {host: storage.googleapis.com, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
+  - {host: registry.npmjs.org, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
+  - {host: formulae.brew.sh, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
   - {host: api2.cursor.sh, expect: Grok}
   - {host: api5.cursor.sh, expect: Grok}
   - {host: agent.global.api5.cursor.sh, expect: Grok}
@@ -51,8 +51,8 @@ cases:
   - {host: production-copilot-host.webpubsub.azure.com, expect: Copilot, why: 网页上 Copilot 的实时连接，官方放行清单列出的 7 个主机之一（2026-11-18 全项目复核 F04）}
   - {host: production-copilot-host-eastasia.webpubsub.azure.com, expect: Copilot}
   - {host: example-tenant.webpubsub.azure.com, expect: 国外默认, why: 同一后缀上别人的 Azure Web PubSub 服务；只收官方列出的 7 个完整主机，不收后缀}
-  - {host: raw.githubusercontent.com, expect: GitHub}
-  - {host: github.com, expect: GitHub}
+  - {host: raw.githubusercontent.com, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
+  - {host: github.com, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
   - {host: copilot.microsoft.com, expect: Copilot, why: Microsoft Copilot 在 Microsoft 之前}
   - {host: sydney.bing.com, expect: Copilot}
   - {host: www.bing.com, expect: Microsoft}
@@ -81,7 +81,7 @@ cases:
   - {host: jules.google.com, expect: Google AI}
   - {host: stitch.withgoogle.com, expect: Google AI, why: 比 withgoogle.com 更具体}
   - {host: gemini.gstatic.com, expect: Google AI}
-  - {host: fonts.gstatic.com, expect: Google, why: 共享静态资源}
+  - {host: fonts.gstatic.com, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
   - {host: x1.chatgpt.livekit.cloud, expect: OpenAI, why: ChatGPT 语音}
   - {host: host.livekit.cloud, expect: 国外默认, why: LiveKit 共享设施，不归 OpenAI}
   - {host: copilot-workspace.githubnext.com, expect: Copilot}
@@ -151,8 +151,19 @@ cases:
   - {host: ant.dev, expect: Claude}
   - {host: anthropic.team, expect: Claude}
   - {host: http-intake.logs.us5.datadoghq.com, expect: Claude, why: Claude Code 的运行遥测，使用者 2026-11-19 选了收进 Claude 组}
-  - {host: browser-intake-us5-datadoghq.com, expect: 国外默认, why: 同一页的错误报告主机，使用者只选了上面那一个}
+  - {host: browser-intake-us5-datadoghq.com, expect: Claude, why: Claude Code 官方网络要求列出，使用者 2026-11-19 要求页面列的都进 Claude 组}
   - {host: other.logs.us5.datadoghq.com, expect: 国外默认, why: 只收那一个主机，不收 Datadog 的其他地址}
+  - {host: fonts.googleapis.com, expect: Claude, why: Claude Code 官方网络要求列出（Artifact 的字体），使用者 2026-11-19 要求页面列的都进 Claude 组}
+  - {host: cdnjs.cloudflare.com, expect: Claude, why: 同上（Artifact 用的 JavaScript 库）}
+  - {host: cdn.jsdelivr.net, expect: Claude}
+  - {host: cdn.tailwindcss.com, expect: Claude}
+  - {host: code.jquery.com, expect: Claude}
+  - {host: unpkg.com, expect: Claude}
+  - {host: api.github.com, expect: GitHub, why: 只收 github.com 这一个主机，GitHub 的其他主机照旧归 GitHub}
+  - {host: objects.githubusercontent.com, expect: GitHub, why: Release 下载，照旧归 GitHub}
+  - {host: status.npmjs.org, expect: 开发下载, why: 只收 registry.npmjs.org，npmjs.org 的其他主机照旧归开发下载}
+  - {host: maps.googleapis.com, expect: Google, why: 只收 storage / fonts 两个，googleapis.com 的其他主机照旧归 Google}
+  - {host: www.gstatic.com, expect: Google}
   - {host: accounts.spacexsi.com, expect: Grok, why: Cursor 的新登录页（2026-11-18 第三份全项目复核 F02）}
   - {host: agent-stores.s3.us-east-1.amazonaws.com, expect: Grok, why: Cursor 桌面版同步 skills 和 agent 文件}
   - {host: cursor.blob.core.windows.net, expect: Grok, why: Cursor 给 Windows 远程主机下载服务端}
