@@ -38,15 +38,34 @@ def unpack(zpath, dest, repo, rev, without_handoff):
         bad_crc = z.testzip()
         if bad_crc:
             problems.append(f"zip 里 {bad_crc} 的校验和不对")
-        names = [i.filename for i in z.infolist() if not i.is_dir()]
-        unsafe = [n for n in names if not n.startswith(TOP) or n.startswith("/") or "\\" in n
-                  or ".." in n.split("/") or ":" in n.split("/")[0]]
-        if unsafe:
-            print("!!! 包里有不在 proxy-rules/ 下、或者带 .. 、绝对路径的名字，不解开：\n  " + "\n  ".join(unsafe[:20]))
+        # 每一个条目（文件和目录）都查（GPT 审核 r22 送审稿 R22-F03、另一个 AI 的 F04：以前只查文件条目；同名的条目按名字合成一条，
+        # 前面那个的内容从来没有和提交比过，换个解压工具解出来的却可能是它）。同名、文件和目录撞名、路径里有空段或“.”的，都不解开
+        infos = z.infolist()
+
+        def unsafe(n):
+            parts = n.rstrip("/").split("/")
+            return (not n.startswith(TOP) or n.startswith("/") or "\\" in n or ".." in parts or "." in parts or "" in parts
+                    or ":" in parts[0])
+        bad = [i.filename for i in infos if unsafe(i.filename)]
+        if bad:
+            print("!!! 包里有不在 proxy-rules/ 下、带 .. 或 .、空段、绝对路径的名字，不解开：\n  " + "\n  ".join(bad[:20]))
+            return 1
+        seen, dups = set(), []
+        for i in infos:
+            key = i.filename.rstrip("/")
+            if key in seen:
+                dups.append(i.filename)
+            seen.add(key)
+        files = [i for i in infos if not i.is_dir()]
+        file_names = {i.filename for i in files}
+        clash = sorted({p for i in infos for p in ["/".join(i.filename.rstrip("/").split("/")[:k])
+                                                   for k in range(1, len(i.filename.rstrip("/").split("/")))] if p in file_names})
+        if dups or clash:
+            print("!!! 包里有同名的条目，或者一个名字既是文件又是目录，不解开：\n  " + "\n  ".join((dups + clash)[:20]))
             return 1
         os.makedirs(dest)                     # 必须是新目录：不往已有的目录里解
         z.extractall(dest)
-        got = {n[len(TOP):]: z.read(n) for n in names}
+        got = {i.filename[len(TOP):]: z.read(i) for i in files}
     print(f"包里 {len(got)} 个文件")
     # 不该有的文件：私密的单独列，其余的也算不通过
     secret = sorted(r for r in got if pack.forbidden(r))

@@ -14,6 +14,13 @@
 #   - 不删任何不是本轮自己建的目录。以前每次先删“工作目录/proxy-rules”，工作目录恰好是工程的上一级、工程又叫 proxy-rules 时，
 #     删的就是工程本身。现在只在全部通过以后删本轮的子目录，删之前还要 package_check.py may-remove 确认它和仓库不相交；
 #     没通过时留着给你看。
+# 2026-11-19 起（GPT 审核 r22 送审稿 R22-F01–F03，另一个 AI 的 F04）：
+#   - 包和提交对不上（文件多、少、内容不同，或者 ZIP 条目有问题）就不运行包里的任何程序：不跑 build.py --check、不跑测试，
+#     只用这里的工具做静态扫描。以前对不上只记一笔，照样运行包里的 build.py 和测试；
+#   - 测试看退出码、“Ran N tests”（N 大于 0）和 unittest 的 OK 汇总，不再要求它是输出的最后一行：标准输出有缓冲时，
+#     测试自己打印的字会排在汇总后面，一个完全正确的包也被判失败（没设 PYTHONUNBUFFERED 的机器上必然如此）；
+#   - 扫描的“放过”只认位置：tests/ 目录下的样例，和一份照录的审核报告里的一个示例值；以前按一段字放过，
+#     任何一行只要带着 “tests/” 字样就不报。“令牌、密码”那项扫全部文本文件（以前只扫 .conf / .yaml / .json / .md）。
 #
 # 另外：使用者本人的邮箱、账号编号这类字样不要写进仓库里的任何文件（仓库是公开的），所以这里只扫通用的写法。
 # 你知道具体要防哪些字样时，用环境变量临时带进来再扫一遍，例如：
@@ -51,11 +58,15 @@ fail() { FAILED+=("$1"); echo "!!! 不通过：$1"; }
 
 echo "== 解包，和提交逐个文件比（$REV）"
 HO=(); [ "$SKIP_HANDOFF" = yes ] && HO=(--without-handoff)
+SAME=yes
 if ! python3 -I "$HERE/package_check.py" unpack "$Z" "$RUN/pkg" "$REPO" "$REV" "${HO[@]}"; then
   fail "包的内容（见上面）"
+  SAME=no
 fi
 P="$RUN/pkg/proxy-rules"
-if [ ! -f "$P/build.py" ]; then
+if [ "$SAME" != yes ]; then
+  echo "== build.py --check、测试：没有运行（包和提交对不上，不运行包里的程序；下面只做静态扫描）"
+elif [ ! -f "$P/build.py" ]; then
   fail "包里没有 build.py，下面的生成检查和测试没法跑"
 else
   echo "== build.py --check"
@@ -73,7 +84,7 @@ else
     ran="$(grep -oE '^Ran [0-9]+ tests?' "$RUN/tests.out" | tail -1 | grep -oE '[0-9]+')"
     if [ $rc -ne 0 ]; then fail "测试（退出码 $rc）"
     elif [ -z "$ran" ] || [ "$ran" -eq 0 ]; then fail "测试：一项也没有跑"
-    elif ! tail -1 "$RUN/tests.out" | grep -qE '^OK( \(.*\))?$'; then fail "测试：最后一行不是 OK"
+    elif ! grep -qE '^OK( \(.*\))?$' "$RUN/tests.out" || grep -qE '^FAILED \(' "$RUN/tests.out"; then fail "测试：没有 unittest 的 OK 汇总"
     fi
   fi
 fi
@@ -93,9 +104,12 @@ scan() {   # scan <说明> <排除的正则（空 = 不排除）> <grep 的参�
   if [ -n "$out" ]; then echo "$out" | head -10; fail "扫描有命中：$label"; fi
 }
 echo "含占位订阅的文件数（只应是样例和说明）：$(grep -rIl -E 'REPLACE-ME\.invalid' proxy-rules | wc -l)"
-scan "代理链接" 'tests/' -rIn "${SELF[@]}" -E '(ss|ssr|vmess|vless|trojan|hysteria2?|tuic)://[A-Za-z0-9+/=_-]{12,}' proxy-rules
-scan "令牌、密码" 'tests/|SECRET123' -rIn "${SELF[@]}" -E '(token|secret|passwd|password)[=:][ ]*[A-Za-z0-9+/_-]{12,}' proxy-rules \
-  --include='*.conf' --include='*.yaml' --include='*.json' --include='*.md'
+# 放过的只有：tests/ 目录下的虚构样例；照录的另一个 AI 的审核报告（docs/evidence/review-r22-draft/README.md）里举例用的
+# 21 位纯数字密码（审核报告原样存档、不能改）。别处出现同样的字照样报
+TESTS_DIR='^proxy-rules/tests/'
+EXAMPLE_IN_REVIEW='^proxy-rules/docs/evidence/review-r22-draft/README\.md:[0-9]+:.*password: 123456789012345678901'
+scan "代理链接" "$TESTS_DIR" -rIn "${SELF[@]}" -E '(ss|ssr|vmess|vless|trojan|hysteria2?|tuic)://[A-Za-z0-9+/=_-]{12,}' proxy-rules
+scan "令牌、密码" "$TESTS_DIR|$EXAMPLE_IN_REVIEW" -rIn "${SELF[@]}" -E '(token|secret|passwd|password)[=:][ ]*[A-Za-z0-9+/_-]{12,}' proxy-rules
 scan "私钥、证书" '' -rIn "${SELF[@]}" -E 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|BEGIN CERTIFICATE' proxy-rules
 scan "GitHub / API 令牌" '' -rIn "${SELF[@]}" -E 'gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}' proxy-rules
 scan "常见个人邮箱" '' -rIn "${SELF[@]}" -E '[A-Za-z0-9._%+-]+@(gmail|outlook|hotmail|qq|163|126|icloud|proton|protonmail|foxmail|yahoo)\.[a-z.]+' proxy-rules
