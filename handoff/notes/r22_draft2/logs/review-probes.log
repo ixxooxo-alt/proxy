@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-11-19 02:32:53
+运行时间（UTC）：2026-11-19 07:00:33
 Python：Python 3.13.18，PyYAML：6.0.3
-提交：b9046a9；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：6c5f173；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
 命令：python3 -B handoff/notes/r22b_review_probes.py /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box <work>/r22b-probes
 
 Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026
@@ -41,6 +41,16 @@ sing-box version 1.12.0
 2. 同一张表里同一个键写两次
 [符合] mihomo -t 整份报错（mapping key already defined）
 [符合] 转换器整份不转换，只报键名和行号
+[符合] 最外层的键重复：mihomo -t 报错：configuration file <work>/r22b-probes/t.yaml test failed
+[符合] 最外层的键重复：转换器整份不转换
+[符合] 不认识的顶层键里重复：mihomo -t 通过：configuration file <work>/r22b-probes/t.yaml test is successful
+[符合] 不认识的顶层键里重复：转换器照常转换
+[符合] 嵌套合并（被引用的表自己也合并、又盖掉继承来的键）：mihomo -t 通过：configuration file <work>/r22b-probes/t.yaml test is successful
+[符合] 嵌套合并（被引用的表自己也合并、又盖掉继承来的键）：转换器照常转换
+[符合] 订阅的 proxy-groups 里有重复：mihomo 用 proxy-providers 读出的节点是 ['a']：读出 ['a']
+[符合] 订阅的 proxy-groups 里有重复：转换器读出的节点是 ['a']：读出 ['a']
+[符合] 订阅的 proxies 里有重复：mihomo 用 proxy-providers 读出的节点是 []：读出 []
+[符合] 订阅的 proxies 里有重复：转换器读出的节点是 []：读出 []
 
 3. sing-box check
 [符合] SS2022 aes-128 合格的 16 字节密钥：sing-box 1.14.1 check 通过
