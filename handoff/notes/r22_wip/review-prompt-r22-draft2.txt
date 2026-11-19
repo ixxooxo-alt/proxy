@@ -1,5 +1,5 @@
 请审核 GitHub 公开仓库 ixxooxo-alt/proxy 的 r22 第二份送审稿：分支 claude/r12-gpt-review-handling-q4onlv 的提交 ⟦DOCS⟧（代码在提交 a4cfd65 里；规则和产物最后改在 ⟦RULES⟧（Claude 组加的主机、统一源 2026.11.19-2）、⟦SNAP⟧（重新生成的官方内核快照），之后的提交只改了文档和检查日志）。
-这一份处理的是对第一份送审稿 f60ee42 的两份审核：你开的审核 PR #11（报告在 docs/evidence/gpt-r22-draft/）和另一个 AI 的报告（docs/evidence/review-r22-draft/）；交出去之前我自己又查出 F13 的修法会误拒合法的订阅，也改了（docs/08 第 25 轮的“交送审稿前自查补记”）。另外按使用者 2026-11-19 的要求，Claude Code 官方网络要求页面列的第三方主机都进了 Claude 组（14 个：Datadog 两个遥测、storage.googleapis.com、registry.npmjs.org、github.com、raw.githubusercontent.com、formulae.brew.sh、两个字体主机、五个公共 CDN；只收这几个主机本身，docs/00 最后两节）。
+这一份处理的是对第一份送审稿 f60ee42 的两份审核：你开的审核 PR #11（报告在 docs/evidence/gpt-r22-draft/）和另一个 AI 的报告（docs/evidence/review-r22-draft/）；交出去之前我自己又查出 F13 的修法会误拒合法的订阅，也改了（docs/08 第 25 轮的“交送审稿前自查补记”）。另外按使用者 2026-11-19 定的标准（连这个地址时 Anthropic 能看到你的 IP 的，都走 Claude 组），Claude Code 官方网络要求页面列的第三方地址里，Datadog 的两个遥测入口和 storage.googleapis.com（Anthropic 的存储桶）进了 Claude 组，其余的（GitHub、npm、Homebrew、字体、公共 CDN）照旧（docs/00 最后几节）。
 相对第一份送审稿的对比页面：https://github.com/ixxooxo-alt/proxy/compare/f60ee42...⟦DOCS⟧
 （上一个发布版是 main 上的 r21b a6671c1；和它的对比：https://github.com/ixxooxo-alt/proxy/compare/b9a9f14...⟦DOCS⟧）
 打不开 GitHub 的话，看附件 ⟦ZIP⟧：它是同一个提交的完整工程（没有 .git 和带订阅的私密产物）。
@@ -10,7 +10,7 @@
 1. 第 24、25 轮的核实对不对、处理有没有做错做漏，特别是没有照建议做的三处：R22-F09（VMess 的 auto 加 TLS 写明 aes-128-gcm，不跳过）、R22-F11（五个旧版 Chrome 指纹照写、在报告里说明，不跳过）、另一个 AI 的 F01（没有按 Go 字面量的规则收紧下划线，而是照 go-yaml v3.0.5 先去掉下划线）。
 2. 订阅读法（generator/nodes.py 的 go_plain_scalar、_go_parse_int、_go_int、SubscriptionLoader，和查重复键的 duplicate_keys：只查最外层和 proxies 里面、在合并展开之前查）和 go-yaml v3.0.5、mihomo v1.19.31 还有哪里不一样；handoff/notes/r22b_review_probes.py 拿官方 mihomo、sing-box 核对的那些写法够不够。
 3. 发布工具（handoff/release/verify_package.sh、package_check.py、selftest_package.py）：“包和提交对不上就不运行包里的程序”有没有漏掉的路径；测试的判据；ZIP 条目的检查；自测用临时提交打包的做法。
-4. 按客户端的固定直连（generator/model.py 的 Plan.lan_for 和各生成器）有没有漏改；读规则源时“固定直连整个盖住更具体的规则”的检查会不会误报合法写法；source/regions.yaml 里“港德 / 港英 / 港法 / 港欧 / 港歐”的新写法会不会把常见节点名分错。Claude 组新加的 14 个第三方主机有没有带出别的影响（别的 App 用到这几个主机也走 Claude 组；github.com 和 GitHub 的其他主机分在两个组），有没有收错、漏收。
+4. 按客户端的固定直连（generator/model.py 的 Plan.lan_for 和各生成器）有没有漏改；读规则源时“固定直连整个盖住更具体的规则”的检查会不会误报合法写法；source/regions.yaml 里“港德 / 港英 / 港法 / 港欧 / 港歐”的新写法会不会把常见节点名分错。Claude 组新加的 3 个第三方主机按“Anthropic 能不能看到 IP”分得对不对，有没有该收没收的；它们是公共入口，别的 App 用到也走 Claude 组。
 5. 变异检查新的“发现”判据（tools/check_mutations.py 的 judge）会不会把以前算发现的变异误判；M249–M272 是不是真的管住了这一轮的改动；文档里还有没有旧说法、数字和日志对不对得上。
 
 能运行的话（需要 Python 3.10+ 和 PyYAML）：

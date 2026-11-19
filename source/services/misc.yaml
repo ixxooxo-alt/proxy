@@ -5,7 +5,7 @@ services:
     title: JavaScript 生态（npm / Yarn / Node.js / Deno / Bun / JSR）
     upstream: {dlc: [npmjs, nodejs, category-dev]}
     rules:
-      - {suffix: npmjs.org, ev: claude-net, note: npm 的其他主机；registry.npmjs.org 本身 2026-11-19 起按使用者的要求归 Claude（Claude Code 官方网络要求列出，services/ai.yaml）}
+      - {suffix: npmjs.org, ev: claude-net, note: registry.npmjs.org；Claude Code 放行清单也列出，但它是通用依赖，不把访问者的 IP 交给 Anthropic，不归 Claude}
       - {suffix: npmjs.com, ev: dlc}
       - {suffix: yarnpkg.com, ev: dlc}
       - {suffix: nodejs.org, ev: dlc}
@@ -62,7 +62,7 @@ services:
       - {suffix: cocoapods.org, ev: maintainer, note: 两个上游快照都未收录；cdn.cocoapods.org 为规格仓库 CDN}
       - {suffix: pub.dev, ev: dlc}
       - {suffix: nuget.org, ev: dlc}
-      - {suffix: brew.sh, ev: claude-net, note: Homebrew 的其他主机；formulae.brew.sh 本身 2026-11-19 起按使用者的要求归 Claude（services/ai.yaml）}
+      - {suffix: brew.sh, ev: claude-net, note: formulae.brew.sh；Homebrew 通用依赖}
       - {suffix: docker.io, ev: dlc}
       - {suffix: docker.com, ev: dlc}
       - {domain: production.cloudflare.docker.com, ev: dlc, note: Docker Hub 镜像层 CDN 专属主机}

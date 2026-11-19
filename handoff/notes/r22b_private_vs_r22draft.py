@@ -7,7 +7,7 @@ build.py --singbox-nodes，比 dist/private/ 里的每一份文件）。允许�
   3. sing-box 的节点（R22-F09）：样例里四个 cipher 是 auto 又开了 TLS 的 VMess 节点写成 aes-128-gcm。同时核对第一份送审稿里确实是 auto；
   4. sing-box-节点转换报告.txt：只多了这四个节点的提示；
   5. 私密 manifest.json 不逐项比，另外核对它本身（outputs、摘要、版本、not_refreshed 是空的）。其余文件逐字节相同；
-  6. 使用者 2026-11-19 要求的：Claude 组多了 Claude Code 官方网络要求页面列的 14 个第三方主机（NEW_CLAUDE）——各端多这几条规则，
+  6. 使用者 2026-11-19 定的标准（Anthropic 能看到 IP 的地址走 Claude 组）：Claude 组多了 3 个第三方主机（NEW_CLAUDE）——各端多这几条规则，
      mihomo 的 nameserver-policy、sing-box 的路由和 DNS 规则各多这几个名字（只认带这些名字的新增，别的新增照样算不符）。
 这一轮别的改动（订阅读法、整数、SS2022、QUIC 上的指纹、按端的固定直连……）在这批样例和这份 local.yaml 上不该产生差别。
 不联网，不读、不写仓库里的 source/local.yaml。
@@ -26,10 +26,8 @@ import yaml
 old, new, out = (os.path.abspath(x) for x in sys.argv[1:4])
 VMESS_AUTO_TLS = ["美国 VMess HTTPUpgrade", "韩国 VMess gRPC", "美国 VMess packet", "台湾 VMess 指纹 none"]
 VERSIONS = [("2026.11.18-1", "2026.11.19-2"), ("1.13.0", "1.14.0")]
-# 第 6 条：Claude 组新加的主机（Claude Code 官方网络要求页面列的第三方主机；使用者 2026-11-19 先选了 Datadog 的运行遥测，接着要求页面列的都加）
-NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com", "registry.npmjs.org",
-              "github.com", "raw.githubusercontent.com", "formulae.brew.sh", "fonts.googleapis.com", "fonts.gstatic.com",
-              "cdnjs.cloudflare.com", "cdn.jsdelivr.net", "cdn.tailwindcss.com", "code.jquery.com", "unpkg.com"}
+# 第 6 条：Claude 组新加的主机（Claude Code 官方网络要求页面列的第三方地址里，会让 Anthropic 看到 IP 的；使用者 2026-11-19 定的标准）
+NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com"}
 
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
 by = {p["name"]: p for p in nodes["proxies"]}
