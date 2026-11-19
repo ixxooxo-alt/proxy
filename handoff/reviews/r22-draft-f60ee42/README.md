@@ -72,3 +72,13 @@
 
 **建议：**按三种 2022 方法在转换时校验，单条不合规就跳过并报字段名/原因，不回显内容；写盘前使用同一判据。现有正例换成合规的合成数据，并加“一条错、一条对，其余配置仍能启动”的测试。
 
+### R22-F08　把 sing-box 的取值白名单直接用在原始订阅上，会误跳过可等价转换的条目
+
+**严重程度：分流错误；私密 SFA 的可用节点少于预期。**
+
+**位置：**[generator/nodes.py:99–104](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L99-L104)、同文件第 128–133、418、436–438 行；`handoff/notes/r22_singbox_enum_sweep.py:53–73` 直接测试目标 JSON，没有测试源写法能否先转换。
+
+**实跑与依据：**三种写法均被转换器跳过：① VMess 的大写 `AES-128-GCM`：[mihomo 先转小写](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vmess.go#L475-L486)，小写已在两版 sing-box 的白名单；② VLESS 的 `xtls-rprx-vision-udp443`：[该版 mihomo 取前 16 字节作为实际 flow](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/outbound/vless.go#L462-L472)，得到两版都支持的 `xtls-rprx-vision`；③ 不加引号的数字指纹 `360`：[mihomo 把整数转十进制文字](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/common/structure/structure.go#L212-L224)，其[指纹表](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/component/tls/utls.go#L78-L87)包含它；本项目给同一值加引号便能转换。这里的对照仅针对指定的 mihomo 版本与 SFA 目标，不推广到其他客户端。
+
+**建议：**先按每个源字段已经证实的含义归一化，再校验输出白名单；不要任意放宽所有字符串。把三种输入分别和规范写法生成的有效字段做对照。
+
