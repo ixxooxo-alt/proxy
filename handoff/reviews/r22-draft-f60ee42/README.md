@@ -14,3 +14,13 @@
 
 **建议：**路径、文件集合或内容比对失败后，保留诊断并立即返回非零；后续可只用可信工具做静态扫描。测试“构建失败 / 测试失败”的场景应当来自与指定临时提交**相符**的夹具，另断言比对失败时执行阶段从未开始。本条是控制流程审阅，没有运行不可信程序，也没有证据表明交付包被动过。
 
+### R22-F02　完全正确的包被正式验包命令判失败
+
+**严重程度：建议，高；阻断发布验收。**
+
+**实跑：**从审核提交新打的包有 650 个文件，逐个文件及生成检查均通过；解包副本的 unittest 跑了 369 项、无跳过、结果 `OK`。不带 `--skip-tests` 的验包命令却退出 **1**，唯一失败理由为“测试：最后一行不是 OK”。
+
+**位置与依据：**[handoff/release/verify_package.sh:69–77](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/handoff/release/verify_package.sh#L69-L77) 合并标准输出与错误输出，并把整个文件的最后一行当 unittest 的结果。Python 的 [TextTestRunner](https://docs.python.org/3.12/library/unittest.html#unittest.TextTestRunner) 默认把汇总写到标准错误；本次汇总之后还有测试自身缓冲的标准输出。[handoff/release/selftest_package.py:80–87](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/handoff/release/selftest_package.py#L80-L87) 对正确包使用 `--skip-tests`，所以“24 项自测通过”和这次失败不矛盾。
+
+**建议：**让一个可信的测试运行器以 `result.testsRun > 0`、`result.wasSuccessful()` 和进程退出码作判据；日志留作诊断。给正确包加一项不带跳过开关的验收，覆盖测试本身会打印文字的情况。
+
