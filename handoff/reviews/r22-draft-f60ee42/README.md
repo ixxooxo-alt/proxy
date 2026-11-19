@@ -118,3 +118,11 @@
 
 **建议：**按固定版本的整数范围、去下划线、日期与数值尝试顺序决定类型；隐式解析不成功时保留原文。保留对不能安全转换的真实浮点值的单条提示。用固定 Go 版本产生的类型和值做小型对照表，覆盖整份订阅有好有坏时的结果。
 
+### R22-F13　普通 YAML 映射有重复键时，转换器悄悄采用最后一项
+
+**严重程度：安全或泄漏；有歧义的私密输入。**
+
+**位置：**[generator/nodes.py:562–575](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L562-L575)、同文件第 596–602 行：`SubscriptionLoader` 继承 PyYAML 的映射构造，没有显式重复键检查。用两个同名的无敏感标记读入，结果只剩最后一个，没有错误。mihomo 的 [provider 用 YAML 解码接收订阅](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/adapter/provider/provider.go#L377-L393)，[固定版本的 go-yaml](https://github.com/yaml/go-yaml/blob/v3.0.5/decode.go#L767-L782)会拒绝映射中重复出现的同一显式键。若冲突的是证书校验等字段，两端的差别就不只是提示。没有使用真实订阅，没有证据表明已有资料泄漏。
+
+**建议：**在 `SubscriptionLoader` 的映射构造阶段拒绝显式重复键，只报键名和行号，不输出值；区分合法的 YAML 合并继承与同一映射内的显式重复。为普通键、嵌套键和合法继承各加一个测试。
+
