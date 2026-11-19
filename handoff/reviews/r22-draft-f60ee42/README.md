@@ -62,3 +62,13 @@
 
 **建议：**按客户端检查：如果一条必须直连的规则完全覆盖了较后、不同目标的产品规则，就在读规则源时报清哪两条矛盾；保留“宽代理下划出窄直连”的合法用法。加入上述两个方向的用例。
 
+### R22-F07　一个无效的 SS2022 条目仍可使整份 SFA 配置启动失败
+
+**严重程度：导入失败，高；仅带该输入生成的私密 SFA。**
+
+**位置：**[generator/nodes.py:374–378](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L374-L378)、[generator/verify.py:280–295](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/verify.py#L280-L295)、[tests/test_nodes.py:350–359](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/tests/test_nodes.py#L350-L359)。加密方法在白名单、认证字段非空就放行；新增正例还把不符合 SS2022 格式的单字符输入列作成功。**本次实跑：**生成返回 0，四份私密 SFA JSON 都保留该出站，写盘前检查均为 0 个问题。
+
+**源码确认：**[1.14.1 的出站构造器](https://github.com/SagerNet/sing-box/blob/v1.14.1/protocol/shadowsocks/outbound.go#L42-L48)和 [1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/protocol/shadowsocks/outbound.go#L40-L46) 都会传播方法构造失败；两个版本使用的[同一依赖](https://github.com/SagerNet/sing-shadowsocks2/blob/v0.2.1/shadowaead_2022/method.go#L54-L96)校验 Base64、每段解码长度（按方法为 16 或 32 字节），还区分链式密钥适用的方法。失败发生在建出站，不用连上服务就足以使整个配置不能启动。不是说这条畸形输入本应在 mihomo 工作；问题是该条目把旁边正常的也拖下水。
+
+**建议：**按三种 2022 方法在转换时校验，单条不合规就跳过并报字段名/原因，不回显内容；写盘前使用同一判据。现有正例换成合规的合成数据，并加“一条错、一条对，其余配置仍能启动”的测试。
+
