@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import datetime
 import json
+import math
 import re
 import urllib.request
 from typing import Dict, List, Tuple
@@ -66,6 +67,124 @@ def _req(d: dict, used: set, key: str) -> str:
     return _text(v, key)
 
 
+# ---------------------------------------------------------------------------
+# Go 的整数读法（strconv.ParseUint / ParseInt，基数 0）。订阅读法（go_plain_scalar）和整数字段（_go_int）共用
+# ---------------------------------------------------------------------------
+
+def _go_underscore_ok(s: str) -> bool:
+    """Go strconv 的 underscoreOK：下划线只能夹在数字之间，或者紧跟在 0b / 0o / 0x 前缀后面（后面还得是数字）。"""
+    saw, i, hexa = "^", 0, False
+    if s[:1] in ("+", "-"):
+        s = s[1:]
+    if len(s) >= 2 and s[0] == "0" and s[1].lower() in "box":
+        i, saw, hexa = 2, "0", s[1].lower() == "x"
+    for c in s[i:]:
+        if "0" <= c <= "9" or (hexa and c.isascii() and "a" <= c.lower() <= "f"):
+            saw = "0"
+        elif c == "_":
+            if saw != "0":
+                return False
+            saw = "_"
+        elif saw == "_":
+            return False
+        else:
+            saw = "!"
+    return saw != "_"
+
+
+def _go_parse_uint(s: str, base: int = 0, bits: int = 64):
+    """Go 的 strconv.ParseUint(s, base, bits)：读得出返回整数，写法不对或越界返回 None。
+    基数 0 时：0b / 0o / 0x 前缀（后面至少一位）、0 开头按八进制、别的按十进制；下划线按 underscoreOK。"""
+    if not s:
+        return None
+    s0, base0 = s, base == 0
+    if base0:
+        base = 10
+        if s[0] == "0":
+            if len(s) >= 3 and s[1].lower() in "box":
+                base, s = {"b": 2, "o": 8, "x": 16}[s[1].lower()], s[2:]
+            else:
+                base, s = 8, s[1:]
+    n, underscores, limit = 0, False, (1 << bits) - 1
+    for c in s:
+        if c == "_" and base0:
+            underscores = True
+            continue
+        if "0" <= c <= "9":
+            d = ord(c) - 48
+        elif c.isascii() and c.isalpha():
+            d = ord(c.lower()) - 87
+        else:
+            return None
+        if d >= base:
+            return None
+        n = n * base + d
+        if n > limit:
+            return None
+    if underscores and not _go_underscore_ok(s0):
+        return None
+    return n
+
+
+def _go_parse_int(s: str, base: int = 0, bits: int = 64):
+    """Go 的 strconv.ParseInt(s, base, bits)：前面可以有一个 + 或 -，其余同 _go_parse_uint，按有符号 64 位核对范围。"""
+    if not s:
+        return None
+    neg = s[0] == "-"
+    un = _go_parse_uint(s[1:] if s[0] in "+-" else s, base, bits)
+    if un is None:
+        return None
+    cutoff = 1 << (bits - 1)
+    if (not neg and un >= cutoff) or (neg and un > cutoff):
+        return None
+    return -un if neg else un
+
+
+def _go_int(v, key: str) -> int:
+    """mihomo 的整数字段（端口、alterId 等；common/structure/structure.go 的 decodeInt，解码器开着弱类型）：整数照用；
+    小数去掉小数部分；文字按 Go 的 ParseInt(基数 0) 读——"0100" 是八进制 64、"0x01bb" 是 443、"08" 读不出来；
+    true / false 读不了（mihomo 报错）。以前直接用 Python 的 int()：布尔当成 1，"0100" 当成十进制 100，"0x01bb" 读不出来
+    （GPT 审核 r22 送审稿 R22-F14，另一个 AI 的 F03）。"""
+    if isinstance(v, bool):
+        raise Unsupported(f"{key} 应该是数字，订阅里写的是 {json.dumps(v)}（mihomo 也读不了这种写法）")
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float) and math.isfinite(v):
+        return int(v)
+    if isinstance(v, str):
+        n = _go_parse_int(v)
+        if n is not None:
+            return n
+    raise Unsupported(f"{key} 写成了 {json.dumps(v, ensure_ascii=False, default=str)}，按 mihomo 的读法读不出数字")
+
+
+# SS2022 的密钥（GPT 审核 r22 送审稿 R22-F07）：sing-box 1.14.1、1.12.0 都用 sing-shadowsocks2 v0.2.1，
+# shadowaead_2022/method.go 的 NewMethod 把 password 按冒号分段，每段按标准 base64 解（要补齐 =），解出来 aes-128-gcm 要 16 字节、
+# 另两种要 32 字节，chacha20-poly1305 只能有一段。不合就在建出站时报错（decode key / bad key length），整份配置启动不了。
+# 以前只看加密方式在不在表里、密码非空，写盘前检查也放过（官方程序实测：两个版本的 check 都报 FATAL）
+SS2022_KEY_BYTES = {"2022-blake3-aes-128-gcm": 16, "2022-blake3-aes-256-gcm": 32, "2022-blake3-chacha20-poly1305": 32}
+
+
+def ss2022_key_problem(method: str, password) -> str | None:
+    """合格返回 None，否则返回原因（不带密钥本身）。不是 SS2022 的加密方式时返回 None。转换器和写盘前检查共用。"""
+    size = SS2022_KEY_BYTES.get(method)
+    if size is None:
+        return None
+    if not isinstance(password, str):
+        return "密钥不是文字"
+    parts = password.split(":")
+    if method == "2022-blake3-chacha20-poly1305" and len(parts) > 1:
+        return "chacha20-poly1305 不支持用冒号连起来的多段密钥"
+    for i, part in enumerate(parts, 1):
+        try:
+            key = base64.b64decode(part.replace("\r", "").replace("\n", ""), validate=True)
+        except ValueError:
+            return f"第 {i} 段不是标准 base64（字符不对或没有补齐 =）"
+        if len(key) != size:
+            return f"第 {i} 段解出来是 {len(key)} 字节，{method} 要 {size} 字节"
+    return None
+
+
 # packet-encoding（VMess、VLESS 的 UDP 封装）：mihomo 把 packet 当成 packetaddr 的别名（v1.19.31 adapter/outbound/vmess.go、vless.go），
 # sing-box 1.14.1、1.12.0 只认空、packetaddr、xudp，别的值在建立出站时报 unknown packet encoding（protocol/vmess、vless 的 outbound.go）。
 # 以前原样写进去，配置生成成功、SFA 却建不起这个出站（全项目复核 F03）
@@ -95,6 +214,10 @@ TUIC_CONGESTION = {"cubic", "new_reno", "bbr"}
 UTLS_FINGERPRINTS = {"chrome", "firefox", "edge", "safari", "360", "qq", "ios", "android", "random", "randomized",
                      "chrome_psk", "chrome_psk_shuffle", "chrome_padding_psk_shuffle", "chrome_pq", "chrome_pq_psk"}
 MUX_PROTOCOLS = {"smux", "yamux", "h2mux"}
+# 这五个名字 sing-box 认（check 能过），但 1.14.1、1.12.0 都当成普通 Chrome（common/tls/utls_client.go 的 uTLSClientHelloID：
+# fallthrough 到 HelloChrome_Auto）；mihomo 各自用一种旧版 Chrome 的握手（component/tls/utls.go）。照写，在报告里说明
+# （GPT 审核 r22 送审稿 R22-F11；没有照它的建议跳过：节点照样能连，跳过就少一个能用的节点）
+UTLS_SINGBOX_CHROME_ALIASES = {"chrome_psk", "chrome_psk_shuffle", "chrome_padding_psk_shuffle", "chrome_pq", "chrome_pq_psk"}
 
 
 def _enum(v, allowed: set, key: str):
@@ -111,7 +234,7 @@ MULTIPLEX_TYPES = {"shadowsocks", "vmess", "vless", "trojan"}
 NETWORK_FIELD = {"shadowsocks", "vmess", "vless", "trojan", "socks", "hysteria2", "tuic"}
 
 
-def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | None:
+def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool, notes: list | None = None) -> dict | None:
     enabled = _bool(d, used, "tls", default_enabled)
     sni = _take(d, used, sni_key)
     insecure = _bool(d, used, "skip-cert-verify", False)
@@ -126,11 +249,17 @@ def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | N
             raise Unsupported("提供了 reality-opts 却未启用 TLS，无法确定原意")
         return None          # 未启用 TLS 时 servername / alpn / 指纹在 mihomo 中同样不生效
     # client-fingerprint：没写、写 none 在 mihomo 里都是不用 uTLS（v1.19.31 component/tls/utls.go 的 GetFingerprint），
-    # 以前把 none 原样写成 uTLS 指纹，sing-box 不认、整份配置启动不了（全项目复核 F03 的同一类）
+    # 以前把 none 原样写成 uTLS 指纹，sing-box 不认、整份配置启动不了（全项目复核 F03 的同一类）。
+    # 订阅里不加引号写成数字（360）时，mihomo 先转成文字 "360" 再查表（decodeString），这里也先转（R22-F08）
+    if cf is not None:
+        cf = _text(cf, "client-fingerprint")
     if cf in (None, "", "none"):
         cf = None
     else:
         _enum(cf, UTLS_FINGERPRINTS, "client-fingerprint")
+        if cf in UTLS_SINGBOX_CHROME_ALIASES and notes is not None:
+            notes.append(f"client-fingerprint 是 {cf}：sing-box 认这个名字，但实际用的是普通 Chrome 的握手（mihomo 用的是这一种旧版 Chrome 的），"
+                         "照写")
     if reality and not cf:
         # sing-box 的 Reality 必须带 uTLS（不带时建出站报 uTLS is required by reality client）；
         # mihomo 也一样，连接时报 REALITY is based on uTLS（transport/vmess/tls.go）
@@ -166,7 +295,7 @@ def _tls(d: dict, used: set, *, sni_key: str, default_enabled: bool) -> dict | N
     return t
 
 
-def _forced_tls(d: dict, used: set, notes: list, t: str) -> dict:
+def _forced_tls(d: dict, used: set, notes: list, t: str, quic: bool = False) -> dict:
     """Trojan、Hysteria2、TUIC、AnyTLS 只能走 TLS。mihomo 的这四种节点没有 tls 开关（v1.19.31 adapter/outbound/ 下 trojan.go、hysteria2.go、
     tuic.go、anytls.go 的选项结构体里都没有这个字段，解码时不认的键直接忽略），订阅里写了什么都照样走 TLS；这里也总是开 TLS，
     和 mihomo 用同一份订阅时一样。以前 Trojan 按订阅里的 tls: false 把 TLS 关掉，转出来是不加密的 Trojan（全项目复核 F01）。
@@ -175,7 +304,17 @@ def _forced_tls(d: dict, used: set, notes: list, t: str) -> dict:
         notes.append(f"订阅里写了 tls: {json.dumps(d['tls'], ensure_ascii=False)}，但 {t} 只能走 TLS（mihomo 也不认这个字段），照常开 TLS")
     d2 = dict(d)
     d2["tls"] = True
-    return _tls(d2, used, sni_key="sni", default_enabled=True)
+    if quic:
+        # TUIC、Hysteria2 走 QUIC：mihomo 的这两种节点没有 client-fingerprint 字段（adapter/outbound/tuic.go、hysteria2.go），
+        # 写了也不用 uTLS；sing-box 却会真的开 uTLS，而 QUIC 拨号要的是标准 TLS 配置，uTLS 的那一种直接报错
+        # （1.14.1 common/tls/utls_client.go 的 STDConfig：unsupported usage for uTLS），check 能过、一连就失败。
+        # 这里照 mihomo 忽略它，在报告里说明（GPT 审核 r22 送审稿 R22-F10）
+        used.add("client-fingerprint")
+        cf = d2.pop("client-fingerprint", None)
+        if cf not in (None, "", "none"):
+            notes.append(f"写了 client-fingerprint，但 {t} 走 QUIC：mihomo 的 {t} 没有这个字段、不用 uTLS，"
+                         "sing-box 在 QUIC 上用 uTLS 一连就报错，这里不写")
+    return _tls(d2, used, sni_key="sni", default_enabled=True, notes=notes)
 
 
 def _hy2_ports(text: str) -> list:
@@ -231,7 +370,7 @@ def _transport(d: dict, used: set) -> dict | None:
                 t["headers"] = headers
             return t
         path = o.get("path", "/")
-        max_ed = int(o["max-early-data"]) if o.get("max-early-data") else 0
+        max_ed = _go_int(o["max-early-data"], "ws-opts.max-early-data") if o.get("max-early-data") else 0
         ed_header = o.get("early-data-header-name") or ""
         # mihomo 会把路径里的 ?ed=N 解释成 early data（请求头 Sec-WebSocket-Protocol）并从路径中去掉；sing-box 不认，照搬 mihomo
         m = re.match(r"^([^?]*)\?(.*)$", str(path))
@@ -325,16 +464,18 @@ def _dial(d: dict, used: set, ob: dict, udp_capable_default: bool):
         extra = set(smux) - {"enabled", "protocol", "max-connections", "min-streams", "max-streams", "padding"}
         if extra:
             raise Unsupported(f"smux 不支持的字段 {sorted(extra)}")
-        mx = {"enabled": True, "protocol": _enum(smux.get("protocol", "h2mux"), MUX_PROTOCOLS, "smux.protocol")}
+        mx = {"enabled": True, "protocol": _enum(_text(smux.get("protocol", "h2mux"), "smux.protocol"), MUX_PROTOCOLS, "smux.protocol")}
         for a, b in (("max-connections", "max_connections"), ("min-streams", "min_streams"), ("max-streams", "max_streams")):
             if a in smux:
-                mx[b] = int(smux[a])
+                mx[b] = _go_int(smux[a], f"smux.{a}")
         if _bool_value(smux.get("padding", False), "smux.padding"):
             mx["padding"] = True
         ob["multiplex"] = mx
 
 
 def _mbps(v) -> int:
+    if isinstance(v, bool):           # mihomo 的带宽是文字字段，读不了 true / false（R22-F14 的同一类）
+        raise Unsupported(f"带宽写成了 {json.dumps(v)}")
     if isinstance(v, (int, float)):
         return int(v)
     m = re.match(r"^\s*(\d+)\s*(mbps|m)?\s*$", str(v), re.I)
@@ -365,10 +506,10 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         raise Unsupported("缺少节点名称")
     if server is None or not str(server).strip():
         raise Unsupported("缺少必填字段 server")
-    try:
-        port = int(d.get("port"))
-    except (TypeError, ValueError):
-        raise Unsupported(f"端口不是数字：{d.get('port')!r}")
+    port = _go_int(d.get("port"), "port")        # 带引号的 "0100" 是八进制 64，和 mihomo 一样（R22-F14）
+    raw_port = d.get("port")
+    if isinstance(raw_port, str) and not re.fullmatch(r"[+]?[1-9][0-9_]*", raw_port.strip()):
+        notes.append(f"port 写成了 {json.dumps(raw_port)}：mihomo 按 Go 的规则读成 {port}（0 开头是八进制、0x 开头是十六进制），这里也是")
     if not 1 <= port <= 65535:
         raise Unsupported(f"端口超出范围：{port}")
     ob = {"tag": str(name), "server": str(server), "server_port": port}
@@ -376,6 +517,9 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["type"] = "shadowsocks"
         ob["method"] = _enum(_req(d, used, "cipher"), SS_METHODS, "cipher")
         ob["password"] = _req(d, used, "password")
+        problem = ss2022_key_problem(ob["method"], ob["password"])
+        if problem:
+            raise Unsupported(f"password 不是 {ob['method']} 要的密钥（{problem}）：sing-box 建这个出站时报错，整份配置启动不了")
         plugin = _take(d, used, "plugin")
         opts = _take(d, used, "plugin-opts", {}) or {}
         if plugin == "obfs":
@@ -409,13 +553,15 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         elif plugin:
             raise Unsupported(f"ss 插件 {plugin} 不支持")
         if _bool(d, used, "udp-over-tcp", False):
-            ob["udp_over_tcp"] = {"enabled": True, "version": int(_take(d, used, "udp-over-tcp-version", 2))}
+            ob["udp_over_tcp"] = {"enabled": True, "version": _go_int(_take(d, used, "udp-over-tcp-version", 2), "udp-over-tcp-version")}
         _dial(d, used, ob, False)
     elif t == "vmess":
         ob["type"] = "vmess"
         ob["uuid"] = _req(d, used, "uuid")
-        ob["alter_id"] = int(_take(d, used, "alterId", 0))
-        ob["security"] = _enum(_take(d, used, "cipher") or "auto", VMESS_SECURITY, "cipher")
+        ob["alter_id"] = _go_int(_take(d, used, "alterId", 0), "alterId")
+        # mihomo 先把 cipher 转成小写（adapter/outbound/vmess.go 的 NewVmess：strings.ToLower），AES-128-GCM 和 aes-128-gcm 一样（R22-F08）
+        cipher = _take(d, used, "cipher")
+        ob["security"] = _enum("auto" if cipher is None or cipher == "" else _text(cipher, "cipher").lower(), VMESS_SECURITY, "cipher")
         if _bool(d, used, "global-padding", False):
             ob["global_padding"] = True
         if _bool(d, used, "authenticated-length", False):
@@ -423,9 +569,17 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         pe = _packet_encoding(d, used, None)
         if pe:
             ob["packet_encoding"] = pe
-        tls = _tls(d, used, sni_key="servername", default_enabled=False)
+        tls = _tls(d, used, sni_key="servername", default_enabled=False, notes=notes)
         if tls:
             ob["tls"] = tls
+            if ob["security"] == "auto":
+                # sing-box 1.14.1、1.12.0 遇到 auto 又开了 TLS，会把内层加密改成 zero（protocol/vmess/outbound.go），只靠外层 TLS；
+                # mihomo 的 auto 按处理器架构选（MetaCubeX/sing-vmess v0.2.5 protocol.go 的 AutoSecurityType）：arm64、amd64 上是
+                # aes-128-gcm，内层照样加密。这里照它写明 aes-128-gcm，在报告里说明（GPT 审核 r22 送审稿 R22-F09；没有照它的建议跳过：
+                # 这种节点很常见，跳过就用不了。32 位 ARM 上 mihomo 选的是 chacha20-poly1305，写 aes-128-gcm 照样能连，只是慢一点）
+                ob["security"] = "aes-128-gcm"
+                notes.append("cipher 是 auto 又开了 TLS：sing-box 会把内层加密改成 zero（只靠外层 TLS），"
+                             "mihomo 在 arm64 / amd64 上用的是 aes-128-gcm，这里照它写明 aes-128-gcm")
         tr = _transport(d, used)
         if tr:
             ob["transport"] = tr
@@ -434,14 +588,25 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["type"] = "vless"
         ob["uuid"] = _req(d, used, "uuid")
         flow = _take(d, used, "flow")
-        if flow:
-            ob["flow"] = _enum(flow, VLESS_FLOWS, "flow")
+        if flow is not None and flow != "":
+            # mihomo（adapter/outbound/vless.go 的 NewVless）：不到 16 个字符的 flow 当成没写；满 16 个的只取前 16 个，
+            # 必须是 xtls-rprx-vision，不是就报错（R22-F08：xtls-rprx-vision-udp443 在 mihomo 里就是 xtls-rprx-vision）
+            flow = _text(flow, "flow")
+            if len(flow) < 16:
+                notes.append(f"flow 写的是 {flow}，不到 16 个字符：mihomo 当成没写（普通 VLESS），这里也不写")
+            elif flow[:16] != "xtls-rprx-vision":
+                raise Unsupported(f"flow={json.dumps(flow, ensure_ascii=False)}：mihomo 只取前 16 个字符，不是 xtls-rprx-vision，"
+                                  "mihomo 也建不起这个节点")
+            else:
+                if len(flow) > 16:
+                    notes.append(f"flow 写的是 {flow}：mihomo 只取前 16 个字符，按 xtls-rprx-vision 处理")
+                ob["flow"] = _enum("xtls-rprx-vision", VLESS_FLOWS, "flow")
         if d.get("encryption") not in (None, "", "none"):
             used.add("encryption")
             raise Unsupported("VLESS encryption 在 sing-box 中不支持")
         used.add("encryption")
         ob["packet_encoding"] = _packet_encoding(d, used, "xudp")
-        tls = _tls(d, used, sni_key="servername", default_enabled=False)
+        tls = _tls(d, used, sni_key="servername", default_enabled=False, notes=notes)
         if tls:
             ob["tls"] = tls
         tr = _transport(d, used)
@@ -462,9 +627,12 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         _dial(d, used, ob, False)
     elif t == "hysteria2":
         ob["type"] = "hysteria2"
-        pw = _take(d, used, "password") or _take(d, used, "auth")
+        # 先看 password，没写或是空的再看 auth（以前用 or：不加引号的 password: 0 在 Python 里是假，被当成缺密码，另一个 AI 的 F03）
+        pw = _take(d, used, "password")
+        if pw is None or pw == "":
+            pw = _take(d, used, "auth")
         used.add("auth")
-        if pw is None or not str(pw).strip():
+        if pw is None or (isinstance(pw, str) and not pw.strip()) or isinstance(pw, (dict, list, bool)):
             raise Unsupported("缺少必填字段 password")
         ob["password"] = _text(pw, "password")
         ports = _take(d, used, "ports")
@@ -487,7 +655,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
                 raise Unsupported(f"hysteria2 obfs={obfs} 不支持")
             ob["obfs"] = {"type": "salamander", "password": _req(d, used, "obfs-password")}
         used.add("obfs-password")
-        ob["tls"] = _forced_tls(d, used, notes, "Hysteria2")
+        ob["tls"] = _forced_tls(d, used, notes, "Hysteria2", quic=True)
         _dial(d, used, ob, True)
     elif t == "tuic":
         ob["type"] = "tuic"
@@ -498,7 +666,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         ob["password"] = _req(d, used, "password")
         cc = _take(d, used, "congestion-controller")
         if cc:
-            ob["congestion_control"] = _enum(cc, TUIC_CONGESTION, "congestion-controller")
+            ob["congestion_control"] = _enum(_text(cc, "congestion-controller"), TUIC_CONGESTION, "congestion-controller")
         mode = _take(d, used, "udp-relay-mode")
         if mode:
             ob["udp_relay_mode"] = mode
@@ -506,14 +674,14 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
             ob["zero_rtt_handshake"] = True
         hb = _take(d, used, "heartbeat-interval")
         if hb:
-            ob["heartbeat"] = f"{int(hb)}ms"
+            ob["heartbeat"] = f"{_go_int(hb, 'heartbeat-interval')}ms"
         if _bool(d, used, "disable-sni", False):
             raise Unsupported("disable-sni 暂未映射")
         for k in ("request-timeout", "max-udp-relay-packet-size", "max-open-streams", "fast-open", "ip"):
             if k in d:
                 used.add(k)
                 raise Unsupported(f"tuic {k} 暂未映射")
-        ob["tls"] = _forced_tls(d, used, notes, "TUIC")
+        ob["tls"] = _forced_tls(d, used, notes, "TUIC", quic=True)
         _dial(d, used, ob, True)
     elif t == "anytls":
         ob["type"] = "anytls"
@@ -522,10 +690,10 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
                      ("idle-session-timeout", "idle_session_timeout")):
             v = _take(d, used, a)
             if v is not None:
-                ob[b] = f"{int(v)}s"
+                ob[b] = f"{_go_int(v, a)}s"
         v = _take(d, used, "min-idle-session")
         if v is not None:
-            ob["min_idle_session"] = int(v)
+            ob["min_idle_session"] = _go_int(v, "min-idle-session")
         ob["tls"] = _forced_tls(d, used, notes, "AnyTLS")
         _dial(d, used, ob, False)
     elif t in ("socks5", "http"):
@@ -539,7 +707,7 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
         if pw is not None and pw != "":
             ob["password"] = _text(pw, "password")
         if t == "http":
-            tls = _tls(d, used, sni_key="sni", default_enabled=False)
+            tls = _tls(d, used, sni_key="sni", default_enabled=False, notes=notes)
             if tls:
                 ob["tls"] = tls
             if "headers" in d:
@@ -560,44 +728,132 @@ def convert_one(d: dict, notes: list | None = None) -> dict:
 
 
 class SubscriptionLoader(yaml.SafeLoader):
-    """按 mihomo 的读法解析订阅里不带引号的值（第二份全项目复核 C3）。mihomo v1.19.31 用 go.yaml.in/yaml/v3 v3.0.5（go.mod），
-    它的 resolve.go 和 PyYAML 缺省的 YAML 1.1 读法有几处不同，这里改成和它一样：
-      - 布尔只认 true / True / TRUE / false / False / FALSE；yes、no、on、off、y、n 都是文字（PyYAML 读成 True / False，
-        以前 username: no 会被当成“没写用户名”丢掉，password: yes 会写成 "True"）；
-      - 整数按 Go 的 strconv.ParseInt(基数 0) 读：0x、0o、0b 前缀，0 开头按八进制（0123 → 83，两边一样），下划线先去掉；
-        没有 YAML 1.1 的六十进制（1:20 在两边都是文字）；
-      - 0 开头、带 8 或 9 的数字（0089）读成小数（PyYAML 当成文字）：mihomo 再转成文字时写成 8.9E+01，_text 遇到小数就跳过这个节点。
-    null、日期、合并键照 PyYAML 的。"""
+    """按 mihomo 的读法解析订阅（第二份全项目复核 C3；2026-11-19 按 r22 送审稿的两份审核重写：GPT 的 R22-F12、F13，
+    另一个 AI 的 F01、F02）。mihomo v1.19.31 用 go.yaml.in/yaml/v3 v3.0.5（go.mod），它决定不带引号的值是什么类型的办法
+    （resolve.go 的 resolve）和 PyYAML 的 YAML 1.1 读法不同，这里照它来，见 go_plain_scalar：
+      - 布尔只认 true / True / TRUE / false / False / FALSE；yes、no、on、off、y、n 都是文字；
+      - 以数字、+、-、. 开头的：先看是不是日期（四种写法，日期不存在的不算），再去掉下划线按 Go 的 ParseInt、ParseUint
+        （64 位）读整数，再按小数读，都不是就保留原来的文字。以前 0x_、2026-02-30 这类值会让整份订阅读不下去，
+        超过 64 位的整数照原样留成整数（mihomo 读成小数、再写成科学计数法）；
+      - 同一个键在同一张表里写了两次：mihomo（go-yaml 的 decode.go）整份报 mapping key already defined，这里也整份不转换，
+        只报键名和行号（以前悄悄用了后一个值，例如 skip-cert-verify 先 true 后 false）。
+    null、合并键（<<）照 PyYAML 的；“=”在 PyYAML 里是一个特别的值、SafeLoader 读到会出错，go-yaml 当文字，这里也当文字。"""
+
+    def __init__(self, stream):
+        super().__init__(stream)
+        self.duplicate_keys = []
+
+    def construct_mapping(self, node, deep=False):
+        if isinstance(node, yaml.MappingNode):
+            seen = {}
+            for key_node, _ in node.value:            # 合并（<<）展开之前看：继承来的键被同名的键盖掉是合法的
+                if isinstance(key_node, yaml.ScalarNode):
+                    line = key_node.start_mark.line + 1
+                    if key_node.value in seen:
+                        self.duplicate_keys.append((key_node.value, seen[key_node.value], line))
+                    else:
+                        seen[key_node.value] = line
+        return super().construct_mapping(node, deep=deep)
 
 
+GO_PLAIN_TAG = "tag:proxy-rules.local,2026:go-plain"
 SubscriptionLoader.yaml_implicit_resolvers = {
-    k: [(tag, rx) for tag, rx in v if tag not in ("tag:yaml.org,2002:bool", "tag:yaml.org,2002:int", "tag:yaml.org,2002:float")]
+    k: [(tag, rx) for tag, rx in v if tag not in ("tag:yaml.org,2002:bool", "tag:yaml.org,2002:int", "tag:yaml.org,2002:float",
+                                                  "tag:yaml.org,2002:timestamp", "tag:yaml.org,2002:value")]
     for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()}
 SubscriptionLoader.add_implicit_resolver("tag:yaml.org,2002:bool", re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"), list("tTfF"))
-SubscriptionLoader.add_implicit_resolver(
-    "tag:yaml.org,2002:int", re.compile(r"^[-+]?(?:0[bB][01_]+|0[oO][0-7_]+|0[xX][0-9a-fA-F_]+|0[0-7_]*|[1-9][0-9_]*)$"),
-    list("-+0123456789"))
-SubscriptionLoader.add_implicit_resolver(
-    "tag:yaml.org,2002:float",
-    re.compile(r"^(?:[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"),
-    list("-+0123456789."))
+SubscriptionLoader.add_implicit_resolver(GO_PLAIN_TAG, re.compile(r"^[-+.0-9]"), list("-+.0123456789"))
+
+# go-yaml v3.0.5 resolve.go：yamlStyleFloat、resolveMap 里的特殊小数、allowedTimestampFormats
+_YAML_STYLE_FLOAT = re.compile(r"[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?")
+_GO_SPECIAL_FLOATS = {**{x: math.nan for x in (".nan", ".NaN", ".NAN")},
+                      **{x: math.inf for x in (".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF")},
+                      **{x: -math.inf for x in ("-.inf", "-.Inf", "-.INF")}}
+_GO_TIMESTAMPS = (   # 2006-1-2T15:4:5.999999999Z07:00、小写 t 的同一种、2006-1-2 15:4:5.999999999、2006-1-2（Go 的 time.Parse）
+    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?(Z|[+-]\d\d:\d\d)"),
+    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})t(\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?(Z|[+-]\d\d:\d\d)"),
+    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})(?:[.,]\d+)?()"),
+    re.compile(r"(\d{4})-(\d{1,2})-(\d{1,2})()()()()"))
 
 
-def _construct_go_int(loader, node):
-    s = loader.construct_scalar(node).replace("_", "")
-    sign = -1 if s.startswith("-") else 1
-    s = s.lstrip("+-")
-    base = {"0b": 2, "0B": 2, "0o": 8, "0O": 8, "0x": 16, "0X": 16}.get(s[:2])
-    if base:
-        return sign * int(s[2:], base)
-    return sign * (int(s, 8) if len(s) > 1 and s[0] == "0" else int(s))
+def _go_timestamp(s: str):
+    """go-yaml 的 parseTimestamp：前四位是数字、接着是“-”，再按四种写法用 Go 的 time.Parse 试（日期、时间要真实存在）。
+    认得出就返回 datetime.date，否则 None。"""
+    if not re.match(r"\d{4}-", s):
+        return None
+    for rx in _GO_TIMESTAMPS:
+        m = rx.fullmatch(s)
+        if not m:
+            continue
+        y, mo, day = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        clock = [int(x) for x in m.group(4, 5, 6) if x]
+        zone = m.group(7)
+        if zone not in ("", "Z") and (int(zone[1:3]) > 24 or int(zone[4:6]) > 60):
+            continue
+        if clock and (clock[0] >= 24 or clock[1] >= 60 or clock[2] >= 60):
+            continue
+        try:
+            return datetime.date(y, mo, day)
+        except ValueError:
+            continue
+    return None
 
 
-SubscriptionLoader.add_constructor("tag:yaml.org,2002:int", _construct_go_int)
+def _go_float(s: str):
+    """Go 的 strconv.ParseFloat 在十进制写法上（调用前写法已经核对过）：得到无穷大就是越界，算读不出来。"""
+    try:
+        f = float(s.replace("_", ""))
+    except ValueError:
+        return None
+    return None if math.isinf(f) else f
+
+
+def go_plain_scalar(s: str):
+    """不带引号、以数字、+、-、. 开头的值：照 go-yaml v3.0.5 的 resolve 依次试，返回 int、float、datetime.date，或者原来的文字。"""
+    if s in _GO_SPECIAL_FLOATS:
+        return _GO_SPECIAL_FLOATS[s]
+    if s[0] == ".":                                                   # 只当小数试（带下划线时照 Go 的规则）
+        if re.fullmatch(r"\.[0-9_]+(?:[eE][-+]?[0-9_]+)?", s) and _go_underscore_ok(s):
+            f = _go_float(s)
+            if f is not None:
+                return f
+        return s
+    ts = _go_timestamp(s)
+    if ts is not None:
+        return ts
+    plain = s.replace("_", "")
+    for v in (_go_parse_int(plain), _go_parse_uint(plain)):
+        if v is not None:
+            return v
+    if _YAML_STYLE_FLOAT.fullmatch(plain):
+        f = _go_float(plain)
+        if f is not None:
+            return f
+    for prefix, base in (("0b", 2), ("-0b", 2), ("0o", 8), ("-0o", 8)):
+        if plain.startswith(prefix):
+            digits = plain[len(prefix):]
+            v = _go_parse_int(("-" if prefix[0] == "-" else "") + digits, base)
+            if v is None and prefix[0] != "-":
+                v = _go_parse_uint(digits, base)
+            if v is not None:
+                return v
+    return s
+
+
+SubscriptionLoader.add_constructor(GO_PLAIN_TAG, lambda loader, node: go_plain_scalar(loader.construct_scalar(node)))
 
 
 def load_clash_proxies(text: str) -> List[dict]:
-    data = yaml.load(text, Loader=SubscriptionLoader)
+    loader = SubscriptionLoader(text)
+    try:
+        data = loader.get_single_data()
+    finally:
+        loader.dispose()
+    if loader.duplicate_keys:
+        shown = "；".join(f"第 {line} 行的 {key}（第 {first} 行已经有了）" for key, first, line in loader.duplicate_keys[:5])
+        more = f"等 {len(loader.duplicate_keys)} 处" if len(loader.duplicate_keys) > 5 else ""
+        raise ValueError(f"订阅里同一个键在同一处写了两次：{shown}{more}。mihomo 读这样的订阅会整份报错（mapping key already defined），"
+                         "这里也不猜用哪一个，整份不转换；请让机场修正订阅")
     if isinstance(data, dict) and isinstance(data.get("proxies"), list):
         return data["proxies"]
     raise ValueError("不是 Clash / mihomo 格式的订阅（缺少 proxies 列表）。"

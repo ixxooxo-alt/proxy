@@ -8,7 +8,7 @@ from generator.nodes import convert, load_clash_proxies
 
 SAMPLE = [
     {"name": "🇭🇰 香港 01", "type": "ss", "server": "hk1.example.net", "port": 8388,
-     "cipher": "2022-blake3-aes-128-gcm", "password": "EXAMPLE-KEY", "udp": True},
+     "cipher": "2022-blake3-aes-128-gcm", "password": "RVhBTVBMRS1LRVktMTIzNA==", "udp": True},
     {"name": "日本 东京 VLESS", "type": "vless", "server": "jp1.example.net", "port": 443,
      "uuid": "00000000-0000-4000-8000-000000000001", "flow": "xtls-rprx-vision", "tls": True,
      "servername": "www.example.com", "client-fingerprint": "chrome", "network": "tcp", "udp": True,
@@ -43,7 +43,7 @@ class NodeConversion(unittest.TestCase):
     def test_supported_protocols(self):
         ss = self.by["🇭🇰 香港 01"]
         self.assertEqual(ss, {"tag": "🇭🇰 香港 01", "server": "hk1.example.net", "server_port": 8388,
-                              "type": "shadowsocks", "method": "2022-blake3-aes-128-gcm", "password": "EXAMPLE-KEY"})
+                              "type": "shadowsocks", "method": "2022-blake3-aes-128-gcm", "password": "RVhBTVBMRS1LRVktMTIzNA=="})
         v = self.by["日本 东京 VLESS"]
         self.assertEqual(v["type"], "vless")
         self.assertEqual(v["flow"], "xtls-rprx-vision")
@@ -64,7 +64,7 @@ class NodeConversion(unittest.TestCase):
         self.assertEqual(tu["tls"]["alpn"], ["h3"])
         vm = self.by["韩国 VMess gRPC"]
         self.assertEqual(vm["transport"], {"type": "grpc", "service_name": "svc"})
-        self.assertEqual(vm["security"], "auto")
+        self.assertEqual(vm["security"], "aes-128-gcm", "auto 加 TLS：照 mihomo 在 arm64 / amd64 上的选择写明（R22-F09）")
 
     def test_tls_never_relaxed(self):
         for o in self.out:
@@ -341,7 +341,6 @@ class FullReviewsTwoAndThree(unittest.TestCase):
                ({"type": "ss", "cipher": "AES-128-GCM", "password": "p"}, "cipher"),
                ({"type": "ss", "cipher": "chacha20", "password": "p"}, "cipher"),
                ({"type": "vmess", **u, "cipher": "aes-128-ctr"}, "cipher"),
-               ({"type": "vless", **u, "tls": True, "flow": "xtls-rprx-vision-udp443"}, "flow"),
                ({"type": "tuic", **u, "password": "p", "congestion-controller": "bbr_meta_v1"}, "congestion-controller"),
                ({"type": "vless", **u, "tls": True, "client-fingerprint": "chrome120"}, "client-fingerprint"),
                ({"type": "trojan", "password": "p", "client-fingerprint": "randomizednoalpn"}, "client-fingerprint"),
@@ -352,7 +351,8 @@ class FullReviewsTwoAndThree(unittest.TestCase):
             self.assertIsNone(ob, c)
             self.assertIn(f"{key}=", rep, c)
             self.assertIn("sing-box 1.14.1、1.12.0 都不认", rep, c)
-        good = [({"type": "ss", "cipher": "2022-blake3-aes-128-gcm", "password": "p"}, lambda o: o["method"] == "2022-blake3-aes-128-gcm"),
+        good = [({"type": "ss", "cipher": "2022-blake3-aes-128-gcm", "password": "RVhBTVBMRS1LRVktMTIzNA=="},
+                 lambda o: o["method"] == "2022-blake3-aes-128-gcm"),
                 ({"type": "ss", "cipher": "none", "password": "p"}, lambda o: o["method"] == "none"),
                 ({"type": "vmess", **u}, lambda o: o["security"] == "auto"),
                 ({"type": "vmess", **u, "cipher": ""}, lambda o: o["security"] == "auto"),
@@ -464,3 +464,146 @@ class FullReviewsTwoAndThree(unittest.TestCase):
                              ("h", "缺少必填字段 password"), ("i", "password 写成了"), ("j", "password 写成了 1000.0")):
             self.assertNotIn(name, by)
             self.assertIn(needle, text, name)
+
+
+class ReviewsOfR22Draft(unittest.TestCase):
+    """2026-11-19 两份审核 r22 送审稿（docs/08 第 24、25 轮）：GPT 的 R22-F07–F14、另一个 AI 的 F01–F03。
+    读订阅、整数字段、取值的归一化都照 mihomo v1.19.31 的实际做法（官方程序实测：handoff/notes/r22b_review_probes.py）；
+    SS2022 密钥、QUIC 上的 uTLS、VMess 的 auto 加 TLS 照 sing-box 1.14.1、1.12.0 建出站的实际要求。"""
+    BASE = {"server": "x.example.net", "port": 443}
+    UUID = {"uuid": "00000000-0000-4000-8000-000000000001"}
+    K16 = "RVhBTVBMRS1LRVktMTIzNA=="                       # 虚构：base64 的 16 字节
+    K32 = "RVhBTVBMRS1LRVktMTIzNDU2Nzg5MDEyMzQ1Njc4OTA="   # 虚构：base64 的 32 字节
+
+    def node(self, **kw):
+        return one({"name": "n", **self.BASE, **kw})
+
+    def test_ss2022_keys_are_checked_like_singbox(self):
+        """R22-F07：密钥按冒号分段、每段标准 base64、aes-128 16 字节、另两种 32 字节、chacha20 只能一段（sing-shadowsocks2 v0.2.1）。
+        不合格的跳过、报告里只说原因不回显密钥；写盘前检查用同一个判据。"""
+        bad = [("2022-blake3-aes-128-gcm", "NOT!BASE64!KEY", "不是标准 base64"),
+               ("2022-blake3-aes-128-gcm", "RVhBTVBMRS1LRVktMTIzNA", "不是标准 base64"),      # 没补齐 =
+               ("2022-blake3-aes-256-gcm", self.K16, "要 32 字节"),
+               ("2022-blake3-chacha20-poly1305", f"{self.K32}:{self.K32}", "多段密钥")]
+        for method, key, why in bad:
+            ob, rep = self.node(type="ss", cipher=method, password=key)
+            self.assertIsNone(ob, (method, key))
+            self.assertIn(why, rep, (method, key))
+            self.assertNotIn(key, rep.replace(f"{self.K32}:{self.K32}", ""), "报告里不回显密钥")
+        for method, key in (("2022-blake3-aes-128-gcm", self.K16), ("2022-blake3-aes-256-gcm", self.K32),
+                            ("2022-blake3-aes-128-gcm", f"{self.K16}:{self.K16}"), ("2022-blake3-chacha20-poly1305", self.K32)):
+            ob, rep = self.node(type="ss", cipher=method, password=key)
+            self.assertIsNotNone(ob, (method, rep))
+        from generator import verify
+        cfg = {"outbounds": [{"type": "shadowsocks", "tag": "s", "server": "x.example.net", "server_port": 443,
+                              "method": "2022-blake3-aes-128-gcm", "password": "x"}, {"type": "direct", "tag": "direct"}]}
+        self.assertTrue(any("SS2022 密钥不合格" in p for p in verify.check_singbox(json.dumps(cfg))))
+
+    def test_values_are_normalized_like_mihomo_before_the_whitelist(self):
+        """R22-F08：mihomo 先把 VMess 的 cipher 转小写、VLESS 的 flow 只取前 16 个字符、不加引号的数字指纹转成文字，再用。"""
+        u = self.UUID
+        ob, _ = self.node(type="vmess", **u, cipher="AES-128-GCM")
+        self.assertEqual(ob["security"], "aes-128-gcm")
+        ob, rep = self.node(type="vless", **u, tls=True, flow="xtls-rprx-vision-udp443")
+        self.assertEqual(ob["flow"], "xtls-rprx-vision")
+        self.assertIn("只取前 16 个字符", rep)
+        ob, rep = self.node(type="vless", **u, tls=True, flow="abc")
+        self.assertNotIn("flow", ob)
+        self.assertIn("不到 16 个字符", rep)
+        ob, rep = self.node(type="vless", **u, tls=True, flow="xtls-rprx-direct")
+        self.assertIsNone(ob)
+        self.assertIn("mihomo 也建不起", rep)
+        ob, _ = self.node(type="trojan", password="p", **{"client-fingerprint": 360})
+        self.assertEqual(ob["tls"]["utls"], {"enabled": True, "fingerprint": "360"})
+
+    def test_vmess_auto_with_tls_gets_an_explicit_cipher(self):
+        """R22-F09：sing-box 遇到 auto 加 TLS 会把内层改成 zero；mihomo 在 arm64 / amd64 上用 aes-128-gcm。照它写明，报告里说明。"""
+        ob, rep = self.node(type="vmess", **self.UUID, cipher="auto", tls=True)
+        self.assertEqual(ob["security"], "aes-128-gcm")
+        self.assertIn("会把内层加密改成 zero", rep)
+        ob, _ = self.node(type="vmess", **self.UUID, cipher="auto")
+        self.assertEqual(ob["security"], "auto", "没有 TLS 时两个内核的 auto 都按架构选，照写")
+        from generator import verify
+        cfg = {"outbounds": [{"type": "vmess", "tag": "v", "server": "x.example.net", "server_port": 443, "uuid": self.UUID["uuid"],
+                              "security": "auto", "tls": {"enabled": True}}, {"type": "direct", "tag": "direct"}]}
+        self.assertTrue(any("auto 加 TLS" in p for p in verify.check_singbox(json.dumps(cfg))))
+
+    def test_quic_protocols_do_not_get_utls(self):
+        """R22-F10：TUIC、Hysteria2 写了浏览器指纹也不开 uTLS（mihomo 没有这个字段；sing-box 在 QUIC 上用 uTLS 拨号报错）。AnyTLS 走 TCP，照写。"""
+        fp = {"client-fingerprint": "chrome"}
+        for kw in ({"type": "tuic", **self.UUID, "password": "p", **fp}, {"type": "hysteria2", "password": "p", **fp}):
+            ob, rep = self.node(**kw)
+            self.assertIsNotNone(ob, rep)
+            self.assertNotIn("utls", ob["tls"], kw["type"])
+            self.assertIn("走 QUIC", rep, kw["type"])
+        ob, _ = self.node(type="anytls", password="p", udp=True, **fp)
+        self.assertEqual(ob["tls"]["utls"], {"enabled": True, "fingerprint": "chrome"})
+        from generator import verify
+        cfg = {"outbounds": [{"type": "tuic", "tag": "t", "server": "x.example.net", "server_port": 443, "uuid": self.UUID["uuid"],
+                              "password": "p", "tls": {"enabled": True, "utls": {"enabled": True, "fingerprint": "chrome"}}},
+                             {"type": "direct", "tag": "direct"}]}
+        self.assertTrue(any("开了 uTLS" in p for p in verify.check_singbox(json.dumps(cfg))))
+
+    def test_legacy_chrome_fingerprints_are_kept_with_a_note(self):
+        """R22-F11：chrome_psk 这五个，sing-box 认名字、实际用普通 Chrome。照写（节点能用），报告里说明。"""
+        ob, rep = self.node(type="trojan", password="p", **{"client-fingerprint": "chrome_pq"})
+        self.assertEqual(ob["tls"]["utls"]["fingerprint"], "chrome_pq")
+        self.assertIn("实际用的是普通 Chrome", rep)
+        ob, rep = self.node(type="trojan", password="p", **{"client-fingerprint": "firefox"})
+        self.assertNotIn("普通 Chrome", rep)
+
+    def test_integer_fields_are_read_like_go(self):
+        """R22-F14、另一个 AI 的 F03：整数字段按 mihomo 的 decodeInt——文字按 Go 的 ParseInt(基数 0)，布尔读不了；
+        Hysteria2 不加引号的 password: 0 不是“缺密码”。"""
+        for raw, want in (("0100", 64), ("0x01bb", 443), ("4_43", 443), (443.9, 443), ("443", 443)):
+            ob, rep = self.node(type="trojan", password="p", port=raw)
+            self.assertEqual(ob["server_port"], want, raw)
+            if isinstance(raw, str) and raw[0] == "0":
+                self.assertIn("按 Go 的规则读成", rep, raw)
+        for raw in ("08", True, "abc"):
+            ob, rep = self.node(type="trojan", password="p", port=raw)
+            self.assertIsNone(ob, raw)
+        ob, rep = self.node(type="vmess", **self.UUID, alterId=True)
+        self.assertIsNone(ob)
+        self.assertIn("alterId 应该是数字", rep)
+        ob, rep = self.node(type="hysteria2", password=0)
+        self.assertEqual(ob["password"], "0", rep)
+        ob, rep = self.node(type="hysteria2", up=True, password="p")
+        self.assertIsNone(ob)
+
+    def test_scalars_are_resolved_like_go_yaml(self):
+        """R22-F12、另一个 AI 的 F01、F02：不带引号的值照 go-yaml v3.0.5 的 resolve 读。左边的值都拿官方 mihomo v1.19.31
+        实测过（放进节点名字，从控制接口读回来，handoff/notes/r22b_review_probes.py）。以前 0x_、2026-02-30、= 让整份订阅读不下去。"""
+        import datetime
+        cases = {"0x_": "0x_", "0b_": "0b_", "0o_": "0o_", "0_": 0, "1_000": 1000, "0x_20": 32, "1__0": 10, "0x1_": 1,
+                 "_1": "_1", "01234567": 342391, "0o17": 15, "0089": 89.0, "1_0.5": 10.5, ".5": 0.5,
+                 "123456789012345678901": 1.2345678901234568e20, "-9223372036854775809": -9.223372036854776e18,
+                 "10000000000000000000": 10000000000000000000, "0x1FFFFFFFFFFFFFFFFF": "0x1FFFFFFFFFFFFFFFFF",
+                 "2026-02-30": "2026-02-30", "2026-01-02T03:04:05": "2026-01-02T03:04:05", "2026-1-2": datetime.date(2026, 1, 2),
+                 "=": "=", "1e400": "1e400", "0b2": "0b2"}
+        for raw, want in cases.items():
+            got = load_clash_proxies(f"proxies:\n  - {{name: n, password: {raw}}}\n")[0]["password"]
+            self.assertEqual((type(got), got), (type(want), want), raw)
+        text = "\n".join(["proxies:",
+                          "  - {name: a, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 0x_}",
+                          "  - {name: b, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 1_0.5}",
+                          "  - {name: c, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 2026-1-2}",
+                          "  - {name: d, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: 123456789012345678901}",
+                          "  - {name: e, type: ss, server: x.example.net, port: 443, cipher: aes-128-gcm, password: ok}"])
+        out, report, _ = convert(load_clash_proxies(text))
+        self.assertEqual({o["tag"]: o["password"] for o in out}, {"a": "0x_", "e": "ok"}, "一个怪值只影响它自己那个节点")
+        self.assertEqual(sum("读出来不是文字" in r for r in report), 3, report)
+
+    def test_duplicate_keys_reject_the_subscription(self):
+        """R22-F13：同一张表里同一个键写两次，mihomo（go-yaml）整份报错；这里也整份不转换，只报键名和行号、不回显值。
+        合并（<<）继承来的键被同名的键盖掉是合法的。"""
+        text = "\n".join(["proxies:", "  - name: a", "    type: trojan", "    server: x.example.net", "    port: 443",
+                          "    password: SECRET-VALUE", "    skip-cert-verify: true", "    skip-cert-verify: false"])
+        with self.assertRaises(ValueError) as cm:
+            load_clash_proxies(text)
+        msg = str(cm.exception)
+        self.assertIn("第 8 行的 skip-cert-verify（第 7 行已经有了）", msg)
+        self.assertNotIn("SECRET-VALUE", msg)
+        text = "\n".join(["base: &b {type: trojan, server: x.example.net, port: 443, password: p, sni: a.example}",
+                          "proxies:", "  - {<<: *b, name: a, sni: b.example}"])
+        self.assertEqual(load_clash_proxies(text)[0]["sni"], "b.example")

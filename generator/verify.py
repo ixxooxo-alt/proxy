@@ -300,6 +300,15 @@ def check_singbox(text: str) -> List[str]:
         if isinstance(reality, dict) and reality.get("enabled") and (
                 not isinstance(reality.get("public_key"), str) or not re.fullmatch(r"(?:[0-9a-fA-F]{2}){0,8}", str(reality.get("short_id", "")))):
             problems.append(f"节点 {o.get('tag')} 的 Reality 公钥或 short_id 写法不对：sing-box 建出站时报错")
+        # GPT 审核 r22 送审稿：SS2022 的密钥（R22-F07，和转换器同一个判据）、QUIC 出站上的 uTLS（R22-F10）、VMess 的 auto 加 TLS（R22-F09）
+        if t == "shadowsocks":
+            why = nodes.ss2022_key_problem(o.get("method"), o.get("password"))
+            if why:
+                problems.append(f"节点 {o.get('tag')} 的 SS2022 密钥不合格（{why}）：sing-box 建出站时报错，整份配置启动不了")
+        if t in ("tuic", "hysteria2") and isinstance(utls, dict) and utls.get("enabled"):
+            problems.append(f"节点 {o.get('tag')}（{t}）开了 uTLS：这两种走 QUIC，sing-box 用 uTLS 拨号会报错")
+        if t == "vmess" and o.get("security", "auto") == "auto" and isinstance(tls, dict) and tls.get("enabled"):
+            problems.append(f"节点 {o.get('tag')} 是 VMess 的 auto 加 TLS：sing-box 会把内层加密改成 zero，转换器应该写明加密方式")
     for hc in c.get("http_clients", []):
         if hc.get("detour") and hc["detour"] not in known:
             problems.append(f"http_clients 的 {hc.get('tag')} 指向不存在的出站 {hc['detour']}")
