@@ -100,3 +100,11 @@
 
 **建议：**这两种源协议保留正常 TLS，并按 mihomo 实际行为忽略该浏览器指纹且报告；不要连合法的证书校验字段一起去掉。测试“组合”，而非只测试指纹字符串。
 
+### R22-F11　五个旧浏览器指纹能通过 check，却被换成通用 Chrome
+
+**严重程度：文档不符 / 建议；私密出站握手参数。**
+
+**位置与实跑：**[generator/nodes.py:94–96](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/nodes.py#L94-L96)、同文件第 128–146 行；`docs/06-已知限制与待决事项.md:364–369`。以 `chrome_psk` 为例，生成器照写、没有提示。**源码确认：**[mihomo 的表](https://github.com/MetaCubeX/mihomo/blob/v1.19.31/component/tls/utls.go#L89-L100)分别选择历史 ClientHello；[sing-box 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/common/tls/utls_client.go#L371-L376) 和 [1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/common/tls/utls_client.go#L243-L248) 把 `chrome_psk`、`chrome_psk_shuffle`、`chrome_padding_psk_shuffle`、`chrome_pq`、`chrome_pq_psk` 全部落到 `HelloChrome_Auto`。`check` 成功只证明认这个名字。没有断言所有这类服务都会拒绝连接。
+
+**建议：**把“能启动”与“保留指定指纹”分成两列。按本项目不静默改关键参数的约定，这五个没有等价写法的显式选择应在转换时单独报告并跳过；测试它们有别于普通 `chrome`。
+
