@@ -32,3 +32,13 @@
 
 **建议：**解包前对每个 `ZipInfo` 检查并规范化成员路径，重复目标以及文件与目录冲突立即拒绝；按唯一条目比对，再解包。回归测试用两条同名、无敏感内容的成员即可。
 
+### R22-F04　SFA 的真实地址反查在 DNS 别名下认不回原名
+
+**严重程度：分流错误 / 安全或泄漏；公开与私密 SFA，后果有条件。**
+
+**位置：**[generator/emit_singbox.py:307–343](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/generator/emit_singbox.py#L307-L343)、[tests/test_build_pipeline.py:322–325](https://github.com/ixxooxo-alt/proxy/blob/f60ee428e4bfc5472b1450f6bfbcc553322e83f4/tests/test_build_pipeline.py#L322-L325)；`docs/03-DNS决策表.md:56`、`docs/06-已知限制与待决事项.md:62、376`。反查开关应保留，但“真实地址名单固定直连”的承诺仍有缺口，不只同 IP 的后一次查询才会造成它。
+
+**源码确认：**[sing-box 1.14.1](https://github.com/SagerNet/sing-box/blob/v1.14.1/dns/router.go#L1122-L1132) 和 [1.12.0](https://github.com/SagerNet/sing-box/blob/v1.12.0/dns/router.go#L317-L325) 都把 **A/AAAA 记录自己的名字**写入映射，并按其 TTL 保存；不是把原始问题的名字写入。即便只查过一次，若应答是「原名 → CNAME → 另一个名字的 A」，[TUN 路由](https://github.com/SagerNet/sing-box/blob/v1.14.1/route/route.go#L564-L583)认回来的也可能是另一个名字。原名走国内 DNS、实际连接却按另一条规则走的条件就成立。SIDN Labs 的[时间服务测量](https://www.sidnlabs.nl/downloads/4ZYbgAM6xtydn2DCkwMctt/8e9a3d7793e620ae2096bd24ba173399/BigTime_Characterizing_Large_Time_Service_Providers_tech_report_20251201.pdf)记录了 Windows 和 Apple 时间服务的别名；本次配置模拟中，`time.apple.com` 是 DIRECT，而 `time.g.aaplimg.com` 属于可切换的 Apple 组。`twc.trafficmanager.net` 不在固定直连名单，给定境外地址的仓库夹具判为国外默认。没有在用户网络测 DNS 应答或 NTP 包，没有证据称这台手机已经走错。
+
+**建议：**文档将承诺限定为“反查命中且记下的名字命中固定规则”。为仍需固定的服务验证其专用别名，只为有证据的确切名字补规则；不要整段收共享 DNS/CDN 后缀。验收增加带一跳 CNAME 的回答和随后无域名的 UDP，观察所选出站。现有测试只查开关为 `true`。
+
