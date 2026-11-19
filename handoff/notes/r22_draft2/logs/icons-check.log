@@ -1,9 +1,9 @@
-运行时间（UTC）：2026-11-19 06:58:29
+运行时间（UTC）：2026-11-19 10:31:02
 Python：Python 3.13.18，PyYAML：6.0.3
-提交：6c5f173；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：89632f6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
 命令：python3 tools/check_icons.py --icon-repo /root/proxy-vendor/src/icon
 
-统一源 2026.11.19-1；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
+统一源 2026.11.19-2；图标地址前缀 https://raw.githubusercontent.com/ixxooxo-alt/icon/main/256px/
 图标仓库检出目录的提交：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06 14:12:36 +0800）
 icons.yaml 登记的 checked_commit：f250126f57228b0b32f3445b21078e382e6152e9（2026-10-06）
   [符合] loon/loon-simple-strict.conf：51 个策略组的图标都在图标仓库里，是 PNG，尺寸对
