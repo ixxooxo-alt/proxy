@@ -1239,6 +1239,9 @@
           "claudepages.dev",
           "claudestudio.com"
         ],
+        "domain": [
+          "http-intake.logs.us5.datadoghq.com"
+        ],
         "outbound": "Claude"
       },
       {
@@ -3074,6 +3077,7 @@
               "s.youtube.com",
               "copilot-telemetry.githubusercontent.com",
               "cdn.openaimerge.com",
+              "http-intake.logs.us5.datadoghq.com",
               "anysphere-binaries.s3.us-east-1.amazonaws.com",
               "agent-stores.s3.us-east-1.amazonaws.com",
               "agent-stores.s3.amazonaws.com",

@@ -150,6 +150,9 @@ cases:
   - {host: www.claudestudio.com, expect: Claude}
   - {host: ant.dev, expect: Claude}
   - {host: anthropic.team, expect: Claude}
+  - {host: http-intake.logs.us5.datadoghq.com, expect: Claude, why: Claude Code 的运行遥测，使用者 2026-11-19 选了收进 Claude 组}
+  - {host: browser-intake-us5-datadoghq.com, expect: 国外默认, why: 同一页的错误报告主机，使用者只选了上面那一个}
+  - {host: other.logs.us5.datadoghq.com, expect: 国外默认, why: 只收那一个主机，不收 Datadog 的其他地址}
   - {host: accounts.spacexsi.com, expect: Grok, why: Cursor 的新登录页（2026-11-18 第三份全项目复核 F02）}
   - {host: agent-stores.s3.us-east-1.amazonaws.com, expect: Grok, why: Cursor 桌面版同步 skills 和 agent 文件}
   - {host: cursor.blob.core.windows.net, expect: Grok, why: Cursor 给 Windows 远程主机下载服务端}

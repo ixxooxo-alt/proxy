@@ -6,7 +6,9 @@ build.py --singbox-nodes，比 dist/private/ 里的每一份文件）。允许�
   2. 文字报告里的版本号（统一源 2026.11.18-1 → 2026.11.19-1、生成器 1.13.0 → 1.14.0）；
   3. sing-box 的节点（R22-F09）：样例里四个 cipher 是 auto 又开了 TLS 的 VMess 节点写成 aes-128-gcm。同时核对第一份送审稿里确实是 auto；
   4. sing-box-节点转换报告.txt：只多了这四个节点的提示；
-  5. 私密 manifest.json 不逐项比，另外核对它本身（outputs、摘要、版本、not_refreshed 是空的）。其余文件逐字节相同。
+  5. 私密 manifest.json 不逐项比，另外核对它本身（outputs、摘要、版本、not_refreshed 是空的）。其余文件逐字节相同；
+  6. 使用者 2026-11-19 选的：Claude 组多了 http-intake.logs.us5.datadoghq.com——各端多一条规则，mihomo 的 nameserver-policy、
+     sing-box 的路由和 DNS 规则各多这一个名字（只认带这个名字的新增，别的新增照样算不符）。
 这一轮别的改动（订阅读法、整数、SS2022、QUIC 上的指纹、按端的固定直连……）在这批样例和这份 local.yaml 上不该产生差别。
 不联网，不读、不写仓库里的 source/local.yaml。
 用法：python3 -B r22b_private_vs_r22draft.py <第一份送审稿的工程目录> <当前工程目录> <临时输出目录>"""
@@ -24,6 +26,7 @@ import yaml
 old, new, out = (os.path.abspath(x) for x in sys.argv[1:4])
 VMESS_AUTO_TLS = ["美国 VMess HTTPUpgrade", "韩国 VMess gRPC", "美国 VMess packet", "台湾 VMess 指纹 none"]
 VERSIONS = [("2026.11.18-1", "2026.11.19-1"), ("1.13.0", "1.14.0")]
+DATADOG = "http-intake.logs.us5.datadoghq.com"   # 第 6 条
 
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
 by = {p["name"]: p for p in nodes["proxies"]}
@@ -111,6 +114,13 @@ def is_regex_change(kind, a, b):
     return kind == "改了" and isinstance(a, str) and isinstance(b, str) and "(?" in a and "(?" in b
 
 
+def is_datadog_added(path, kind, a, b):
+    """第 6 条：新加的规则行、域名列表里新加的这个名字、mihomo nameserver-policy 里新加的这个键、
+    sing-box 的 Claude 路由规则里新加的 domain（以前只有 domain_suffix，所以是整个键新加，值只有这一个名字）。"""
+    return ((kind == "新增项" and isinstance(b, str) and DATADOG in b.replace(" ", "").split(",") + [b])
+            or (kind == "新增键" and (path.endswith("." + DATADOG) or b == [DATADOG])))
+
+
 def singbox_expected(conf_old, conf_new, problems, n):
     """旧配置里四个 VMess 节点的 security 改成 aes-128-gcm 以后，应当和新配置完全相同；同时确认旧的确实是 auto。"""
     obs = []
@@ -121,7 +131,7 @@ def singbox_expected(conf_old, conf_new, problems, n):
                 problems.append(f"{n}：第一份送审稿里 {o['tag']} 的 security 是 {o.get('security')!r}，不是预期的 auto")
             o["security"] = "aes-128-gcm"
         obs.append(o)
-    diffs = list(walk(dict(conf_old, outbounds=obs), conf_new))
+    diffs = [d for d in walk(dict(conf_old, outbounds=obs), conf_new) if not is_datadog_added(*d)]
     for path, kind, a, b in diffs[:6]:
         problems.append(f"{n}：照预期改了 VMess 以后仍不同：{path} {kind} {json.dumps(a, ensure_ascii=False)[:80]} → "
                         f"{json.dumps(b, ensure_ascii=False)[:80]}")
@@ -163,6 +173,8 @@ for n in names:
         for path, kind, x, y in walk(yaml.safe_load(read(a)), yaml.safe_load(read(b))):
             if is_regex_change(kind, x, y):
                 kinds["地区筛选正则"] += 1
+            elif is_datadog_added(path, kind, x, y):
+                kinds["Claude 组新加的 Datadog 遥测主机"] += 1
             else:
                 problems.append(f"{n}：{path} {kind} {json.dumps(x, ensure_ascii=False)[:80]} → {json.dumps(y, ensure_ascii=False)[:80]}")
         what = "；".join(f"{k} {v} 处" for k, v in kinds.items()) or "解析以后相同"
@@ -170,6 +182,9 @@ for n in names:
         la = Counter(x for x in read(a).split("\n") if not x.lstrip().startswith("#"))
         lb = Counter(x for x in read(b).split("\n") if not x.lstrip().startswith("#"))
         for x in (lb - la).elements():
+            if DATADOG in x.replace(" ", "").split(","):
+                kinds["Claude 组新加的 Datadog 遥测主机"] += 1
+                continue
             kinds["地区筛选正则" if "(?" in x else "?"] += 1
             if "(?" not in x:
                 problems.append(f"{n}：多了一行 {x[:100]!r}")
@@ -180,7 +195,9 @@ for n in names:
         what = "去掉注释以后：" + ("；".join(f"{k} {v} 行" for k, v in kinds.items()) or "相同")
     elif n.startswith("sing-box-") and n.endswith(".json"):
         left = singbox_expected(json.load(open(a, encoding="utf-8")), json.load(open(b, encoding="utf-8")), problems, n)
-        what = f"四个 VMess 节点照预期写成 aes-128-gcm 以后{'相同' if not left else f'还有 {left} 处不同'}"
+        added = sum(1 for d in walk(json.load(open(a, encoding="utf-8")), json.load(open(b, encoding="utf-8"))) if is_datadog_added(*d))
+        what = (f"四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的 Datadog 遥测主机（{added} 处）以外"
+                f"{'相同' if not left else f'还有 {left} 处不同'}")
     elif n == "sing-box-节点转换报告.txt":
         ra, rb = bump(read(a)).split("\n"), read(b).split("\n")
         gone, came = sorted((Counter(ra) - Counter(rb)).elements()), sorted((Counter(rb) - Counter(ra)).elements())

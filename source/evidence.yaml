@@ -22,8 +22,8 @@ evidence:
   claude-net:
     kind: official
     url: https://code.claude.com/docs/en/network-config
-    checked: 2026-09-23
-    note: Claude Code 网络要求（api.anthropic.com、claude.ai、claude.com、platform.claude.com、*.claudeusercontent.com 等及第三方依赖）
+    checked: 2026-11-19
+    note: Claude Code 网络要求（api.anthropic.com、claude.ai、claude.com、platform.claude.com、*.claudeusercontent.com 等及第三方依赖）。2026-11-19 重新查阅“Network access requirements”那张表：http-intake.logs.us5.datadoghq.com 是“Operational telemetry events”，只在 CLI 直接用 Anthropic API 时发送，可选（DISABLE_TELEMETRY 或 DO_NOT_TRACK 关闭）；browser-intake-us5-datadoghq.com 是“Operational error reports”，同样可选；表后写明两个 Datadog 主机只带可选的运行遥测，CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 两个都关
   cursor-net:
     kind: official
     url: https://cursor.com/docs/enterprise/network-configuration

@@ -57,13 +57,17 @@ services:
       - {suffix: claudeacademy.com, ev: owner-claude-domains}
       - {suffix: claudepages.dev, ev: owner-claude-domains}
       - {suffix: claudestudio.com, ev: owner-claude-domains}
+      # Claude Code 的运行遥测（官方网络要求：只在直接用 Anthropic API 时发，可选，DISABLE_TELEMETRY 或 DO_NOT_TRACK 能关）。
+      # 以前当成第三方遥测不收；使用者 2026-11-19 选了收进 Claude 组（docs/00 最后一节），只收这一个主机：
+      # 它是 Datadog US5 的公共日志入口，别的 App 往 US5 传日志也会走 Claude 组；不收 datadoghq.com
+      - {domain: http-intake.logs.us5.datadoghq.com, ev: claude-net, note: Claude Code 的运行遥测（可选）；使用者 2026-11-19 选的}
     shared_excluded:
       - {host: storage.googleapis.com, ev: claude-net, to: Google, probe: [storage.googleapis.com], why: Google Cloud Storage，共享云存储 → Google}
       - {host: registry.npmjs.org, ev: claude-net, to: 开发下载, probe: [registry.npmjs.org], why: 通用开发依赖 → 开发下载}
       - {host: "github.com / raw.githubusercontent.com", ev: claude-net, to: GitHub, probe: [github.com, raw.githubusercontent.com], why: GitHub 专属 → GitHub}
       - {host: formulae.brew.sh, ev: claude-net, to: 开发下载, probe: [formulae.brew.sh], why: Homebrew → 开发下载}
       - {host: "*-review.googlesource.com", ev: claude-net, to: Google, probe: [chromium-review.googlesource.com], why: Google 代码托管 → Google}
-      - {host: "http-intake.logs.us5.datadoghq.com / browser-intake-us5-datadoghq.com", ev: claude-net, why: 第三方遥测，可选}
+      - {host: browser-intake-us5-datadoghq.com, ev: claude-net, to: 国外默认, probe: [browser-intake-us5-datadoghq.com], why: Claude Code 的错误报告（第三方遥测，可选）；同一页的 http-intake.logs.us5.datadoghq.com 使用者 2026-11-19 选了收进来，这一个没有选}
       - {host: "fonts.googleapis.com / fonts.gstatic.com / cdnjs / jsdelivr / unpkg", ev: claude-net, why: 公共 CDN，全网共用}
       - {host: servd-anthropic-website.b-cdn.net, ev: dlc, to: 国外默认, probe: [servd-anthropic-website.b-cdn.net], why: 上游收录；官网静态资源，位于共享 CDN，未收录（落入国外默认）}
 

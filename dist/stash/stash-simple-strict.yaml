@@ -568,6 +568,7 @@ rules:
   - DOMAIN-SUFFIX,claudeacademy.com,Claude
   - DOMAIN-SUFFIX,claudepages.dev,Claude
   - DOMAIN-SUFFIX,claudestudio.com,Claude
+  - DOMAIN,http-intake.logs.us5.datadoghq.com,Claude
   # -- cursor --
   - DOMAIN-SUFFIX,cursor.sh,Grok
   - DOMAIN-SUFFIX,cursor-cdn.com,Grok
