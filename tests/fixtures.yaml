@@ -34,7 +34,8 @@ geosite:
   private: [lan, local]
   category-ads-all: [doubleclick.net, googlesyndication.com, ct.sendgrid.net, s.youtube.com, tracker.twimg.com, adservice.google.com, app.link,
                      iadsdk.apple.com, graph.instagram.com, copilot-telemetry.githubusercontent.com, collector.github.com, ad.12306.cn,
-                     app-measurement.com, ads.yahoo.com]
+                     app-measurement.com, ads.yahoo.com,
+                     ingest.us.sentry.io]   # 2026-11-20：真实集合拦着 Sentry 美国区的上报（官方内核实测），Claude 组不收它
 # Loon / Quantumult X 远程广告集合样本。大部分与 category-ads-all 是同一批主机；后面几条是两边不一样的（各取一个真实例子），
 # 含两条关键词规则
 ad_list:
@@ -51,6 +52,7 @@ ad_list:
   - [suffix, collector.github.com]
   - [suffix, ad.12306.cn]
   - [suffix, app-measurement.com]
+  - [suffix, sentry.io]   # 2026-11-20：真实的 AdvertisingLite 收了整个 .sentry.io
   - [suffix, ads.viber.com]
   - [domain, ads.twitter.com]
   - [keyword, appsflyer]
