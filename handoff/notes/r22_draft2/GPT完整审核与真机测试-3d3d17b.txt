@@ -1,0 +1,123 @@
+请对 GitHub 公开仓库 ixxooxo-alt/proxy 做一次从头到尾的完整审核，再在我的 Mac 和 iPhone 上做真机测试。分两部分：第一部分审整个项目（规则、生成器、配置、工具、文档），第二部分真机测试。请用简体中文和我交流、写报告。第一部分不需要我在场，可以先做；第二部分开始前先问我。两部分各交一份报告。
+
+〇、审哪一版
+- 分支 claude/r12-gpt-review-handling-q4onlv 的提交 3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a（r22 第二份送审稿，还没发布到 main）。
+  它的代码和配置与 8558a27 完全相同（bash handoff/release/code_state.sh 两个提交都是 59507864966c2f37a79931b3f3d763750a876f339a593b0f468fa261b476acf7）；8558a27 之后的三个提交只加了文档：另一个 AI 对 8558a27 的审核报告原文（docs/evidence/review-r22-draft2/）和我们的逐条核实（docs/08-外部审核记录.md 第 26 轮）。3d3d17b 之后要是还有提交，只是存这份提示词，不用看。
+- main 是上一个发布版 r21b（a6671c1）。对比页面：
+  相对 r21b：https://github.com/ixxooxo-alt/proxy/compare/a6671c1...3d3d17b
+  相对第一份送审稿：https://github.com/ixxooxo-alt/proxy/compare/f60ee42...3d3d17b
+- 打不开 GitHub 的话，看附件 proxy-rules-review-2026.11.20-r22-draft2-8558a27.zip：代码和配置与 3d3d17b 相同，只是没有上面那两份新文档（要点写在下面第一部分第 1 条）。
+
+项目是什么：从一份自有的规则源（source/）用生成器（generator/、build.py）生成五种客户端的分流配置（dist/）：Loon、Quantumult X、mihomo（Clash Verge Rev、Clash Meta for Android）、sing-box（SFA）、Stash。每种都有完整版（每个地区有手动、自动、故障转移等组）和简易版（文件名带 -simple，每个地区一个组、纯手选）；Loon、Quantumult X、Stash 另有严格版（-strict，没被规则认出的域名不在本机解析）。公开产物 25 个，订阅是占位符。带我订阅的私密配置只在我自己电脑上生成（dist/private/，不进仓库）。我最在意两件事：国内网站不能变慢；出口在国外的连接，域名不交给国内 DNS。两者冲突时要把取舍讲清楚。
+
+
+==================== 第一部分：完整审核 ====================
+
+请先读（都在仓库里）：
+1. 00-审核说明.md 全文：最前面两节是这一版改了什么，“重点检查”“输出要求”“可以运行的检查”照着做。
+2. docs/00-需求原文.md（我的原话和每次的决定）、docs/07-需求对照.md（逐条落实情况）。
+3. README.zh-CN.md，以及 docs/02（语法依据）、03（DNS 设计）、04（规则清单与证据）、06（已知限制与待决事项）、10（简易版）、09（真机验收步骤）、05（验收记录：仍是 r21 的，r22 的全套检查等审完再跑）。
+4. docs/08-外部审核记录.md：前 25 轮已经处理过的问题不用重复报；但处理得不对、或者同一类问题还有漏掉的，请指出。第 26 轮是另一个 AI 对这一版的审核，我们核实了，还没改（我想先听你的意见）。
+
+请完整检查以下各方面：
+
+1. 已知、还没改的问题（docs/08 第 26 轮，原报告在 docs/evidence/review-r22-draft2/README.md）。这些不用重复报，请做三件事：我们的核实对不对（哪条其实不成立、哪条比我们说的更严重）；同一类还有没有漏掉的；报告里建议的改法对不对、有没有更好的。
+   - F-I1、F-I2（私密 SFA 节点转换）：订阅里没加引号、被读成数字或 true 的值（alpn，ws / grpc / h2 / http 的路径、请求头、主机，tuic 的 udp-relay-mode，负的 max-early-data，节点名和服务器地址）原样写进 sing-box 配置，写盘前检查（generator/verify.py）没拦；官方 sing-box 1.14.1、1.12.0 的 check 会拒绝整份配置。mihomo 的订阅（proxy-providers）里节点名不是字符串会整条跳过，我们的转换器没有跳过。
+   - F-R1、F-R2（规则检查）：local.yaml 里只给一个客户端写的直连服务，会让另外四端丢掉“要真实地址的名单”的固定直连（generator/model.py 的 build_plan）；project.yaml 的局域网后缀（localhost）和 IP 段没算进“固定直连整个盖住更具体的规则”的检查。
+   - F-R3（节点分地区，我们上一轮改出来的退步）：“港德-日本 01”“美国 港英 01”“台湾 港欧 01”这类名字进了日本 / 美国 / 台湾的手动组，第一份送审稿是“其他地区”。原因：这五个词挪进 source/regions.yaml 的 patterns 以后，被当成城市一级的词。
+   - F-T1–F-T5（工具）：验包（handoff/release/package_check.py）放行多出来的空目录条目，坏包抛出没接住的异常；中文 Windows 上打包自测（selftest_package.py）编码崩溃；变异检查的判据（tools/check_mutations.py 的 judge）在 Python 3.10 上会把 M177、M185 误判成没发现；M46、M52 各有一处改动没生效但 --check-edits 查不出；复制工程时没排除 .git。
+   - F-N3（订阅读法）：1e-500 读成 0；顶层用 << 合并、同层又写 proxies 时误报重复键。
+   - F-D1–F-D3（文档）：Quantumult X 的三条 Anthropic IP 规则没有 no-resolve（QX 不支持），docs/06 说它们“不会为了匹配去解析域名”对 QX 不成立；新加的第三方地址在 docs/04 标成了“专属”；几处日期和数字没更新（快速检查的日期、docs/03 的计数、几份说明里的变异类数）。
+
+2. 需求符合度：docs/00 里的每一条需求和决定，实现是不是真的满足；docs/07 标“已实现”的有没有说过头。
+
+3. 能不能导入：dist/ 里每一份配置（完整版、简易版、严格版）在对应 App 或内核上的写法是否有官方依据。
+
+4. 规则归属和先后：source/services/*.yaml 等规则有没有写错、过期、归错组、漏掉常用服务的关键域名；更具体的规则是否排在宽泛规则前面；各客户端匹配顺序的差异处理得对不对；广告拦截和放行例外有没有误伤。
+
+5. DNS 与泄漏：国内外域名的解析路径、节点自身域名的解析、局域网、IPv6、各客户端的口子（docs/03、docs/06 写的那些）是否列全、说准；“国内网站不变慢”和“国外出口的域名不交给国内 DNS”冲突时的取舍是否合理。
+
+6. 故障行为：完整版“手动优先、失败自动兜底”能否按预期工作；某个地区一个节点都没有时会不会悄悄直连；简易版“境外DNS”出问题时各端的后果和测速间隔（Stash 完整版选择组 interval: -1、简易版每组 3600；SFA 简易版“境外DNS”600s / 30m）是否说准。
+
+7. 节点按名称分地区：source/regions.yaml 和生成的正则（宽、严两套）是否合理，有没有明显会分错的常见节点名；各端正则引擎的差异（Stash 的引擎文档没写）。最长的一条筛选正则已经 15,822 字节，项目自己定的上限是 16,000 字节，Loon、Quantumult X 能接受多长的正则没有公布：请评估要不要、怎么给正则减重或设上限（偏门的节点名可以在 local.yaml 的 assign 里手动指定地区）。
+
+8. 生成器和写盘前检查：generator/ 和 build.py 的逻辑、generator/verify.py 拦不拦得住坏配置、规则源的校验。特别是 SFA 节点转换：现在每个字段单独处理，漏一个就出错；请评估在出口按 sing-box 的结构统一检查类型（字符串、字符串列表、非负整数等）的做法，以及“哪些地址固定直连”只算一次、校验 / 规划 / 生成共用的做法。
+
+9. Claude 组：我定的标准是“连这个地址时 Anthropic 能看到我的 IP 的，都走 Claude 组”（docs/00 最后几节）。请核对收进来的第三方地址和 IP 段是否符合这个标准，有没有该收没收、不该收的；它们是公共服务，别的网站和 App 用到也走 Claude 组。下面两件事由我决定，请只给事实和依据，不用替我选：
+   ① Stripe、Intercom 只收了 r.stripe.com 和两个 Intercom 地址（api-iam.intercom.io、nexus-websocket-a.intercom.io），其余的 Stripe 地址和 Intercom 聊天窗口（widget.intercom.io、js.intercomcdn.com）走国外默认；我把 Claude 组切到别的地区时，同一次付款或客服聊天会从两个出口出去。claude.ai 的付款页和客服聊天实际会连哪些 Stripe、Intercom 的主机？哪些会让 Anthropic 看到 IP？
+   ② Sift 现在是不是从 cdn.sift.com 加载脚本、往哪里发数据？官方文档有没有写？
+
+10. 测试和检查工具是否真能发现错误：tests/、tools/、handoff/release/、handoff/notes/r22b_review_probes.py（它没有把转换器的产物交给官方 sing-box 检查，这是 F-I1 漏掉的原因之一）。
+
+11. 文档和证据：文档里的数字能不能在 docs/evidence/ 和 handoff/notes/r22_draft2/logs/ 的日志里找到；事实、推断、未验证是否分开；有没有留着旧版本的说法。
+
+12. 安全与隐私：公开产物和仓库里有没有订阅链接、节点、凭据、个人信息；带订阅的私密产物是否只写到 dist/private/。
+
+13. 另一个 AI 审完以后提了五个改进方向（docs/evidence/review-r22-draft2/suggestions.md；我们的核对在 docs/08 第 26 轮末尾）：出口统一检查类型、固定直连只算一次；轻量 CI 和变异检查提速；文档里的数字只放一个地方；正则复杂度上限、共用的第三方规则单独成段；真机实测。请评估哪些值得做、先后顺序、成本和风险。CI 会在 GitHub 上运行，加不加由我决定，你只给意见。
+
+能运行的话（需要 Python 3.10+ 和 PyYAML；做不到的写明没做）：
+  python3 build.py --check                                  # 产物与规则源一致
+  python3 -m unittest discover -s tests                     # 383 项，Linux 上约 6 分钟（Windows 上请说明有没有跳过的）
+  bash handoff/release/code_state.sh                        # 应是 59507864966c2f37a79931b3f3d763750a876f339a593b0f468fa261b476acf7
+  python3 tools/check_mutations.py --check-edits            # 272 类变异的改动都能套上；只跑几类：python3 tools/check_mutations.py M249 M262 M268（全套要六七个小时，不必跑）
+  env -u PYTHONUNBUFFERED python3 -B handoff/release/selftest_package.py   # 打包验包自测（要 git；HEAD 要是审核的提交）
+  官方内核和真实数据的检查（tools/check_official.py、tools/check_real_routes.py、handoff/notes/r22b_review_probes.py）用法见 00-审核说明.md“可以运行的检查”和脚本开头的说明。
+
+第一部分的输出要求：
+- 开头先写总的结论：有没有确定的导入失败、分流错误、泄漏；这一版改完已知问题以后能不能定稿；你建议先改什么。
+- 每个问题写明：文件和具体位置、为什么错、依据（官方文档链接或源码位置）、建议怎么改；标明严重程度（导入失败 / 分流错误 / 安全或泄漏 / 文档不符 / 建议）。
+- 能确认的问题和推测的问题分开写；拿不出依据的，不要当成错误报。已经写明的限制和取舍不用重复报，但如果你认为某个取舍本身不对，请指出。
+- 写清验证边界：实际运行了什么、看了哪些文件、哪些没做。
+- 不要重写整个项目。能开 PR 的话：base 选 claude/r12-gpt-review-handling-q4onlv（不要选 main），不要合并，不要直接推送到任何已有分支，一个问题一个提交；不要改 dist/、docs/evidence/、docs/00-需求原文.md。开不了 PR 就写报告。
+- 仓库是公开的：报告和 PR 里不要放订阅链接、节点信息和任何凭据，也不要放你本机的目录路径。
+
+
+==================== 第二部分：真机测试 ====================
+
+（这部分要我在场。开始前先列出你能操作的设备和上面装好的代理 App，问我从哪个开始。手机上要输密码或 Face ID 的，叫我来。）
+
+你有操作我这台 Mac 的权限，也可以通过 Mac 上的“iPhone 镜像”操作我的 iPhone。Loon、Quantumult X、Stash（iPhone 版和 Mac 版）和 Clash Verge Rev（Mac）都已经装好。要是你还能操作别的设备（例如 iPad、安卓手机），先告诉我。
+
+一、测哪一版
+- 同一个提交 3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a（还没发布到 main 分支）。导入一律用下面这几个地址，不要用 main 上的：
+  Loon：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/loon/loon.conf
+  Quantumult X：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/quantumultx/quantumultx.conf
+  Stash：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/stash/stash.yaml
+  Clash Verge Rev：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/mihomo/mihomo-profile.yaml
+- 步骤和通过标准以同一提交里的 docs/09-真机验收操作清单.md 为准：
+  https://github.com/ixxooxo-alt/proxy/blob/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/docs/09-真机验收操作清单.md
+  导入、换订阅、切回旧配置的说明在 docs/01-导入、更新、诊断与回滚.md；已知限制在 docs/06-已知限制与待决事项.md（都在同一提交里）。
+- 导入以后先看配置开头的注释，写的必须是“统一源版本 2026.11.20-1”，不是就停下来告诉我。
+- raw.githubusercontent.com 在国内直连常常打不开：打不开时先开着我原来的代理再导入。
+
+二、开始之前
+1. 记下现在的状态：iPhone 和 Mac 上各在用哪个代理 App、哪份配置，VPN 和系统代理是开是关；各个 App、iOS、macOS 的版本。全部测完要恢复成这个样子。
+2. 新配置一律另外导入一份，不覆盖、不删除我原来的配置。
+3. 公开配置里的订阅是占位地址（REPLACE-ME.invalid）。⟦二选一：订阅由我自己填 / 你从我原来的配置里复制过去⟧。
+
+三、测试顺序（每测完一个 App，先给我一份小结，我说继续再往下）
+1. iPhone · Loon（标准版）：docs/09 第 1 节里和 Loon 有关的每一行（版本要 3.2.5 (789) 及以上，不够先问我；能导入、不明显变卡；81 个策略组和图标；两条广告订阅；节点分组；手动组和自动组；“香港·手动优先”的成员）。第 2 节只测我常用的：⟦例如 ChatGPT、Claude、Google、YouTube、Netflix、淘宝、微信、哔哩哔哩⟧。第 3 节广告与例外。第 5 节的 DNS 泄露测试和“IPv6（Loon）”那一行。
+2. iPhone · Quantumult X（标准版）：第 1 节里和 Quantumult X 有关的每一行（特别是带 /、+ 的策略名能不能正常显示和选择，“自动”“负载均衡”组里有没有节点）；第 2 节同上。
+3. iPhone · Stash（标准版）：第 1c 节，最要紧的是第 3、4、16 步；第 14 步要把订阅改成空的，先问我再做。
+4. Mac · Clash Verge Rev：第 1 节里 Clash 系的几行（“DNS 覆写”关着、内核版本、走代理的网站名字不交给国内 DNS）；再按第 6 节读连接记录，用仓库里的 tools/check_connections.py 分析（把仓库克隆下来、切到上面那个提交）。导入并切换到这份 r22 配置这一步，我在这里先同意了；第 6 节别的约束照守，改其他设置先问我。
+5. 有时间再做，先问我：Mac 版 Loon / Quantumult X / Stash 的第 1 节导入检查；严格版（第 1b 节）；简易版（第 1d 节）。
+同一时间只开一个代理 App：测完一个先关掉，再开下一个。
+
+每个 App 都请特别看三样：
+- 节点分组：把香港、台湾、日本、韩国、新加坡、美国、其他地区这几个组里各有哪些节点名照实列出来（节点名可以写）。名字里带“港德 / 港英 / 港法 / 港欧”或完整香港地名（如“香港英皇道”）的节点，单独标出它进了哪个组。已知问题（第一部分的 F-R3）：名字里同时有“港德 / 港英 / 港法 / 港欧”和日本、美国、台湾等地名的（例如“港德-日本 01”），现在会进那个地区的手动组，应该进“其他地区”；看到了照实记，标“已知问题 F-R3”。我的订阅里没有这类名字就写“没有这类节点”。
+- 长正则的表现：Loon、Quantumult X 上地区筛选用的正则很长（最长约 15.8 KB），这是目前最没把握的一项。导入、打开策略组、更新订阅以后，有没有明显卡顿、报错、该有节点的组是空的，照实记。
+- Claude 组：这一版 Claude 组多了一批后台用的地址，界面上看不出来，不用专门测；只顺手看一点：在 claude.ai 里打开客服聊天时，连接记录里 intercom.io 的连接走的是不是 Claude 组。
+
+四、必须遵守
+- 订阅地址、节点的服务器地址、端口、密码，我的 Apple ID、手机号等个人信息，不能出现在报告、截图和你发给我的文字里（截图先遮住）。节点名可以写（看分组要用）。
+- 不安装、不信任任何证书，不开 MITM，不加脚本或复写。配置内容一个字都不改：不对就记下来，不要自己修。
+- 会断网或断开 iPhone 镜像的操作（关 Wi-Fi、切蜂窝网、开飞行模式）、删除任何东西、改系统设置（各 App 自己的 VPN 开关以外）、更新或购买 App、安装 git 或 Python 之类的工具，都先问我。
+- 只打开这几个代理 App、浏览器（打开测试网页）、终端（Mac 上跑检查工具）、设置里的 VPN 和版本信息；不打开信息、相册、银行等其他 App。需要登录账号的服务由我自己操作。
+- 第二部分不改 GitHub 仓库，不开 PR、不提 issue、不评论（第一部分的 PR 照第一部分的要求）。
+- 全部测完，把 iPhone 和 Mac 恢复成开始前记下的状态。
+
+五、怎么记、怎么交
+- docs/09 表格里的每一行：通过 / 不通过 / 没做（写原因）；写清你实际看到了什么，附遮好的截图。
+- 亲眼看到的和推测的分开写；没看到就写没看到，不要按“应该没问题”记成通过。docs/06 里写明的已知限制，照实记录现象并标明“已知限制”。Mac 上的结果不能当成 iPhone 上的结果。
+- IPv6 那一行：先在不开代理时用 Safari 打开 https://test-ipv6.com，看当前网络有没有 IPv6；没有就写“没做：当前网络没有 IPv6”，蜂窝网下的那一次留给我自己做。
+- 最后给我一份完整报告（Markdown）：开头写总的结论（有没有导入失败、分流不对、DNS 泄露的迹象），然后按“设备 · App”分节；附 App、iOS、macOS、mihomo 内核的版本和测试时间。我会把两份报告都转给维护这个仓库的 Claude 核对。
