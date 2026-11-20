@@ -24,6 +24,17 @@ evidence:
     url: https://code.claude.com/docs/en/network-config
     checked: 2026-11-19
     note: Claude Code 网络要求（api.anthropic.com、claude.ai、claude.com、platform.claude.com、*.claudeusercontent.com 等及第三方依赖）。2026-11-19 重新查阅“Network access requirements”那张表：http-intake.logs.us5.datadoghq.com 是“Operational telemetry events”，只在 CLI 直接用 Anthropic API 时发送，可选（DISABLE_TELEMETRY 或 DO_NOT_TRACK 关闭）；browser-intake-us5-datadoghq.com 是“Operational error reports”，同样可选；表后写明两个 Datadog 主机只带可选的运行遥测，CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 两个都关。同一张表还列了 storage.googleapis.com（插件安装数、旧版原生安装）、registry.npmjs.org、github.com、raw.githubusercontent.com、*-review.googlesource.com（可选）、formulae.brew.sh、sso.claude.com、mcp-proxy.anthropic.com、downloads.claude.ai、bridge.claudeusercontent.com、*.frame.claudeusercontent.com、code.claude.com；“Desktop and claude.ai”一节列了 assets-proxy.anthropic.com、*.claudeusercontent.com、*.claudemcpcontent.com；Artifact 的字体和库一节列了 fonts.googleapis.com、fonts.gstatic.com（可选）和 cdnjs.cloudflare.com、cdn.jsdelivr.net、cdn.tailwindcss.com、code.jquery.com、unpkg.com
+  claude-ip:
+    kind: official
+    url: https://platform.claude.com/docs/en/api/ip-addresses
+    checked: 2026-11-20
+    note: Anthropic 的 IP 地址。“Inbound IP addresses”（Anthropic 的服务接收连接的地址）：IPv4 160.79.104.0/23、153.61.224.0/22，IPv6 2607:6bc0::/48；“Outbound IP addresses”（Anthropic 向外发起连接时用的地址）160.79.104.0/21、153.61.208.0/20；“Phased out”五个 34.162.x.x/32 已经不用。页面上没有 34.8.0.0/16
+  claude-support-intercom:
+    kind: maintainer
+    note: 2026-11-20 查 https://support.claude.com/ 的响应头：带 x-intercom-version，内容安全策略只允许连 *.intercom.io、*.intercom-messenger.com 等——Anthropic 的帮助中心和客服聊天用的是 Intercom（api-iam.intercom.io 是 Intercom 客服聊天的接口，nexus-websocket-a.intercom.io 是它的实时连接）
+  owner-claude-list-1120:
+    kind: requirement
+    note: 使用者 2026-11-20 给的清单（docs/00 最后一节，原话“这几个据说也是 Claude 的网址 你也添加进去吧”），按他 2026-11-19 定的标准（连这个地址时 Anthropic 能看到 IP 的才进 Claude 组）收；Anthropic 是不是在用这些服务，官方页面上没有核实到（分包处理方的页面这里打不开）
   cursor-net:
     kind: official
     url: https://cursor.com/docs/enterprise/network-configuration

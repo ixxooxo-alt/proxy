@@ -1117,12 +1117,18 @@
           "claude.site",
           "claudeacademy.com",
           "claudepages.dev",
-          "claudestudio.com"
+          "claudestudio.com",
+          "us.sentry.io",
+          "siftscience.com",
+          "us5.datadoghq.com"
         ],
         "domain": [
           "http-intake.logs.us5.datadoghq.com",
           "browser-intake-us5-datadoghq.com",
-          "storage.googleapis.com"
+          "storage.googleapis.com",
+          "api-iam.intercom.io",
+          "nexus-websocket-a.intercom.io",
+          "r.stripe.com"
         ],
         "outbound": "Claude"
       },
@@ -2253,6 +2259,14 @@
       },
       {
         "ip_cidr": [
+          "160.79.104.0/23",
+          "153.61.224.0/22",
+          "2607:6bc0::/48"
+        ],
+        "outbound": "Claude"
+      },
+      {
+        "ip_cidr": [
           "91.105.192.0/23",
           "91.108.4.0/22",
           "91.108.8.0/22",
@@ -2316,6 +2330,9 @@
               "claudeacademy.com",
               "claudepages.dev",
               "claudestudio.com",
+              "us.sentry.io",
+              "siftscience.com",
+              "us5.datadoghq.com",
               "cursor.sh",
               "cursor-cdn.com",
               "cursorapi.com",
@@ -2962,6 +2979,9 @@
               "http-intake.logs.us5.datadoghq.com",
               "browser-intake-us5-datadoghq.com",
               "storage.googleapis.com",
+              "api-iam.intercom.io",
+              "nexus-websocket-a.intercom.io",
+              "r.stripe.com",
               "anysphere-binaries.s3.us-east-1.amazonaws.com",
               "agent-stores.s3.us-east-1.amazonaws.com",
               "agent-stores.s3.amazonaws.com",

@@ -3,11 +3,11 @@
 虚构的 local.yaml、同一个虚构订阅地址、同一批虚构节点——这一版的 tests/node_samples.yaml 加一个叫“境外DNS”的节点——各跑一次
 build.py --singbox-nodes，比 dist/private/ 里的每一份文件）。允许的差别（别的差别都算不符，退出码非 0）：
   1. 节点按名称分地区的筛选正则（GPT 审核 r22 送审稿 R22-F15：“港德 / 港英 / 港法 / 港欧 / 港歐”前面不能是“香”）——只有含正则写法的那几处；
-  2. 文字报告里的版本号（统一源 2026.11.18-1 → 2026.11.19-2、生成器 1.13.0 → 1.14.0）；
+  2. 文字报告里的版本号（统一源 2026.11.18-1 → 2026.11.20-1、生成器 1.13.0 → 1.14.0）；
   3. sing-box 的节点（R22-F09）：样例里四个 cipher 是 auto 又开了 TLS 的 VMess 节点写成 aes-128-gcm。同时核对第一份送审稿里确实是 auto；
   4. sing-box-节点转换报告.txt：只多了这四个节点的提示；
   5. 私密 manifest.json 不逐项比，另外核对它本身（outputs、摘要、版本、not_refreshed 是空的）。其余文件逐字节相同；
-  6. 使用者 2026-11-19 定的标准（Anthropic 能看到 IP 的地址走 Claude 组）：Claude 组多了 3 个第三方主机（NEW_CLAUDE）——各端多这几条规则，
+  6. 使用者 2026-11-19 定的标准（Anthropic 能看到 IP 的地址走 Claude 组）：Claude 组多了这些第三方主机和 Anthropic 的 IP 段（NEW_CLAUDE）——各端多这几条规则，
      mihomo 的 nameserver-policy、sing-box 的路由和 DNS 规则各多这几个名字（只认带这些名字的新增，别的新增照样算不符）。
 这一轮别的改动（订阅读法、整数、SS2022、QUIC 上的指纹、按端的固定直连……）在这批样例和这份 local.yaml 上不该产生差别。
 不联网，不读、不写仓库里的 source/local.yaml。
@@ -25,9 +25,12 @@ import yaml
 
 old, new, out = (os.path.abspath(x) for x in sys.argv[1:4])
 VMESS_AUTO_TLS = ["美国 VMess HTTPUpgrade", "韩国 VMess gRPC", "美国 VMess packet", "台湾 VMess 指纹 none"]
-VERSIONS = [("2026.11.18-1", "2026.11.19-2"), ("1.13.0", "1.14.0")]
+VERSIONS = [("2026.11.18-1", "2026.11.20-1"), ("1.13.0", "1.14.0")]
 # 第 6 条：Claude 组新加的主机（Claude Code 官方网络要求页面列的第三方地址里，会让 Anthropic 看到 IP 的；使用者 2026-11-19 定的标准）
-NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com"}
+NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com",
+              # 使用者 2026-11-20 的清单（按他的标准收的）和 Anthropic 官方公布的 IP
+              "api-iam.intercom.io", "nexus-websocket-a.intercom.io", "r.stripe.com", "us.sentry.io", "siftscience.com",
+              "us5.datadoghq.com", "160.79.104.0/23", "153.61.224.0/22", "2607:6bc0::/48"}
 
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
 by = {p["name"]: p for p in nodes["proxies"]}
@@ -133,6 +136,11 @@ def singbox_expected(conf_old, conf_new, problems, n):
                 problems.append(f"{n}：第一份送审稿里 {o['tag']} 的 security 是 {o.get('security')!r}，不是预期的 auto")
             o["security"] = "aes-128-gcm"
         obs.append(o)
+    # 第 6 条：Claude 的 IP 段在 sing-box 里是单独一条路由规则（只有 ip_cidr 和 outbound），整条新加；拿掉它再比
+    rules = conf_new.get("route", {}).get("rules", [])
+    extra = [r for r in rules if set(r) == {"ip_cidr", "outbound"} and r["outbound"] == "Claude" and set(r["ip_cidr"]) <= NEW_CLAUDE]
+    if len(extra) == 1:
+        conf_new = dict(conf_new, route=dict(conf_new["route"], rules=[r for r in rules if r is not extra[0]]))
     diffs = [d for d in walk(dict(conf_old, outbounds=obs), conf_new) if not is_datadog_added(*d)]
     for path, kind, a, b in diffs[:6]:
         problems.append(f"{n}：照预期改了 VMess 以后仍不同：{path} {kind} {json.dumps(a, ensure_ascii=False)[:80]} → "

@@ -1,5 +1,5 @@
 # 由统一源生成，请勿手工修改；改动请在 source/ 中进行后重新生成。
-# 统一源版本 2026.11.19-2；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
+# 统一源版本 2026.11.20-1；目标：mihomo v1.19.31（已验证的最低版本，也是唯一验证过的版本；其他版本和各客户端内置的内核没有逐一验证）
 # 产物类型：客户端托管版（Clash Verge Rev Windows/macOS、Clash Meta for Android：端口、TUN、控制面由客户端设置）
 # ⚠ 使用前必须把 proxy-providers 里的 url 换成你的订阅链接（当前是占位符，不可直接使用）。
 
@@ -89,6 +89,12 @@ dns:
     http-intake.logs.us5.datadoghq.com: *dns-foreign
     browser-intake-us5-datadoghq.com: *dns-foreign
     storage.googleapis.com: *dns-foreign
+    api-iam.intercom.io: *dns-foreign
+    nexus-websocket-a.intercom.io: *dns-foreign
+    r.stripe.com: *dns-foreign
+    +.us.sentry.io: *dns-foreign
+    +.siftscience.com: *dns-foreign
+    +.us5.datadoghq.com: *dns-foreign
     +.cursor.sh: *dns-foreign
     +.cursor-cdn.com: *dns-foreign
     +.cursorapi.com: *dns-foreign
@@ -1631,6 +1637,12 @@ rules:
   - DOMAIN,http-intake.logs.us5.datadoghq.com,Claude
   - DOMAIN,browser-intake-us5-datadoghq.com,Claude
   - DOMAIN,storage.googleapis.com,Claude
+  - DOMAIN,api-iam.intercom.io,Claude
+  - DOMAIN,nexus-websocket-a.intercom.io,Claude
+  - DOMAIN,r.stripe.com,Claude
+  - DOMAIN-SUFFIX,us.sentry.io,Claude
+  - DOMAIN-SUFFIX,siftscience.com,Claude
+  - DOMAIN-SUFFIX,us5.datadoghq.com,Claude
   # -- cursor --
   - DOMAIN-SUFFIX,cursor.sh,Grok
   - DOMAIN-SUFFIX,cursor-cdn.com,Grok
@@ -2571,6 +2583,10 @@ rules:
   - GEOSITE,cn,国内直连
   - GEOSITE,geolocation-!cn,国外默认
   # ==== 7 服务专属 IP（不触发 DNS 解析） ====
+  # -- claude --
+  - IP-CIDR,160.79.104.0/23,Claude,no-resolve
+  - IP-CIDR,153.61.224.0/22,Claude,no-resolve
+  - IP-CIDR6,2607:6bc0::/48,Claude,no-resolve
   # -- telegram --
   - IP-CIDR,91.105.192.0/23,Telegram,no-resolve
   - IP-CIDR,91.108.4.0/22,Telegram,no-resolve

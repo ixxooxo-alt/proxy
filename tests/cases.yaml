@@ -152,7 +152,14 @@ cases:
   - {host: anthropic.team, expect: Claude}
   - {host: http-intake.logs.us5.datadoghq.com, expect: Claude, why: Claude Code 的运行遥测，使用者 2026-11-19 选了收进 Claude 组}
   - {host: browser-intake-us5-datadoghq.com, expect: Claude, why: Claude Code 的错误报告，进 Anthropic 的 Datadog 账号；使用者 2026-11-19 定的标准}
-  - {host: other.logs.us5.datadoghq.com, expect: 国外默认, why: 只收那一个主机，不收 Datadog 的其他地址}
+  - {host: other.logs.us5.datadoghq.com, expect: Claude, why: 使用者 2026-11-20 的清单收了整个 us5.datadoghq.com}
+  - {host: us5.datadoghq.com, expect: Claude}
+  - {host: api-iam.intercom.io, expect: Claude, why: Intercom 客服聊天（Anthropic 的客服用它）；使用者 2026-11-20 的清单}
+  - {host: nexus-websocket-a.intercom.io, expect: Claude}
+  - {host: r.stripe.com, expect: Claude, why: Stripe 付款页的风控信号；使用者 2026-11-20 的清单}
+  - {host: o4505.ingest.us.sentry.io, expect: Claude, why: Sentry 美国区的错误上报；使用者 2026-11-20 的清单}
+  - {host: cdn.siftscience.com, expect: Claude, why: Sift 反欺诈；使用者 2026-11-20 的清单}
+  - {host: fcmtoken.googleapis.com, expect: Google, why: 清单里有，但 IP 只到 Google，按使用者的标准不进 Claude}
   - {host: fonts.googleapis.com, expect: Google, why: Claude Code 官方页面列出（Artifact 的字体），但 Google Fonts 不把访问者的 IP 交给 Anthropic，不归 Claude}
   - {host: cdnjs.cloudflare.com, expect: 国外默认, why: 官方页面列出（Artifact 用的库），公共 CDN，不归 Claude}
   - {host: cdn.jsdelivr.net, expect: 国外默认}
@@ -190,6 +197,9 @@ cases:
   - {ip: 91.108.56.100, expect: Telegram, why: 服务专属 IP}
   - {ip: 149.154.167.51, expect: Telegram}
   - {ip: '2001:67c:4e8::1', expect: Telegram}
+  - {ip: 160.79.104.10, expect: Claude, why: Anthropic 官方公布的地址}
+  - {ip: 153.61.224.10, expect: Claude}
+  - {ip: '2607:6bc0::10', expect: Claude}
   - {host: x.com, expect: X}
   - {host: pbs.twimg.com, expect: X}
   - {host: t.co, expect: X}
