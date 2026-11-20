@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-11-19 10:33:32
+运行时间（UTC）：2026-11-20 01:56:31
 Python：Python 3.13.18，PyYAML：6.0.3
-提交：89632f6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：fc14b5f；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
 命令：python3 -B handoff/notes/r22b_review_probes.py /root/proxy-vendor/bin/mihomo-linux-amd64-v1.19.31 /root/proxy-vendor/bin/sing-box-1.14.1-linux-amd64/sing-box /root/proxy-vendor/bin/sing-box-1.12.0-linux-amd64/sing-box <work>/r22b-probes
 
 Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026

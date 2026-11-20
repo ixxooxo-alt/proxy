@@ -1,55 +1,55 @@
-运行时间（UTC）：2026-11-19 10:33:15
+运行时间（UTC）：2026-11-20 01:56:11
 Python：Python 3.13.18，PyYAML：6.0.3
-提交：89632f6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：fc14b5f；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
 命令：python3 -B handoff/notes/r22b_private_vs_r22draft.py <draft1> <repo> <work>/r22b-private-cmp
 
 第一份送审稿：build.py 退出码 0
 当前：build.py 退出码 0
 私密产物：loon-simple-strict.conf、loon-simple.conf、loon-strict.conf、loon.conf、manifest.json、mihomo-core.yaml、mihomo-profile.yaml、mihomo-simple-core.yaml、mihomo-simple-profile.yaml、quantumultx-simple-strict.conf、quantumultx-simple.conf、quantumultx-strict.conf、quantumultx.conf、sing-box-1.12.json、sing-box-1.14.json、sing-box-simple-1.12.json、sing-box-simple-1.14.json、sing-box-节点转换报告.txt、stash-simple-strict.yaml、stash-simple.yaml、stash-strict.yaml、stash.yaml、节点分组报告.txt、请勿分享.txt
 
-loon-simple-strict.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 8 行
+loon-simple-strict.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 8 行；改去 Claude 组的旧行 1 行
 
-loon-simple.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 8 行
+loon-simple.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 8 行；改去 Claude 组的旧行 1 行
 
-loon-strict.conf：去掉注释以后：地区筛选正则 13 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 13 行
+loon-strict.conf：去掉注释以后：地区筛选正则 13 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 13 行；改去 Claude 组的旧行 1 行
 
-loon.conf：去掉注释以后：地区筛选正则 13 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 13 行
+loon.conf：去掉注释以后：地区筛选正则 13 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 13 行；改去 Claude 组的旧行 1 行
 
 manifest.json：不逐项比；本身核对：outputs 列了 22 个文件，摘要都相符，版本和公开 manifest 相同，not_refreshed 是空的
 
-mihomo-core.yaml：Claude 组新加的主机 6 处；地区筛选正则 25 处
+mihomo-core.yaml：Claude 组新加的主机 27 处；地区筛选正则 25 处
 
-mihomo-profile.yaml：Claude 组新加的主机 6 处；地区筛选正则 25 处
+mihomo-profile.yaml：Claude 组新加的主机 27 处；地区筛选正则 25 处
 
-mihomo-simple-core.yaml：Claude 组新加的主机 6 处；地区筛选正则 9 处
+mihomo-simple-core.yaml：Claude 组新加的主机 27 处；地区筛选正则 9 处
 
-mihomo-simple-profile.yaml：Claude 组新加的主机 6 处；地区筛选正则 9 处
+mihomo-simple-profile.yaml：Claude 组新加的主机 27 处；地区筛选正则 9 处
 
-quantumultx-simple-strict.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 8 行
+quantumultx-simple-strict.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 8 行；改去 Claude 组的旧行 1 行
 
-quantumultx-simple.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 8 行
+quantumultx-simple.conf：去掉注释以后：地区筛选正则 8 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 8 行；改去 Claude 组的旧行 1 行
 
-quantumultx-strict.conf：去掉注释以后：地区筛选正则 25 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 25 行
+quantumultx-strict.conf：去掉注释以后：地区筛选正则 25 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 25 行；改去 Claude 组的旧行 1 行
 
-quantumultx.conf：去掉注释以后：地区筛选正则 25 行；Claude 组新加的主机 3 行；地区筛选正则（旧） 25 行
+quantumultx.conf：去掉注释以后：地区筛选正则 25 行；Claude 组新加的主机 15 行；地区筛选正则（旧） 25 行；改去 Claude 组的旧行 1 行
 
-sing-box-1.12.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（4 处）以外相同
+sing-box-1.12.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（11 处）以外相同
 
-sing-box-1.14.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（4 处）以外相同
+sing-box-1.14.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（11 处）以外相同
 
-sing-box-simple-1.12.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（4 处）以外相同
+sing-box-simple-1.12.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（11 处）以外相同
 
-sing-box-simple-1.14.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（4 处）以外相同
+sing-box-simple-1.14.json：四个 VMess 节点照预期写成 aes-128-gcm、Claude 组新加的主机（11 处）以外相同
 
 sing-box-节点转换报告.txt：只多了 4 个 VMess 节点的提示（auto 加 TLS 写明 aes-128-gcm）
 
-stash-simple-strict.yaml：地区筛选正则 8 处；Claude 组新加的主机 3 处
+stash-simple-strict.yaml：地区筛选正则 8 处；Claude 组新加的主机 16 处
 
-stash-simple.yaml：地区筛选正则 8 处；Claude 组新加的主机 3 处
+stash-simple.yaml：地区筛选正则 8 处；Claude 组新加的主机 16 处
 
-stash-strict.yaml：地区筛选正则 25 处；Claude 组新加的主机 3 处
+stash-strict.yaml：地区筛选正则 25 处；Claude 组新加的主机 16 处
 
-stash.yaml：地区筛选正则 25 处；Claude 组新加的主机 3 处
+stash.yaml：地区筛选正则 25 处；Claude 组新加的主机 16 处
 
 节点分组报告.txt：逐字节相同
 

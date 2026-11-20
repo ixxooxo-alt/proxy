@@ -1,6 +1,6 @@
-运行时间（UTC）：2026-11-19 10:25:15
+运行时间（UTC）：2026-11-20 01:47:49
 Python：Python 3.12.3，PyYAML：6.0.1
-提交：89632f6；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
+提交：fc14b5f；代码和产物（build.py、generator、source、dist、tests、tools）与提交相同
 命令：python3.12 -B -m unittest discover -s tests -v
 
 test_every_real_ip_name_goes_to_domestic_dns_on_mihomo (test_build_pipeline.DnsLayersForFixedDirect.test_every_real_ip_name_goes_to_domestic_dns_on_mihomo) ... ok
@@ -633,7 +633,7 @@ test_review_followups (test_structure.Structure.test_review_followups)
 test_singbox_integrity_and_versions (test_structure.Structure.test_singbox_integrity_and_versions) ... ok
 
 ----------------------------------------------------------------------
-Ran 383 tests in 323.293s
+Ran 383 tests in 350.824s
 
 OK
 退出码：0
