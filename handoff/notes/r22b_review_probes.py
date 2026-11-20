@@ -55,21 +55,26 @@ def mihomo_names(mihomo, work, values):
     with open(cfg, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     p = subprocess.Popen([mihomo, "-d", work, "-f", cfg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # 2026-11-20：控制接口有时比节点先就绪，第一次连上就读会读到空的（机器忙时更常见，快速检查里出过一次 26 项全不符合）。
+    # 等到 socks5 节点的个数够了再读；20 秒还不够就照读到的算（核对会照实报不符合）
+    got, up = [], False
     try:
-        for _ in range(100):
+        for _ in range(200):
             try:
                 with urllib.request.urlopen(f"http://127.0.0.1:{port}/proxies", timeout=1) as r:
                     data = json.load(r)["proxies"]
-                break
+                up = True
+                got = [k for k, v in data.items() if str(v.get("type", "")).lower() == "socks5"]
+                if len(got) >= len(values):
+                    break
             except OSError:
-                time.sleep(0.1)
-        else:
+                pass
+            time.sleep(0.1)
+        if not up:
             raise SystemExit("mihomo 的控制接口没有起来")
     finally:
         p.terminate()
         p.wait(timeout=10)
-    # 节点按写进去的顺序编了端口 1、2、3……，用不到；名字按 type 过滤出来，再按写入顺序对回去
-    got = [k for k, v in data.items() if str(v.get("type", "")).lower() == "socks5"]
     return got
 
 
@@ -85,20 +90,27 @@ def mihomo_provider_names(mihomo, work, provider_text):
     with open(cfg, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     p = subprocess.Popen([mihomo, "-d", work, "-f", cfg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # 同上：等 provider 出现、读到节点；读不出节点的情况（订阅整份读不了）等满 3 秒再算空
+    names, up, start = [], False, time.time()
     try:
-        for _ in range(100):
+        while time.time() - start < 20:
             try:
                 with urllib.request.urlopen(f"http://127.0.0.1:{port}/providers/proxies", timeout=1) as r:
                     data = json.load(r)["providers"]
-                break
+                if not up:
+                    up, start_up = True, time.time()
+                names = [x["name"] for x in (data.get("sub") or {}).get("proxies") or []]
+                if names or time.time() - start_up >= 3:
+                    break
             except OSError:
-                time.sleep(0.1)
-        else:
+                pass
+            time.sleep(0.1)
+        if not up:
             raise SystemExit("mihomo 的控制接口没有起来")
     finally:
         p.terminate()
         p.wait(timeout=10)
-    return [x["name"] for x in (data.get("sub") or {}).get("proxies") or []]
+    return names
 
 
 def mihomo_test(mihomo, work, text):
