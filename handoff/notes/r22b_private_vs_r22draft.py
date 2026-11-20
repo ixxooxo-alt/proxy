@@ -29,7 +29,7 @@ VERSIONS = [("2026.11.18-1", "2026.11.20-1"), ("1.13.0", "1.14.0")]
 # 第 6 条：Claude 组新加的主机（Claude Code 官方网络要求页面列的第三方地址里，会让 Anthropic 看到 IP 的；使用者 2026-11-19 定的标准）
 NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com",
               # 使用者 2026-11-20 的清单（按他的标准收的）和 Anthropic 官方公布的 IP
-              "api-iam.intercom.io", "nexus-websocket-a.intercom.io", "r.stripe.com", "us.sentry.io", "siftscience.com",
+              "api-iam.intercom.io", "nexus-websocket-a.intercom.io", "r.stripe.com", "siftscience.com",
               # 使用者 2026-11-20 又要的五家（hCaptcha 是放行例外改了去向，旧的那一行会“去掉”）
               "arkoselabs.com", "withpersona.com", "yoti.com", "workos.com", "hcaptcha.com",
               "160.79.104.0/23", "153.61.224.0/22", "2607:6bc0::/48"}

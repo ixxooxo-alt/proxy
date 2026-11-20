@@ -95,7 +95,6 @@ dns:
     api-iam.intercom.io: *dns-foreign
     nexus-websocket-a.intercom.io: *dns-foreign
     r.stripe.com: *dns-foreign
-    +.us.sentry.io: *dns-foreign
     +.siftscience.com: *dns-foreign
     +.arkoselabs.com: *dns-foreign
     +.withpersona.com: *dns-foreign
@@ -1314,7 +1313,6 @@ rules:
   - DOMAIN,api-iam.intercom.io,Claude
   - DOMAIN,nexus-websocket-a.intercom.io,Claude
   - DOMAIN,r.stripe.com,Claude
-  - DOMAIN-SUFFIX,us.sentry.io,Claude
   - DOMAIN-SUFFIX,siftscience.com,Claude
   - DOMAIN-SUFFIX,arkoselabs.com,Claude
   - DOMAIN-SUFFIX,withpersona.com,Claude

@@ -71,7 +71,6 @@ services:
       - {domain: api-iam.intercom.io, ev: claude-support-intercom, note: Intercom 客服聊天的接口；客服看得到来访者的 IP 和位置}
       - {domain: nexus-websocket-a.intercom.io, ev: claude-support-intercom, note: Intercom 客服聊天的实时连接}
       - {domain: r.stripe.com, ev: anthropic-subprocessors, note: Stripe 付款页发回的风控信号；商户在付款记录里看得到付款人的 IP}
-      - {suffix: us.sentry.io, ev: anthropic-subprocessors, note: Sentry 美国区的错误上报（o*.ingest.us.sentry.io），默认记下发送方的 IP}
       - {suffix: siftscience.com, ev: anthropic-subprocessors, note: Sift 的反欺诈（设备指纹、IP）}
       # 分包处理方名单里另外几家、会从使用者的设备直接收到 IP 的（使用者 2026-11-20 说“这 5 个也添加进去”）：人机验证、身份核验、企业版单点登录。
       # 也都是很多网站共用的服务（OpenAI、Cursor 也用 WorkOS 登录，GitHub、Roblox 等用 Arkose）。hCaptcha 已有一条放行例外（adblock.yaml），去向改在那里
@@ -86,6 +85,7 @@ services:
     shared_excluded:
       - {host: fcmtoken.googleapis.com, ev: owner-claude-list-1120, to: Google, probe: [fcmtoken.googleapis.com], why: 使用者 2026-11-20 的清单里有；它是 Google 的推送令牌服务（Firebase Cloud Messaging），IP 只到 Google，Anthropic 拿到的只是令牌，按他定的标准不进 Claude → Google}
       - {host: 34.8.0.0/16, ev: claude-ip, why: 使用者 2026-11-20 的清单里有；查实是 Google Cloud 的公共地址段（Google 公布的 cloud.json 写的是“Google Cloud，global”，ARIN 登记的所有者是 Google LLC），不在 Anthropic 官方公布的地址里，整段收进来会把这一段里别家的服务一起拉进 Claude 组；改收官方公布的三段}
+      - {host: "us.sentry.io（Sentry 美国区的错误上报）", ev: anthropic-subprocessors, why: 使用者 2026-11-20 的清单里有，Sentry 也在分包处理方里；但五个客户端的广告名单本来就拦着它的上报（Loon、QX 的远程广告名单排在产品规则后面，加了 Claude 规则反而会放行），不收，让它继续被拦，Anthropic 从这条路收不到 IP}
       - {host: "us5.datadoghq.com（整个后缀）", ev: claude-net, why: 使用者 2026-11-20 的清单里有；Datadog 不在 Anthropic 公布的分包处理方里，Claude Code 官方页面只列了这个机房的两个入口（上面单独收了），整个后缀没有依据}
       # 下面这些官方页面也列了，但都是别家的公共服务，访问者的 IP 不会交给 Anthropic（使用者 2026-11-19 定的标准），照旧归原来的组
       - {host: registry.npmjs.org, ev: claude-net, to: 开发下载, probe: [registry.npmjs.org], why: npm 的公共源，不把下载者的 IP 交给包的作者 → 开发下载}
