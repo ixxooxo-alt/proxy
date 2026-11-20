@@ -94,7 +94,6 @@ dns:
     r.stripe.com: *dns-foreign
     +.us.sentry.io: *dns-foreign
     +.siftscience.com: *dns-foreign
-    +.us5.datadoghq.com: *dns-foreign
     +.cursor.sh: *dns-foreign
     +.cursor-cdn.com: *dns-foreign
     +.cursorapi.com: *dns-foreign
@@ -1642,7 +1641,6 @@ rules:
   - DOMAIN,r.stripe.com,Claude
   - DOMAIN-SUFFIX,us.sentry.io,Claude
   - DOMAIN-SUFFIX,siftscience.com,Claude
-  - DOMAIN-SUFFIX,us5.datadoghq.com,Claude
   # -- cursor --
   - DOMAIN-SUFFIX,cursor.sh,Grok
   - DOMAIN-SUFFIX,cursor-cdn.com,Grok

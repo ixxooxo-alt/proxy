@@ -32,9 +32,14 @@ evidence:
   claude-support-intercom:
     kind: maintainer
     note: 2026-11-20 查 https://support.claude.com/ 的响应头：带 x-intercom-version，内容安全策略只允许连 *.intercom.io、*.intercom-messenger.com 等——Anthropic 的帮助中心和客服聊天用的是 Intercom（api-iam.intercom.io 是 Intercom 客服聊天的接口，nexus-websocket-a.intercom.io 是它的实时连接）
+  anthropic-subprocessors:
+    kind: official
+    url: https://trust.anthropic.com/subprocessors
+    checked: 2026-11-20
+    note: Anthropic 信任中心公布的分包处理方（22 家；页面要运行脚本才显示，用无界面浏览器渲染后读的）。和这里有关的：Stripe（Billing）、Intercom（User support）、Functional Software dba Sentry（Error Handling, User Support）、Sift（Fraud and abuse detection），另有 Arkose Labs、hCaptcha、Persona、Yoti（反欺诈、身份核验）、WorkOS（单点登录）、Cloudflare（CDN）、Google Cloud Platform、AWS、Azure（云）等。名单里没有 Datadog（Claude Code 的 Datadog 两个入口见 claude-net）
   owner-claude-list-1120:
     kind: requirement
-    note: 使用者 2026-11-20 给的清单（docs/00 最后一节，原话“这几个据说也是 Claude 的网址 你也添加进去吧”），按他 2026-11-19 定的标准（连这个地址时 Anthropic 能看到 IP 的才进 Claude 组）收；Anthropic 是不是在用这些服务，官方页面上没有核实到（分包处理方的页面这里打不开）
+    note: 使用者 2026-11-20 给的清单（docs/00 最后一节，原话“这几个据说也是 Claude 的网址 你也添加进去吧”），使用者接着说“或者验证一下再添加进去分流”：先核实再收。核实过的改用 anthropic-subprocessors、claude-support-intercom、claude-ip 作证据；这一条只剩没收的两项（fcmtoken.googleapis.com、34.8.0.0/16）引用
   cursor-net:
     kind: official
     url: https://cursor.com/docs/enterprise/network-configuration

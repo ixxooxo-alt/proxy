@@ -152,12 +152,11 @@ cases:
   - {host: anthropic.team, expect: Claude}
   - {host: http-intake.logs.us5.datadoghq.com, expect: Claude, why: Claude Code 的运行遥测，使用者 2026-11-19 选了收进 Claude 组}
   - {host: browser-intake-us5-datadoghq.com, expect: Claude, why: Claude Code 的错误报告，进 Anthropic 的 Datadog 账号；使用者 2026-11-19 定的标准}
-  - {host: other.logs.us5.datadoghq.com, expect: Claude, why: 使用者 2026-11-20 的清单收了整个 us5.datadoghq.com}
-  - {host: us5.datadoghq.com, expect: Claude}
+  - {host: other.logs.us5.datadoghq.com, expect: 国外默认, why: 只收 Claude Code 用的两个入口，不收 Datadog 的其他地址}
   - {host: api-iam.intercom.io, expect: Claude, why: Intercom 客服聊天（Anthropic 的客服用它）；使用者 2026-11-20 的清单}
   - {host: nexus-websocket-a.intercom.io, expect: Claude}
   - {host: r.stripe.com, expect: Claude, why: Stripe 付款页的风控信号；使用者 2026-11-20 的清单}
-  - {host: o4505.ingest.us.sentry.io, expect: Claude, why: Sentry 美国区的错误上报；使用者 2026-11-20 的清单}
+  - {host: o4505.ingest.us.sentry.io, expect: 广告拦截, why: Sentry 的错误上报本来就被广告集合拦掉（Loon、QX 的名单收了整个 sentry.io），排在 Claude 规则前面}
   - {host: cdn.siftscience.com, expect: Claude, why: Sift 反欺诈；使用者 2026-11-20 的清单}
   - {host: fcmtoken.googleapis.com, expect: Google, why: 清单里有，但 IP 只到 Google，按使用者的标准不进 Claude}
   - {host: fonts.googleapis.com, expect: Google, why: Claude Code 官方页面列出（Artifact 的字体），但 Google Fonts 不把访问者的 IP 交给 Anthropic，不归 Claude}

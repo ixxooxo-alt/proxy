@@ -1233,8 +1233,7 @@
           "claudepages.dev",
           "claudestudio.com",
           "us.sentry.io",
-          "siftscience.com",
-          "us5.datadoghq.com"
+          "siftscience.com"
         ],
         "domain": [
           "http-intake.logs.us5.datadoghq.com",
@@ -2446,7 +2445,6 @@
               "claudestudio.com",
               "us.sentry.io",
               "siftscience.com",
-              "us5.datadoghq.com",
               "cursor.sh",
               "cursor-cdn.com",
               "cursorapi.com",

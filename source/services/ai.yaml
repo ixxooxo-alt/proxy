@@ -64,21 +64,22 @@ services:
       - {domain: http-intake.logs.us5.datadoghq.com, ev: claude-net, note: Claude Code 的运行遥测（可选），进 Anthropic 的 Datadog 账号；使用者 2026-11-19 选的}
       - {domain: browser-intake-us5-datadoghq.com, ev: claude-net, note: Claude Code 的错误报告（可选），进 Anthropic 的 Datadog 账号}
       - {domain: storage.googleapis.com, ev: claude-net, note: Anthropic 的存储桶（插件安装数和元数据；2.1.116 以前的原生安装和自动更新）；它是 Google Cloud Storage 的公共入口，别的 App 用到也走 Claude}
-      # 使用者 2026-11-20 给的清单（“这几个据说也是 Claude 的网址”），按他定的标准收：这些服务会把访问者的 IP 交给用它的公司（这里是 Anthropic）。
+      # 使用者 2026-11-20 给的清单（“这几个据说也是 Claude 的网址”），先核实再收（他接着说“或者验证一下再添加进去分流”）：Anthropic 信任中心公布的
+      # 分包处理方里有 Intercom、Stripe、Sentry、Sift（anthropic-subprocessors），这些服务会把访问者的 IP 交给用它的公司（这里是 Anthropic）。
       # 都是很多网站共用的服务，别家网站的客服聊天、Stripe 付款、Sentry 报错等也会走 Claude 组（docs/06 2026-11-20 一节）
       - {domain: api-iam.intercom.io, ev: claude-support-intercom, note: Intercom 客服聊天的接口；客服看得到来访者的 IP 和位置}
       - {domain: nexus-websocket-a.intercom.io, ev: claude-support-intercom, note: Intercom 客服聊天的实时连接}
-      - {domain: r.stripe.com, ev: owner-claude-list-1120, note: Stripe 付款页发回的风控信号；商户在付款记录里看得到付款人的 IP}
-      - {suffix: us.sentry.io, ev: owner-claude-list-1120, note: Sentry 美国区的错误上报（o*.ingest.us.sentry.io），默认记下发送方的 IP}
-      - {suffix: siftscience.com, ev: owner-claude-list-1120, note: Sift 的反欺诈（设备指纹、IP）}
-      - {suffix: us5.datadoghq.com, ev: owner-claude-list-1120, note: Datadog US5 机房的各个入口（含上面的 http-intake.logs.us5.datadoghq.com）}
+      - {domain: r.stripe.com, ev: anthropic-subprocessors, note: Stripe 付款页发回的风控信号；商户在付款记录里看得到付款人的 IP}
+      - {suffix: us.sentry.io, ev: anthropic-subprocessors, note: Sentry 美国区的错误上报（o*.ingest.us.sentry.io），默认记下发送方的 IP}
+      - {suffix: siftscience.com, ev: anthropic-subprocessors, note: Sift 的反欺诈（设备指纹、IP）}
       # Anthropic 官方公布的、它的服务接收连接的地址（清单里的 34.8.0.0/16 不在其中，没有收，见 shared_excluded）
       - {ip4: 160.79.104.0/23, ev: claude-ip}
       - {ip4: 153.61.224.0/22, ev: claude-ip}
       - {ip6: "2607:6bc0::/48", ev: claude-ip}
     shared_excluded:
       - {host: fcmtoken.googleapis.com, ev: owner-claude-list-1120, to: Google, probe: [fcmtoken.googleapis.com], why: 使用者 2026-11-20 的清单里有；它是 Google 的推送令牌服务（Firebase Cloud Messaging），IP 只到 Google，Anthropic 拿到的只是令牌，按他定的标准不进 Claude → Google}
-      - {host: 34.8.0.0/16, ev: claude-ip, why: 使用者 2026-11-20 的清单里有；不在 Anthropic 官方公布的地址里，整段收进来会把这一段里别家的服务一起拉进 Claude 组；改收官方公布的三段}
+      - {host: 34.8.0.0/16, ev: claude-ip, why: 使用者 2026-11-20 的清单里有；查实是 Google Cloud 的公共地址段（Google 公布的 cloud.json 写的是“Google Cloud，global”，ARIN 登记的所有者是 Google LLC），不在 Anthropic 官方公布的地址里，整段收进来会把这一段里别家的服务一起拉进 Claude 组；改收官方公布的三段}
+      - {host: "us5.datadoghq.com（整个后缀）", ev: claude-net, why: 使用者 2026-11-20 的清单里有；Datadog 不在 Anthropic 公布的分包处理方里，Claude Code 官方页面只列了这个机房的两个入口（上面单独收了），整个后缀没有依据}
       # 下面这些官方页面也列了，但都是别家的公共服务，访问者的 IP 不会交给 Anthropic（使用者 2026-11-19 定的标准），照旧归原来的组
       - {host: registry.npmjs.org, ev: claude-net, to: 开发下载, probe: [registry.npmjs.org], why: npm 的公共源，不把下载者的 IP 交给包的作者 → 开发下载}
       - {host: "github.com / raw.githubusercontent.com", ev: claude-net, to: GitHub, probe: [github.com, raw.githubusercontent.com], why: GitHub 的公共服务，仓库的主人只看得到汇总的访问数 → GitHub}

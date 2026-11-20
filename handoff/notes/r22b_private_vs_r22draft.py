@@ -30,7 +30,7 @@ VERSIONS = [("2026.11.18-1", "2026.11.20-1"), ("1.13.0", "1.14.0")]
 NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com",
               # 使用者 2026-11-20 的清单（按他的标准收的）和 Anthropic 官方公布的 IP
               "api-iam.intercom.io", "nexus-websocket-a.intercom.io", "r.stripe.com", "us.sentry.io", "siftscience.com",
-              "us5.datadoghq.com", "160.79.104.0/23", "153.61.224.0/22", "2607:6bc0::/48"}
+              "160.79.104.0/23", "153.61.224.0/22", "2607:6bc0::/48"}
 
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
 by = {p["name"]: p for p in nodes["proxies"]}
