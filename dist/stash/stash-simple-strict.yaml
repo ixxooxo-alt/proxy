@@ -433,7 +433,7 @@ rules:
   - DOMAIN,m.stripe.network,国外默认
   - DOMAIN,m.stripe.com,国外默认
   - DOMAIN,challenges.cloudflare.com,国外默认
-  - DOMAIN-SUFFIX,hcaptcha.com,国外默认
+  - DOMAIN-SUFFIX,hcaptcha.com,Claude
   - DOMAIN,s.youtube.com,YouTube
   - DOMAIN,copilot-telemetry.githubusercontent.com,Copilot
   - DOMAIN-SUFFIX,collector.github.com,GitHub
@@ -576,6 +576,10 @@ rules:
   - DOMAIN,r.stripe.com,Claude
   - DOMAIN-SUFFIX,us.sentry.io,Claude
   - DOMAIN-SUFFIX,siftscience.com,Claude
+  - DOMAIN-SUFFIX,arkoselabs.com,Claude
+  - DOMAIN-SUFFIX,withpersona.com,Claude
+  - DOMAIN-SUFFIX,yoti.com,Claude
+  - DOMAIN-SUFFIX,workos.com,Claude
   # -- cursor --
   - DOMAIN-SUFFIX,cursor.sh,Grok
   - DOMAIN-SUFFIX,cursor-cdn.com,Grok

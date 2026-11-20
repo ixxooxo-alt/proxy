@@ -946,8 +946,7 @@
       {
         "domain_suffix": [
           "ct.sendgrid.net",
-          "app.link",
-          "hcaptcha.com"
+          "app.link"
         ],
         "domain": [
           "m.stripe.network",
@@ -955,6 +954,12 @@
           "challenges.cloudflare.com"
         ],
         "outbound": "国外默认"
+      },
+      {
+        "domain_suffix": [
+          "hcaptcha.com"
+        ],
+        "outbound": "Claude"
       },
       {
         "domain": [
@@ -1125,7 +1130,11 @@
           "claudepages.dev",
           "claudestudio.com",
           "us.sentry.io",
-          "siftscience.com"
+          "siftscience.com",
+          "arkoselabs.com",
+          "withpersona.com",
+          "yoti.com",
+          "workos.com"
         ],
         "domain": [
           "http-intake.logs.us5.datadoghq.com",
@@ -2337,6 +2346,10 @@
               "claudestudio.com",
               "us.sentry.io",
               "siftscience.com",
+              "arkoselabs.com",
+              "withpersona.com",
+              "yoti.com",
+              "workos.com",
               "cursor.sh",
               "cursor-cdn.com",
               "cursorapi.com",

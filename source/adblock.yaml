@@ -166,7 +166,7 @@ exceptions:
   - {domain: m.stripe.network, target: 国外默认, ev: maintainer, why: Stripe 结账风控信号，拦截会导致支付失败}
   - {domain: m.stripe.com, target: 国外默认, ev: maintainer, why: 同上}
   - {domain: challenges.cloudflare.com, target: 国外默认, ev: openai-net, why: Cloudflare 人机验证}
-  - {suffix: hcaptcha.com, target: 国外默认, ev: maintainer, why: 人机验证}
+  - {suffix: hcaptcha.com, target: Claude, ev: anthropic-subprocessors, why: 人机验证，不能被广告名单拦；Anthropic 的分包处理方之一（hCaptcha），使用者 2026-11-20 要求走 Claude 组，别家网站的 hCaptcha 也走 Claude 组}
   - {domain: s.youtube.com, ev: maintainer, why: YouTube 播放统计；部分广告集合会拦截，影响观看记录}
   - {domain: copilot-telemetry.githubusercontent.com, ev: ghcopilot-net, why: Copilot 客户端遥测；GitHub 官方放行清单列出，上游广告集合（@ads）会拦截}
   - {suffix: collector.github.com, ev: ghcopilot-net, why: GitHub 分析遥测；Copilot 官方放行清单列出（collector.github.com/*），上游广告集合（@ads）会拦截}

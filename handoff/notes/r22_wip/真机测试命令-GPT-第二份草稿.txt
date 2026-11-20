@@ -1,4 +1,4 @@
-（2026-11-19 写给使用者：交给能操作他 Mac 屏幕、也能通过“iPhone 镜像”操作 iPhone 的 GPT，测 r22 第二份送审稿。第一份送审稿的那份命令（handoff/notes/r22_draft/）和第二份前两次交付时的那两份（统一源 2026.11.19-1、2026.11.19-2）都不要再用：公开配置相对第一份改了三样：版本号那一行、地区分组的筛选、Claude 组多了一批会把 IP 交给 Anthropic 的第三方地址（Datadog、Anthropic 的存储、Intercom 客服聊天、Stripe、Sentry、Sift，都核实过）和 Anthropic 官方的 IP 段；已经按那份测过的，除了节点分组都还算数，节点分组要按这份重看。⟦⟧ 里的由使用者按自己的情况改。下面整段复制。）
+（2026-11-19 写给使用者：交给能操作他 Mac 屏幕、也能通过“iPhone 镜像”操作 iPhone 的 GPT，测 r22 第二份送审稿。第一份送审稿的那份命令（handoff/notes/r22_draft/）和第二份前两次交付时的那两份（统一源 2026.11.19-1、2026.11.19-2）都不要再用：公开配置相对第一份改了三样：版本号那一行、地区分组的筛选、Claude 组多了一批会把 IP 交给 Anthropic 的第三方地址（Datadog、Anthropic 的存储、Intercom 客服聊天、Stripe、Sentry、Sift、人机验证和身份核验、WorkOS 登录，都核实过）和 Anthropic 官方的 IP 段；已经按那份测过的，除了节点分组都还算数，节点分组要按这份重看。⟦⟧ 里的由使用者按自己的情况改。下面整段复制。）
 
 你要在我的 Mac 和 iPhone 上，帮我做一套代理分流配置的真机验收。你有操作这台 Mac 的权限，也可以通过 Mac 上的“iPhone 镜像”操作我的 iPhone。Loon、Quantumult X、Stash（iPhone 版和 Mac 版）和 Clash Verge Rev（Mac）都已经装好。请用简体中文和我交流、写报告。
 

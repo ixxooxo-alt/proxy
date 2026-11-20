@@ -30,6 +30,8 @@ VERSIONS = [("2026.11.18-1", "2026.11.20-1"), ("1.13.0", "1.14.0")]
 NEW_CLAUDE = {"http-intake.logs.us5.datadoghq.com", "browser-intake-us5-datadoghq.com", "storage.googleapis.com",
               # 使用者 2026-11-20 的清单（按他的标准收的）和 Anthropic 官方公布的 IP
               "api-iam.intercom.io", "nexus-websocket-a.intercom.io", "r.stripe.com", "us.sentry.io", "siftscience.com",
+              # 使用者 2026-11-20 又要的五家（hCaptcha 是放行例外改了去向，旧的那一行会“去掉”）
+              "arkoselabs.com", "withpersona.com", "yoti.com", "workos.com", "hcaptcha.com",
               "160.79.104.0/23", "153.61.224.0/22", "2607:6bc0::/48"}
 
 nodes = yaml.safe_load(open(os.path.join(new, "tests", "node_samples.yaml"), encoding="utf-8"))
@@ -122,6 +124,7 @@ def is_datadog_added(path, kind, a, b):
     """第 6 条：新加的规则行、域名列表里新加的这个名字、mihomo nameserver-policy 里新加的这个键、
     sing-box 的 Claude 路由规则里新加的 domain（以前只有 domain_suffix，所以是整个键新加，值只有这一个名字）。"""
     return ((kind == "新增项" and isinstance(b, str) and bool(NEW_CLAUDE & set(b.replace(" ", "").split(",") + [b])))
+            or (kind == "去掉项" and isinstance(a, str) and bool(NEW_CLAUDE & set(a.replace(" ", "").split(",") + [a])))
             or (kind == "新增键" and (any(path.endswith("." + h) for h in NEW_CLAUDE)
                                     or (isinstance(b, list) and bool(b) and set(b) <= NEW_CLAUDE))))
 
@@ -136,11 +139,16 @@ def singbox_expected(conf_old, conf_new, problems, n):
                 problems.append(f"{n}：第一份送审稿里 {o['tag']} 的 security 是 {o.get('security')!r}，不是预期的 auto")
             o["security"] = "aes-128-gcm"
         obs.append(o)
-    # 第 6 条：Claude 的 IP 段在 sing-box 里是单独一条路由规则（只有 ip_cidr 和 outbound），整条新加；拿掉它再比
+    # 第 6 条：Claude 的 IP 段在 sing-box 里是单独一条路由规则（只有 ip_cidr 和 outbound），整条新加；拿掉它再比。
     rules = conf_new.get("route", {}).get("rules", [])
-    extra = [r for r in rules if set(r) == {"ip_cidr", "outbound"} and r["outbound"] == "Claude" and set(r["ip_cidr"]) <= NEW_CLAUDE]
-    if len(extra) == 1:
-        conf_new = dict(conf_new, route=dict(conf_new["route"], rules=[r for r in rules if r is not extra[0]]))
+    # hCaptcha 的放行例外改去 Claude 以后，例外那一段也单独多一条（只有 domain_suffix 和 outbound）
+    def only_new(r):
+        keys = set(r) - {"outbound"}
+        return (r.get("outbound") == "Claude" and keys and keys <= {"ip_cidr", "domain", "domain_suffix"}
+                and all(set(r[k]) <= NEW_CLAUDE for k in keys))
+    extra = [r for r in rules if only_new(r)]
+    if 1 <= len(extra) <= 2:
+        conf_new = dict(conf_new, route=dict(conf_new["route"], rules=[r for r in rules if not any(r is e for e in extra)]))
     diffs = [d for d in walk(dict(conf_old, outbounds=obs), conf_new) if not is_datadog_added(*d)]
     for path, kind, a, b in diffs[:6]:
         problems.append(f"{n}：照预期改了 VMess 以后仍不同：{path} {kind} {json.dumps(a, ensure_ascii=False)[:80]} → "
@@ -199,6 +207,9 @@ for n in names:
             if "(?" not in x:
                 problems.append(f"{n}：多了一行 {x[:100]!r}")
         for x in (la - lb).elements():
+            if NEW_CLAUDE & set(x.replace(" ", "").split(",")):
+                kinds["改去 Claude 组的旧行"] += 1
+                continue
             kinds["地区筛选正则（旧）" if "(?" in x else "?"] += 1
             if "(?" not in x:
                 problems.append(f"{n}：少了一行 {x[:100]!r}")

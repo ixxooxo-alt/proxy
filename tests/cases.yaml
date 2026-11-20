@@ -158,6 +158,11 @@ cases:
   - {host: r.stripe.com, expect: Claude, why: Stripe 付款页的风控信号；使用者 2026-11-20 的清单}
   - {host: o4505.ingest.us.sentry.io, expect: 广告拦截, why: Sentry 的错误上报本来就被广告集合拦掉（Loon、QX 的名单收了整个 sentry.io），排在 Claude 规则前面}
   - {host: cdn.siftscience.com, expect: Claude, why: Sift 反欺诈；使用者 2026-11-20 的清单}
+  - {host: client-api.arkoselabs.com, expect: Claude, why: Arkose Labs，Anthropic 的分包处理方；使用者 2026-11-20 要求}
+  - {host: js.hcaptcha.com, expect: Claude, why: hCaptcha 的放行例外改去 Claude}
+  - {host: inquiry.withpersona.com, expect: Claude}
+  - {host: api.yoti.com, expect: Claude}
+  - {host: auth.workos.com, expect: Claude}
   - {host: fcmtoken.googleapis.com, expect: Google, why: 清单里有，但 IP 只到 Google，按使用者的标准不进 Claude}
   - {host: fonts.googleapis.com, expect: Google, why: Claude Code 官方页面列出（Artifact 的字体），但 Google Fonts 不把访问者的 IP 交给 Anthropic，不归 Claude}
   - {host: cdnjs.cloudflare.com, expect: 国外默认, why: 官方页面列出（Artifact 用的库），公共 CDN，不归 Claude}
