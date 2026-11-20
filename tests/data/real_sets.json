@@ -83,9 +83,9 @@
    "official_checked": 214,
    "product_layer_checked": 136,
    "swept": {
-    "from_rules": 1677,
+    "from_rules": 1690,
     "from_sets": 222448,
-    "hosts": 224125,
+    "hosts": 224138,
     "sets": {
      "cn": 111224
     },
@@ -103,9 +103,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1590,
+    "from_rules": 1603,
     "from_sets": 17996,
-    "hosts": 19586,
+    "hosts": 19599,
     "sets": {
      "geosite-cn": 9303
     },
@@ -123,9 +123,9 @@
    "mismatch": [],
    "official_checked": 200,
    "swept": {
-    "from_rules": 1590,
+    "from_rules": 1603,
     "from_sets": 17996,
-    "hosts": 19586,
+    "hosts": 19599,
     "sets": {
      "geosite-cn": 9303
     },
@@ -137,7 +137,7 @@
    "to_domestic": 17701
   }
  },
- "generated": "2026-11-19",
+ "generated": "2026-11-20",
  "hosts": {
   "0.pool.ntp.org": {
    "loon": {},
@@ -556,6 +556,19 @@
     "geolocation-!cn": "suffix:apple.com"
    }
   },
+  "api-iam.intercom.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:intercom.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:intercom.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:intercom.io"
+   }
+  },
   "api.anthropic.com": {
    "loon": {},
    "mihomo": {
@@ -669,6 +682,13 @@
    "stash": {
     "geolocation-!cn": "suffix:x.ai"
    }
+  },
+  "api.yoti.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "api2.cursor.sh": {
    "loon": {},
@@ -822,6 +842,13 @@
    "singbox": {},
    "stash": {}
   },
+  "auth.workos.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
   "auth.x.ai": {
    "loon": {},
    "mihomo": {
@@ -893,6 +920,13 @@
    "stash": {
     "geolocation-!cn": "suffix:oaistatic.com"
    }
+  },
+  "cdn.siftscience.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "cdn.tailwindcss.com": {
    "loon": {},
@@ -1033,6 +1067,13 @@
    "stash": {
     "geolocation-!cn": "suffix:claude.dev"
    }
+  },
+  "client-api.arkoselabs.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
   },
   "cloudaicompanion.googleapis.com": {
    "loon": {},
@@ -1405,6 +1446,19 @@
    "quantumultx": {},
    "singbox": {},
    "stash": {}
+  },
+  "fcmtoken.googleapis.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:googleapis.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:googleapis.com"
+   }
   },
   "feedback-pa.googleapis.com": {
    "loon": {},
@@ -1937,6 +1991,13 @@
     "geolocation-!cn": "suffix:apple.com"
    }
   },
+  "inquiry.withpersona.com": {
+   "loon": {},
+   "mihomo": {},
+   "quantumultx": {},
+   "singbox": {},
+   "stash": {}
+  },
   "itunes.apple.com": {
    "loon": {},
    "mihomo": {
@@ -1950,6 +2011,19 @@
    "stash": {
     "cn": "full:itunes.apple.com",
     "geolocation-!cn": "suffix:apple.com"
+   }
+  },
+  "js.hcaptcha.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:hcaptcha.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:hcaptcha.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:hcaptcha.com"
    }
   },
   "js.intercomcdn.com": {
@@ -2271,12 +2345,45 @@
     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:cn"
    }
   },
+  "nexus-websocket-a.intercom.io": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:intercom.io"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:intercom.io"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:intercom.io"
+   }
+  },
   "notopenai.com": {
    "loon": {},
    "mihomo": {},
    "quantumultx": {},
    "singbox": {},
    "stash": {}
+  },
+  "o4505.ingest.us.sentry.io": {
+   "loon": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Loon/AdvertisingLite/AdvertisingLite_Domain.list": "suffix:sentry.io"
+   },
+   "mihomo": {
+    "category-ads-all": "suffix:sentry.io",
+    "geolocation-!cn": "suffix:sentry.io"
+   },
+   "quantumultx": {
+    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/QuantumultX/AdvertisingLite/AdvertisingLite.list": "suffix:sentry.io"
+   },
+   "singbox": {
+    "geosite-category-ads-all": "suffix:sentry.io",
+    "geosite-geolocation-!cn": "suffix:sentry.io"
+   },
+   "stash": {
+    "category-ads-all": "suffix:sentry.io",
+    "geolocation-!cn": "suffix:sentry.io"
+   }
   },
   "oauth2.googleapis.com": {
    "loon": {},
@@ -2620,6 +2727,19 @@
    "stash": {
     "cn": "suffix:qwen.ai",
     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax_Domain_For_Clash.txt": "suffix:qwen.ai"
+   }
+  },
+  "r.stripe.com": {
+   "loon": {},
+   "mihomo": {
+    "geolocation-!cn": "suffix:stripe.com"
+   },
+   "quantumultx": {},
+   "singbox": {
+    "geosite-geolocation-!cn": "suffix:stripe.com"
+   },
+   "stash": {
+    "geolocation-!cn": "suffix:stripe.com"
    }
   },
   "raw.githubusercontent.com": {
@@ -4100,6 +4220,28 @@
    },
    "stash": {}
   },
+  "153.61.224.10": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   },
+   "stash": {}
+  },
+  "160.79.104.10": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
+   },
+   "stash": {}
+  },
   "167.89.118.1": {
    "loon": {},
    "mihomo": {
@@ -4174,6 +4316,17 @@
    "quantumultx": {},
    "singbox": {
     "cn": true
+   },
+   "stash": {}
+  },
+  "2607:6bc0::10": {
+   "loon": {},
+   "mihomo": {
+    "cn": false
+   },
+   "quantumultx": {},
+   "singbox": {
+    "cn": false
    },
    "stash": {}
   },
@@ -4309,7 +4462,7 @@
  "official": {
   "mihomo": {
    "config": "mihomo/mihomo-core.yaml",
-   "config_sha256": "23570d0080c2398e1af57459b7d1b96143b24559dea9a710b8cef2ad35b812b5",
+   "config_sha256": "b6d82af86326912240187c4528f155c7fc7aec8a30c0a84d8fd9150cc798e2b8",
    "dial": {
     "direct nas.lan": "system",
     "direct www.baidu.com": "domestic",
@@ -4332,7 +4485,7 @@
     "unlisted never-listed-site.org": "foreign",
     "unlisted r1.test.dnsleaktest.com": "foreign"
    },
-   "dial_sha256": "232384cd57995e68e02e68d94816f89d2b5c092434e5430027b91d68d3147fd3",
+   "dial_sha256": "d1b5ca15ae8acf8784dcdee574d2f8bd5ec56639fa11da33bdb48a13ed8175bc",
    "dial_without_follow_policy": {
     "direct nas.lan": "domestic",
     "direct www.baidu.com": "domestic",
@@ -4589,6 +4742,14 @@
      "IPCIDR(149.154.160.0/20)",
      "Telegram"
     ],
+    "153.61.224.10": [
+     "IPCIDR(153.61.224.0/22)",
+     "Claude"
+    ],
+    "160.79.104.10": [
+     "IPCIDR(160.79.104.0/23)",
+     "Claude"
+    ],
     "192.168.1.1": [
      "IPCIDR(192.168.0.0/16)",
      "DIRECT"
@@ -4600,6 +4761,10 @@
     "240e::1": [
      "GeoIP(cn)",
      "国内直连"
+    ],
+    "2607:6bc0::10": [
+     "IPCIDR(2607:6bc0::/48)",
+     "Claude"
     ],
     "8.8.8.8": [
      "Match",
@@ -4725,6 +4890,10 @@
      "Domain(aod.itunes.apple.com)",
      "Apple Music/TV"
     ],
+    "api-iam.intercom.io": [
+     "Domain(api-iam.intercom.io)",
+     "Claude"
+    ],
     "api.anthropic.com": [
      "DomainSuffix(anthropic.com)",
      "Claude"
@@ -4754,12 +4923,16 @@
      "OpenAI"
     ],
     "api.workos.com": [
-     "Match",
-     "国外默认"
+     "DomainSuffix(workos.com)",
+     "Claude"
     ],
     "api.x.ai": [
      "DomainSuffix(x.ai)",
      "Grok"
+    ],
+    "api.yoti.com": [
+     "DomainSuffix(yoti.com)",
+     "Claude"
     ],
     "api2.cursor.sh": [
      "DomainSuffix(cursor.sh)",
@@ -4805,6 +4978,10 @@
      "DomainSuffix(grokusercontent.com)",
      "Grok"
     ],
+    "auth.workos.com": [
+     "DomainSuffix(workos.com)",
+     "Claude"
+    ],
     "auth.x.ai": [
      "DomainSuffix(x.ai)",
      "Grok"
@@ -4828,6 +5005,10 @@
     "cdn.oaistatic.com": [
      "DomainSuffix(oaistatic.com)",
      "OpenAI"
+    ],
+    "cdn.siftscience.com": [
+     "DomainSuffix(siftscience.com)",
+     "Claude"
     ],
     "cdn.tailwindcss.com": [
      "Match",
@@ -4871,6 +5052,10 @@
     ],
     "claude.dev": [
      "DomainSuffix(claude.dev)",
+     "Claude"
+    ],
+    "client-api.arkoselabs.com": [
+     "DomainSuffix(arkoselabs.com)",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -4984,6 +5169,10 @@
     "fakegoogle.com": [
      "Match",
      "国外默认"
+    ],
+    "fcmtoken.googleapis.com": [
+     "DomainSuffix(googleapis.com)",
+     "Google"
     ],
     "fe80::1": [
      "IPCIDR(fe80::/10)",
@@ -5153,9 +5342,17 @@
      "DomainSuffix(push.apple.com)",
      "Apple Push"
     ],
+    "inquiry.withpersona.com": [
+     "DomainSuffix(withpersona.com)",
+     "Claude"
+    ],
     "itunes.apple.com": [
      "DomainSuffix(apple.com)",
      "Apple"
+    ],
+    "js.hcaptcha.com": [
+     "DomainSuffix(hcaptcha.com)",
+     "Claude"
     ],
     "js.intercomcdn.com": [
      "GeoSite(geolocation-!cn)",
@@ -5257,9 +5454,17 @@
      "DomainSuffix(sina.com.cn)",
      "国内直连"
     ],
+    "nexus-websocket-a.intercom.io": [
+     "Domain(nexus-websocket-a.intercom.io)",
+     "Claude"
+    ],
     "notopenai.com": [
      "Match",
      "国外默认"
+    ],
+    "o4505.ingest.us.sentry.io": [
+     "GeoSite(category-ads-all)",
+     "广告拦截"
     ],
     "oauth2.googleapis.com": [
      "DomainSuffix(googleapis.com)",
@@ -5368,6 +5573,10 @@
     "qwen.ai": [
      "DomainSuffix(qwen.ai)",
      "国外默认"
+    ],
+    "r.stripe.com": [
+     "Domain(r.stripe.com)",
+     "Claude"
     ],
     "raw.githubusercontent.com": [
      "DomainSuffix(githubusercontent.com)",
@@ -5754,12 +5963,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "81743fefbb079169ec78c0f154d0c4b94adf3522f2baecc85499afd630bf6bba",
+   "routing_sha256": "834318763b497c8f95577f26462c62a5471ec27b5d3f956eb8cc6275f1d4d1a5",
    "version": "Mihomo Meta v1.19.31 linux amd64 with go1.26.8 Mon Sep 14 13:20:43 UTC 2026"
   },
   "singbox": {
    "config": "sing-box/sing-box-1.14.json",
-   "config_sha256": "1ef067177244cecad299b24fa2ad33f548803ebf2d4d5dadb059373e98e510bd",
+   "config_sha256": "e8c93adaa2facabea19fde4a9e513dfe8b8bc3ed2660f24b1951a5a8cb231610",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -5782,7 +5991,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "cf72e5c4e7e4b2b0e1b15f6f09f4523c91068b6eb5144485409e50f7937c5fb2",
+   "dial_sha256": "3d1e0f8f35f756619ee5c0044fce157e6b73724f2d4f74cd4ef9ca5ee48751e9",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -5954,6 +6163,14 @@
      "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
      "Telegram"
     ],
+    "153.61.224.10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
+    ],
+    "160.79.104.10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
+    ],
     "192.168.1.1": [
      "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
      "DIRECT"
@@ -5965,6 +6182,10 @@
     "240e::1": [
      "rule_set=geoip-cn",
      "国内直连"
+    ],
+    "2607:6bc0::10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
     ],
     "8.8.8.8": [
      "没有规则命中（route.final）",
@@ -6071,11 +6292,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "anthropic.team": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "antigravity.google": [
@@ -6090,8 +6311,12 @@
      "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
      "Apple Music/TV"
     ],
+    "api-iam.intercom.io": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "api.anthropic.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -6119,12 +6344,16 @@
      "OpenAI"
     ],
     "api.workos.com": [
-     "没有规则命中（route.final）",
-     "国外默认"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "api.x.ai": [
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
+    ],
+    "api.yoti.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "api2.cursor.sh": [
      "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
@@ -6170,6 +6399,10 @@
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
     ],
+    "auth.workos.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "auth.x.ai": [
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
@@ -6179,7 +6412,7 @@
      "开发下载"
     ],
     "browser-intake-us5-datadoghq.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "captive.apple.com": [
@@ -6194,6 +6427,10 @@
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
     ],
+    "cdn.siftscience.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "cdn.tailwindcss.com": [
      "没有规则命中（route.final）",
      "国外默认"
@@ -6203,7 +6440,7 @@
      "国外默认"
     ],
     "challenges.cloudflare.com": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "chat.deepseek.com": [
@@ -6227,15 +6464,19 @@
      "Google"
     ],
     "claude.ai": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "claude.app": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "claude.dev": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
+    "client-api.arkoselabs.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -6323,7 +6564,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -6349,6 +6590,10 @@
     "fakegoogle.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "fcmtoken.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
     ],
     "fe80::1": [
      "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
@@ -6471,7 +6716,7 @@
      "国外默认"
     ],
     "http-intake.logs.us5.datadoghq.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
@@ -6518,9 +6763,17 @@
      "domain_suffix=push.apple.com",
      "Apple Push"
     ],
+    "inquiry.withpersona.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "itunes.apple.com": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
      "Apple"
+    ],
+    "js.hcaptcha.com": [
+     "domain_suffix=hcaptcha.com",
+     "Claude"
     ],
     "js.intercomcdn.com": [
      "rule_set=geosite-geolocation-!cn",
@@ -6551,7 +6804,7 @@
      "LINE"
     ],
     "links.app.link": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "live.nicochannel.jp": [
@@ -6622,9 +6875,17 @@
      "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com umeng.com...]",
      "国内直连"
     ],
+    "nexus-websocket-a.intercom.io": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "notopenai.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "o4505.ingest.us.sentry.io": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
     ],
     "oauth2.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
@@ -6687,7 +6948,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "play.max.com": [
@@ -6733,6 +6994,10 @@
     "qwen.ai": [
      "domain_suffix=[qwen.ai qwenlm.ai]",
      "国外默认"
+    ],
+    "r.stripe.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "raw.githubusercontent.com": [
      "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
@@ -6803,7 +7068,7 @@
      "Google AI"
     ],
     "storage.googleapis.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "sydney.bing.com": [
@@ -6851,7 +7116,7 @@
      "日本影音"
     ],
     "u123.ct.sendgrid.net": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "umengcloud.com": [
@@ -6935,7 +7200,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -7119,12 +7384,12 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "f9e5297c4e01ff6ee6515d099fdefb819bed40cdb9dfdcdb5f4dbf132343f7e6",
+   "routing_sha256": "5183ed8d4cf17c0ff0abf472c464e3a11d33454e1fc75ff8cff0de982dc245b9",
    "version": "sing-box version 1.14.1"
   },
   "singbox112": {
    "config": "sing-box/sing-box-1.12.json",
-   "config_sha256": "9caddab57b8a1177b408831530a1bcea71b6f0a31b619eb5f12d4727fb632272",
+   "config_sha256": "6608e63ea4d302c1d949d5f7da4f70891cd895b5975ad7edc71aef6699940a82",
    "dial": {
     "direct nas.lan": "dns-local",
     "direct www.baidu.com": "dns-cn",
@@ -7147,7 +7412,7 @@
     "unlisted never-listed-site.org": "dns-foreign",
     "unlisted r1.test.dnsleaktest.com": "dns-foreign"
    },
-   "dial_sha256": "10663c82e51ba0c9def6bc23cb444ba61799481105b9133180af971825db63e2",
+   "dial_sha256": "3886d848c07b53296bcb0e6b0f0744e935fed5185759da4a4d14d4449ebeb3c0",
    "dial_without_fix": {
     "direct nas.lan": "dns-cn",
     "direct www.baidu.com": "dns-cn",
@@ -7319,6 +7584,14 @@
      "ip_cidr=[91.105.192.0/23 91.108.4.0/22 91.108.8.0/22...]",
      "Telegram"
     ],
+    "153.61.224.10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
+    ],
+    "160.79.104.10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
+    ],
     "192.168.1.1": [
      "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
      "DIRECT"
@@ -7330,6 +7603,10 @@
     "240e::1": [
      "rule_set=geoip-cn",
      "国内直连"
+    ],
+    "2607:6bc0::10": [
+     "ip_cidr=[160.79.104.0/23 153.61.224.0/22 2607:6bc0::/48]",
+     "Claude"
     ],
     "8.8.8.8": [
      "没有规则命中（route.final）",
@@ -7436,11 +7713,11 @@
      "Bahamut"
     ],
     "ant.dev": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "anthropic.team": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "antigravity.google": [
@@ -7455,8 +7732,12 @@
      "domain=[aod.itunes.apple.com aod-ssl.itunes.apple.com audio-ssl.itunes.apple.com...] domain_suffix=[music.apple.com tv.a",
      "Apple Music/TV"
     ],
+    "api-iam.intercom.io": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "api.anthropic.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "api.bilibili.com": [
@@ -7484,12 +7765,16 @@
      "OpenAI"
     ],
     "api.workos.com": [
-     "没有规则命中（route.final）",
-     "国外默认"
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "api.x.ai": [
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
+    ],
+    "api.yoti.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "api2.cursor.sh": [
      "domain=[anysphere-binaries.s3.us-east-1.amazonaws.com agent-stores.s3.us-east-1.amazonaws.com agent-stores.s3.amazonaws.",
@@ -7535,6 +7820,10 @@
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
     ],
+    "auth.workos.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "auth.x.ai": [
      "domain_suffix=[x.ai grok.com grokipedia.com...]",
      "Grok"
@@ -7544,7 +7833,7 @@
      "开发下载"
     ],
     "browser-intake-us5-datadoghq.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "captive.apple.com": [
@@ -7559,6 +7848,10 @@
      "domain=cdn.openaimerge.com domain_suffix=[openai.com chatgpt.com oaistatic.com...]",
      "OpenAI"
     ],
+    "cdn.siftscience.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "cdn.tailwindcss.com": [
      "没有规则命中（route.final）",
      "国外默认"
@@ -7568,7 +7861,7 @@
      "国外默认"
     ],
     "challenges.cloudflare.com": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "chat.deepseek.com": [
@@ -7592,15 +7885,19 @@
      "Google"
     ],
     "claude.ai": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "claude.app": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "claude.dev": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
+    "client-api.arkoselabs.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "cloudaicompanion.googleapis.com": [
@@ -7688,7 +7985,7 @@
      "开发下载"
     ],
     "downloads.claude.ai": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "downloads.cursor.com": [
@@ -7714,6 +8011,10 @@
     "fakegoogle.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "fcmtoken.googleapis.com": [
+     "domain_suffix=[google.com googleapis.com gstatic.com...]",
+     "Google"
     ],
     "fe80::1": [
      "ip_cidr=[0.0.0.0/8 10.0.0.0/8 100.64.0.0/10...]",
@@ -7836,7 +8137,7 @@
      "国外默认"
     ],
     "http-intake.logs.us5.datadoghq.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "hulu.playback.edge.bamgrid.com": [
@@ -7883,9 +8184,17 @@
      "domain_suffix=push.apple.com",
      "Apple Push"
     ],
+    "inquiry.withpersona.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "itunes.apple.com": [
      "domain_suffix=[apple.com apple.com.cn apple.co...]",
      "Apple"
+    ],
+    "js.hcaptcha.com": [
+     "domain_suffix=hcaptcha.com",
+     "Claude"
     ],
     "js.intercomcdn.com": [
      "rule_set=geosite-geolocation-!cn",
@@ -7916,7 +8225,7 @@
      "LINE"
     ],
     "links.app.link": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "live.nicochannel.jp": [
@@ -7987,9 +8296,17 @@
      "domain_suffix=[windowsupdate.com delivery.mp.microsoft.com umeng.com...]",
      "国内直连"
     ],
+    "nexus-websocket-a.intercom.io": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
+    ],
     "notopenai.com": [
      "没有规则命中（route.final）",
      "国外默认"
+    ],
+    "o4505.ingest.us.sentry.io": [
+     "rule_set=geosite-category-ads-all",
+     "REJECT"
     ],
     "oauth2.googleapis.com": [
      "domain_suffix=[google.com googleapis.com gstatic.com...]",
@@ -8052,7 +8369,7 @@
      "REJECT"
     ],
     "platform.claude.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "play.max.com": [
@@ -8098,6 +8415,10 @@
     "qwen.ai": [
      "domain_suffix=[qwen.ai qwenlm.ai]",
      "国外默认"
+    ],
+    "r.stripe.com": [
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
+     "Claude"
     ],
     "raw.githubusercontent.com": [
      "domain=github-cloud.s3.amazonaws.com domain_suffix=[github.com githubusercontent.com githubassets.com...]",
@@ -8168,7 +8489,7 @@
      "Google AI"
     ],
     "storage.googleapis.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "sydney.bing.com": [
@@ -8216,7 +8537,7 @@
      "日本影音"
     ],
     "u123.ct.sendgrid.net": [
-     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link hcaptcha.com]",
+     "domain=[m.stripe.network m.stripe.com challenges.cloudflare.com] domain_suffix=[ct.sendgrid.net app.link]",
      "国外默认"
     ],
     "umengcloud.com": [
@@ -8300,7 +8621,7 @@
      "国外默认"
     ],
     "www.claudestudio.com": [
-     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com] domain_suffix=[anthr",
+     "domain=[http-intake.logs.us5.datadoghq.com browser-intake-us5-datadoghq.com storage.googleapis.com...] domain_suffix=[an",
      "Claude"
     ],
     "www.crunchyroll.com": [
@@ -8484,7 +8805,7 @@
      "国内直连"
     ]
    },
-   "routing_sha256": "6faf2391124cb408e0421f0880bbe6e33d4c8a00fd0f692996d18cbd6f12bb93",
+   "routing_sha256": "d93095f2c028d65a79dd4230aaeca225d6c3816a92b93757222b9a616b307e3d",
    "version": "sing-box version 1.12.0"
   }
  },
@@ -8561,7 +8882,7 @@
    "geolocation-!cn": 23905
   }
  },
- "source_version": "2026.11.19-2",
+ "source_version": "2026.11.20-1",
  "sources": {
   "loon": {
    "AdvertisingLite.list": {
