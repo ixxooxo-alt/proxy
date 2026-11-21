@@ -1,0 +1,14 @@
+更正第二部分（真机测试）：我平时用的是简易版，请改测简易版。你刚才导入的 loon.conf 是完整版，每个地区有“手动优先、手动、自动、故障转移、负载均衡”几个组，这是完整版本来的样子，不是下错了，也不是没更新。
+
+改用下面这几个地址（同一个提交 3d3d17b，统一源版本同样是 2026.11.20-1）：
+  Loon：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/loon/loon-simple.conf
+  Quantumult X：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/quantumultx/quantumultx-simple.conf
+  Stash：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/stash/stash-simple.yaml
+  Clash Verge Rev：https://raw.githubusercontent.com/ixxooxo-alt/proxy/3d3d17b36394bfaeb3cfbccae8d26d526bfc1d5a/dist/mihomo/mihomo-simple-profile.yaml
+
+怎么测：
+- 每个 App 先做 docs/09 第 1d 节（简易版）的第 1–8 步，代替原来第 1 节里看策略组的那几行（81 个策略组、手动组和自动组、“香港·手动优先”的成员这些是完整版的，简易版不用看）。简易版的通过标准：Loon、Quantumult X、Stash 51 个策略组，Clash Verge Rev 看到 51 个（“境外DNS”藏起来了）；每个地区只有一个组（例如“新加坡”），里面直接是这个地区的节点，没有“新加坡·自动”这类子组；“国外默认”前七项是日本、香港、韩国、台湾、新加坡、美国、其他地区，后面是节点。
+- 第 1 节里其余和分组无关的行（版本、能导入、不明显变卡、图标、广告订阅、Clash 的“DNS 覆写”关着等）照做；第 2、3 节和第 5 节的 DNS 泄露、IPv6 照原来的说法做（第 1d 节第 8 步：分流应和完整版相同）。
+- 原来说的“节点分组、长正则的表现、Claude 组”三样照看；已知问题 F-R3 在简易版的地区组里同样会出现（“港德-日本 01”这类名字进了“日本”组）。
+- 完整版刚才已经导入的那一份不用删，也先不用测；测完一并恢复成开始前的状态。
+- 其余约束（不改配置、不装证书、截图遮住订阅和服务器地址等）不变。
